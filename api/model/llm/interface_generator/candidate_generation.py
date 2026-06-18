@@ -53,6 +53,7 @@ from .uml_mapping.mapping_sections import (
 
 
 def _render_candidate_preview_local(interface_id: str, candidate_index: int) -> str:
+    """Render candidate preview local."""
     interface = Interface.objects.get(id=interface_id)
     candidates = (interface.data or {}).get("candidates", [])
     if candidate_index < 0 or candidate_index >= len(candidates):
@@ -116,6 +117,7 @@ def _render_candidate_preview_local(interface_id: str, candidate_index: int) -> 
 
 
 def _norm_candidate_styling(styling) -> dict:
+    """Normalize candidate styling."""
     if styling:
         if isinstance(styling, str):
             try: styling = json.loads(styling)
@@ -146,6 +148,7 @@ _STYLING_TOKEN_KEYS = frozenset({
 })
 
 def _norm_candidate_tokens(tokens, styling: dict | None = None) -> dict:
+    """Normalize candidate tokens."""
     if not tokens:
         tokens = {}
     if isinstance(tokens, str):
@@ -158,6 +161,13 @@ def _norm_candidate_tokens(tokens, styling: dict | None = None) -> dict:
             tokens[key] = styling[key]
     # LLM-generated tokens/styling are the source of truth.
     return tokens
+
+
+def _drop_deprecated_section_fields(section: dict) -> dict:
+    """Remove deprecated section fields that should not be emitted by candidates."""
+    section = dict(section or {})
+    section.pop("item_actions", None)
+    return section
 
 
 def validate_and_save_candidate(
@@ -243,9 +253,14 @@ def validate_and_save_candidate(
         sections = _normalize_activity_action_sections(pages, sections)
         sections = _normalize_chrome_sections(sections)
 
-        def _norm_model(n): return re.sub(r'[\s_-]', '', str(n or '')).lower()
+        def _norm_model(n):
+            """Normalize model names for fuzzy comparison."""
+            return re.sub(r'[\s_-]', '', str(n or '')).lower()
         model_names_fuzzy = {_norm_model(m): m for m in known_models}
-        def _canonical_model_name(name): return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
+
+        def _canonical_model_name(name):
+            """Return the canonical known model name for a fuzzy model reference."""
+            return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
 
         page_names = {p.get("name", "") for p in pages}
         page_ref_to_name: dict = {}
@@ -258,7 +273,7 @@ def validate_and_save_candidate(
         # supported layouts/styles, UML-bound attributes, and valid workflow targets.
         fixed_sections = []
         for s in sections:
-            s = dict(s)
+            s = _drop_deprecated_section_fields(s)
             s["layout"] = _normalize_layout_alias(s.get("layout"))
             s["operations"] = _normalize_section_operations(s.get("operations"))
             s["component"] = _infer_section_component(s)
@@ -351,7 +366,12 @@ def validate_and_save_candidate(
         # Normalize section refs and assign sections to pages that have none
         for i, p in enumerate(fixed_pages):
             if p.get("sections") is not None:
-                fixed_pages[i] = {**p, "sections": [r if isinstance(r, dict) else {"value": r} for r in p["sections"]]}
+                fixed_pages[i] = {**p, "sections": [
+                    {**r, "sections": [s if isinstance(s, dict) else {"value": s} for s in (r.get("sections") or [])]}
+                    if isinstance(r, dict) and r.get("type") == "card"
+                    else (r if isinstance(r, dict) else {"value": r})
+                    for r in p["sections"]
+                ]}
         assignable = [s for s in fixed_sections if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"} and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}]
         if any(not p.get("sections") for p in fixed_pages) and assignable:
             model_to_secs: dict = defaultdict(list)
@@ -374,7 +394,15 @@ def validate_and_save_candidate(
 
         section_ids = {s["id"] for s in fixed_sections}
         for p in fixed_pages:
-            p["sections"] = [ref for ref in (p.get("sections") or []) if _ref_id(ref) in section_ids]
+            filtered = []
+            for ref in (p.get("sections") or []):
+                if isinstance(ref, dict) and ref.get("type") == "card":
+                    valid_nested = [s for s in (ref.get("sections") or []) if _ref_id(s) in section_ids]
+                    if valid_nested:
+                        filtered.append({**ref, "sections": valid_nested})
+                elif _ref_id(ref) in section_ids:
+                    filtered.append(ref)
+            p["sections"] = filtered
         fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
 
         data = dict(iface.get("data") or {})
@@ -463,12 +491,14 @@ def get_candidate_regeneration_context(interface_id: str, candidate_index: int, 
         return f"Error fetching candidate regeneration context: {e}"
 
 def _candidate_variant_name(prompt: str, index: int) -> str:
+    """Build candidate variant name."""
     prefix = "Agent"
     suffixes = ("Gallery", "Table", "Showcase")
     return f"{prefix} {suffixes[index % len(suffixes)]}"
 
 
 def _parse_llm_json(text: str):
+    """Parse llm json."""
     raw = str(text or "").strip()
     if raw.startswith("```"):
         raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.I)
@@ -511,6 +541,7 @@ def _parse_llm_json(text: str):
 
 
 def _candidate_list_from_llm_response(text: str) -> list:
+    """Build candidate list from LLM response."""
     result = _parse_llm_json(text)
     if isinstance(result, list):
         return result
@@ -677,7 +708,7 @@ def _allowed_layout(role: str, base_layout: str, proposed: str) -> str:
 def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: dict) -> tuple[list, list]:
     """Merge LLM layout/style decisions onto base pages/sections, preserving all data fields."""
     pages = copy.deepcopy(base_pages)
-    sections = copy.deepcopy(base_sections)
+    sections = [_drop_deprecated_section_fields(s) for s in copy.deepcopy(base_sections)]
 
     llm_sec_map = {str(s.get("id", "")): s for s in (llm_candidate.get("sections") or []) if s.get("id")}
     llm_page_map = {str(p.get("id", "")): p for p in (llm_candidate.get("pages") or []) if p.get("id")}

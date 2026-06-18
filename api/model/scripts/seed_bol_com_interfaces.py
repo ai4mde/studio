@@ -10,6 +10,7 @@ import django
 django.setup()
 
 from diagram.models import Diagram, Edge, Node
+from llm.interface_generator.uml_mapping.mapping_sections import category_names_for_pages
 from metadata.models import Classifier, Interface, Relation
 
 NAMESPACE = uuid.UUID("77d86611-70f8-4b87-a6d4-112f857dcb37")
@@ -1205,7 +1206,7 @@ def patch_interface(actor_name, build):
         {
             "sections": sections,
             "pages": pages,
-            "categories": [category(name) for name in ["Product", "Category", "Cart", "Order", "Customer", "Seller"]],
+            "categories": [category(name) for name in category_names_for_pages(pages)],
             "styling": {
                 "radius": 8,
                 "textColor": "#111827",

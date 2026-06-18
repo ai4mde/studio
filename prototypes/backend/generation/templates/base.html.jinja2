@@ -8,7 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
     <style>
+        {%- if tokens is defined %}
+        {% include "helpers/unified_page_styles.css.jinja2" %}
+        {%- else %}
         {% include "helpers/tailwind_fallback.css.jinja2" %}
+        {%- endif %}
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans text-gray-800">
@@ -32,7 +36,10 @@
 </div>
 {% raw %}{% endif %}{% endraw %}
 
-{%- set _accent_hex = _accent_hex if _accent_hex is defined else (styling.accent_color if styling and styling.accent_color else '#0000a4') %}
+{%- set _tokens = tokens if tokens is defined and tokens else {} %}
+{%- set _styling = styling if styling is defined and styling else {} %}
+{%- set _styling_accent = (_styling.get('accentColor', _styling.get('accent_color', '')) if _styling.get is defined else (_styling.accentColor if _styling.accentColor is defined else (_styling.accent_color if _styling.accent_color is defined else ''))) if _styling else '' %}
+{%- set _accent_hex = _accent_hex if _accent_hex is defined else _tokens.get('accent.hex', _styling_accent or '#0000a4') %}
 {%- set _brand_name = _brand_name if _brand_name is defined else application_name %}
 {%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') if tokens is defined else 'max-w-6xl' %}
 {%- set _raw_page_layout = page.layout if page is defined and page.layout is defined and page.layout else {} %}

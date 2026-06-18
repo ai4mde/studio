@@ -9,6 +9,7 @@ from llm.prompts.generator import GEMINI_MAKE_PROTOTYPE
 
 def remove_reply_markdown(reply: str) -> str:
     # Handle both ```json ... ``` and ``` ... ```
+    """Strip Markdown fences from an LLM response payload."""
     reply = reply.strip()
     if reply.startswith("```"):
         lines = reply.splitlines()
@@ -19,6 +20,7 @@ def remove_reply_markdown(reply: str) -> str:
 
 
 def call_openai(model: str, prompt: str, base_url: str = None) -> str:
+    """Send a prompt to an OpenAI-compatible chat completion endpoint."""
     if base_url:
         api_key = os.environ.get("GEMINI_API_KEY")
         key_name = "GEMINI_API_KEY"
@@ -50,6 +52,7 @@ def call_openai(model: str, prompt: str, base_url: str = None) -> str:
 
 
 def call_anthropic(model: str, prompt: str) -> str:
+    """Send a prompt to Anthropic and return the generated text."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise Exception("Missing API Key: ANTHROPIC_API_KEY is not set in the environment.")
@@ -66,6 +69,7 @@ def call_anthropic(model: str, prompt: str) -> str:
 
 
 def call_groq(model: str, prompt: str) -> str:
+    """Send a prompt to Groq and return the generated text."""
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
         raise Exception("Missing API Key: GROQ_API_KEY is not set in the environment.")
@@ -91,6 +95,7 @@ def call_groq(model: str, prompt: str) -> str:
 
 def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_data: Dict[str, Any] = {}) -> str:
 
+    """Render a named prompt and dispatch it to the configured LLM provider."""
     if not input_data:
         raise Exception("No input data given")
     

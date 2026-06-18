@@ -49,11 +49,11 @@ const FOOTER_LAYOUTS: LayoutOption[] = ['service-bar', 'link-grid', 'brand-strip
 const MAX_AUTO_PREVIEW_BYTES = 2_000_000;
 
 const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
-    table:   ['item_actions', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
-    card:    ['item_actions', 'display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
-    list:    ['item_actions', 'list_style', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'availability_label', 'delivery_label'],
-    detail:  ['item_actions', 'image_position', 'image_size', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
-    gallery: ['item_actions', 'columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    table:   ['color', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    card:    ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
+    list:    ['list_style', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'availability_label', 'delivery_label'],
+    detail:  ['image_position', 'image_size', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    gallery: ['columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     filter:  ['color', 'density', 'bg'],
     form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'cta_label', 'success_page'],
     activity_action: ['activity_label', 'activity_workflow_action', 'activity_target_page', 'activity_variant', 'activity_align', 'activity_size'],
@@ -68,21 +68,21 @@ const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
     SearchBar: ['text', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
     SiteFooter: ['text', 'methods', 'density', 'bg', 'shadow'],
     FooterLinkGrid: ['methods', 'density', 'bg'],
-    ProductCardGrid: ['item_actions', 'display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
-    CategoryTileGrid: ['item_actions', 'display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    PersonCardGrid: ['item_actions', 'display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    CardGrid: ['item_actions', 'display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    ObjectCardGrid: ['item_actions', 'display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    ImageCard: ['item_actions', 'display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    ImageCardGrid: ['item_actions', 'display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    DataTable: ['item_actions', 'density', 'shadow', 'border', 'bg', 'header_style'],
-    ObjectList: ['item_actions', 'list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    LineItemList: ['item_actions', 'list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    RelatedObjectList: ['item_actions', 'list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    ProductDetailPanel: ['item_actions', 'image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
-    MediaDetailPanel: ['item_actions', 'image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
-    ObjectDetailPanel: ['item_actions', 'density', 'shadow', 'border', 'bg', 'header_style'],
-    DetailPanel: ['item_actions', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    ProductCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
+    CategoryTileGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    PersonCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    CardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ObjectCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ImageCard: ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ImageCardGrid: ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    DataTable: ['density', 'shadow', 'border', 'bg', 'header_style'],
+    ObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    LineItemList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    RelatedObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ProductDetailPanel: ['image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    MediaDetailPanel: ['image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    ObjectDetailPanel: ['density', 'shadow', 'border', 'bg', 'header_style'],
+    DetailPanel: ['density', 'shadow', 'border', 'bg', 'header_style'],
     SummaryPanel: ['density', 'shadow', 'border', 'bg', 'header_style', 'sidebar_side', 'sidebar_width'],
     ObjectForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
     AddressForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
@@ -140,7 +140,7 @@ const PROMPT_GUIDE_EXAMPLES = [
     },
     {
         title: 'Regenerate Selected Candidate',
-        prompt: 'Regenerate based on the selected candidate. Preserve the selected candidate page structure, section purpose, data bindings, operations, and workflow behavior unless I explicitly ask to change them. Only improve the visual design: make spacing, typography, header, navigation, footer, cards, tables, and sidebar placement more polished. Keep the same page responsibilities and do not drop sections.'
+        prompt: 'Regenerate based on the selected candidate. Preserve the selected candidate page structure, section purpose, query constraints, item navigation, operations, and workflow behavior unless I explicitly ask to change them. Only improve the visual design: make spacing, typography, header, navigation, footer, cards, tables, and sidebar placement more polished. Keep the same page responsibilities and do not drop sections.'
     },
     {
         title: 'More Expressive, Still Correct',
@@ -1372,7 +1372,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                     } catch { /* ignore */ }
                 }
             }
-            // 只有 agent 明確回傳 "done" 才顯示成功；否則保留最後收到的狀態（可能是錯誤訊息）
+            // Only show success if agent explicitly returns "done"; otherwise keep the last received status (may be an error message)
             if (lastStatus === 'done') setCandidateStatus('Done! Loading candidates...');
         } catch (e: any) {
             setCandidateStatus(`Error: ${e.message}`);
@@ -1486,7 +1486,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         const prompt = currentPrompt;
         setCurrentPrompt('');
         setIsLoadingAgent(true);
-        setAgentStatus('Initiating... (启动中...)');
+        setAgentStatus('Initiating...');
         trackEvent('refinement_submitted', { prompt, interface_id: interfaceId });
 
         try {
@@ -1589,12 +1589,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const isMethodOnly = !isActivityAction && !isChromeLayout && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
     const attrNameOf = (attr: any) => typeof attr === 'string' ? attr : attr?.name || '';
     const selectedPrimaryModel = selectedSection?.primary_model || selectedSection?.class || '';
-    const actionNameFromLabel = (label: string) => label
-        .trim()
-        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-        .replace(/[^A-Za-z0-9]+/g, '_')
-        .replace(/^_+|_+$/g, '')
-        .toLowerCase();
     const selectedModelClassifier = systemClassifiers.find((cls: any) =>
         cls?.data?.name === selectedPrimaryModel || cls?.id === selectedSection?.class
     );
@@ -3033,37 +3027,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
                             {!isChromeOrControlSection && (
                             <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#f9fafb' }}>
-                                <p style={{ fontSize: 11, color: '#374151', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Data Binding</p>
-                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Related To</p>
-                                <select
-                                    value={selectedSection.related_to || ''}
-                                    onChange={e => updateSection(selectedSection.id, 'related_to', e.target.value)}
-                                    style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12, marginBottom: 8 }}
-                                >
-                                    <option value="">None</option>
-                                    {(sections as any[]).filter((s: any) => s.id !== selectedSection.id).map((s: any) => (
-                                        <option key={s.id} value={s.id}>{s.name || s.id}</option>
-                                    ))}
-                                </select>
-                                {selectedSection.related_to && (
-                                    <>
-                                        <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Relationship</p>
-                                        <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-                                            {(['direct', 'same_parent'] as const).map(v => (
-                                                <button key={v} style={{ ...btnBase, ...active((selectedSection.relationship || {}).mode === v), padding: '3px 7px', fontSize: 11 }}
-                                                    onClick={() => updateSection(selectedSection.id, 'relationship_mode', v)}>{v}</button>
-                                            ))}
-                                        </div>
-                                        <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Relation Field</p>
-                                        <input
-                                            type="text"
-                                            value={selectedSection.relation_field || ''}
-                                            onChange={e => updateSection(selectedSection.id, 'relation_field', e.target.value)}
-                                            placeholder="e.g. Product"
-                                            style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 8, boxSizing: 'border-box' }}
-                                        />
-                                    </>
-                                )}
+                                <p style={{ fontSize: 11, color: '#374151', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Query / Interaction</p>
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Data Source From</p>
                                 <div style={{ width: '100%', minHeight: 30, borderRadius: 6, border: '1px solid #e5e7eb', padding: '6px 8px', fontSize: 12, marginBottom: 4, boxSizing: 'border-box', background: '#f9fafb', color: '#374151' }}>
                                     {selectedPrimaryModel || 'Select a primary class first'}
@@ -3481,35 +3445,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             const lines = e.target.value.split('\n').map((l: string) => ({ name: l }));
                                             setSections((prev: any[]) => prev.map((s: any) =>
                                                 s.id === selectedSection.id ? { ...s, methods: lines } : s
-                                            ));
-                                        }}
-                                        style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, resize: 'vertical', boxSizing: 'border-box' }}
-                                    />
-                                </>
-                            )}
-
-                            {hasControl('item_actions') && (
-                                <>
-                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Item Actions (one per line)</p>
-                                    <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>Rendered once for every record in this section.</p>
-                                    <textarea
-                                        rows={3}
-                                        placeholder="Add to Cart&#10;View Details&#10;Remove Item"
-                                        value={(selectedSection.item_actions || []).map((m: any) =>
-                                            typeof m === 'string' ? m : (m?.label || m?.name || '')
-                                        ).join('\n')}
-                                        onChange={e => {
-                                            const actions = e.target.value
-                                                .split('\n')
-                                                .map((line: string) => line.trim())
-                                                .filter(Boolean)
-                                                .map((label: string) => ({
-                                                    name: actionNameFromLabel(label),
-                                                    label,
-                                                    target_model: selectedPrimaryModel,
-                                                }));
-                                            setSections((prev: any[]) => prev.map((s: any) =>
-                                                s.id === selectedSection.id ? { ...s, item_actions: actions } : s
                                             ));
                                         }}
                                         style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, resize: 'vertical', boxSizing: 'border-box' }}

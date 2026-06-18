@@ -29,6 +29,20 @@ from ..candidate_defaults import (
 from .usecase_workflow import _is_child_collection_model
 
 
+def category_names_for_pages(pages: list) -> list[str]:
+    """Collect unique category labels referenced by generated pages."""
+    names = []
+    for page_data in pages or []:
+        raw_category = page_data.get("category")
+        if isinstance(raw_category, dict):
+            raw_category = raw_category.get("value") or raw_category.get("label")
+        if isinstance(raw_category, dict):
+            raw_category = raw_category.get("name")
+        if raw_category and raw_category not in names:
+            names.append(raw_category)
+    return names
+
+
 def _ensure_mapping_chrome_sections(pages: list, sections: list) -> tuple[list, list]:
     """Add stable app chrome during UML mapping so candidates can focus on visual variants."""
     pages = [dict(p) for p in pages or []]
@@ -119,6 +133,7 @@ def _ensure_mapping_content_sections(
     return pages, sections
 
 def _drop_unreferenced_non_global_sections(pages: list, sections: list) -> list:
+    """Remove non-chrome sections that are no longer referenced by any page."""
     referenced = {
         _ref_id(ref)
         for page in pages or []
@@ -164,6 +179,7 @@ def _dedupe_agent_header_shells(pages: list, sections: list) -> tuple[list, list
 
 
 def _inject_chrome_sections(new_sections: list, sections: list, section_map: dict, pages: list, prepend: bool) -> None:
+    """Insert generated chrome sections and attach them to normal pages."""
     for s in new_sections:
         sid = s["id"]
         suffix = 2
@@ -188,6 +204,7 @@ def _ensure_candidate_content_structure(
     candidate_index: int = 0,
     add_missing_content: bool = True,
 ) -> tuple[list, list]:
+    """Ensure each candidate page has the data sections needed by its role."""
     known_models = set(model_attrs.keys())
     sections = [dict(s) for s in sections]
     for section in sections:
@@ -260,6 +277,7 @@ def _ensure_candidate_content_structure(
     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
 
     def _is_global_region_section(section: dict) -> bool:
+        """Provide a local helper for _ensure_candidate_content_structure."""
         position = section.get("position")
         if position not in {"header", "sidebar", "footer"} or not section.get("id"):
             return False
@@ -308,6 +326,7 @@ def _ensure_candidate_content_structure(
     }
 
     def _best_page_for_region_section(section: dict) -> dict | None:
+        """Provide a local helper for _ensure_candidate_content_structure."""
         if not normal_pages:
             return None
         pm = str(section.get("primary_model") or "")
@@ -368,6 +387,7 @@ def _ensure_candidate_content_structure(
 
 
 def _ensure_usecase_pages(pages: list, usecase_navigation: dict) -> list:
+    """Ensure usecase pages."""
     if not usecase_navigation:
         return pages
     pages = [dict(p) for p in pages]
@@ -402,6 +422,7 @@ def _ensure_usecase_pages(pages: list, usecase_navigation: dict) -> list:
 
 
 def _ensure_workflow_entry_sections(pages: list, sections: list, usecase_navigation: dict) -> tuple[list, list]:
+    """Ensure workflow entry sections."""
     entries = usecase_navigation.get("workflow_entry_points") or []
     if not entries:
         return pages, sections
@@ -445,6 +466,7 @@ def _ensure_pre_workflow_content_sections(
     candidate_index: int = 0,
     add_missing_content: bool = True,
 ) -> tuple[list, list]:
+    """Ensure pre workflow content sections."""
     if not add_missing_content:
         return pages, sections
     entries = usecase_navigation.get("workflow_entry_points") or []
@@ -531,6 +553,7 @@ def _ensure_pre_workflow_content_sections(
 
 
 def _apply_nav_methods(pages: list, sections: list, usecase_navigation: dict) -> list:
+    """Apply nav methods."""
     nav_ids = {_section_id(pid) for pid in (usecase_navigation.get("nav_bar_pages") or []) if pid}
     page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
     nav_names = [
@@ -558,6 +581,7 @@ def _apply_nav_methods(pages: list, sections: list, usecase_navigation: dict) ->
 
 
 def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, model_attrs: dict) -> tuple[list, list]:
+    """Create concrete section definitions from the UML navigation plan."""
     if not nav_plan:
         return pages, sections
     pages = [dict(p) for p in pages]

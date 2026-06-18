@@ -58,6 +58,7 @@ class AttributeType(IntEnum):
 
 class _Attribute:
     def __init__(self, name, type_, enum_literals, updatable, derived, is_link=False, render_as="text", action=None, readonly=False, source="primary"):
+        """Initialize the _Attribute helper used during LLM rendering."""
         self.name = name
         self.type = type_
         self.enum_literals = enum_literals
@@ -70,6 +71,7 @@ class _Attribute:
         self.source = source or "primary"
 
     def __str__(self):
+        """Return the display name used by templates and generated code."""
         return self.name
 
 
@@ -83,6 +85,7 @@ class _SectionComponent:
                  related_to_section_id=None, relation_field=None, query=None, position="main",
                  component_type="data", label=None, workflow=None, min_height=None,
                  component=None, role=None, field_layout=None, behavior=None):
+        """Initialize the _SectionComponent helper used during LLM rendering."""
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -125,10 +128,12 @@ class _SectionComponent:
         self.min_height = int(min_height) if min_height else None
 
     def __str__(self):
+        """Return the display name used by templates and generated code."""
         return self.name
 
 
 def _make_activity_start_section(s_raw: dict = None) -> "_SectionComponent":
+    """Describe the make activity start section helper."""
     s = s_raw or {}
     return _SectionComponent(
         id=s.get("id", "activity-start"),
@@ -152,6 +157,7 @@ def _make_activity_start_section(s_raw: dict = None) -> "_SectionComponent":
 
 
 def _make_activity_tasks_section(s_raw: dict = None) -> "_SectionComponent":
+    """Describe the make activity tasks section helper."""
     s = s_raw or {}
     return _SectionComponent(
         id=s.get("id", "activity-tasks"),
@@ -172,6 +178,7 @@ def _make_activity_tasks_section(s_raw: dict = None) -> "_SectionComponent":
 
 
 def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionComponent":
+    """Describe the make activity action section helper."""
     s = s_raw or {}
     raw_style = s.get("style") or {}
     raw_workflow = s.get("workflow") or {}
@@ -206,6 +213,7 @@ def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionCo
 
 class _Page:
     def __init__(self, name, display_name, type_, activity_name, category, section_components, layout="vertical", gap="normal", is_task_page=False):
+        """Initialize the _Page helper used during LLM rendering."""
         self.name = name
         self.display_name = display_name
         self.type = type_
@@ -217,10 +225,12 @@ class _Page:
         self.is_task_page = is_task_page
 
     def __str__(self):
+        """Return the display name used by templates and generated code."""
         return self.name
 
 
 def _make_task_home_page(chrome_sections=None) -> "_Page":
+    """Describe the make task home page helper."""
     sections = [
         _make_activity_start_section({
             "id": "task-home-activity-start",
@@ -252,6 +262,7 @@ def _make_task_home_page(chrome_sections=None) -> "_Page":
 
 
 def _sanitize(name: str) -> str:
+    """Sanitize value."""
     name = str(name or "")
     name = re.sub(r"[^\w\s]", "", name)
     name = re.sub(r"\s+", "_", name.strip())
@@ -287,10 +298,12 @@ _LAYOUT_ALIASES = {
 }
 
 def _normalize_layout_alias(layout) -> str:
+    """Normalize layout alias."""
     value = str(layout or "").strip()
     return _LAYOUT_ALIASES.get(value, value)
 
 def _attrs_for_section_render(section_raw: Dict, cls_data: Dict, layout: str) -> List:
+    """Describe the attrs for section render helper."""
     raw_attrs = section_raw.get("attributes")
     if raw_attrs:
         return raw_attrs
@@ -311,6 +324,7 @@ def _attrs_for_section_render(section_raw: Dict, cls_data: Dict, layout: str) ->
 
 
 def _parse_text(text: str) -> str:
+    """Parse text."""
     if not text:
         return ""
     text = re.sub(r'##### (.+)', r'<h5>\1</h5>', text)
@@ -328,6 +342,7 @@ def _parse_text(text: str) -> str:
 class _SectionMethod:
     """Minimal method object for template rendering — mirrors SectionCustomMethod from the prototype generator."""
     def __init__(self, name: str, body: str = None, parameters=None, call_name: str = None, label: str = None, target_model: str = None):
+        """Initialize the _SectionMethod helper used during LLM rendering."""
         import ast as _ast
         self.name = name
         self.label = label or name
@@ -342,10 +357,12 @@ class _SectionMethod:
             self.body_is_valid = False
 
     def __str__(self):
+        """Return the display name used by templates and generated code."""
         return self.label or self.name
 
 
 def _parse_custom_methods(section_raw: Dict, field: str = "methods") -> List[_SectionMethod]:
+    """Parse custom methods."""
     methods = []
     for method_raw in section_raw.get(field, []) or []:
         if isinstance(method_raw, dict):
@@ -366,6 +383,7 @@ def _parse_custom_methods(section_raw: Dict, field: str = "methods") -> List[_Se
 
 
 def _parse_query(section_raw: Dict) -> Dict:
+    """Parse query."""
     query = dict(section_raw.get("query") or {})
     relationship = section_raw.get("relationship") or {}
     if "limit" not in query and relationship.get("limit") is not None:
@@ -376,10 +394,12 @@ def _parse_query(section_raw: Dict) -> Dict:
 
 
 def _parse_operations(raw) -> Dict:
+    """Parse operations."""
     select_terms = {"select", "choose", "pick", "bulk_select", "multi_select", "batch_select"}
     false_terms = {"", "0", "false", "no", "none", "null", "off"}
 
     def enabled(value) -> bool:
+        """Provide a local helper for _parse_operations."""
         if isinstance(value, str):
             return value.strip().lower() not in false_terms
         return bool(value)
@@ -405,6 +425,7 @@ def _parse_operations(raw) -> Dict:
 
 
 def _default_enum_literals_for_attr(attr_name: str) -> List[str]:
+    """Build default enum literals for attr."""
     name = _sanitize(attr_name)
     if name in {"status", "state", "phase", "stage"} or name.endswith("_status") or name.endswith("_state"):
         return ["pending", "active", "completed", "cancelled"]
@@ -412,10 +433,12 @@ def _default_enum_literals_for_attr(attr_name: str) -> List[str]:
 
 
 def _relation_data(relation: Dict) -> Dict:
+    """Describe relation data."""
     return relation.get("data", relation)
 
 
 def _relation_endpoint(relation: Dict, key: str) -> Optional[str]:
+    """Describe relation endpoint."""
     value = relation.get(key)
     if isinstance(value, dict):
         return str(value.get("id")) if value.get("id") else None
@@ -423,6 +446,7 @@ def _relation_endpoint(relation: Dict, key: str) -> Optional[str]:
 
 
 def _infer_parent_models(class_id: str, classifiers: List[Dict], relations: Optional[List[Dict]]) -> List[str]:
+    """Infer parent models."""
     if not class_id or not relations:
         return []
 
@@ -457,6 +481,7 @@ def _infer_parent_models(class_id: str, classifiers: List[Dict], relations: Opti
 
 
 def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: str, layout_config: Optional[Dict] = None, relations: Optional[List[Dict]] = None):
+    """Parse pages."""
     classifier_map: Dict[str, Dict] = {
         str(c["id"]): c.get("data", {}) for c in (classifiers or [])
     }
@@ -906,6 +931,7 @@ def render_layout(
     relations: Optional[List[Dict]] = None,
     preview_mode: bool = True,
 ) -> List[Dict]:
+    """Render the complete prototype layout files for an interface schema."""
     interface_data = normalize_interface_schema(interface_data)
     app_name, pages = _parse_pages(interface_data, classifiers, interface_name, layout_config, relations)
 
@@ -946,6 +972,7 @@ def render_preview(
     interface_name: str = "interface",
     relations: Optional[List[Dict]] = None,
 ) -> List[Dict]:
+    """Render a single preview HTML document for an interface schema."""
     interface_data = normalize_interface_schema(interface_data)
     app_name, pages = _parse_pages(interface_data, classifiers, interface_name, relations=relations)
     tokens = dict(interface_data.get("tokens", {}))

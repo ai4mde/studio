@@ -64,6 +64,26 @@ export const useClassCustomMethods = (systemId: string, classId: string) => {
     ];
 };
 
+export const useSystemRelations = (systemId: string) => {
+    const queryResult = useQuery({
+        queryKey: ["system", "metadata", "classifier-relations", systemId],
+        queryFn: async () => {
+            const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classifier-relations/`);
+            return response.data;
+        },
+        enabled: !!systemId,
+    });
+
+    const relations = queryResult.data?.relations || [];
+
+    return [
+        relations,
+        queryResult.isSuccess,
+        queryResult.isLoading,
+        queryResult.error,
+    ] as const;
+};
+
 export const useSystemActors = (systemId: string) => {
     const queryResult = useQuery({
         queryKey: ["system", "metadata", "actors", systemId],

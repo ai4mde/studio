@@ -48,7 +48,7 @@ export const PageRegions: React.FC<Props> = () => {
   return (
     <div className="w-full space-y-4">
       <p className="text-sm text-gray-600 mb-6">
-        以下是按页面位置组织的 section component。展开各区域可查看和管理该位置的组件。
+        Below are section components organized by page position. Expand each area to view and manage components in that region.
       </p>
 
       {REGION_POSITIONS.map((region) => {
@@ -79,7 +79,7 @@ export const PageRegions: React.FC<Props> = () => {
               <div className="space-y-2 mt-3">
                 {regionSections.length === 0 ? (
                   <p className="text-sm text-gray-500 italic">
-                    此区域暂无 component
+                    No components in this region
                   </p>
                 ) : (
                   regionSections.map((section) => (
@@ -136,7 +136,7 @@ export const PageRegions: React.FC<Props> = () => {
 
       <div className="border-t pt-4 mt-6">
         <p className="text-xs text-gray-500">
-          💡 提示：在 "Section Components" 标签页编辑每个 component 的详细属性和位置。
+          💡 Tip: Edit each component's detailed properties and position in the "Section Components" tab.
         </p>
       </div>
     </div>

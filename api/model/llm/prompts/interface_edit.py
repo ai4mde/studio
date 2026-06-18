@@ -11,6 +11,7 @@ def build_interface_edit_prompt(
     current_data: dict,
     user_request: str,
 ) -> str:
+    """Build interface edit prompt."""
     current_json = json.dumps(current_data, ensure_ascii=False)[:50_000]
     classifiers_json = json.dumps(classifiers, ensure_ascii=False)
 

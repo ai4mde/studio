@@ -1,0 +1,1381 @@
+
+{% extends "customer_base.html" %}
+{% block main_shell_class %}px-6 max-w-6xl mx-auto{% endblock %}
+{% block chrome_header %}{% endblock %}
+{% block chrome_footer %}{% endblock %}
+{% block content %}
+<style>
+    /* Shared preview/live base reset and minimal utility fallback. */
+*,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:currentColor}
+html{line-height:1.5;-webkit-text-size-adjust:100%;tab-size:4}
+html,body{min-width:0}
+body{margin:0}
+body,button,input,select,textarea{font-family:var(--font-family,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif)}
+a{color:inherit;text-decoration:inherit}
+button,input,select,textarea{font:inherit;margin:0;color:inherit;background:transparent}
+button,[type=button],[type=submit]{cursor:pointer}
+button:disabled,[aria-disabled=true]{cursor:default}
+img,svg,video,canvas,iframe{display:block;max-width:100%}
+img,video{height:auto}
+svg{width:1em;height:1em;flex-shrink:0}
+table{border-collapse:collapse;border-spacing:0}
+[hidden]{display:none!important}
+.si-page-shell,.si-region,.si-section,.si-card,.si-table-wrap,.si-form,.si-sidebar,.si-main{min-width:0}
+.hidden{display:none}.block{display:block}.inline-block{display:inline-block}.inline-flex{display:inline-flex}.flex{display:flex}.grid{display:grid}
+.flex-1{flex:1 1 0%}.flex-shrink-0,.shrink-0{flex-shrink:0}.flex-col{flex-direction:column}.flex-row{flex-direction:row}.flex-row-reverse{flex-direction:row-reverse}.flex-wrap{flex-wrap:wrap}
+.items-start{align-items:flex-start}.items-center{align-items:center}.items-end{align-items:flex-end}.justify-start{justify-content:flex-start}.justify-center{justify-content:center}.justify-end{justify-content:flex-end}.justify-between{justify-content:space-between}
+.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-12{grid-template-columns:repeat(12,minmax(0,1fr))}
+.col-span-1{grid-column:span 1/span 1}.col-span-2{grid-column:span 2/span 2}.col-span-3{grid-column:span 3/span 3}.col-span-4{grid-column:span 4/span 4}.col-span-5{grid-column:span 5/span 5}.col-span-6{grid-column:span 6/span 6}.col-span-7{grid-column:span 7/span 7}.col-span-8{grid-column:span 8/span 8}.col-span-9{grid-column:span 9/span 9}.col-span-10{grid-column:span 10/span 10}.col-span-11{grid-column:span 11/span 11}.col-span-12{grid-column:span 12/span 12}
+.gap-0{gap:0}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}
+.space-y-2>*+*{margin-top:.5rem}.space-y-3>*+*{margin-top:.75rem}.space-y-4>*+*{margin-top:1rem}.space-y-6>*+*{margin-top:1.5rem}
+.m-3{margin:.75rem}.mx-auto{margin-left:auto;margin-right:auto}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mr-1{margin-right:.25rem}.ml-1{margin-left:.25rem}
+.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-8{padding-left:2rem;padding-right:2rem}.px-10{padding-left:2.5rem;padding-right:2.5rem}
+.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pt-1{padding-top:.25rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.pb-2{padding-bottom:.5rem}.pl-4{padding-left:1rem}
+.w-4{width:1rem}.h-4{height:1rem}.w-5{width:1.25rem}.h-5{height:1.25rem}.w-6{width:1.5rem}.h-6{height:1.5rem}.w-8{width:2rem}.h-8{height:2rem}.w-full{width:100%}.h-full{height:100%}.min-w-0{min-width:0}.max-w-none{max-width:none}.max-w-full{max-width:100%}.min-h-screen{min-height:100vh}.max-w-7xl{max-width:80rem}.max-w-6xl{max-width:72rem}.max-w-5xl{max-width:64rem}.max-h-64{max-height:16rem}
+.rounded{border-radius:.25rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.border{border-width:1px}.border-2{border-width:2px}.border-t{border-top-width:1px}.border-b{border-bottom-width:1px}.border-l-4{border-left-width:4px}.border-dashed{border-style:dashed}.border-transparent{border-color:transparent}.border-gray-100{border-color:#f3f4f6}.border-gray-200{border-color:#e5e7eb}.border-gray-300{border-color:#d1d5db}.border-red-200{border-color:#fecaca}
+.bg-white{background-color:#fff}.bg-gray-50{background-color:#f9fafb}.bg-gray-100{background-color:#f3f4f6}.bg-gray-200{background-color:#e5e7eb}.bg-blue-600{background-color:#2563eb}.bg-blue-700{background-color:#1d4ed8}.bg-green-600{background-color:#16a34a}.bg-green-700{background-color:#15803d}.bg-red-50{background-color:#fef2f2}.bg-transparent{background-color:transparent}.bg-black{background-color:#000}
+.text-white{color:#fff}.text-gray-400{color:#9ca3af}.text-gray-500{color:#6b7280}.text-gray-600{color:#4b5563}.text-gray-700{color:#374151}.text-gray-800{color:#1f2937}.text-gray-900{color:#111827}.text-red-500{color:#ef4444}.text-blue-600{color:#2563eb}
+.text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}
+.font-sans{font-family:var(--font-family,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif)}.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-black{font-weight:900}.italic{font-style:italic}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-tight{line-height:1.25}.tracking-wide{letter-spacing:.025em}
+.text-left{text-align:left}.text-center{text-align:center}.whitespace-nowrap{white-space:nowrap}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.object-cover{object-fit:cover}.object-contain{object-fit:contain}.outline-none{outline:2px solid transparent;outline-offset:2px}
+.shadow{box-shadow:0 1px 3px 0 rgb(0 0 0/.1),0 1px 2px -1px rgb(0 0 0/.1)}.shadow-sm{box-shadow:0 1px 2px 0 rgb(0 0 0/.05)}.shadow-md{box-shadow:0 4px 6px -1px rgb(0 0 0/.1),0 2px 4px -2px rgb(0 0 0/.1)}.shadow-lg{box-shadow:0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1)}
+.relative{position:relative}.fixed{position:fixed}.sticky{position:sticky}.top-0{top:0}.bottom-6{bottom:1.5rem}.right-6{right:1.5rem}.z-40{z-index:40}.z-50{z-index:50}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-duration:.15s}.opacity-75{opacity:.75}.cursor-default{cursor:default}.cursor-pointer{cursor:pointer}.select-none{user-select:none}
+@media (min-width:640px){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:col-span-2{grid-column:span 2/span 2}.sm\:col-span-3{grid-column:span 3/span 3}.sm\:col-span-4{grid-column:span 4/span 4}.sm\:col-span-6{grid-column:span 6/span 6}.sm\:col-span-12{grid-column:span 12/span 12}}
+@media (min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.lg\:col-span-3{grid-column:span 3/span 3}.lg\:col-span-4{grid-column:span 4/span 4}.lg\:col-span-6{grid-column:span 6/span 6}.lg\:col-span-12{grid-column:span 12/span 12}}
+
+    :root {
+      /* éˆ¹â‚¬éˆ¹â‚¬ Radius éˆ¹â‚¬éˆ¹â‚¬ */
+      --radius:    0px;
+      --radius-sm: 4px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+      --btn-radius: 0px;
+      --input-radius: 0px;
+
+      /* éˆ¹â‚¬éˆ¹â‚¬ Typography éˆ¹â‚¬éˆ¹â‚¬ */
+      --font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      --text-hero-size:     56px;
+      --text-hero-weight:   600;
+      --text-hero-lh:       1.1;
+      --text-hero-ls:       -0.02em;
+      --text-display-size:  40px;
+      --text-display-weight:600;
+      --text-display-lh:    1.2;
+      --text-display-ls:    0;
+      --text-title-size:    20px;
+      --text-title-weight:  600;
+      --text-lead-size:     18px;
+      --text-lead-weight:   400;
+      --text-lead-lh:       1.5;
+      --text-body-size:     16px;
+      --text-body-weight:   400;
+      --text-body-lh:       1.6;
+      --text-caption-size:  12px;
+      --text-label-size:    14px;
+      --text-label-weight:  500;
+
+      /* éˆ¹â‚¬éˆ¹â‚¬ Page & Region Colors éˆ¹â‚¬éˆ¹â‚¬ */
+      --accent:               #0000a4;
+      --accent-secondary:     #0000a4;
+      --page-bg:              #f9fafb;
+      --page-text:            #111827;
+      --text-muted:           #6b7280;
+      --text-subtle:          #9ca3af;
+      --region-header-bg:     #0000a4;
+      --region-header-text:   #ffffff;
+      --region-main-bg:       #ffffff;
+      --region-main-bg-elevated: #ffffff;
+      --region-main-bg-sunken: #f9fafb;
+      --region-sidebar-bg:    #ffffff;
+      --region-footer-bg:     #0000a4;
+      --region-footer-text:   #ffffff;
+      --border-color:         #e5e7eb;
+      --border-strong:        #d1d5db;
+
+      /* éˆ¹â‚¬éˆ¹â‚¬ Shadows éˆ¹â‚¬éˆ¹â‚¬ */
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.10);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.10);
+
+      /* éˆ¹â‚¬éˆ¹â‚¬ Card éˆ¹â‚¬éˆ¹â‚¬ */
+      --card-bg:     var(--region-main-bg);
+      --card-border: var(--border-color);
+      --card-shadow: var(--shadow-sm);
+      --card-text:   #111827;
+      --card-muted:  #6b7280;
+      --component-form-bg: var(--region-main-bg);
+      --component-table-bg: var(--region-main-bg);
+      --component-list-bg: var(--region-main-bg);
+      --component-detail-bg: var(--region-main-bg);
+      --component-filter-bg: var(--region-main-bg);
+      --component-workflow-bg: var(--region-main-bg);
+
+      /* éˆ¹â‚¬éˆ¹â‚¬ Buttons éˆ¹â‚¬éˆ¹â‚¬ */
+      --button-primary-bg:      #0000a4;
+      --button-primary-text:    #ffffff;
+      --button-primary-border:  #0000a4;
+      --button-secondary-bg:    var(--region-main-bg);
+      --button-secondary-text:  var(--page-text);
+      --button-secondary-border:var(--border-strong);
+      --button-ghost-text:      var(--accent);
+      --button-danger-bg:       #dc2626;
+      --button-danger-text:     #ffffff;
+      --button-danger-border:   #dc2626;
+      --button-link-text:       var(--accent);
+
+      /* éˆ¹â‚¬éˆ¹â‚¬ Inputs éˆ¹â‚¬éˆ¹â‚¬ */
+      --input-bg:           var(--region-main-bg);
+      --input-border:       var(--border-color);
+      --input-border-focus: #0000a4;
+      --input-text:         var(--page-text);
+      --input-placeholder:  var(--text-subtle);
+
+      /* éˆ¹â‚¬éˆ¹â‚¬ Table éˆ¹â‚¬éˆ¹â‚¬ */
+      --table-header-bg:   var(--region-main-bg-sunken);
+      --table-header-text: var(--text-muted);
+      --table-row-hover:   var(--region-main-bg-sunken);
+      --table-border:      var(--border-color);
+
+      /* éˆ¹â‚¬éˆ¹â‚¬ Semantic Badge Colors éˆ¹â‚¬éˆ¹â‚¬ */
+      --badge-success-bg:  #16a34a;
+      --badge-success-text:#ffffff;
+      --badge-error-bg:    #dc2626;
+      --badge-error-text:  #ffffff;
+      --badge-warning-bg:  #d97706;
+      --badge-warning-text:#ffffff;
+      --badge-info-bg:     var(--accent);
+      --badge-info-text:   #ffffff;
+      --badge-neutral-bg:  var(--region-main-bg-sunken);
+      --badge-neutral-text:var(--text-muted);
+      --badge-bg:          var(--accent);
+      --badge-text:        #ffffff;
+      --nav-bg:            #0000a4;
+      --nav-text:          #ffffff;
+      --nav-border:        #e5e7eb;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--page-bg);
+      color: var(--page-text);
+      line-height: var(--text-body-lh);
+      font-size: var(--text-body-size);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Typography Classes éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-text-hero    { font-size: var(--text-hero-size);    font-weight: var(--text-hero-weight);    line-height: var(--text-hero-lh);    letter-spacing: var(--text-hero-ls); }
+    .si-text-display { font-size: var(--text-display-size); font-weight: var(--text-display-weight); line-height: var(--text-display-lh); letter-spacing: var(--text-display-ls); }
+    .si-text-title   { font-size: var(--text-title-size);   font-weight: var(--text-title-weight); }
+    .si-text-lead    { font-size: var(--text-lead-size);    font-weight: var(--text-lead-weight);    line-height: var(--text-lead-lh); }
+    .si-text-body    { font-size: var(--text-body-size);    font-weight: var(--text-body-weight);    line-height: var(--text-body-lh); }
+    .si-text-caption { font-size: var(--text-caption-size); color: var(--text-muted); }
+    .si-text-label   { font-size: var(--text-label-size);   font-weight: var(--text-label-weight); }
+    .si-text-muted   { color: var(--text-muted); }
+    .si-text-subtle  { color: var(--text-subtle); }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Layout Utilities éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-container     { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
+    .si-container-full{ max-width: 100% !important; padding: 0 !important; }
+    .si-sticky-top    { position: sticky; top: 0; z-index: 40; }
+    .si-divider       { height: 1px; background-color: var(--border-color); width: 100%; margin: 1rem 0; }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Cards éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-card {
+      background-color: var(--card-bg);
+      color: var(--card-text);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+    }
+    .si-card-elevated { background-color: var(--region-main-bg-elevated); box-shadow: var(--shadow-md); }
+    .si-card-sunken   { background-color: var(--region-main-bg-sunken); }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Buttons éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-btn         { border-radius: var(--btn-radius); border-color: transparent; cursor: pointer; }
+    .si-btn-primary { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
+    .si-btn-primary:hover { opacity: 0.9; }
+    button[type="submit"], input[type="submit"], button[style*="background-color"] { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
+    .si-btn-secondary { background-color: var(--button-secondary-bg) !important; color: var(--button-secondary-text) !important; border: 1px solid var(--button-secondary-border) !important; }
+    .si-btn-ghost { background: transparent !important; color: var(--button-ghost-text) !important; border-color: transparent !important; }
+    .si-btn-ghost:hover { background-color: var(--region-main-bg-sunken) !important; }
+    .si-btn-danger { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; }
+    .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Accent color classes (follow design spec primary color) éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-accent-btn        { background-color: var(--button-primary-bg); color: var(--button-primary-text); border-radius: var(--btn-radius); }
+    .si-accent-btn:hover  { opacity: 0.9; }
+    .si-accent-text       { color: var(--accent); }
+    .si-accent-border     { border-color: var(--accent); }
+    .si-accent-bg-light   { background-color: color-mix(in srgb, var(--accent) 10%, white); }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Accent-secondary (second brand color) éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-btn-accent-secondary { background-color: var(--accent-secondary) !important; color: #ffffff !important; border-color: var(--accent-secondary) !important; border-radius: var(--btn-radius); }
+    .si-btn-accent-secondary:hover { opacity: 0.9; }
+    .si-accent-secondary-text   { color: var(--accent-secondary); }
+    .si-accent-secondary-border { border-color: var(--accent-secondary); }
+    .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Inputs éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-input {
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--input-radius);
+      color: var(--input-text);
+      font-size: var(--text-body-size);
+    }
+    .si-input:focus { outline: none; border-color: var(--input-border-focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+    .si-input::placeholder { color: var(--input-placeholder); }
+    .si-label { font-size: var(--text-label-size); font-weight: var(--text-label-weight); color: var(--page-text); }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Tables éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-table-header { background-color: var(--table-header-bg); color: var(--table-header-text); font-size: var(--text-caption-size); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .si-table-row    { border-bottom: 1px solid var(--table-border); }
+    .si-table-row:hover { background-color: var(--table-row-hover); }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Badges éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-badge         { display: inline-flex; align-items: center; border-radius: var(--radius-full); padding: 2px 8px; font-size: var(--text-caption-size); font-weight: 600; }
+    .si-badge-success { background-color: var(--badge-success-bg); color: var(--badge-success-text); }
+    .si-badge-error   { background-color: var(--badge-error-bg);   color: var(--badge-error-text); }
+    .si-badge-warning { background-color: var(--badge-warning-bg); color: var(--badge-warning-text); }
+    .si-badge-info    { background-color: var(--badge-info-bg);    color: var(--badge-info-text); }
+    .si-badge-neutral { background-color: var(--badge-neutral-bg); color: var(--badge-neutral-text); }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Override hardcoded Tailwind colors with design spec tokens éˆ¹â‚¬éˆ¹â‚¬ */
+    /* Border colors */
+    .border-gray-100, .border-gray-200 { border-color: var(--border-color) !important; }
+    .border-gray-300, .border-gray-400 { border-color: var(--border-strong) !important; }
+    /* Background surfaces */
+    .bg-gray-50  { background-color: var(--region-main-bg-sunken) !important; }
+    .bg-gray-100 { background-color: var(--region-main-bg-sunken) !important; }
+    .bg-gray-200 { background-color: var(--border-color) !important; }
+    .si-card.bg-white,
+    [data-layout="table"] .bg-white,
+    [data-layout="list"] .bg-white,
+    [data-layout="detail"] .bg-white,
+    [data-layout="form"] .bg-white,
+    [data-layout="filter"] .bg-white {
+      background-color: var(--region-main-bg) !important;
+    }
+    [data-layout="table"] thead,
+    [data-layout="table"] th,
+    [data-layout="table"] .si-table-header {
+      background-color: var(--table-header-bg) !important;
+      color: var(--table-header-text) !important;
+    }
+    [data-layout="table"] .overflow-x-auto,
+    [data-layout="table"] table,
+    [data-layout="table"] tbody,
+    [data-layout="table"] tr {
+      background-color: var(--component-table-bg);
+    }
+    [data-layout="table"] tr { border-color: var(--table-border) !important; }
+    [data-layout="list"] > .flex.flex-col > div,
+    [data-layout="detail"] > .space-y-3 > div,
+    [data-layout="detail"] > .space-y-4 > div {
+      background-color: var(--component-list-bg) !important;
+      color: var(--card-text);
+      border-color: var(--card-border) !important;
+    }
+    [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
+    [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
+    [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
+    [data-layout="detail"] .si-card { background-color: var(--component-detail-bg); }
+    [data-layout="filter"] .si-card { background-color: var(--component-filter-bg); }
+    [data-layout="activity_action"] { background-color: var(--component-workflow-bg); border-color: var(--border-color); }
+    [data-nav-height="compact"] { --si-nav-row-y: .25rem; --si-nav-link-y: .25rem; --si-nav-min-height: 32px; }
+    [data-nav-height="normal"] { --si-nav-row-y: .5rem; --si-nav-link-y: .375rem; --si-nav-min-height: 40px; }
+    [data-nav-height="tall"] { --si-nav-row-y: .875rem; --si-nav-link-y: .625rem; --si-nav-min-height: 56px; }
+    [data-nav-height="xl"] { --si-nav-row-y: 1.25rem; --si-nav-link-y: .875rem; --si-nav-min-height: 72px; }
+    [data-nav-height] nav > div { min-height: var(--si-nav-min-height); padding-top: var(--si-nav-row-y) !important; padding-bottom: var(--si-nav-row-y) !important; }
+    [data-nav-height] nav > div > span,
+    [data-nav-height] nav > div > div > span,
+    [data-nav-height] nav a.si-nav-link { padding-top: var(--si-nav-link-y) !important; padding-bottom: var(--si-nav-link-y) !important; }
+    /* Text colors */
+    .text-gray-900, .text-gray-800 { color: var(--page-text) !important; }
+    .text-gray-700, .text-gray-600 { color: var(--text-muted) !important; }
+    .text-gray-500, .text-gray-400 { color: var(--text-subtle) !important; }
+    .si-card .text-gray-900, .si-card .text-gray-800 { color: var(--card-text) !important; }
+    .si-card .text-gray-700, .si-card .text-gray-600 { color: var(--card-muted) !important; }
+    /* Border radius éˆ?follow design spec radius */
+    .rounded-xl  { border-radius: var(--radius-lg) !important; }
+    .rounded-lg  { border-radius: var(--radius) !important; }
+    .rounded-md  { border-radius: var(--radius-sm) !important; }
+    .rounded-2xl { border-radius: var(--radius-lg) !important; }
+    /* Shadows éˆ?follow design spec shadow tokens */
+    .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+    .shadow-md { box-shadow: var(--shadow-md) !important; }
+    .shadow-lg { box-shadow: var(--shadow-lg) !important; }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Card Hover Effects éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
+    .si-card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+    .si-img { aspect-ratio: 4:3; width: 100%; object-fit: cover; background-color: var(--region-main-bg-sunken); }
+    .si-video { aspect-ratio: 16 / 9; width: 100%; object-fit: cover; background-color: #000; }
+
+    /* éˆ¹â‚¬éˆ¹â‚¬ Multi-select (operations.select) éˆ¹â‚¬éˆ¹â‚¬ */
+    .si-sel-item { position: relative; cursor: pointer; }
+    .si-sel-item .si-sel-cb {
+      position: absolute; top: 8px; left: 8px; z-index: 10;
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 2px solid var(--border-strong); background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; opacity: 0; transition: opacity 0.15s;
+    }
+    .si-sel-item:hover .si-sel-cb,
+    .si-sel-item.si-selected .si-sel-cb { opacity: 1; }
+    .si-sel-item.si-selected .si-sel-cb {
+      background: var(--accent); border-color: var(--accent);
+    }
+    .si-sel-item.si-selected .si-sel-cb::after {
+      content: ''; display: block; width: 5px; height: 9px;
+      border: 2px solid white; border-top: none; border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+    .si-sel-item.si-selected { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .si-sel-bar {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--page-text); color: white;
+      padding: 10px 20px; border-radius: 100px;
+      display: flex; align-items: center; gap: 16px;
+      font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+      z-index: 9999; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      transform: translateX(-50%) translateY(8px);
+    }
+    .si-sel-bar.active { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .si-sel-bar button { background: transparent; border: 1px solid rgba(255,255,255,.4); color: white; padding: 4px 14px; border-radius: 100px; cursor: pointer; font-size: 12px; }
+    .si-sel-bar button.danger { background: #ef4444; border-color: #ef4444; }
+  </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="page-sections-grid" class="grid grid-cols-12 gap-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="app_page_nav" data-section-name="Navigation" data-position="header" data-layout="site-nav" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
+
+  
+
+  
+
+
+
+
+
+
+  <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+    <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Products
+      </span>
+      <a href="{% url 'customer:render_customer_products' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Products</a>
+      <a href="{% url 'customer:render_customer_product_detail' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors border-b-2 font-bold"
+        style="border-color:#0000a4;color:#0000a4">Product Detail</a>
+      <a href="{% url 'customer:render_customer_order_detail' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Order Detail</a>
+      <a href="{% url 'customer:render_customer_manage_account' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Manage Account</a>
+      <a href="{% url 'customer:render_customer_categories' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Categories</a>
+      <a href="{% url 'customer:render_customer_sellers' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Sellers</a>
+      <a href="{% url 'customer:render_customer_orderlines' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Orderlines</a>
+      <a href="{% url 'customer:render_customer_payment_detail' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Payment Detail</a>
+      <a href="{% url 'customer:render_customer_address_detail' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Address Detail</a>
+      <a href="{% url 'customer:customer-homerender' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Tasks</a>
+    </div>
+  </nav>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="app_header_template" data-section-name="Header" data-position="header" data-layout="main-header" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <header class="px-5 py-3 flex items-center gap-4">
+      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:#0000a4;font-family:'Georgia',serif;letter-spacing:-1px;">App.</a>
+      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
+        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Search" type="search" value="" />
+        <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
+          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </form>
+      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+        <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+        <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+        <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+      </div>
+    </header>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="product_detail_product_object_detail" data-section-name="Product Detail" data-position="main" data-layout="detail" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Product Detail</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+
+
+  <div class="flex flex-col gap-4">
+
+    {% for product in product_list|slice:":1" %}
+    
+    <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl p-4 border border-gray-100">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="si-field flex flex-col gap-1" data-field-name="product_id">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">product_id</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.product_id }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="name">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">name</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.name }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="brand">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">brand</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.brand }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="ean">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">ean</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.ean }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="description">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">description</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.description }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="price">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">price</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.price }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="original_price">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">original_price</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.original_price }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="discount_pct">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">discount_pct</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.discount_pct }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="stock_quantity">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">stock_quantity</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.stock_quantity }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="rating">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">rating</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.rating }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="review_count">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">review_count</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.review_count }}</span></span>
+        </div><div class="si-field flex flex-col gap-1 sm:col-span-2" data-field-name="image_url">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">image_url</span>
+          <img src="{{ product.image_url|default:'' }}" alt="image_url" class="w-full max-h-64 object-contain rounded">
+        </div><div class="si-field flex flex-col gap-1" data-field-name="weight_kg">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">weight_kg</span>
+          <span class="si-field-value"><span class="text-sm font-medium text-gray-800" title="">{{ product.weight_kg }}</span></span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="is_active">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">is_active</span>
+          <input type="checkbox" {% if product.is_active %}checked{% endif %} disabled class="h-4 w-4 rounded">
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+      </div>
+    </div>
+    
+    {% empty %}
+    {% endfor %}
+
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="product_detail_product_object_form" data-section-name="Edit Product" data-position="main" data-layout="form" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  
+  <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl p-4">
+    <form action="{% url 'customer:product_detail_edit_product_create' %}" method="post" class="space-y-4">
+      {% csrf_token %}
+      
+      <div class="si-field" data-field-name="category">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">category</label>
+        <select name="category" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+          <option value="">Select category</option>
+          {% for item in parent_category_list %}
+          <option value="{{ item.id }}"{% if request.GET.instance_id_category == item.id|stringformat:"s" %} selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="si-field" data-field-name="seller">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">seller</label>
+        <select name="seller" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+          <option value="">Select seller</option>
+          {% for item in parent_seller_list %}
+          <option value="{{ item.id }}"{% if request.GET.instance_id_seller == item.id|stringformat:"s" %} selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      
+      <div class="si-field" data-field-name="product_id">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">product_id</label>
+        <input type="text" name="product_id" placeholder="product_id" value="{{ update_instance.product_id|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="name">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">name</label>
+        <input type="text" name="name" placeholder="name" value="{{ update_instance.name|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="brand">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">brand</label>
+        <input type="text" name="brand" placeholder="brand" value="{{ update_instance.brand|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="ean">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">ean</label>
+        <input type="text" name="ean" placeholder="ean" value="{{ update_instance.ean|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="description">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">description</label>
+        <input type="text" name="description" placeholder="description" value="{{ update_instance.description|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="price">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">price</label>
+        <input type="text" name="price" placeholder="price" value="{{ update_instance.price|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="original_price">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">original_price</label>
+        <input type="text" name="original_price" placeholder="original_price" value="{{ update_instance.original_price|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="discount_pct">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">discount_pct</label>
+        <input type="number" name="discount_pct" placeholder="discount_pct" value="{{ update_instance.discount_pct|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="stock_quantity">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">stock_quantity</label>
+        <input type="number" name="stock_quantity" placeholder="stock_quantity" value="{{ update_instance.stock_quantity|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="rating">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">rating</label>
+        <input type="text" name="rating" placeholder="rating" value="{{ update_instance.rating|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="review_count">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">review_count</label>
+        <input type="number" name="review_count" placeholder="review_count" value="{{ update_instance.review_count|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="image_url">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">image_url</label>
+        <input type="text" name="image_url" placeholder="image_url" value="{{ update_instance.image_url|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="weight_kg">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">weight_kg</label>
+        <input type="text" name="weight_kg" placeholder="weight_kg" value="{{ update_instance.weight_kg|default:'' }}" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+      </div>
+      
+      <div class="si-field" data-field-name="is_active">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">is_active</label>
+        <input type="checkbox" name="is_active" {% if update_instance.is_active %}checked{% endif %} class="h-4 w-4 rounded">
+      </div>
+      
+      {% for relation_field in relation_fields_edit_product %}
+      <div class="si-field">
+        <label class="si-field-label block text-sm font-medium si-accent-text mb-1">{{ relation_field.label }}</label>
+        <select name="{{ relation_field.name }}"{% if relation_field.required %} required{% endif %} class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 w-full">
+          <option value="">Select {{ relation_field.label }}</option>
+          {% for item in relation_field.options %}
+          <option value="{{ item.id }}"{% if relation_field.selected_id == item.id|stringformat:"s" %} selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endfor %}
+      <button type="submit" class="w-full si-accent-btn text-white text-white text-sm font-semibold py-3 rounded-xl">
+        Add Edit Product
+      </button>
+    </form>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="product_detail_deliveryoption_child_collection" data-section-name="DeliveryOption" data-position="main" data-layout="list" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">DeliveryOption</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+  <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">DeliveryOption</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: #0000a41a; color: #0000a4;">Linked</span>
+    </div>
+    <div class="divide-y divide-gray-100">
+      {% for deliveryoption in related_deliveryoption_list %}
+      <div class="px-4 py-3 flex items-start gap-3">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #0000a4;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="option_id">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">option_id</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ deliveryoption.option_id }}</span></span>
+              </div>
+            </div><div class="si-field min-w-0" data-field-name="method">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">method</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ deliveryoption.method }}</span></span>
+              </div>
+            </div><div class="si-field min-w-0" data-field-name="estimated_days">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">estimated_days</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ deliveryoption.estimated_days }}</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          <a href="{% url 'customer:render_customer_orderlines' %}?instance_id_deliveryoption={{ deliveryoption.id }}" class="text-xs si-accent-text font-semibold hover:underline">Open</a>
+        </div>
+      </div>
+      {% empty %}{% endfor %}
+    </div>
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="product_detail_productimage_child_collection" data-section-name="ProductImage" data-position="main" data-layout="list" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">ProductImage</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+  <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">ProductImage</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: #0000a41a; color: #0000a4;">Linked</span>
+    </div>
+    <div class="divide-y divide-gray-100">
+      {% for productimage in related_productimage_list %}
+      <div class="px-4 py-3 flex items-start gap-3">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #0000a4;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="image_id">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">image_id</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ productimage.image_id }}</span></span>
+              </div>
+            </div><div class="si-field min-w-0" data-field-name="image_url">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">image_url</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ productimage.image_url }}</span></span>
+              </div>
+            </div><div class="si-field min-w-0" data-field-name="thumb_url">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">thumb_url</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ productimage.thumb_url }}</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      {% empty %}{% endfor %}
+    </div>
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="product_detail_category_related" data-section-name="Category" data-position="main" data-layout="list" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Category</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+  <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">Category</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: #0000a41a; color: #0000a4;">Linked</span>
+    </div>
+    <div class="divide-y divide-gray-100">
+      {% for category in related_category_list %}
+      <div class="px-4 py-3 flex items-start gap-3">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #0000a4;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="category_id">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">category_id</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ category.category_id }}</span></span>
+              </div>
+            </div><div class="si-field min-w-0" data-field-name="name">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">name</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ category.name }}</span></span>
+              </div>
+            </div><div class="si-field min-w-0" data-field-name="slug">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">slug</span>
+              <div class="text-xs font-medium text-gray-700 truncate">
+                <span class="si-field-value"><span class="text-xs font-medium text-gray-800" title="">{{ category.slug }}</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      {% empty %}{% endfor %}
+    </div>
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="product_detail_product_add_to_cart" data-section-name="Add to Cart" data-position="main" data-layout="list" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Add to Cart</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+  <form action="{% url 'customer:render_customer_product_detail' %}" method="get">
+    <input type="hidden" name="instance_id_product" value="{{ request.GET.instance_id_product }}">
+    <input type="hidden" name="custom_product_addCartItem" value="{{ request.GET.instance_id_product }}">
+    
+    <label class="block text-sm font-medium si-accent-text mb-1">quantity</label>
+    <input type="number" name="quantity" value="1" min="1" class="si-accent-border border bg-white rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2 mb-3">
+    
+    <button type="submit" class="w-full si-accent-btn text-white text-white text-sm font-semibold py-3 px-6 rounded-xl transition-opacity">
+      Add to Cart
+    </button>
+  </form>
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="app_footer_template" data-section-name="Footer" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  <div>
+    <h4 class="font-bold mb-3">Footer</h4>
+    <div class="flex flex-wrap gap-4 text-sm">
+      <span>Products</span>
+      <span>Product Detail</span>
+      <span>Order Detail</span>
+      <span>Manage Account</span>
+      <span>Categories</span>
+      <span>Sellers</span>
+      <span>Orderlines</span>
+      <span>Payment Detail</span>
+      <span>Address Detail</span>
+    </div>
+  </div>
+
+
+
+
+
+
+</div>
+</div>
+
+
+<script>
+(function() {
+  var grid = document.getElementById('page-sections-grid');
+  if (!grid) return;
+  var secs = Array.from(grid.children);
+  var byPos = {};
+  secs.forEach(function(el) {
+    var pos = el.getAttribute('data-position') || 'main';
+    if (!byPos[pos]) byPos[pos] = [];
+    byPos[pos].push(el);
+  });
+  var hasHeader = byPos.header && byPos.header.length;
+  var hasHero = byPos.hero && byPos.hero.length;
+  var hasSidebar = byPos.sidebar && byPos.sidebar.length;
+  var hasFooter = byPos.footer && byPos.footer.length;
+  if (!hasHeader && !hasHero && !hasSidebar && !hasFooter) return;
+  var parent = grid.parentNode;
+  var wrap = document.createElement('div');
+  wrap.className = 'flex flex-col gap-6';
+  if (hasHeader) {
+    var headerEl = document.createElement('div');
+    headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
+    if ('contained' === 'full') {
+      headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
+    }
+    byPos.header.forEach(function(el) { headerEl.appendChild(el); });
+    wrap.appendChild(headerEl);
+  }
+  if (hasHero) {
+    var heroEl = document.createElement('div');
+    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
+    if ('contained' === 'full') {
+      heroEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);border-radius:0;';
+    }
+    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
+    wrap.appendChild(heroEl);
+  }
+  var mainSecs = byPos.main || [];
+  var sidebarSecs = byPos.sidebar || [];
+  if (mainSecs.length || sidebarSecs.length) {
+    var hasSidebarEl = sidebarSecs.length > 0;
+    var contentRow = document.createElement('div');
+    contentRow.className = hasSidebarEl ? 'flex gap-6 items-start' : '';
+    contentRow.dataset.regionRow = 'body';
+    var mainGrid = document.createElement('div');
+    mainGrid.className = (hasSidebarEl ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
+    mainSecs.forEach(function(el) { mainGrid.appendChild(el); });
+    if (hasSidebarEl) {
+      var leftSidebarItems = [], rightSidebarItems = [];
+      sidebarSecs.forEach(function(el) {
+        var lay = el.getAttribute('data-layout') || '';
+        var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
+        if (side === 'right') rightSidebarItems.push(el);
+        else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'hero-header' || lay === 'tabbed-header' || lay === 'glass-header' || lay === 'command-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
+        else rightSidebarItems.push(el);
+      });
+      function sidebarSpan(items, fallback) {
+        var vals = items.map(function(el) { return parseInt(el.dataset.sidebarWidth || '', 10); }).filter(function(n) { return Number.isFinite(n) && n > 0; });
+        return Math.max(2, Math.min(6, vals.length ? Math.max.apply(null, vals) : fallback));
+      }
+      function sidebarBasis(span) {
+        return 'calc((100% - 1.5rem) * ' + span + ' / 12)';
+      }
+      function applySidebarChrome(aside) {
+        var bg = '';
+        var shadow = '';
+        if (bg || (shadow && shadow !== 'none')) {
+          aside.style.border = '1px solid var(--border-color)';
+          aside.style.borderRadius = 'var(--radius-lg)';
+          aside.style.padding = '1rem';
+        }
+        if (bg) {
+          aside.style.background = bg === 'dark' ? '#111827' : bg === 'gray' ? '#f3f4f6' : bg === 'light' ? 'var(--region-main-bg-sunken)' : '#ffffff';
+          if (bg === 'dark') {
+            aside.style.color = '#ffffff';
+          }
+        }
+        if (shadow && shadow !== 'none') {
+          aside.style.boxShadow = shadow === 'xl' ? '0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.10)' : 'var(--shadow-' + shadow + ')';
+        }
+      }
+      if (leftSidebarItems.length) {
+        var leftEl = document.createElement('aside');
+        var leftSpan = sidebarSpan(leftSidebarItems, 3);
+        leftEl.className = 'flex-shrink-0 flex flex-col gap-4';
+        leftEl.dataset.regionSide = 'left';
+        leftEl.dataset.sidebarSpan = String(leftSpan);
+        leftEl.style.flexBasis = sidebarBasis(leftSpan);
+        leftEl.style.maxWidth = sidebarBasis(leftSpan);
+        applySidebarChrome(leftEl);
+        leftSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; leftEl.appendChild(el); });
+        contentRow.appendChild(leftEl);
+      }
+      contentRow.appendChild(mainGrid);
+      if (rightSidebarItems.length) {
+        var rightEl = document.createElement('aside');
+        var rightSpan = sidebarSpan(rightSidebarItems, 3);
+        rightEl.className = 'flex-shrink-0 flex flex-col gap-4';
+        rightEl.dataset.regionSide = 'right';
+        rightEl.dataset.sidebarSpan = String(rightSpan);
+        rightEl.style.flexBasis = sidebarBasis(rightSpan);
+        rightEl.style.maxWidth = sidebarBasis(rightSpan);
+        applySidebarChrome(rightEl);
+        rightSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; rightEl.appendChild(el); });
+        contentRow.appendChild(rightEl);
+      }
+    } else {
+      contentRow.appendChild(mainGrid);
+    }
+    wrap.appendChild(contentRow);
+  }
+  if (hasFooter) {
+    var footerEl = document.createElement('div');
+    footerEl.className = 'mt-8';
+    footerEl.style.cssText = 'background:var(--region-footer-bg);color:var(--region-footer-text);';
+    if ('contained' !== 'contained') {
+      footerEl.style.cssText += 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);';
+    }
+    var footerInner = document.createElement('div');
+    footerInner.className = ('contained' === 'contained' ? 'max-w-6xl mx-auto ' : 'w-full ') + 'grid grid-cols-12 gap-4 px-8 py-6 border-t-4';
+    footerInner.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#2563eb';
+    byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
+    footerEl.appendChild(footerInner);
+    wrap.appendChild(footerEl);
+  }
+  parent.replaceChild(wrap, grid);
+})();
+</script>
+
+<script>
+(function() {
+  var kw = {
+    success: /\b(active|approved|success|paid|completed|confirmed|verified|enabled|done|shipped)\b/i,
+    error:   /\b(rejected|failed|error|cancelled|canceled|declined|inactive|disabled|expired|denied)\b/i,
+    warning: /\b(pending|processing|draft|review|waiting|hold|queued)\b/i,
+  };
+  document.querySelectorAll('.si-badge').forEach(function(el) {
+    var t = el.textContent.trim();
+    if (kw.success.test(t))      { el.className = 'si-badge si-badge-success'; }
+    else if (kw.error.test(t))   { el.className = 'si-badge si-badge-error'; }
+    else if (kw.warning.test(t)) { el.className = 'si-badge si-badge-warning'; }
+    else                         { el.className = 'si-badge si-badge-neutral'; }
+  });
+})();
+</script>
+
+{% endblock %}
+

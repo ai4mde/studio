@@ -181,23 +181,24 @@ def retrieve_section_custom_methods_for_model(metadata: str, model_name: str) ->
         for section in sections:
             if section.get("class") != class_id:
                 continue
-            for custom_method in section.get("methods", []) or []:
-                body = custom_method.get("body")
-                action = custom_method.get("action")
-                dedupe_key = body or f"{custom_method.get('call_name') or custom_method.get('name')}:{action}"
-                if not (body or action) or dedupe_key in seen_bodies:
-                    continue
-                seen_bodies.add(dedupe_key)
-                out.append(
-                    CustomMethod(
-                        name=custom_method_name_sanitization(custom_method.get("name", "")),
-                        body=body,
-                        action=custom_method.get("action"),
-                        target_model=custom_method.get("target_model"),
-                        parameters=custom_method.get("parameters", []),
-                        call_name=custom_method.get("call_name") or custom_method_name_sanitization(custom_method.get("name", "")),
+            for method_field in ("methods",):
+                for custom_method in section.get(method_field, []) or []:
+                    body = custom_method.get("body")
+                    action = custom_method.get("action")
+                    dedupe_key = body or f"{custom_method.get('call_name') or custom_method.get('name')}:{action}"
+                    if not (body or action) or dedupe_key in seen_bodies:
+                        continue
+                    seen_bodies.add(dedupe_key)
+                    out.append(
+                        CustomMethod(
+                            name=custom_method_name_sanitization(custom_method.get("name", "")),
+                            body=body,
+                            action=custom_method.get("action"),
+                            target_model=custom_method.get("target_model"),
+                            parameters=custom_method.get("parameters", []),
+                            call_name=custom_method.get("call_name") or custom_method_name_sanitization(custom_method.get("name", "")),
+                        )
                     )
-                )
     return out
  
 

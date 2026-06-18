@@ -6,7 +6,7 @@ import {
     Tooltip,
 } from "@mui/joy";
 import Chip from '@mui/joy/Chip';
-import { Ban, Pencil, Plus, Save, Trash, Link as LinkIcon } from "lucide-react";
+import { Ban, Pencil, Plus, Save, Trash } from "lucide-react";
 import Multiselect from 'multiselect-react-dropdown';
 import React, { useState } from 'react';
 import { useParams } from "react-router";
@@ -50,23 +50,6 @@ const METHODS_HINTS: Record<string, string> = {
     'site-footer':    'Each line becomes a service-bar link in the footer.',
 };
 
-const FIELD_RENDER_OPTIONS = [
-    { value: 'text', label: 'Text' },
-    { value: 'link', label: 'Link' },
-    { value: 'button', label: 'Button' },
-    { value: 'badge', label: 'Badge' },
-];
-
-const FIELD_ACTION_OPTIONS = [
-    { value: 'none', label: 'None' },
-    { value: 'navigate', label: 'Navigate' },
-    { value: 'operation', label: 'Operation' },
-    { value: 'copy', label: 'Copy' },
-    { value: 'filter', label: 'Filter' },
-    { value: 'expand', label: 'Expand' },
-    { value: 'tooltip', label: 'Tooltip' },
-];
-
 const ACTIVITY_ACTION_VARIANTS = [
     { value: 'button', label: 'Button' },
     { value: 'wizard_next', label: 'Wizard next' },
@@ -80,12 +63,6 @@ const ACTIVITY_ACTION_ALIGNS = [
     { value: 'center', label: 'Center' },
     { value: 'right', label: 'Right' },
 ];
-
-const actionNameFromLabel = (label: string) => label
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '') || 'custom_action';
 
 const ACTIVITY_ACTION_SIZES = [
     { value: 'sm', label: 'Small' },
@@ -175,14 +152,6 @@ const toAttributeOption = (attr: any) => {
     if (typeof attr === 'string') return { name: attr };
     return { ...(attr || {}), name: attr?.name || '' };
 };
-const getAttributeRenderAs = (attr: any) => {
-    if (typeof attr === 'string') return 'text';
-    return attr?.render?.as || (attr?.is_link ? 'link' : 'text');
-};
-const getAttributeAction = (attr: any) => {
-    if (typeof attr === 'string') return { type: 'none' };
-    return attr?.action || { type: attr?.is_link ? 'navigate' : 'none' };
-};
 const normalizeAttribute = (attr: any) => typeof attr === 'string' ? { name: attr } : { ...(attr || {}) };
 const operationFlags = (operations: any) => {
     if (Array.isArray(operations)) {
@@ -207,7 +176,6 @@ const isCollectionSection = (section: any) => {
     return ['card', 'list', 'table', 'gallery'].includes(layout)
         || ['object_collection', 'child_collection', 'object_summary'].includes(role);
 };
-const dataScopeMode = (section: any) => section?.style?.data_scope?.mode || 'all';
 const inferSectionDataRole = (section: any) => {
     if (section?.data_role) return section.data_role;
     const ops = operationFlags(section?.operations);
@@ -256,7 +224,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
     const [newText, setNewText] = useState('');
     const [newImageUrl, setNewImageUrl] = useState('');
     const [newImageAlt, setNewImageAlt] = useState('');
-    const [newRelationField, setNewRelationField] = useState('');
     const [selectedOperations, setSelectedOperations] = useLocalStorage('selectedOperations', []);
     const [pencelClick, setPencelClick] = useState(false);
     const [pencelClickText, setPencelClickText] = useState(false);
@@ -318,6 +285,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
             cls.data?.name?.toLowerCase() === String(ref).toLowerCase()
         ) || null;
     }, [classes]);
+
     const queryFieldOptions = React.useMemo(
         () => [
             ...(classAttributes || []).map((attr: any) => attr.name).filter(Boolean),
@@ -383,7 +351,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         setNewImageUrl(data[index].style?.image_url || data[index].image_url || '');
         setNewImageAlt(data[index].style?.image_alt || data[index].image_alt || '');
 
-        setNewRelationField(data[index].relation_field || '');
         setEditIndex(index);
     };
 
@@ -451,65 +418,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         }
     };
 
-    const handleRelatedToChange = (index: number, sectionId: string) => {
-        const newData = [...data];
-        newData[index].related_to = sectionId || null;
-        const sourceSection = newData.find((section) => section.id === sectionId);
-        if (sectionId) {
-            const sameClass = sourceSection?.class && sourceSection.class === newData[index].class;
-            newData[index].relationship = {
-                ...(newData[index].relationship || {}),
-                mode: sameClass ? 'same_parent' : 'direct',
-            };
-            if (sameClass) {
-                newData[index].query = {
-                    ...(newData[index].query || {}),
-                    exclude_source: newData[index].query?.exclude_source ?? true,
-                };
-            }
-        } else {
-            delete newData[index].relationship;
-            delete newData[index].relation_field;
-            setNewRelationField('');
-        }
-        setData(newData);
-    };
-
-    const handleRelationshipModeChange = (index: number, mode: string) => {
-        const newData = [...data];
-        newData[index].relationship = {
-            ...(newData[index].relationship || {}),
-            mode,
-        };
-        if (mode !== 'same_parent') {
-            delete newData[index].relationship.via;
-        } else {
-            newData[index].query = {
-                ...(newData[index].query || {}),
-                exclude_source: newData[index].query?.exclude_source ?? true,
-            };
-        }
-        setData(newData);
-    };
-
-    const handleRelationshipViaChange = (index: number, classId: string) => {
-        const newData = [...data];
-        newData[index].relationship = {
-            ...(newData[index].relationship || { mode: 'same_parent' }),
-            via: classId || null,
-        };
-        setData(newData);
-    };
-
-    const handleQueryExcludeSourceChange = (index: number, checked: boolean) => {
-        const newData = [...data];
-        newData[index].query = {
-            ...(newData[index].query || {}),
-            exclude_source: checked,
-        };
-        setData(newData);
-    };
-
     const handleQueryNumberChange = (index: number, key: 'limit' | 'offset', value: string) => {
         const newData = [...data];
         const parsed = Number.parseInt(value, 10);
@@ -557,10 +465,36 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         setData(newData);
     };
 
-    const handleFilterChange = (index: number, filterIndex: number, key: 'field' | 'operator' | 'value', value: string) => {
+    const handleFilterChange = (index: number, filterIndex: number, key: 'field' | 'operator' | 'value' | 'value_from', value: string) => {
         const newData = [...data];
         const filters = [...(newData[index].query?.filters || [])];
-        filters[filterIndex] = { ...(filters[filterIndex] || {}), [key]: value };
+        const nextFilter = { ...(filters[filterIndex] || {}), [key]: value };
+        if (key === 'value') delete nextFilter.value_from;
+        if (key === 'value_from') delete nextFilter.value;
+        filters[filterIndex] = nextFilter;
+        newData[index].query = { ...(newData[index].query || {}), filter_logic: 'and', filters };
+        setData(newData);
+    };
+
+    const handleFilterValueSourceChange = (index: number, filterIndex: number, source: 'value' | 'value_from') => {
+        const newData = [...data];
+        const filters = [...(newData[index].query?.filters || [])];
+        const current = { ...(filters[filterIndex] || {}) };
+        if (source === 'value_from') {
+            filters[filterIndex] = {
+                ...current,
+                value_from: current.value_from || current.value || '',
+                value: undefined,
+            };
+            delete filters[filterIndex].value;
+        } else {
+            filters[filterIndex] = {
+                ...current,
+                value: current.value || '',
+                value_from: undefined,
+            };
+            delete filters[filterIndex].value_from;
+        }
         newData[index].query = { ...(newData[index].query || {}), filter_logic: 'and', filters };
         setData(newData);
     };
@@ -608,23 +542,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         from: { model: sectionPrimaryModel(section) },
         joins: section.data_source?.joins || [],
     });
-
-    const handleDataScopeModeChange = (index: number, mode: string) => {
-        const newData = [...data];
-        const style = { ...(newData[index].style || {}) };
-        if (mode === 'actor_owned') {
-            style.data_scope = {
-                ...(style.data_scope || {}),
-                mode: 'actor_owned',
-                source: 'current_actor',
-                model: newData[index].primary_model || selectedClassName || '',
-            };
-        } else {
-            delete style.data_scope;
-        }
-        newData[index].style = style;
-        setData(newData);
-    };
 
     const handleAddJoin = (index: number) => {
         const newData = [...data];
@@ -687,12 +604,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                 const value = sqlValue(filter);
                 return `  ${sqlFieldRef(filter.field, fromModel)} ${op}${value ? ` ${value}` : ''}`;
             });
-        const relatedClause = section.related_to
-            ? ['  -- plus current-object filter from Related To shortcut']
-            : [];
-        const scopeClause = dataScopeMode(section) === 'actor_owned'
-            ? [`  -- scoped to current actor's ${section.primary_model || fromModel} record`]
-            : [];
         const orderBy = (section.query?.order_by || [])
             .filter((order: any) => order.field)
             .map((order: any) => `${sqlFieldRef(order.field, fromModel)} ${String(order.direction || 'asc').toUpperCase()}`)
@@ -702,19 +613,12 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
             selectFields,
             `FROM ${fromTable}`,
             joins,
-            [...scopeClause, ...filters, ...relatedClause].length ? `WHERE\n${[...scopeClause, ...filters, ...relatedClause].join('\n  AND ')}` : '',
+            filters.length ? `WHERE\n${filters.join('\n  AND ')}` : '',
             orderBy ? `ORDER BY ${orderBy}` : '',
             section.query?.limit ? `LIMIT ${section.query.limit}` : '',
             section.query?.offset ? `OFFSET ${section.query.offset}` : '',
             ';',
         ].filter(Boolean).join('\n');
-    };
-
-    const handleRelationFieldChange = (index: number, value: string) => {
-        setNewRelationField(value);
-        const newData = [...data];
-        newData[index].relation_field = value || null;
-        setData(newData);
     };
 
     const handleItemClickTypeChange = (index: number, type: string) => {
@@ -867,36 +771,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const updatedAttributes = existingNames.has(selectedName)
             ? selectedAttributes
             : [...selectedAttributes, readonlyAttr];
-        setSelectedAttributes(updatedAttributes);
-        const newData = [...data];
-        newData[sectionIndex].attributes = updatedAttributes;
-        setData(newData);
-    };
-
-    const handleAttributeRenderChange = (sectionIndex: number, attrIndex: number, renderAs: string) => {
-        const updatedAttributes = [...selectedAttributes];
-        const attr = normalizeAttribute(updatedAttributes[attrIndex]);
-        updatedAttributes[attrIndex] = {
-            ...attr,
-            render: { ...(attr.render || {}), as: renderAs },
-            is_link: renderAs === 'link',
-            action: attr.action || { type: renderAs === 'link' ? 'navigate' : 'none' },
-        };
-        setSelectedAttributes(updatedAttributes);
-        const newData = [...data];
-        newData[sectionIndex].attributes = updatedAttributes;
-        setData(newData);
-    };
-
-    const updateAttributeAction = (sectionIndex: number, attrIndex: number, patch: Record<string, any>) => {
-        const updatedAttributes = [...selectedAttributes];
-        const attr = normalizeAttribute(updatedAttributes[attrIndex]);
-        const nextAction = { ...(attr.action || { type: 'none' }), ...patch };
-        updatedAttributes[attrIndex] = {
-            ...attr,
-            action: nextAction,
-            is_link: nextAction.type === 'navigate' && getAttributeRenderAs(attr) === 'link',
-        };
         setSelectedAttributes(updatedAttributes);
         const newData = [...data];
         newData[sectionIndex].attributes = updatedAttributes;
@@ -1088,34 +962,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             Use only when users need to choose records or act on selected rows.
                                         </p>
                                     </div>
-                                    <div className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-700">Item actions</h3>
-                                        <p className="text-xs text-gray-500">
-                                            Rendered once for every record in card, list, gallery, and table sections.
-                                        </p>
-                                        <Textarea
-                                            minRows={2}
-                                            maxRows={5}
-                                            placeholder={"View Details\nAdd to Cart\nCompare"}
-                                            value={(data[index].item_actions || []).map((m: any) =>
-                                                typeof m === 'string' ? m : (m?.label || m?.name || '')
-                                            ).join('\n')}
-                                            onChange={(e) => {
-                                                const itemActions = e.target.value
-                                                    .split('\n')
-                                                    .map((line: string) => line.trim())
-                                                    .filter(Boolean)
-                                                    .map((label: string) => ({
-                                                        name: actionNameFromLabel(label),
-                                                        label,
-                                                        target_model: data[index].primary_model || selectedClassName,
-                                                    }));
-                                                const newData = [...data];
-                                                newData[index].item_actions = itemActions;
-                                                setData(newData);
-                                            }}
-                                        />
-                                    </div>
                                     </SectionEditorGroup>
                                     <SectionEditorGroup title="Fields" description="Choose display, editable, and read-only fields. Related fields are read-only context only.">
                                     <div className='space-y-1'>
@@ -1130,65 +976,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             onSelect={(selectedList, selectedItem) => handleAttributeSelect(selectedList, selectedItem, index)}
                                             onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
                                         />
-                                        {selectedClassName && (
-                                            <p className="text-[11px] text-gray-500 mt-1">
-                                                Fields are from {selectedClassName}. Use related fields below for read-only values from other classes.
-                                            </p>
-                                        )}
-                                        <div className="mt-2 space-y-1">
-                                            {selectedAttributes.map((attr, attrIdx) => {
-                                                if (isReadonlyAttribute(attr)) return null;
-                                                const action = getAttributeAction(attr);
-                                                return (
-                                                    <div key={attrIdx} className="bg-stone-50 px-2 py-1 rounded-md border border-stone-200 space-y-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs truncate flex-1 min-w-0">{getAttributeName(attr)}</span>
-                                                            {getAttributeRenderAs(attr) === 'link' && <LinkIcon size={13} className="text-blue-600" />}
-                                                            <select
-                                                                value={getAttributeRenderAs(attr)}
-                                                                onChange={(e) => handleAttributeRenderChange(index, attrIdx, e.target.value)}
-                                                                className="border border-gray-300 rounded-md bg-white px-1 py-0.5 text-xs"
-                                                                title="Field render mode"
-                                                            >
-                                                                {FIELD_RENDER_OPTIONS.map(option => (
-                                                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                                                ))}
-                                                            </select>
-                                                            <select
-                                                                value={action.type || 'none'}
-                                                                onChange={(e) => updateAttributeAction(index, attrIdx, { type: e.target.value })}
-                                                                className="border border-gray-300 rounded-md bg-white px-1 py-0.5 text-xs"
-                                                                title="Field action"
-                                                            >
-                                                                {FIELD_ACTION_OPTIONS.map(option => (
-                                                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                        {action.type !== 'none' && (
-                                                            <input
-                                                                type="text"
-                                                                value={action.targetPageId || action.operation || action.field || action.tooltip || ''}
-                                                                onChange={(e) => {
-                                                                    const key = action.type === 'navigate' ? 'targetPageId'
-                                                                        : action.type === 'operation' ? 'operation'
-                                                                            : action.type === 'tooltip' ? 'tooltip'
-                                                                                : 'field';
-                                                                    updateAttributeAction(index, attrIdx, { [key]: e.target.value });
-                                                                }}
-                                                                placeholder={
-                                                                    action.type === 'navigate' ? 'target page id/name'
-                                                                        : action.type === 'operation' ? 'operation name'
-                                                                            : action.type === 'tooltip' ? 'tooltip text'
-                                                                                : 'field/value'
-                                                                }
-                                                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
-                                                            />
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
                                     </div>
                                     </SectionEditorGroup>
                                     <SectionEditorGroup title="Content" description="Optional copy, media, and section-level actions shown once for this component." defaultOpen={false}>
@@ -1349,77 +1136,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         )}
                                     </FormControl>
                                     </SectionEditorGroup>
-                                    </>)}
-                                    {!isActivityActionSection(data[index]) && !CHROME_LAYOUTS.includes(data[index].layout) && (<>
-                                    <SectionEditorGroup title="Data Binding" description="Define which records this component reads before advanced query filters.">
-                                    <FormControl className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-700">Related To</h3>
-                                        <p className="text-xs text-gray-500">Show items related to the selected section's object (e.g. same category).</p>
-                                        <select
-                                            value={data[index].related_to || ''}
-                                            onChange={(e) => handleRelatedToChange(index, e.target.value)}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        >
-                                            <option value="">None</option>
-                                            {data.filter((_, i) => i !== index).map((sec) => (
-                                                <option key={sec.id} value={sec.id}>{sec.name}</option>
-                                            ))}
-                                        </select>
-                                        {data[index].related_to && (
-                                            <div className="space-y-1">
-                                                <label className="text-xs text-gray-500">Relationship mode</label>
-                                                <select
-                                                    value={data[index].relationship?.mode || 'direct'}
-                                                    onChange={(e) => handleRelationshipModeChange(index, e.target.value)}
-                                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                                >
-                                                    <option value="direct">Direct relationship</option>
-                                                    <option value="same_parent">Same parent</option>
-                                                </select>
-                                                {data[index].relationship?.mode === 'same_parent' && (
-                                                    <>
-                                                        <label className="text-xs text-gray-500">Via class</label>
-                                                        <select
-                                                            value={data[index].relationship?.via || ''}
-                                                            onChange={(e) => handleRelationshipViaChange(index, e.target.value)}
-                                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                                        >
-                                                            <option value="">Auto-detect if possible</option>
-                                                            {isSuccessClasses && classes.map((cls) => (
-                                                                <option key={cls.id} value={cls.id}>{cls.data.name}</option>
-                                                            ))}
-                                                        </select>
-                                                    </>
-                                                )}
-                                                <label className="text-xs text-gray-500">Relation field override (optional, auto-detected if blank)</label>
-                                                <input
-                                                    type="text"
-                                                    value={newRelationField}
-                                                    onChange={(e) => handleRelationFieldChange(index, e.target.value)}
-                                                    placeholder="e.g. category"
-                                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                                />
-                                            </div>
-                                        )}
-                                    </FormControl>
-                                    <FormControl className="space-y-2">
-                                        <h3 className="text-sm font-semibold text-gray-700">Data Scope</h3>
-                                        <p className="text-xs text-gray-500">Controls which records this section is allowed to read before query filters are applied.</p>
-                                        <select
-                                            value={dataScopeMode(data[index])}
-                                            onChange={(e) => handleDataScopeModeChange(index, e.target.value)}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        >
-                                            <option value="all">All records</option>
-                                            <option value="actor_owned">Current actor only</option>
-                                        </select>
-                                        {dataScopeMode(data[index]) === 'actor_owned' && (
-                                            <p className="text-[11px] text-emerald-700">
-                                                Uses the logged-in actor to resolve this section's {data[index].primary_model || selectedClassName || 'model'} record. This is not stored as a query filter.
-                                            </p>
-                                        )}
-                                    </FormControl>
-                                    </SectionEditorGroup>
                                     <SectionEditorGroup title="Advanced Query" description="Optional joins, select columns, sort, filters, and SQL preview." defaultOpen={false}>
                                     <FormControl className="space-y-2">
                                         <h3 className="text-sm font-semibold text-gray-700">Data Source / Query</h3>
@@ -1545,16 +1261,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 />
                                             </div>
                                         </div>
-                                        {data[index].related_to && (
-                                            <label className="flex items-center gap-2 text-xs text-gray-500">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={data[index].query?.exclude_source ?? false}
-                                                    onChange={(e) => handleQueryExcludeSourceChange(index, e.target.checked)}
-                                                />
-                                                Exclude current item
-                                            </label>
-                                        )}
                                         <div className="space-y-1">
                                             <div className="flex items-center justify-between gap-2">
                                                 <label className="text-xs text-gray-500">Sort</label>
@@ -1606,7 +1312,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 </button>
                                             </div>
                                             {(data[index].query?.filters || []).map((filter, filterIndex) => (
-                                                <div key={filterIndex} className="grid grid-cols-[1fr_78px_1fr_28px] gap-1">
+                                                <div key={filterIndex} className="grid grid-cols-[1fr_78px_90px_1fr_28px] gap-1">
                                                     <input
                                                         type="text"
                                                         list={`query-field-list-${index}`}
@@ -1630,11 +1336,22 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                         <option value="in">in</option>
                                                         <option value="isnull">null</option>
                                                     </select>
+                                                    <select
+                                                        value={filter.value_from ? 'value_from' : 'value'}
+                                                        onChange={(e) => handleFilterValueSourceChange(index, filterIndex, e.target.value as 'value' | 'value_from')}
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs"
+                                                        disabled={filter.operator === 'isnull'}
+                                                    >
+                                                        <option value="value">Literal</option>
+                                                        <option value="value_from">Dynamic</option>
+                                                    </select>
                                                     <input
                                                         type="text"
-                                                        value={filter.value || ''}
-                                                        onChange={(e) => handleFilterChange(index, filterIndex, 'value', e.target.value)}
+                                                        value={filter.value_from || filter.value || ''}
+                                                        onChange={(e) => handleFilterChange(index, filterIndex, filter.value_from ? 'value_from' : 'value', e.target.value)}
+                                                        placeholder={filter.value_from ? 'request.GET.instance_id_Model' : 'value'}
                                                         className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
+                                                        disabled={filter.operator === 'isnull'}
                                                     />
                                                     <button
                                                         type="button"

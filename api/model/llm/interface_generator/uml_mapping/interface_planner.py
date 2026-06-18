@@ -16,6 +16,7 @@ from ..token_normalizer import _sid
 
 
 def _plural(model: str) -> str:
+    """Pluralize value."""
     base = _sid(model or "items")
     if base.endswith("y") and not base.endswith(("ay", "ey", "oy", "uy")):
         return f"{base[:-1]}ies"
@@ -25,6 +26,7 @@ def _plural(model: str) -> str:
 
 
 def _title(page_id: str) -> str:
+    """Title-case value."""
     return page_id.replace("_", " ").title()
 
 
@@ -63,6 +65,7 @@ _EXCLUDED_FORM = frozenset({
 
 
 def _field_category(field_name: str) -> str | None:
+    """Classify a model field for ordering and layout decisions."""
     for category, pattern in _FIELD_PATTERNS:
         if pattern.search(field_name):
             return category
@@ -101,6 +104,7 @@ def _pick_fields_by_names(
 
 
 def _pick_fields(model_info: dict, role: str, limit: int = 8) -> list[str]:
+    """Pick fields."""
     attrs = model_info.get("attributes") or []
     attr_names = [a["name"] for a in attrs if a.get("name")]
     if role == "object_form":
@@ -122,6 +126,7 @@ _FORM_REVIEW    = re.compile(r"review|rating|feedback|assessment|evaluation|test
 
 
 def _collection_component(model: str, layout: str) -> str:
+    """Select the collection component type for a model and page role."""
     if layout == "timeline":
         return "TimelineList"
     if layout == "map":
@@ -139,6 +144,7 @@ def _collection_component(model: str, layout: str) -> str:
 
 
 def _detail_component(model: str) -> str:
+    """Select the detail component type for a model and page role."""
     m = model.lower()
     if _MODEL_DOCUMENT.search(m):
         return "DocumentPanel"
@@ -148,6 +154,7 @@ def _detail_component(model: str) -> str:
 
 
 def _form_component(model: str, page_id: str) -> str:
+    """Select the form component type for a form-oriented page role."""
     m = (model + " " + page_id).lower()
     if _FORM_ADDRESS.search(m):
         return "AddressForm"
@@ -159,6 +166,7 @@ def _form_component(model: str, page_id: str) -> str:
 
 
 def _child_component(model: str, page_id: str) -> str:
+    """Select the component type for a related child collection section."""
     m = (model + " " + page_id).lower()
     if any(t in m for t in ("item", "line", "cart", "basket")):
         return "LineItemList"
@@ -229,6 +237,7 @@ def _activity_layout_from_action(action: str, hint: str) -> tuple[str, str, str]
 
 
 def _activity_form_operations(action: str) -> list[str]:
+    """Build activity form operations."""
     text = str(action or "").lower()
     create_terms = ("create", "add", "new", "record", "submit", "register", "enter", "request", "apply", "book", "schedule", "reserve")
     update_terms = ("update", "edit", "change", "set", "mark", "renew", "return")
@@ -238,11 +247,13 @@ def _activity_form_operations(action: str) -> list[str]:
 
 
 def _is_create_like_activity(action: str) -> bool:
+    """Detect workflow steps that should render as create-style activity pages."""
     text = str(action or "").lower()
     return any(term in text for term in ("request", "apply", "submit", "book", "schedule", "reserve", "create", "register", "enter"))
 
 
 def _merge_field_names(*groups: list[str]) -> list[str]:
+    """Merge field names."""
     out = []
     for group in groups:
         for field in group or []:
@@ -252,6 +263,7 @@ def _merge_field_names(*groups: list[str]) -> list[str]:
 
 
 def _semantic_section_attrs(step_attrs: list[dict], readonly: list[str], editable: list[str]) -> list[dict]:
+    """Merge semantic field hints into ordered section attribute descriptors."""
     attr_by_name = {attr.get("name"): dict(attr) for attr in step_attrs or [] if attr.get("name")}
     out = []
     for field in _merge_field_names(readonly, editable):
@@ -262,6 +274,7 @@ def _semantic_section_attrs(step_attrs: list[dict], readonly: list[str], editabl
 
 
 def _workflow_semantics_payload(workflow_semantic: dict, readonly: list[str], editable: list[str]) -> dict:
+    """Build workflow semantics payload."""
     payload = {
         key: workflow_semantic.get(key)
         for key in ("intent", "context_model", "target_model", "context_binding", "condition", "true_next", "false_next")
@@ -363,6 +376,7 @@ def _model_relation_data_scopes(
 
 
 def _should_add_filter(layout: str, model_info: dict, page_role: str) -> bool:
+    """Decide whether a generated collection page should include a filter section."""
     if layout not in {"table", "list"} or page_role != "collection_workspace":
         return False
     attr_names = {str(a.get("name") or "").lower() for a in model_info.get("attributes", []) if isinstance(a, dict)}
@@ -453,6 +467,7 @@ def _section(
     attributes: list[dict] | None = None,
     **extra,
 ) -> dict:
+    """Build section value."""
     style_override = extra.pop("style", None)
     data_scope = extra.pop("data_scope", None)
     relation_data_scopes = extra.pop("relation_data_scopes", None)
@@ -669,12 +684,14 @@ def generate_interface_plan(
     existing_section_ids: set[str] = set()
 
     def add_section(sec: dict) -> None:
+        """Provide a local helper for generate_interface_plan."""
         if sec["id"] not in existing_section_ids:
             sections.append(sec)
             page_sections[sec["page_id"]].append(sec["id"])
             existing_section_ids.add(sec["id"])
 
     def add_page(pg: dict) -> None:
+        """Provide a local helper for generate_interface_plan."""
         if pg["id"] not in existing_page_ids:
             pages.append(pg)
             existing_page_ids.add(pg["id"])

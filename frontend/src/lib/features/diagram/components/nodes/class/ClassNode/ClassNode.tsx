@@ -25,7 +25,7 @@ const ClassNode: React.FC<NodeProps> = (node) => {
                         <span className="ml-2 px-2 py-0.5 rounded-md text-xs fond-medium bg-gray-200 text-gray-700">{systemName}</span>}
                 </span>
                 <div className="flex flex-col border-t border-solid border-black p-1">
-                    {node.data?.attributes?.map(
+                    {node.data?.attributes?.filter((a: any) => a?.name !== "id" && !String(a?.name ?? "").endsWith("_id"))?.map(
                         (attribute: any, idx: number) => (
                             <div
                                 key={`attribute-${node.id}-${idx}`}

@@ -5,6 +5,7 @@ from ..token_normalizer import _as_list, _page_name, _section_id, _workflow_page
 
 
 def _build_activity_diagrams(system_data: dict) -> list:
+    """Build activity diagrams."""
     diagrams = system_data.get("diagrams") or []
     classifiers = {str(c.get("id")): c for c in _as_list(system_data.get("classifiers"), "classifiers")}
     relations = {str(r.get("id")): r for r in _as_list(system_data.get("relations"), "relations")}
@@ -15,6 +16,7 @@ def _build_activity_diagrams(system_data: dict) -> list:
     }
 
     def actor_name_for_ref(ref: object) -> str:
+        """Provide a local helper for _build_activity_diagrams."""
         ref = str(ref or "")
         data = (classifiers.get(ref) or {}).get("data", {})
         if data.get("type") == "actor":
@@ -60,6 +62,7 @@ def _build_activity_diagrams(system_data: dict) -> list:
 
 
 def _actor_refs(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> set[str]:
+    """Collect actor ids referenced by a use case classifier."""
     refs = {str(actor_id)} if actor_id else set()
     actor_name_norm = str(actor_name or "").lower()
     classifiers = {
@@ -82,6 +85,7 @@ def _actor_refs(system_data: dict, actor_id: str | None, actor_name: str | None 
 
 
 def _ref_values(values) -> set[str]:
+    """Extract raw reference ids from UML reference fields."""
     out = set()
     for value in values or []:
         if isinstance(value, dict):
@@ -94,6 +98,7 @@ def _ref_values(values) -> set[str]:
 
 
 def _ref_list(values) -> list[str]:
+    """Normalize UML reference values into a deduplicated list of ids."""
     out = []
     seen = set()
     for value in values or []:
@@ -108,6 +113,7 @@ def _ref_list(values) -> list[str]:
 
 
 def _name_tokens(value: str) -> set[str]:
+    """Split a model, use-case, or action name into searchable tokens."""
     spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", str(value or ""))
     tokens = {
         token
@@ -119,6 +125,7 @@ def _name_tokens(value: str) -> set[str]:
 
 
 def _rank_models_for_text(text: str, models: list[str], prefer_collections: bool = False) -> list[str]:
+    """Score candidate models against action or use-case text."""
     text_tokens = _name_tokens(text)
     ranked = []
     for index, model in enumerate(models or []):
@@ -136,6 +143,7 @@ def _rank_models_for_text(text: str, models: list[str], prefer_collections: bool
 
 
 def _infer_usecase_model(name: str, explicit_classes: list[str], classifiers: dict[str, dict], model_names: set[str]) -> str:
+    """Infer usecase model."""
     for ref in explicit_classes:
         cls = classifiers.get(ref, {})
         cname = cls.get("name") or ref
@@ -146,6 +154,7 @@ def _infer_usecase_model(name: str, explicit_classes: list[str], classifiers: di
 
 
 def _humanize_action_label(name: str, fallback: str = "Start") -> str:
+    """Convert an action name into a concise user-facing label."""
     raw = re.sub(r"[_-]+", " ", str(name or "")).strip()
     if not raw:
         return fallback
@@ -156,6 +165,7 @@ def _humanize_action_label(name: str, fallback: str = "Start") -> str:
 
 
 def _is_child_collection_model(model_name: str, page_terms: str = "") -> bool:
+    """Detect line-item or child models that should be nested under a parent."""
     name_l = str(model_name or "").lower()
     if not name_l:
         return False
@@ -165,6 +175,7 @@ def _is_child_collection_model(model_name: str, page_terms: str = "") -> bool:
 
 
 def _plural_page_id(model: str) -> str:
+    """Pluralize page id."""
     base = _section_id(model or "items")
     if base.endswith("y"):
         return f"{base[:-1]}ies"
@@ -174,6 +185,7 @@ def _plural_page_id(model: str) -> str:
 
 
 def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dict:
+    """Map a use case to navigation role, page role, and operation intent."""
     name = str(usecase.get("name") or "")
     name_l = name.lower()
     primary = usecase.get("primary_model") or ""
@@ -181,6 +193,7 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
     ranked_models = _rank_models_for_text(name, class_names)
 
     def best_model(default: str = "") -> str:
+        """Provide a local helper for _nav_mapping_for_usecase."""
         return primary or (ranked_models[0] if ranked_models else (class_names[0] if class_names else default))
 
     if any(term in name_l for term in ("system process", "background", "automated", "notification")):
@@ -245,6 +258,7 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
 
 
 def _activity_action_indexes(system_data: dict) -> tuple[dict[str, dict], set[str], set[str]]:
+    """Build activity action indexes."""
     by_id = {}
     first_ids = set()
     all_ids = set()
@@ -279,6 +293,7 @@ def _activity_action_indexes(system_data: dict) -> tuple[dict[str, dict], set[st
 
 
 def _usecase_has_workflow_entry(usecase: dict, has_activity_workflow: bool, activity_first_ids: set[str], activity_all_ids: set[str]) -> bool:
+    """Decide whether a use case should start or participate in a workflow."""
     if not has_activity_workflow:
         return False
     refs = set(usecase.get("activities") or []) | set(usecase.get("actions") or [])
@@ -299,6 +314,7 @@ def _usecase_has_workflow_entry(usecase: dict, has_activity_workflow: bool, acti
 
 
 def _infer_usecase_permissions(name: str) -> list[str]:
+    """Infer usecase permissions."""
     name_l = str(name or "").lower()
     perms = {"view"}
     if any(term in name_l for term in ("add", "create", "write", "submit")):
@@ -314,6 +330,7 @@ def _infer_usecase_permissions(name: str) -> list[str]:
 
 
 def _build_usecase_navigation(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> dict:
+    """Build usecase navigation."""
     refs = _actor_refs(system_data, actor_id, actor_name)
     classifiers = {
         str(c.get("id")): (c.get("data") or {})
@@ -471,6 +488,7 @@ def _build_usecase_navigation(system_data: dict, actor_id: str | None, actor_nam
 
 
 def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> list:
+    """Build workflow plan."""
     refs = _actor_refs(system_data, actor_id, actor_name)
     classifiers = {
         str(c.get("id")): (c.get("data") or {})
@@ -478,12 +496,14 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
     }
 
     def _class_name(ref) -> str:
+        """Provide a local helper for _workflow_plan."""
         if isinstance(ref, dict):
             ref = ref.get("id") or ref.get("value") or ref.get("name")
         ref = str(ref or "")
         return classifiers.get(ref, {}).get("name") or ref
 
     def _class_refs(raw_classes) -> list:
+        """Provide a local helper for _workflow_plan."""
         if isinstance(raw_classes, dict):
             refs = []
             for values in raw_classes.values():
@@ -492,6 +512,7 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
         return list(raw_classes or [])
 
     def _node_classifier(node: dict) -> tuple[str, dict]:
+        """Provide a local helper for _workflow_plan."""
         raw = node.get("cls") or {}
         if isinstance(raw, dict):
             cls_id = str(raw.get("id") or node.get("cls_ptr") or node.get("cls_id") or "")
@@ -500,6 +521,7 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
         return cls_id, classifiers.get(cls_id, {})
 
     def _resolve_actor_node(raw_actor_node: object, nodes: dict[str, dict]) -> tuple[str, str]:
+        """Resolve actor node."""
         raw_actor = str(raw_actor_node or "")
         actor_data = classifiers.get(raw_actor, {})
         if actor_data.get("type") == "actor":
@@ -549,6 +571,7 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
 
 
 def _activity_models_for_step(step: dict, workflow_entries: list, known_models: set[str]) -> list[str]:
+    """Build activity models for step."""
     name_l = str(step.get("activity_node_name") or step.get("page_name") or "").lower()
     explicit_step_models = [m for m in step.get("classes") or [] if m in known_models]
     if explicit_step_models:
@@ -573,6 +596,7 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
 
 
 def _activity_layout_for_step(step_name: str, model: str) -> str:
+    """Build activity layout for step."""
     name_tokens = _name_tokens(step_name)
     # "select/choose" = pick from options ? card with select operation, not a form
     if any(term in name_tokens for term in ("select", "choose", "pick", "search", "browse")):

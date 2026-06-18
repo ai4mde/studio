@@ -79,6 +79,9 @@
       --button-danger-text:     {{ tokens.get('button.danger.text_hex', '#ffffff') }};
       --button-danger-border:   {{ tokens.get('button.danger.border_hex', '#dc2626') }};
       --button-link-text:       {{ tokens.get('button.link.text_hex', 'var(--accent)') }};
+      --method-action-bg:       {{ tokens.get('method.action.bg_hex', tokens.get('button.method.bg_hex', '#1f2937')) }};
+      --method-action-text:     {{ tokens.get('method.action.text_hex', tokens.get('button.method.text_hex', '#ffffff')) }};
+      --method-action-border:   {{ tokens.get('method.action.border_hex', tokens.get('button.method.border_hex', tokens.get('method.action.bg_hex', tokens.get('button.method.bg_hex', '#1f2937')))) }};
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Inputs éˆ¹â‚¬éˆ¹â‚¬ */
       --input-bg:           {{ tokens.get('input.bg_hex', 'var(--region-main-bg)') }};
@@ -159,6 +162,18 @@
     .si-btn-ghost:hover { background-color: var(--region-main-bg-sunken) !important; }
     .si-btn-danger { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; }
     .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
+    .si-method-action {
+      background-color: var(--method-action-bg) !important;
+      color: var(--method-action-text) !important;
+      border-color: var(--method-action-border) !important;
+    }
+    .si-method-action:hover { filter: brightness(1.05); }
+    .si-product-cta {
+      background-color: {{ tokens.get('commerce.cta.bg_hex', '#ffd700') }} !important;
+      color: {{ tokens.get('commerce.cta.text_hex', '#111827') }} !important;
+      border-color: {{ tokens.get('commerce.cta.border_hex', tokens.get('commerce.cta.bg_hex', '#ffd700')) }} !important;
+    }
+    .si-product-cta:hover { filter: brightness(0.96); }
 
     /* éˆ¹â‚¬éˆ¹â‚¬ Accent color classes (follow design spec primary color) éˆ¹â‚¬éˆ¹â‚¬ */
     .si-accent-btn        { background-color: var(--button-primary-bg); color: var(--button-primary-text); border-radius: var(--btn-radius); }

@@ -28,15 +28,18 @@ _ACTIVITY_SELECT_TERMS = re.compile(r"\b(search|select|choose|pick|browse)\b", r
 
 
 def _section_id(name: str) -> str:
+    """Convert a free-form label into a stable section id."""
     s = re.sub(r"[^a-zA-Z0-9]+", "_", str(name or "").strip()).strip("_").lower()
     return s or "section"
 
 
 def _page_name(page_id: str) -> str:
+    """Convert a free-form label into the generated page class/name format."""
     return str(page_id or "Page").replace("_", " ").title().replace(" ", "_")
 
 
 def _is_strict_child_collection_model(model_name: str) -> bool:
+    """Detect models that should only appear as child collections."""
     name_l = str(model_name or "").lower()
     return any(term in name_l for term in ("item", "line", "entry", "row", "detail", "selection", "option"))
 
@@ -48,6 +51,7 @@ _ROLE_CATEGORY_ORDER_OOUI = {
 
 
 def _pick_fields(model_attrs: dict, model: str, role: str, limit: int = 8) -> list[str]:
+    """Pick fields."""
     all_attrs = [f for f in (model_attrs.get(model) or []) if f]
     excluded = _EXCLUDED_FORM if role == "object_form" else frozenset({"id"})
     attr_names = [f for f in all_attrs if f.lower() not in excluded]
@@ -55,6 +59,7 @@ def _pick_fields(model_attrs: dict, model: str, role: str, limit: int = 8) -> li
 
 
 def _layout_for_page_role(page: dict) -> str:
+    """Choose a section layout from a generated page role."""
     roles = set(page.get("roles") or [])
     page_id = str(page.get("id") or page.get("page_id") or "").lower()
 
@@ -72,6 +77,7 @@ def _layout_for_page_role(page: dict) -> str:
 
 
 def _operations_for_model(model: str, actor_permissions: dict) -> list[str]:
+    """Return CRUD operations allowed for a model by actor permissions."""
     permissions = set(actor_permissions.get(model) or [])
     operations = ["view"]
     for operation in ("create", "update", "delete"):
@@ -81,6 +87,7 @@ def _operations_for_model(model: str, actor_permissions: dict) -> list[str]:
 
 
 def _operations_for_page(model: str, actor_permissions: dict, page: dict) -> list[str]:
+    """Return CRUD operations allowed for the page role and model."""
     roles = set(page.get("roles") or [])
     page_text = f"{page.get('id') or page.get('page_id') or ''} {page.get('name') or page.get('page_name') or ''}".lower()
     operation_kind = str(page.get("operation_kind") or page.get("kind") or "").lower()
@@ -95,6 +102,7 @@ def _operations_for_page(model: str, actor_permissions: dict, page: dict) -> lis
 
 
 def _editable_fields_for_model(model_attrs: dict, model: str, role: str, operations: list[str]) -> list[str]:
+    """Choose fields that should be editable for the page role and operations."""
     if not ({"create", "update"} & set(operations)):
         return []
     excluded = {"id", f"{_section_id(model)}_id", "created_at", "updated_at", "created_on", "updated_on"}
@@ -105,6 +113,7 @@ _CHILD_LINE_ITEM = re.compile(r"item|line|cart|basket|order|invoice|receipt", re
 
 
 def _component_for_section(role: str, layout: str, model: str = "", page_id: str = "") -> str:
+    """Choose the component type for a generated section role and layout."""
     model_l = str(model or "").lower()
     ctx = f"{model_l} {page_id or ''}".lower()
 
@@ -144,10 +153,12 @@ def _component_for_section(role: str, layout: str, model: str = "", page_id: str
 
 
 def _field_layout_for_component(component: str, attrs: list[str], related_attrs: list[str] | None = None) -> dict:
+    """Build the field-layout slots expected by a section component."""
     related_attrs = related_attrs or []
     all_attrs = attrs + related_attrs
 
     def first(*names: str) -> str:
+        """Provide a local helper for _field_layout_for_component."""
         for name in names:
             if name in all_attrs:
                 return name
@@ -178,6 +189,7 @@ def _field_layout_for_component(component: str, attrs: list[str], related_attrs:
 
 
 def _section_for_page(page: dict, model_attrs: dict, actor_permissions: dict | None = None) -> dict | None:
+    """Build section for page."""
     model = page.get("primary_model") or ""
     if not model:
         return None
@@ -222,6 +234,7 @@ def _section_for_page(page: dict, model_attrs: dict, actor_permissions: dict | N
 
 
 def _child_section(page_id: str, model: str, model_attrs: dict, label: str = "", related_models: list[str] | None = None) -> dict:
+    """Build a related child collection section for a generated page."""
     style = {
         "color": "accent",
         "density": "compact",
@@ -266,6 +279,7 @@ def _child_section(page_id: str, model: str, model_attrs: dict, label: str = "",
 
 
 def _activity_layout(step_name: str) -> str:
+    """Build activity layout."""
     if _ACTIVITY_LIST_TERMS.search(step_name):
         return "list"
     if _ACTIVITY_FORM_TERMS.search(step_name):
@@ -274,6 +288,7 @@ def _activity_layout(step_name: str) -> str:
 
 
 def _sections_for_activity_step(step: dict, model_attrs: dict, workflow_entries: list | None = None) -> list[dict]:
+    """Build sections for activity step."""
     known = set(model_attrs.keys())
     page_id = step.get("page_id") or _section_id(step.get("page_name") or "workflow")
 
@@ -326,6 +341,7 @@ def _sections_for_activity_step(step: dict, model_attrs: dict, workflow_entries:
 
 
 def build_navigation_plan(usecase_navigation: dict, model_attrs: dict | None = None, workflow_steps: list | None = None) -> dict:
+    """Build navigation plan."""
     model_attrs = model_attrs or {}
     actor_permissions = usecase_navigation.get("actor_permissions") or {}
     pages = []

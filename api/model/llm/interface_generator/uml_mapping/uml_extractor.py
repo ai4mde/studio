@@ -16,9 +16,13 @@ from ..token_normalizer import _sid
 
 
 def _cardinality(source_mult: str, target_mult: str) -> str:
+    """Normalize UML multiplicities into one-to-one, one-to-many, or many-to-many cardinality."""
     def is_many(m: str) -> bool:
+        """Treat common UML many-side notations as collection multiplicities."""
         m = str(m or "").strip()
         return "*" in m or "n" in m.lower() or "+" in m
+    # Source and target multiplicities are interpreted independently so the
+    # downstream page planner can distinguish parent detail pages from child lists.
     s = is_many(source_mult)
     t = is_many(target_mult)
     if s and t:
@@ -31,6 +35,9 @@ def _cardinality(source_mult: str, target_mult: str) -> str:
 
 
 def _ref_list(raw) -> list:
+    """Normalize UML reference values into a deduplicated list of ids."""
+    # Metadata serializers sometimes wrap references by role, e.g.
+    # {"input": [...], "output": [...]}; flatten those buckets before matching.
     if isinstance(raw, dict):
         refs = []
         for v in raw.values():
@@ -69,6 +76,9 @@ def score_layout(attr_names: set[str]) -> dict[str, float]:
     """Score how well a model fits each layout based on attribute names."""
     names_l = {n.lower() for n in attr_names}
     hits: dict[str, int] = defaultdict(int)
+    # Attribute names are the cheapest semantic signal available before the LLM
+    # sees the candidate. Partial matching catches common variants such as
+    # "product_image_url" without needing a domain ontology.
     for attr in names_l:
         for sig_key, sig_set in _ATTR_SIGNALS.items():
             if attr in sig_set or any(s in attr for s in sig_set if len(s) > 4):
@@ -85,6 +95,9 @@ def score_layout(attr_names: set[str]) -> dict[str, float]:
     has_geo = hits["geo"] > 0
     attr_count = len(attr_names)
 
+    # These scores are intentionally soft hints, not final layout choices. Later
+    # mapping stages combine them with use-case role, workflow role, and LLM
+    # candidate styling before deciding on concrete components.
     return {
         "gallery":   0.9 if has_image else (0.3 if hits["rating"] > 0 else 0.1),
         "table":     0.85 if (has_price and has_status) else (0.7 if (has_status or attr_count > 8) else 0.4),
@@ -116,6 +129,8 @@ def extract_class_diagram(classifiers: dict, relations: dict) -> dict[str, dict]
     models: dict[str, dict] = {}
 
     for cid, cdata in classifiers.items():
+        # Only class-like classifiers participate in the model graph. Actors,
+        # use cases, and activity nodes are handled by later extraction passes.
         if cdata.get("type") not in {"class", "entity", "model"}:
             continue
         name = cdata.get("name")
@@ -123,6 +138,8 @@ def extract_class_diagram(classifiers: dict, relations: dict) -> dict[str, dict]
             continue
         attrs_raw = cdata.get("attributes") or []
         attrs = [
+            # Preserve only rendering-relevant attribute metadata. Relationship
+            # traversal is handled from UML edges rather than embedded fields.
             {
                 "name": a.get("name", ""),
                 "type": a.get("type") or a.get("data_type") or "string",
@@ -152,6 +169,8 @@ def extract_class_diagram(classifiers: dict, relations: dict) -> dict[str, dict]
     for rel_id, rel in relations.items():
         rdata = rel.get("data") or {}
         rtype = rdata.get("type") or rdata.get("relation_type") or ""
+        # Ignore non-class relations here; interaction and control-flow edges are
+        # consumed by use-case and activity extractors below.
         if rtype not in CLASS_REL_TYPES:
             continue
 
@@ -165,13 +184,25 @@ def extract_class_diagram(classifiers: dict, relations: dict) -> dict[str, dict]
         if src_name not in models or tgt_name not in models:
             continue
 
-        src_mult = str(rdata.get("source_multiplicity") or rdata.get("source_cardinality") or "1")
-        tgt_mult = str(rdata.get("target_multiplicity") or rdata.get("target_cardinality") or "*")
+        multiplicity = rdata.get("multiplicity") or {}
+        src_mult = str(
+            rdata.get("source_multiplicity")
+            or rdata.get("source_cardinality")
+            or multiplicity.get("source")
+            or "1"
+        )
+        tgt_mult = str(
+            rdata.get("target_multiplicity")
+            or rdata.get("target_cardinality")
+            or multiplicity.get("target")
+            or "*"
+        )
         card = _cardinality(src_mult, tgt_mult)
         rel_name = rdata.get("name") or rdata.get("label") or ""
 
         if rtype == "composition":
-            # source is the whole; target is the part (owned)
+            # In this metadata shape, composition source is the whole and target
+            # is the owned part. That direction matters for child-section nesting.
             models[src_name]["compositions_owned"].append({"model": tgt_name, "cardinality": card})
             if models[tgt_name]["composition_parent"] is None:
                 models[tgt_name]["composition_parent"] = src_name
@@ -180,6 +211,8 @@ def extract_class_diagram(classifiers: dict, relations: dict) -> dict[str, dict]
             models[src_name]["aggregations_owned"].append({"model": tgt_name, "cardinality": card, "name": rel_name})
 
         elif rtype in {"association", "directed_association"}:
+            # Directed associations are navigable only from source to target,
+            # while plain associations are modeled as bidirectional navigation.
             navigable_both = rtype == "association"
             models[src_name]["associations"].append({"model": tgt_name, "cardinality": card, "name": rel_name, "navigable": True})
             if navigable_both:
@@ -222,7 +255,10 @@ _PAGE_ROLE_SIGNALS: dict[str, frozenset] = {
 
 
 def _infer_permissions(uc_name: str) -> list[str]:
+    """Infer permissions."""
     n = uc_name.lower()
+    # Use cases without an obvious verb still imply read access, because they
+    # normally need at least a landing/detail page for the actor.
     perms = {"read"}
     for word, perm in _VERB_PERMS.items():
         if word in n:
@@ -231,6 +267,9 @@ def _infer_permissions(uc_name: str) -> list[str]:
 
 
 def _infer_page_role(uc_name: str, has_workflow: bool) -> str:
+    """Infer page role."""
+    # Activity diagrams are stronger evidence than wording: if a use case has a
+    # workflow attached, it should become an entry point even if its name is vague.
     if has_workflow:
         return "workflow_entry"
     n = uc_name.lower()
@@ -266,14 +305,19 @@ _DOMAIN_SYNONYMS: list[tuple[str, str]] = [
 
 
 def _best_model_for_text(text: str, model_names: list[str], model_attr_names: dict[str, set[str]] | None = None) -> str:
+    """Rank model names against use-case text and attribute hints."""
     t = text.lower()
     model_names_sorted = sorted(model_names, key=len, reverse=True)
 
+    # Direct model mentions are the strongest signal and should not be
+    # overridden by looser attribute or synonym matches.
     # Pass 1: model name directly in action text
     for m in model_names_sorted:
         if m.lower() in t:
             return m
 
+    # Attribute names help when use cases mention domain fields rather than
+    # model names; short words are skipped to avoid false positives.
     # Pass 2: action words match model attribute names (len >= 5 to avoid generic words)
     if model_attr_names:
         action_words = {w for w in re.findall(r'\b\w{5,}\b', t)}
@@ -282,6 +326,8 @@ def _best_model_for_text(text: str, model_names: list[str], model_attr_names: di
                 return m
 
     # Pass 3: domain synonym mapping (keyword in action → partial model name)
+    # Domain synonyms cover vocabulary mismatches such as basket versus cart,
+    # billing versus payment, and stock versus product.
     for keyword, model_signal in _DOMAIN_SYNONYMS:
         if keyword in t:
             for m in model_names_sorted:
@@ -292,6 +338,7 @@ def _best_model_for_text(text: str, model_names: list[str], model_attr_names: di
 
 
 def _model_name_explicit_in_text(text: str, model: str) -> bool:
+    """Check whether a model name is explicitly mentioned in user-facing text."""
     if not text or not model:
         return False
     model_tokens = re.findall(r"[a-z0-9]+", str(model).lower())
@@ -315,11 +362,13 @@ def extract_use_case_diagram(
 
     Returns:
       target_permissions: {model: [create, read, update, delete]}
-      target_use_cases: [{name, primary_model, page_role, permissions, has_workflow, explicit_models}]
+      target_use_cases: [{name, primary_model, page_role, permissions, has_workflow, explicit_models, context_models}]
       all_actors: {actor_name: [use_case_names]}
     """
     actor_refs: set[str] = {str(actor_id)}
     for cid, cdata in classifiers.items():
+        # Actor ids can arrive either as the classifier id or as a display name;
+        # keep both forms so imported diagrams with different id shapes still map.
         if cdata.get("type") == "actor":
             if cdata.get("name") == actor_name or cid == str(actor_id):
                 actor_refs.add(cid)
@@ -335,6 +384,9 @@ def extract_use_case_diagram(
 
         node_by_cls: dict[str, str] = {}
         for node in diagram.get("nodes") or []:
+            # Some use-case diagrams store the classifier on the visual node,
+            # while relations store classifier ids. Indexing both lets us support
+            # either serializer shape without a second pass.
             cls_id = str(node.get("cls") or node.get("cls_ptr") or "")
             if cls_id:
                 node_by_cls[cls_id] = str(node.get("id"))
@@ -346,6 +398,8 @@ def extract_use_case_diagram(
 
             rel_type = str(rdata.get("type") or "").lower()
             rel_label = str(rdata.get("label") or "").lower()
+            # Use-case participation can be encoded as a formal interaction edge
+            # or as a plain association labelled "uses"; both mean actor access.
             if rel_type not in {"interaction", "association"} and rel_label not in {"uses", "use"}:
                 continue
 
@@ -354,6 +408,8 @@ def extract_use_case_diagram(
             src_cls = classifiers.get(source_id, {})
             tgt_cls = classifiers.get(target_id, {})
 
+            # Relations are not guaranteed to be drawn actor -> usecase, so infer
+            # direction from classifier types rather than edge orientation.
             # Determine which is actor and which is use case
             if src_cls.get("type") == "actor" and tgt_cls.get("type") == "usecase":
                 actor_cls_id, uc_cls_id = source_id, target_id
@@ -402,16 +458,18 @@ def extract_use_case_diagram(
 
             is_target = actor_cls_id in actor_refs or actor_cls_name == actor_name
             if is_target:
+                context_models = [m for m in explicit_models if m != primary_model]
+                # The primary model gets inferred CRUD permissions. Additional
+                # explicit models describe context shown on that page, not
+                # standalone actor workspaces; another use case must grant those.
                 if primary_model:
                     target_permissions[primary_model].update(perms)
-                for m in explicit_models:
-                    if m != primary_model:
-                        target_permissions[m].add("read")
 
                 target_use_cases.append({
                     "name": uc_name,
                     "primary_model": primary_model,
                     "explicit_models": explicit_models,
+                    "context_models": context_models,
                     "page_role": page_role,
                     "permissions": perms,
                     "has_workflow": has_workflow,
@@ -447,6 +505,7 @@ _ACTION_COMPONENT_SIGNALS: dict[str, list[str]] = {
 
 
 def _action_component(action_name: str) -> str:
+    """Choose the component type that best matches an activity action label."""
     n = action_name.lower()
     for component, signals in _ACTION_COMPONENT_SIGNALS.items():
         if any(s in n for s in signals):
@@ -472,8 +531,11 @@ def extract_activity_diagrams(
     uc_ids_with_workflows: set[str] = set()
 
     def _model_from_action_classes(cls: dict) -> str:
+        """Resolve a workflow action's explicit class reference to a model name."""
         raw_classes = cls.get("classes") or {}
         refs: list = []
+        # Activity actions can declare class refs under different buckets
+        # depending on whether the model is consumed, produced, or simply linked.
         if isinstance(raw_classes, dict):
             for key in ("input", "output", "models", "classes"):
                 values = raw_classes.get(key) or []
@@ -495,14 +557,19 @@ def extract_activity_diagrams(
         nodes: dict[str, dict] = {str(n.get("id")): n for n in diagram.get("nodes") or []}
 
         def _resolve_actor_node(cls: dict) -> tuple[str, str]:
+            """Resolve actor node."""
             raw_actor = str(cls.get("actorNode") or "")
             explicit_name = str(cls.get("actorNodeName") or "").strip()
             actor_cls = classifiers.get(raw_actor, {})
+            # Prefer a direct actor classifier reference when present; it is the
+            # clearest signal for assigning workflow steps to actor-specific pages.
             if actor_cls.get("type") == "actor":
                 return raw_actor, explicit_name or str(actor_cls.get("name") or "").strip()
 
             lane_node = nodes.get(raw_actor) or {}
             raw_lane_cls = lane_node.get("cls") or {}
+            # Some tools model swimlanes as nodes that point to an actor
+            # classifier. Resolve that indirection before falling back to raw ids.
             if isinstance(raw_lane_cls, dict):
                 lane_cls = raw_lane_cls
                 lane_cls_id = str(raw_lane_cls.get("id") or lane_node.get("cls_ptr") or lane_node.get("cls_id") or "")
@@ -514,7 +581,9 @@ def extract_activity_diagrams(
 
             return raw_actor, explicit_name
 
-        # Collect classifier IDs referenced by action nodes (for linking to use cases)
+        # Collect classifier IDs referenced by action nodes so use cases can be
+        # marked as workflow-backed even when the use case does not directly own
+        # the activity diagram.
         for node in nodes.values():
             cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
             if cls_id:
@@ -525,7 +594,8 @@ def extract_activity_diagrams(
                 if parent_uc:
                     uc_ids_with_workflows.add(str(parent_uc))
 
-        # Build outgoing adjacency
+        # Build adjacency from control-flow edges. Guards are retained for future
+        # branch-aware rendering even though the current planner only orders steps.
         outgoing: dict[str, list] = defaultdict(list)
         incoming_count: dict[str, int] = defaultdict(int)
         for edge in diagram.get("edges") or []:
@@ -536,7 +606,8 @@ def extract_activity_diagrams(
                 outgoing[src].append({"target": tgt, "guard": guard})
                 incoming_count[tgt] += 1
 
-        # Find start node (no incoming edges, or initial pseudostate)
+        # Find the workflow start. Initial pseudostates are preferred; otherwise
+        # use action nodes without incoming control-flow as pragmatic start points.
         start_candidates = []
         for nid, node in nodes.items():
             cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
@@ -557,6 +628,8 @@ def extract_activity_diagrams(
         visited: set[str] = set()
         queue: list[str] = list(start_candidates)
 
+        # Breadth-first traversal keeps the visible workflow order stable for
+        # mostly-linear diagrams and avoids infinite loops on cyclic flows.
         while queue and len(steps) < 25:
             nid = queue.pop(0)
             if nid in visited:
@@ -574,6 +647,9 @@ def extract_activity_diagrams(
                 actor_node, actor_node_name = _resolve_actor_node(cls)
                 title_model = _best_model_for_text(action_name, model_names_list, model_attr_names)
                 class_model = _model_from_action_classes(cls)
+                # Explicit action class refs win unless the action title names a
+                # model directly. This prevents generic labels from losing their
+                # UML-bound model when action metadata is sparse.
                 model = (
                     title_model
                     if title_model and _model_name_explicit_in_text(action_name, title_model)
@@ -589,7 +665,8 @@ def extract_activity_diagrams(
                     "actor_node_name": actor_node_name,
                 })
             elif cls_type in {"decision", "merge"}:
-                # Mark next steps with branch info
+                # Decision/merge nodes affect branch semantics but are not user
+                # tasks by themselves, so they are skipped in the step list.
                 pass
 
             for edge in outgoing.get(nid, []):
@@ -627,12 +704,16 @@ def detect_semantic_decisions(model_name: str, model_info: dict, page_role: str)
     score = model_info.get("layout_score") or {}
     attr_names = {a["name"].lower() for a in (model_info.get("attributes") or [])}
 
+    # A true time range is strong evidence for scheduling UI even when the model
+    # name is generic, e.g. ReservationItem or SessionSlot.
     has_time_range = (
         ("start_time" in attr_names or "start_date" in attr_names) and
         ("end_time" in attr_names or "end_date" in attr_names)
     )
     is_calendar_like = any(kw in m for kw in _CALENDAR_MODELS) or has_time_range
     if is_calendar_like:
+        # Calendar-like models are returned before timeline-like models because
+        # events/bookings are chronological but usually need scheduling controls.
         evidence = [a for a in ("start_time", "end_time", "start_date", "end_date",
                                  "is_recurring", "recurrence") if a in attr_names]
         return {
@@ -650,6 +731,8 @@ def detect_semantic_decisions(model_name: str, model_info: dict, page_role: str)
 
     is_timeline_like = any(kw in m for kw in _TIMELINE_MODELS) and not is_calendar_like
     if is_timeline_like:
+        # Timeline is reserved for historical/event-feed models after calendar
+        # cases are excluded; that keeps "Event" from becoming a passive log.
         return {
             "model": model_name,
             "aspect": "collection_component",
@@ -665,6 +748,8 @@ def detect_semantic_decisions(model_name: str, model_info: dict, page_role: str)
 
     is_map_like = any(kw in m for kw in _MAP_MODELS) and score.get("map", 0) > 0.5
     if is_map_like:
+        # Name alone is not enough for map UI. Require geo attributes from the
+        # layout score so Address-like records without coordinates stay list/table.
         return {
             "model": model_name,
             "aspect": "collection_component",
@@ -803,6 +888,8 @@ def extract_uml_intelligence(
     }
 
     # 1 — Class diagram first so we can pass attribute names to activity extractor
+    # Class relationships are the backbone for later expansion: use cases grant
+    # access, but class composition decides which related sections are reachable.
     model_graph = extract_class_diagram(classifiers, relations)
     model_attr_names = {
         m: {a["name"].lower() for a in info.get("attributes", [])}
@@ -810,11 +897,15 @@ def extract_uml_intelligence(
     }
 
     # 2 — Activity diagrams with attribute-aware model matching
+    # Activity diagrams are parsed before use cases so the use-case extractor can
+    # mark workflow-backed use cases as entry pages instead of ordinary pages.
     workflow_intel = extract_activity_diagrams(classifiers, system_data, model_names, model_attr_names)
 
     # (model_graph already extracted above)
 
     # 3 — Use case diagram actor intelligence
+    # Use cases define actor intent and permissions; workflow ids from the prior
+    # pass refine whether those intents become simple pages or process entries.
     actor_intel = extract_use_case_diagram(
         classifiers, relations, diagrams,
         actor_id, actor_name, model_names,
@@ -823,6 +914,8 @@ def extract_uml_intelligence(
 
     # 4 — Expand actor scope via class diagram relationships
     #     (critical when use-case diagram is sparse — only 1-2 use cases linked)
+    # Sparse use-case diagrams often mention only a parent object. Expand through
+    # composition and association edges so generated pages still show child data.
     expanded_permissions = _expand_actor_scope(model_graph, actor_intel["target_permissions"])
     actor_intel["target_permissions"] = expanded_permissions
 
@@ -831,6 +924,8 @@ def extract_uml_intelligence(
     for model, perms in expanded_permissions.items():
         info = model_graph.get(model)
         if info:
+            # Model-level decisions ask the LLM only where deterministic mapping
+            # is ambiguous, such as timeline versus table or map versus list.
             decision = detect_semantic_decisions(model, info, "collection_workspace")
             if decision:
                 semantic_decisions.append(decision)
@@ -838,13 +933,18 @@ def extract_uml_intelligence(
     for wf in workflow_intel.get("workflows") or []:
         for step in wf.get("steps") or []:
             if step.get("is_automatic"):
+                # Automatic/system steps are process state changes, not UI tasks.
                 continue
             step_model = step.get("model") or ""
             if step_model and step_model not in accessible_models:
+                # Avoid generating UI decisions for models outside this actor's
+                # reachable scope, even if another actor owns a later workflow step.
                 continue
             action = step.get("action") or ""
             if not action:
                 continue
+            # Activity-step decisions are deliberately option-rich: the same verb
+            # can mean editing data, reviewing a record, or choosing from a list.
             semantic_decisions.append({
                 "aspect": "activity_step_component",
                 "workflow": wf.get("name") or "",

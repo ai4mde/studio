@@ -348,6 +348,7 @@ def retrieve_section_custom_methods(section: str, field: str = "methods") -> Lis
             parameters = custom_method.get("parameters", []),
             action = custom_method.get("action"),
             target_model = custom_method.get("target_model"),
+            target_page = custom_method.get("target_page") or custom_method.get("targetPage"),
             call_name = custom_method.get("call_name"),
             label = custom_method.get("label"),
         )
@@ -590,7 +591,6 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         has_update_operation = bool(operations.get("update", False)),
                         has_select_operation = bool(operations.get("select", False)),
                         custom_methods = retrieve_section_custom_methods(section),
-                        item_actions = retrieve_section_custom_methods(section, "item_actions"),
                         text = section.get("text", ""),
                         layout = section_layout,
                         style = section.get("style", None),

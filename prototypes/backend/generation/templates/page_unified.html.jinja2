@@ -143,13 +143,11 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="activity_action" class="px-6 py-3 bg-white border-b border-gray-100">
   <div class="flex justify-end">
     {%- if page.type == 'activity' and not preview_mode %}
-    {%- if _aa_action == 'navigate' and _aa_target_url and _aa_target_is_activity.value %}
+    {%- if _aa_action == 'navigate' and _aa_target_url %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
       <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
       <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</button>
     </form>
-    {%- elif _aa_action == 'navigate' and _aa_target_url %}
-    <a href="{{ _aa_target_url }}" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</a>
     {%- else %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
@@ -632,7 +630,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   "accent": {"solid":"si-accent-btn text-white","outline":"border-2 si-accent-border si-accent-text hover:si-accent-bg-light","ghost":"si-accent-text hover:si-accent-bg-light","gradient":"si-accent-btn text-white","light":"si-accent-bg-light","text":"si-accent-text","border":"si-accent-border","label":"si-accent-text","ring":"","th":"si-accent-btn text-white"},
   "accent-secondary": {"solid":"si-btn-accent-secondary","outline":"border-2 si-accent-secondary-border si-accent-secondary-text hover:si-accent-secondary-bg-light","ghost":"si-accent-secondary-text hover:si-accent-secondary-bg-light","gradient":"si-btn-accent-secondary","light":"si-accent-secondary-bg-light","text":"si-accent-secondary-text","border":"si-accent-secondary-border","label":"si-accent-secondary-text","ring":"","th":"si-btn-accent-secondary"},
 } %}
-{# btn_class helper: picks solid/outline/ghost/gradient key from _cm based on global _btn_style #}
+{# btn_class helper: preserve section-level button colors while keeping a shared button shape. #}
 {%- macro btn_cls(color) -%}{{ (_cm.get(color, _cm['blue'])).get(_btn_style, (_cm.get(color, _cm['blue']))['solid']) }} si-btn font-semibold px-4 py-2 transition-all{%- endmacro %}
 {%- macro select_preview_button(section_component, classes) -%}
 {%- if section_component.has_select_operation -%}<button class="{{ classes }}">Select</button>{%- endif -%}
@@ -757,7 +755,7 @@ href="#"
       <span class="text-sm font-bold" style="color:#e53935;">{{ price }}</span>
       {%- if discount %}<span class="text-xs text-white font-bold px-1 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
     </div>
-    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">View</a>
+    <a href="{{ view_url }}" class="si-btn si-product-cta mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-center">View</a>
   </div>
 </div>
 {%- endmacro %}
@@ -781,7 +779,7 @@ href="#"
   </div>
   <div class="text-right shrink-0 flex flex-col items-end gap-2 w-36">
     <div class="text-2xl font-bold" style="color:#e53935;">{{ price }}</div>
-    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">View</a>
+    <a href="{{ view_url }}" class="si-btn si-product-cta w-full text-center py-2 rounded-lg text-xs font-bold">View</a>
   </div>
 </div>
 {%- endmacro %}
@@ -868,7 +866,7 @@ href="#"
   {%- endif %}
   {%- if _aa_action == 'navigate' and _aa_target_url %}
   <div class="flex {{ _aa_justify }} mt-6">
-    {%- if _aa_target_is_activity.value %}
+    {%- if page.type == 'activity' and not preview_mode %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
       <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
       <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</button>
@@ -1016,7 +1014,17 @@ href="#"
   {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
   {%- set action = attribute.action if attribute.action is defined else {} -%}
   {%- set action_type = action.get('type', 'none') -%}
-  {%- set label = '' -%}
+  {%- set attr_name = attribute.name if attribute.name is defined else attribute|string -%}
+  {%- set field_label = attr_name|replace('_', ' ')|replace('.', ' ')|title -%}
+  {%- if attribute.type == AttributeType.ENUM and attribute.enum_literals -%}
+    {%- set label = attribute.enum_literals[preview_row % (attribute.enum_literals|length)] -%}
+  {%- elif attribute.type == AttributeType.BOOLEAN -%}
+    {%- set label = 'Yes' if preview_row == 0 else 'No' -%}
+  {%- elif attribute.type == AttributeType.INTEGER -%}
+    {%- set label = preview_row + 1 -%}
+  {%- else -%}
+    {%- set label = field_label ~ (' ' ~ (preview_row + 1) if preview_row > 0 else '') -%}
+  {%- endif -%}
   {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
   {%- set nav_target = action.get('targetPageId') or action.get('targetPage') or '#' -%}
   {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
@@ -1127,7 +1135,10 @@ href="#"
 {% set query_limit = section_component.query.get("limit") %}
 {% set _data_scope = _s.get("data_scope") if _s.get("data_scope") is mapping else {} %}
 {% set _actor_owned_preview = _data_scope.get("mode") == "actor_owned" %}
-{% set preview_row_count = 0 %}
+{% set _preview = namespace(limit=(query_limit|int if query_limit else 3)) %}
+{% if _preview.limit < 1 %}{% set _preview.limit = 1 %}{% endif %}
+{% if _preview.limit > 3 %}{% set _preview.limit = 3 %}{% endif %}
+{% set preview_row_count = (1 if _actor_owned_preview else _preview.limit) if has_attrs else 0 %}
 {# IMAGE ATTRIBUTES #}
 {%- set _iattrs = [] %}
 {%- set _vattrs = [] %}
@@ -1225,50 +1236,7 @@ href="#"
 {%- if _component == 'DataTable' and eff_lay == 'gallery' %}{%- set _glay = 'table' %}{%- endif %}
 {%- if _component in ('ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm') %}{%- set _glay = 'form' %}{%- endif %}
 <div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ lay }}" data-col-span="{{ section_component.col_span or 12 }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}" data-sidebar-width="{{ _s.get('sidebar_width', '') }}" data-nav-height="{{ _s.get('nav_height', _s.get('density', 'normal')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
-  {%- set _field_cfgs = _fl.get('field_styles') or {} %}
-  {%- if _field_cfgs %}
-  <style>
-  {%- set _field_width = {'3':'25%', '4':'33.333%', '6':'50%', '8':'66.666%', '12':'100%'} %}
-  {%- set _field_text = {'xs':'0.75rem', 'sm':'0.875rem', 'md':'1rem', 'lg':'1.125rem', 'xl':'1.25rem'} %}
-  {%- set _field_height = {'sm':'96px', 'md':'160px', 'lg':'240px', 'xl':'320px'} %}
-  {%- for fname, fcfg in _field_cfgs.items() %}
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] {
-    {%- if fcfg.get('order') is not none %} order: {{ fcfg.get('order') }};{% endif %}
-    {%- if fcfg.get('align') in ['left', 'center', 'right'] %} text-align: {{ fcfg.get('align') }};{% endif %}
-    {%- if fcfg.get('col_span') %}
-      flex-basis: {{ _field_width.get(fcfg.get('col_span')|string, 'auto') }};
-      width: {{ _field_width.get(fcfg.get('col_span')|string, 'auto') }};
-      {%- if (fcfg.get('col_span')|string) in ['8', '12'] %} grid-column: 1 / -1;{% endif %}
-    {%- endif %}
-  }
-  {%- if fcfg.get('visible') == 'hidden' %}
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] { display: none !important; }
-  {%- endif %}
-  {%- if fcfg.get('text_size') %}
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"],
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-value {
-    font-size: {{ _field_text.get(fcfg.get('text_size')|string, 'inherit') }} !important;
-  }
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] :where(span, a, button, input, select, textarea, label, p, div) {
-    font-size: inherit !important;
-  }
-  {%- endif %}
-  {%- if fcfg.get('height') %}
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-media,
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] img,
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] video,
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-img,
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-video {
-    height: {{ _field_height.get(fcfg.get('height')|string, 'auto') }};
-    aspect-ratio: auto;
-  }
-  {%- endif %}
-  {%- if fcfg.get('label') == 'hidden' %}
-  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-label { display: none !important; }
-  {%- endif %}
-  {%- endfor %}
-  </style>
-  {%- endif %}
+  {% include "helpers/unified_page_field_styles.html.jinja2" %}
 
   {% if page.type != 'activity' and not _hs_hide and _glay not in ('form', 'filter') and not _is_chrome_layout %}
   <div class="flex items-center justify-between mb-3">
@@ -1341,7 +1309,7 @@ href="#"
           <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
-          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row * 7 + 12 }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row + 1 }}</span>
           {%- else -%}
             {{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
           {%- endif %}
@@ -1362,7 +1330,7 @@ href="#"
           <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
-          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row * 7 + 12 }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row + 1 }}</span>
           {%- elif _image_attr and attribute|string == _image_attr|string %}<div class="si-field-media si-img rounded mt-1 bg-gray-50"></div>
           {%- elif _video_attr and attribute|string == _video_attr|string %}<div class="si-field-media w-full h-48 rounded mt-1 bg-black flex items-center justify-center text-white/70">&#9658;</div>
           {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-field-media si-img rounded mt-1 bg-gray-50"></div>
@@ -1503,7 +1471,7 @@ href="#"
         <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
         {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
-        {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row * 7 + 12 }}</span>
+        {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row + 1 }}</span>
         {%- elif _image_attr and attribute|string == _image_attr|string %}<div class="si-field-media si-img rounded mt-1 bg-gray-50"></div>
         {%- elif _video_attr and attribute|string == _video_attr|string %}<div class="si-field-media si-video rounded mt-1 flex items-center justify-center text-white/70">&#9658;</div>
         {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-field-media si-img rounded mt-1 bg-gray-50"></div>
@@ -1599,7 +1567,7 @@ href="#"
           <span class="si-field-label text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
-          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row * 7 + 12 }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row + 1 }}</span>
           {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-10 h-10 bg-gray-50 rounded mt-0.5"></div>
           {%- elif attribute.type == AttributeType.VIDEO %}<div class="w-14 h-10 bg-black rounded mt-0.5 flex items-center justify-center text-white/70 text-xs">&#9658;</div>
           {%- else -%}
@@ -1645,7 +1613,7 @@ href="#"
           <td class="si-field px-4 py-3 {{ d.text }}" data-field-name="{{ attribute }}" style="color:var(--page-text)">
             {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
             {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}
-            {%- elif attribute.type == AttributeType.INTEGER %}{{ _preview_row * 7 + 12 }}
+            {%- elif attribute.type == AttributeType.INTEGER %}{{ _preview_row + 1 }}
             {%- elif attribute.type == AttributeType.IMAGE or 'image' in (attribute|string)|lower or 'img' in (attribute|string)|lower or 'photo' in (attribute|string)|lower or 'avatar' in (attribute|string)|lower or 'thumbnail' in (attribute|string)|lower or 'thumb' in (attribute|string)|lower or 'poster' in (attribute|string)|lower or 'cover' in (attribute|string)|lower or 'logo' in (attribute|string)|lower %}<div class="w-10 h-10 rounded bg-gray-50"></div>
             {%- elif attribute.type == AttributeType.VIDEO %}<div class="w-10 h-8 bg-black rounded flex items-center justify-center text-white/70 text-xs">&#9658;</div>
             {%- else %}{{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
@@ -1893,9 +1861,17 @@ href="#"
           {%- for lit in attribute.enum_literals %}<option>{{ lit }}</option>{%- endfor %}
         </select>
         {%- elif attribute.type == AttributeType.IMAGE %}
-        <input type="file" accept="image/*" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" />
+        <label class="flex items-center gap-3 w-full border border-gray-300 {{ r }} px-3 py-2 text-sm bg-white cursor-pointer hover:bg-gray-50">
+          <span class="shrink-0 rounded-md border border-gray-300 bg-gray-50 px-3 py-1 text-gray-700">Choose file</span>
+          <span class="min-w-0 truncate text-gray-400">No file selected</span>
+          <input type="file" accept="image/*" class="sr-only" />
+        </label>
         {%- elif attribute.type == AttributeType.VIDEO %}
-        <input type="file" accept="video/*" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" />
+        <label class="flex items-center gap-3 w-full border border-gray-300 {{ r }} px-3 py-2 text-sm bg-white cursor-pointer hover:bg-gray-50">
+          <span class="shrink-0 rounded-md border border-gray-300 bg-gray-50 px-3 py-1 text-gray-700">Choose file</span>
+          <span class="min-w-0 truncate text-gray-400">No file selected</span>
+          <input type="file" accept="video/*" class="sr-only" />
+        </label>
         {%- else %}
         <input type="text" placeholder="{{ attribute }}" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2" />
         {%- endif %}
@@ -3406,7 +3382,7 @@ href="#"
 
 {% endif %}{# end preview_mode branch #}
 
-{{ section_method_buttons(section_component, section_methods, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
+{{ section_method_buttons(section_component, section_methods, d.text ~ ' si-btn si-method-action font-semibold px-4 py-2 transition-all') }}
 
 </div>
 {%- endif %}{# end activity_action else branch #}
@@ -3414,147 +3390,8 @@ href="#"
 </div>
 
 {% if preview_mode %}
-<script>
-(function() {
-  var accentHex = '{{ tokens.get("accent.hex", "#0000a4") }}';
-  var grid = document.querySelector('main > .grid');
-  if (!grid) return;
-  var secs = Array.from(grid.children);
-  var byPos = { header: [], hero: [], main: [], sidebar: [], footer: [] };
-  secs.forEach(function(el) {
-    var pos = el.getAttribute('data-position') || 'main';
-    if (byPos[pos]) byPos[pos].push(el); else byPos.main.push(el);
-  });
-  var hasNonMain = byPos.header.length || byPos.hero.length || byPos.sidebar.length || byPos.footer.length;
-  if (!hasNonMain) return;
-  var hasSidebarRegion = byPos.sidebar.length > 0;
-  var _mainWidthMode = '{{ _main_width }}';
-
-  var gap = 'gap-4';
-  var wrap = document.createElement('div');
-  wrap.className = 'flex flex-col gap-6';
-
-  if (byPos.header.length) {
-    var headerEl = document.createElement('div');
-    headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
-    if ('{{ _header_width }}' === 'full') {
-      headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
-    }
-    byPos.header.forEach(function(el) { headerEl.appendChild(el); });
-    wrap.appendChild(headerEl);
-  }
-
-  if (byPos.hero.length) {
-    var heroEl = document.createElement('div');
-    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
-    heroEl.style.cssText = 'background:linear-gradient(135deg,#fffbe6 0%,#fff9c4 50%,#fef3c7 100%);padding:40px 48px;';
-    if ('{{ _hero_width }}' === 'full') {
-      heroEl.style.cssText += 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);border-radius:0;';
-    }
-    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
-    wrap.appendChild(heroEl);
-  }
-
-  var hasSidebar = hasSidebarRegion;
-  var hasMain = byPos.main.length > 0;
-  if (hasSidebar || hasMain) {
-    var contentRow = document.createElement('div');
-    contentRow.className = hasSidebar ? 'flex gap-6 items-start' : '';
-    contentRow.dataset.regionRow = 'body';
-    if (hasSidebar && _mainWidthMode === 'full') {
-      contentRow.style.paddingLeft = '1.5rem';
-      contentRow.style.paddingRight = '1.5rem';
-    }
-    var mainGrid = document.createElement('div');
-    mainGrid.className = (hasSidebar ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
-    byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
-
-    if (hasSidebar) {
-    // Sidebar placement is explicit when style.sidebar_side is set.
-    // Otherwise filters and navigation rails go left; summaries/actions stay right.
-    var leftSidebarItems = [], rightSidebarItems = [];
-    byPos.sidebar.forEach(function(el) {
-      var lay = el.getAttribute('data-layout') || '';
-      var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
-      if (side === 'right') rightSidebarItems.push(el);
-      else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'hero-header' || lay === 'tabbed-header' || lay === 'glass-header' || lay === 'command-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
-      else rightSidebarItems.push(el);
-    });
-    function sidebarSpan(items, fallback) {
-      var vals = items.map(function(el) { return parseInt(el.dataset.sidebarWidth || '', 10); }).filter(function(n) { return Number.isFinite(n) && n > 0; });
-      return Math.max(2, Math.min(6, vals.length ? Math.max.apply(null, vals) : fallback));
-    }
-    function sidebarBasis(span) {
-      return 'calc((100% - 1.5rem) * ' + span + ' / 12)';
-    }
-    function applySidebarChrome(aside) {
-      var bg = '{{ _sidebar_bg }}';
-      var shadow = '{{ _sidebar_shadow }}';
-      if (bg || (shadow && shadow !== 'none')) {
-        aside.style.border = '1px solid var(--border-color)';
-        aside.style.borderRadius = 'var(--radius-lg)';
-        aside.style.padding = '1rem';
-      }
-      if (bg) {
-        aside.style.background = bg === 'dark' ? '#111827' : bg === 'gray' ? '#f3f4f6' : bg === 'light' ? 'var(--region-main-bg-sunken)' : '#ffffff';
-        if (bg === 'dark') {
-          aside.style.color = '#ffffff';
-        }
-      }
-      if (shadow && shadow !== 'none') {
-        aside.style.boxShadow = shadow === 'xl' ? '0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.10)' : 'var(--shadow-' + shadow + ')';
-      }
-    }
-
-    if (leftSidebarItems.length) {
-      var leftEl = document.createElement('aside');
-      var leftSpan = sidebarSpan(leftSidebarItems, 3);
-      leftEl.className = 'flex-shrink-0 flex flex-col gap-4';
-      leftEl.dataset.regionSide = 'left';
-      leftEl.dataset.sidebarSpan = String(leftSpan);
-      leftEl.style.flexBasis = sidebarBasis(leftSpan);
-      leftEl.style.maxWidth = sidebarBasis(leftSpan);
-      applySidebarChrome(leftEl);
-      leftSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; leftEl.appendChild(el); });
-      contentRow.appendChild(leftEl);
-    }
-    contentRow.appendChild(mainGrid);
-    if (rightSidebarItems.length) {
-      var rightEl = document.createElement('aside');
-      var rightSpan = sidebarSpan(rightSidebarItems, 3);
-      rightEl.className = 'flex-shrink-0 flex flex-col gap-4';
-      rightEl.dataset.regionSide = 'right';
-      rightEl.dataset.sidebarSpan = String(rightSpan);
-      rightEl.style.flexBasis = sidebarBasis(rightSpan);
-      rightEl.style.maxWidth = sidebarBasis(rightSpan);
-      applySidebarChrome(rightEl);
-      rightSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; rightEl.appendChild(el); });
-      contentRow.appendChild(rightEl);
-    }
-    } else {
-      contentRow.appendChild(mainGrid);
-    }
-    wrap.appendChild(contentRow);
-  }
-
-  if (byPos.footer.length) {
-    var footerEl = document.createElement('div');
-    footerEl.className = 'mt-8';
-    footerEl.style.cssText = 'background:var(--region-footer-bg);color:var(--region-footer-text);';
-    if ('{{ _footer_width }}' !== 'contained') {
-      footerEl.style.cssText += 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);';
-    }
-    var footerInner = document.createElement('div');
-    footerInner.className = ('{{ _footer_width }}' === 'contained' ? '{{ _container_class }} mx-auto ' : 'w-full ') + 'grid grid-cols-12 gap-4 px-8 py-6 border-t-4';
-    footerInner.style.borderColor = accentHex;
-    byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
-    footerEl.appendChild(footerInner);
-    wrap.appendChild(footerEl);
-  }
-
-  grid.parentNode.replaceChild(wrap, grid);
-})();
-</script>
+{# Preview layout helper uses document.querySelector('main > .grid') internally. #}
+{% include "helpers/unified_page_preview_layout_script.html.jinja2" %}
 </main>
 
 {# FOOTER CHROME ROWS #}
@@ -3591,13 +3428,11 @@ href="#"
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="activity_action" class="bg-white border-t border-gray-100 px-8 py-6">
   <div class="flex justify-end">
     {%- if page.type == 'activity' and not preview_mode %}
-    {%- if _aa_action == 'navigate' and _aa_target_url and _aa_target_is_activity.value %}
+    {%- if _aa_action == 'navigate' and _aa_target_url %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
       <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
       <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</button>
     </form>
-    {%- elif _aa_action == 'navigate' and _aa_target_url %}
-    <a href="{{ _aa_target_url }}" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</a>
     {%- else %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
@@ -3694,134 +3529,8 @@ href="#"
 </body>
 </html>
 {% else %}
-<script>
-(function() {
-  var grid = document.getElementById('page-sections-grid');
-  if (!grid) return;
-  var secs = Array.from(grid.children);
-  var byPos = {};
-  secs.forEach(function(el) {
-    var pos = el.getAttribute('data-position') || 'main';
-    if (!byPos[pos]) byPos[pos] = [];
-    byPos[pos].push(el);
-  });
-  var hasHeader = byPos.header && byPos.header.length;
-  var hasHero = byPos.hero && byPos.hero.length;
-  var hasSidebar = byPos.sidebar && byPos.sidebar.length;
-  var hasFooter = byPos.footer && byPos.footer.length;
-  if (!hasHeader && !hasHero && !hasSidebar && !hasFooter) return;
-  var parent = grid.parentNode;
-  var wrap = document.createElement('div');
-  wrap.className = 'flex flex-col gap-6';
-  if (hasHeader) {
-    var headerEl = document.createElement('div');
-    headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
-    if ('{{ _header_width }}' === 'full') {
-      headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
-    }
-    byPos.header.forEach(function(el) { headerEl.appendChild(el); });
-    wrap.appendChild(headerEl);
-  }
-  if (hasHero) {
-    var heroEl = document.createElement('div');
-    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
-    if ('{{ _hero_width }}' === 'full') {
-      heroEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);border-radius:0;';
-    }
-    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
-    wrap.appendChild(heroEl);
-  }
-  var mainSecs = byPos.main || [];
-  var sidebarSecs = byPos.sidebar || [];
-  if (mainSecs.length || sidebarSecs.length) {
-    var hasSidebarEl = sidebarSecs.length > 0;
-    var contentRow = document.createElement('div');
-    contentRow.className = hasSidebarEl ? 'flex gap-6 items-start' : '';
-    contentRow.dataset.regionRow = 'body';
-    var mainGrid = document.createElement('div');
-    mainGrid.className = (hasSidebarEl ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
-    mainSecs.forEach(function(el) { mainGrid.appendChild(el); });
-    if (hasSidebarEl) {
-      var leftSidebarItems = [], rightSidebarItems = [];
-      sidebarSecs.forEach(function(el) {
-        var lay = el.getAttribute('data-layout') || '';
-        var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
-        if (side === 'right') rightSidebarItems.push(el);
-        else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'hero-header' || lay === 'tabbed-header' || lay === 'glass-header' || lay === 'command-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
-        else rightSidebarItems.push(el);
-      });
-      function sidebarSpan(items, fallback) {
-        var vals = items.map(function(el) { return parseInt(el.dataset.sidebarWidth || '', 10); }).filter(function(n) { return Number.isFinite(n) && n > 0; });
-        return Math.max(2, Math.min(6, vals.length ? Math.max.apply(null, vals) : fallback));
-      }
-      function sidebarBasis(span) {
-        return 'calc((100% - 1.5rem) * ' + span + ' / 12)';
-      }
-      function applySidebarChrome(aside) {
-        var bg = '{{ _sidebar_bg }}';
-        var shadow = '{{ _sidebar_shadow }}';
-        if (bg || (shadow && shadow !== 'none')) {
-          aside.style.border = '1px solid var(--border-color)';
-          aside.style.borderRadius = 'var(--radius-lg)';
-          aside.style.padding = '1rem';
-        }
-        if (bg) {
-          aside.style.background = bg === 'dark' ? '#111827' : bg === 'gray' ? '#f3f4f6' : bg === 'light' ? 'var(--region-main-bg-sunken)' : '#ffffff';
-          if (bg === 'dark') {
-            aside.style.color = '#ffffff';
-          }
-        }
-        if (shadow && shadow !== 'none') {
-          aside.style.boxShadow = shadow === 'xl' ? '0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.10)' : 'var(--shadow-' + shadow + ')';
-        }
-      }
-      if (leftSidebarItems.length) {
-        var leftEl = document.createElement('aside');
-        var leftSpan = sidebarSpan(leftSidebarItems, 3);
-        leftEl.className = 'flex-shrink-0 flex flex-col gap-4';
-        leftEl.dataset.regionSide = 'left';
-        leftEl.dataset.sidebarSpan = String(leftSpan);
-        leftEl.style.flexBasis = sidebarBasis(leftSpan);
-        leftEl.style.maxWidth = sidebarBasis(leftSpan);
-        applySidebarChrome(leftEl);
-        leftSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; leftEl.appendChild(el); });
-        contentRow.appendChild(leftEl);
-      }
-      contentRow.appendChild(mainGrid);
-      if (rightSidebarItems.length) {
-        var rightEl = document.createElement('aside');
-        var rightSpan = sidebarSpan(rightSidebarItems, 3);
-        rightEl.className = 'flex-shrink-0 flex flex-col gap-4';
-        rightEl.dataset.regionSide = 'right';
-        rightEl.dataset.sidebarSpan = String(rightSpan);
-        rightEl.style.flexBasis = sidebarBasis(rightSpan);
-        rightEl.style.maxWidth = sidebarBasis(rightSpan);
-        applySidebarChrome(rightEl);
-        rightSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; rightEl.appendChild(el); });
-        contentRow.appendChild(rightEl);
-      }
-    } else {
-      contentRow.appendChild(mainGrid);
-    }
-    wrap.appendChild(contentRow);
-  }
-  if (hasFooter) {
-    var footerEl = document.createElement('div');
-    footerEl.className = 'mt-8';
-    footerEl.style.cssText = 'background:var(--region-footer-bg);color:var(--region-footer-text);';
-    if ('{{ _footer_width }}' !== 'contained') {
-      footerEl.style.cssText += 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);';
-    }
-    var footerInner = document.createElement('div');
-    footerInner.className = ('{{ _footer_width }}' === 'contained' ? '{{ _container_class }} mx-auto ' : 'w-full ') + 'grid grid-cols-12 gap-4 px-8 py-6 border-t-4';
-    footerInner.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#2563eb';
-    byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
-    footerEl.appendChild(footerInner);
-    wrap.appendChild(footerEl);
-  }
-  parent.replaceChild(wrap, grid);
-})();
-</script>
+{# Sync-live layout helper uses document.getElementById('page-sections-grid') internally. #}
+{% include "helpers/unified_page_sync_live_layout_script.html.jinja2" %}
 
 {% include "helpers/unified_page_badge_script.html.jinja2" %}
 

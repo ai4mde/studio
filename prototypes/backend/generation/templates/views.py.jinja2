@@ -358,7 +358,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {%- if select_related_fields %}
         qs = _safe_select_related(qs, {% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
         {%- endif %}
-        return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
+        return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}, request=self.request), self.request)
     {% elif models_on_pages[page]['primary_models'] | length > 0 -%}
     {% set _pm0 = models_on_pages[page]['primary_models'][0] -%}
     {% set _pm0_parents = page.section_components[0].parent_models if page.section_components else [] -%}
@@ -394,7 +394,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {%- if select_related_fields %}
         qs = _safe_select_related(qs, {% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
         {%- endif %}
-        return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
+        return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}, request=self.request), self.request)
     {% endif -%}
 
     {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or models_on_pages[page]['primary_models'] | length > 1 or (page.section_components | selectattr('has_create_operation') | list) or (page.section_components | selectattr('has_update_operation') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
@@ -468,6 +468,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         context['{{ primary_model }}_list'] = _apply_section_query(
             _associated_{{ primary_model }}_qs if _associated_{{ primary_model }}_qs.exists() else {{ primary_model }}.objects.all(),
             {{ _sections_for_model[0].query_literal if _sections_for_model else '{}' }},
+            request=self.request,
         )
         {% endfor -%}
         {% endif -%}
@@ -481,7 +482,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% if section.primary_model and not section.related_to_section_id -%}
         {% if _ns_p.model in section.parent_models -%}
         _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns_p.model }}=_primary_obj) if _primary_obj else {{ section.primary_model }}.objects.all()
-        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
+        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj, self.request)
         {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
         for _img_obj in context.get('{{ section.primary_model }}_list', []):
             if not getattr(_img_obj, '{{ attr }}', None):
@@ -490,7 +491,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% elif _ns_p.section and section.primary_model in _ns_p.section.parent_models -%}
         _direct_id_{{ section.name }} = self.request.GET.get('instance_id_{{ section.primary_model }}')
         _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=getattr(_primary_obj, '{{ section.primary_model }}_id', None)) if _primary_obj else {{ section.primary_model }}.objects.filter(id=_direct_id_{{ section.name }}) if _direct_id_{{ section.name }} else {{ section.primary_model }}.objects.all()
-        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
+        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj, self.request)
         {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
         for _img_obj in context.get('{{ section.primary_model }}_list', []):
             if not getattr(_img_obj, '{{ attr }}', None):
@@ -500,7 +501,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% if section.primary_model != _ns_p.model -%}
         _id_{{ section.name }} = self.request.GET.get('instance_id_{{ section.primary_model }}')
         _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=_id_{{ section.name }}) if _id_{{ section.name }} else {{ section.primary_model }}.objects.all()
-        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }})
+        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, request=self.request)
         {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
         for _img_obj in context.get('{{ section.primary_model }}_list', []):
             if not getattr(_img_obj, '{{ attr }}', None):
@@ -526,7 +527,8 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% set _ns.fk_field = _src.primary_model -%}
         {% endif -%}
         {% if _ns.fk_field -%}
-        _src_{{ _src.primary_model }} = {{ _src.primary_model }}.objects.filter(id=self.request.GET.get('instance_id_{{ _src.primary_model }}')).first()
+        _src_{{ _src.primary_model }}_id = self.request.GET.get('instance_id_{{ _src.primary_model }}') or None
+        _src_{{ _src.primary_model }} = {{ _src.primary_model }}.objects.filter(id=_src_{{ _src.primary_model }}_id).first() if _src_{{ _src.primary_model }}_id else None
         _related_lookup_{{ section.name }} = '{{ _ns.fk_field }}'
         {% if _ns.same_model -%}
         _related_value_{{ section.name }} = getattr(_src_{{ _src.primary_model }}, _related_lookup_{{ section.name }}, None) if _src_{{ _src.primary_model }} else None
@@ -549,7 +551,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         except Exception:
             _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.none()
         {% endif -%}
-        context['related_{{ section.name }}_list'] = _apply_section_query(_qs_related_{{ section.name }}, {{ section.query_literal }}, _src_{{ _src.primary_model }})
+        context['related_{{ section.name }}_list'] = _apply_section_query(_qs_related_{{ section.name }}, {{ section.query_literal }}, _src_{{ _src.primary_model }}, self.request)
         {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
         for _img_obj in list(context.get('related_{{ section.name }}_list', [])):
             if not getattr(_img_obj, '{{ attr }}', None):

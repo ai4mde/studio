@@ -10,6 +10,7 @@ from .workflow_application import _apply_builtin_workflow_logic
 
 
 def _build_known_attrs_from_orm(system_id: str) -> dict[str, set[str]]:
+    """Build known attrs from orm."""
     known: dict[str, set[str]] = {}
     for classifier in Classifier.objects.filter(system_id=system_id):
         cdata = classifier.data or {}
@@ -25,10 +26,19 @@ def _build_known_attrs_from_orm(system_id: str) -> dict[str, set[str]]:
 
 
 def apply_interface_patch(interface_id: str, patch: dict) -> str:
+    """Apply interface patch."""
     try:
         interface = Interface.objects.get(id=interface_id)
         data = dict(interface.data or {})
+
+        def _drop_deprecated_section_fields(section: dict) -> dict:
+            """Remove deprecated per-record action fields from incoming section patches."""
+            section = dict(section or {})
+            section.pop("item_actions", None)
+            return section
+
         def _norm_refs(refs: list) -> list:
+            """Normalize refs."""
             out = []
             for ref in refs or []:
                 if isinstance(ref, dict) and ref.get("type") == "card":
@@ -47,7 +57,8 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
 
         if "sections" in patch:
             section_map = {str(s["id"]): s for s in data.get("sections", [])}
-            for ps in patch["sections"]:
+            for raw_ps in patch["sections"]:
+                ps = _drop_deprecated_section_fields(raw_ps)
                 sid = str(ps.get("id", ""))
                 if not sid:
                     continue
@@ -70,12 +81,11 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
                         "relationship": ps.get("relationship", {}),
                         "relation_field": ps.get("relation_field"),
                         "operations": ps.get("operations", {"create": False, "update": False, "delete": False, "select": False}),
-                        "item_actions": ps.get("item_actions", []),
                         "data_source": ps.get("data_source", {}),
                         "query": ps.get("query", {}),
                         "style": ps.get("style", {}),
                     }
-                for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "related_to", "relationship", "relation_field", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "item_actions", "min_height"):
+                for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "related_to", "relationship", "relation_field", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "min_height"):
                     if field in ps:
                         section_map[sid][field] = ps[field]
                 if "style" in ps:

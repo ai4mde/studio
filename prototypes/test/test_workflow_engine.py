@@ -374,6 +374,164 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         self.assertIn("detail_obj.{{ relation_attr.model }}|default:''", source)
         self.assertIn("detail_obj.{{ attr }}|default:''", source)
 
+    def test_unified_page_template_has_no_known_mojibake_fragments(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "page_unified.html.jinja2").read_text(encoding="utf-8")
+
+        bad_fragments = [
+            "?/a",
+            "?/button",
+            "?/span",
+            "茅",
+            "鈹",
+            "鈥",
+            "毬",
+            "艩",
+            "庐",
+        ]
+        for fragment in bad_fragments:
+            with self.subTest(fragment=fragment):
+                self.assertNotIn(fragment, source)
+
+    def test_unified_page_template_loads_with_jinja(self):
+        from jinja2 import Environment, FileSystemLoader
+
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        env = Environment(loader=FileSystemLoader(str(templates)))
+
+        env.get_template("page_unified.html.jinja2")
+
+    def test_unified_page_preview_and_sync_live_helper_placement(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "page_unified.html.jinja2").read_text(encoding="utf-8")
+
+        badge = '{% include "helpers/unified_page_badge_script.html.jinja2" %}'
+        section_selection = '{% include "helpers/unified_page_section_selection_script.html.jinja2" %}'
+        multiselect = '{% include "helpers/unified_page_multiselect_script.html.jinja2" %}'
+        context_menu = '{% include "helpers/unified_page_context_menu_script.html.jinja2" %}'
+
+        self.assertEqual(source.count(badge), 2)
+        self.assertEqual(source.count(section_selection), 1)
+        self.assertEqual(source.count(multiselect), 1)
+        self.assertEqual(source.count(context_menu), 1)
+
+        preview_layout_pos = source.index("document.querySelector('main > .grid')")
+        sync_live_layout_pos = source.index("document.getElementById('page-sections-grid')")
+        preview_editor_block = source[preview_layout_pos:sync_live_layout_pos]
+        sync_live_block = source[sync_live_layout_pos:]
+
+        self.assertIn(section_selection, preview_editor_block)
+        self.assertIn(multiselect, preview_editor_block)
+        self.assertIn(context_menu, preview_editor_block)
+        self.assertIn(badge, preview_editor_block)
+        self.assertIn(badge, sync_live_block)
+        self.assertNotIn(section_selection, sync_live_block)
+        self.assertNotIn(multiselect, sync_live_block)
+        self.assertNotIn(context_menu, sync_live_block)
+
+    def test_unified_page_preview_and_sync_live_layout_helpers_match(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        preview = (templates / "helpers" / "unified_page_preview_layout_script.html.jinja2").read_text(encoding="utf-8")
+        sync_live = (templates / "helpers" / "unified_page_sync_live_layout_script.html.jinja2").read_text(encoding="utf-8")
+
+        normalized_preview = preview.replace(
+            "document.querySelector('main > .grid')",
+            "document.getElementById('page-sections-grid')",
+        )
+        self.assertEqual(normalized_preview, sync_live)
+
+    def test_unified_page_cta_buttons_preserve_contextual_colors(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "page_unified.html.jinja2").read_text(encoding="utf-8")
+        styles = (templates / "helpers" / "unified_page_styles.css.jinja2").read_text(encoding="utf-8")
+
+        macro_start = source.index("{%- macro btn_cls(color) -%}")
+        macro_end = source.index("{%- endmacro %}", macro_start)
+        btn_macro = source[macro_start:macro_end]
+
+        self.assertIn("_cm.get(color", btn_macro)
+        self.assertNotIn("si-btn-primary{% endif %}", btn_macro)
+        self.assertIn("si-product-cta", source)
+        self.assertIn(".si-product-cta", styles)
+        self.assertNotIn('style="background:#ffd700;"', source)
+
+    def test_unified_page_method_buttons_do_not_inherit_primary_accent_color(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "page_unified.html.jinja2").read_text(encoding="utf-8")
+        styles = (templates / "helpers" / "unified_page_styles.css.jinja2").read_text(encoding="utf-8")
+
+        self.assertIn("si-method-action", source)
+        self.assertIn(".si-method-action", styles)
+        self.assertIn("--method-action-bg", styles)
+        self.assertIn("method.action.bg_hex", styles)
+        self.assertIn("button.method.bg_hex", styles)
+        self.assertNotIn("section_method_buttons(section_component, section_methods, d.text ~ ' ' ~ btn_cls", source)
+
+    def test_unified_page_item_click_navigates_with_current_model_id(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "page_unified.html.jinja2").read_text(encoding="utf-8")
+
+        macro_start = source.index("{%- macro item_target_href_attrs(target_page, model_name) -%}")
+        macro_end = source.index("{%- endmacro %}", macro_start)
+        item_target_macro = source[macro_start:macro_end]
+
+        self.assertIn("postMessage({type:'navigate-page',page:'{{ target_page }}'},'*')", item_target_macro)
+        self.assertIn("?instance_id_{{ model_name }}=", item_target_macro)
+        self.assertIn("{{ model_name }}.id", item_target_macro)
+
+        self.assertIn(
+            "?instance_id_' + _m + '={{ ' + _m + '.id }}",
+            source,
+        )
+
+    def test_unified_page_uses_bulk_section_actions_for_selected_items(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "page_unified.html.jinja2").read_text(encoding="utf-8")
+        shared_views = (templates / "shared_views.py.jinja2").read_text(encoding="utf-8")
+        multiselect = (templates / "helpers" / "unified_page_multiselect_script.html.jinja2").read_text(encoding="utf-8")
+
+        self.assertNotIn("macro item_action_buttons", source)
+        self.assertIn('data-bulk-section="{{ section_component.id }}"', source)
+        self.assertIn('name="selected_{{ section_component.primary_model }}"', source)
+        self.assertIn('data-item-id="{{ \'{{\' }}{{ section_component.primary_model }}.id{{ \'}}\' }}"', source)
+        self.assertIn("window.siSelSubmitAction", multiselect)
+        self.assertIn("selectedInput.value = ids.join(',')", multiselect)
+        self.assertIn("selected_values = [", shared_views)
+        self.assertIn("for target_id in target_ids:", shared_views)
+
+    def test_item_and_section_custom_actions_are_executable(self):
+        generation = Path(__file__).resolve().parents[1] / "backend" / "generation"
+        model_generator = (generation / "generation_scripts" / "generate_models.py").read_text(encoding="utf-8")
+        shared_views = (generation / "templates" / "shared_views.py.jinja2").read_text(encoding="utf-8")
+        schema_path = Path(__file__).resolve().parents[2] / "api" / "model" / "llm" / "interface_generator" / "interface_schemas.py"
+
+        self.assertIn('for method_field in ("methods",):', model_generator)
+        self.assertNotIn('("methods", "item_actions")', model_generator)
+        self.assertNotIn("instance = model_instance.objects.order_by('pk').first()", shared_views)
+        self.assertIn("if 'request' in signature.parameters and 'request' not in kwargs:", shared_views)
+        self.assertIn("kwargs['request'] = self.request", shared_views)
+        if schema_path.exists():
+            schema = schema_path.read_text(encoding="utf-8")
+            self.assertIn("Do not use item_actions", schema)
+            self.assertIn("enable operations.select", schema)
+
+    def test_query_helpers_support_request_value_from_filters(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "helpers" / "query_helpers.py").read_text(encoding="utf-8")
+
+        self.assertIn("def _resolve_query_value_from(value_from, request=None, source_obj=None):", source)
+        self.assertIn('key.startswith("request.GET.")', source)
+        self.assertIn("condition.get('value_from')", source)
+        self.assertIn("continue", source)
+
+    def test_generated_views_pass_request_to_section_query(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "views.py.jinja2").read_text(encoding="utf-8")
+
+        self.assertIn("_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}, request=self.request)", source)
+        self.assertIn("_apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj, self.request)", source)
+        self.assertIn("_apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, request=self.request)", source)
+
     def test_generic_list_view_has_workflow_instance_lookup_helper(self):
         templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
         source = (templates / "shared_views.py.jinja2").read_text(encoding="utf-8")
@@ -382,8 +540,39 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         self.assertIn("active_process_node.active_process.associated_model_instances.filter", source)
         self.assertIn("model.objects.filter(pk=association.instance_id).first()", source)
 
+    def test_related_section_modes_are_inferred_for_same_parent_and_direct_relationships(self):
+        section_utils = (
+            Path(__file__).resolve().parents[2]
+            / "api"
+            / "model"
+            / "llm"
+            / "interface_generator"
+            / "section_utils.py"
+        )
+        if not section_utils.exists():
+            self.skipTest("interface_generator source is not mounted in this test environment")
+        source = section_utils.read_text(encoding="utf-8")
+
+        self.assertIn('relationship.setdefault("mode", "same_parent")', source)
+        self.assertIn('query.setdefault("exclude_source", True)', source)
+        self.assertIn('relationship.setdefault("mode", "direct")', source)
+        self.assertIn('relation_field = section.get("relation_field") or _guess_relation_field(model, source_model, model_attrs)', source)
+        self.assertIn('section["relation_field"] = relation_field', source)
+
+    def test_related_section_views_filter_same_parent_and_direct_relationships(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "views.py.jinja2").read_text(encoding="utf-8")
+
+        self.assertIn("{% if section.relation_field -%}", source)
+        self.assertIn("{% set _ns.same_model = (section.primary_model == _src.primary_model) -%}", source)
+        self.assertIn("{% elif section.primary_model == _src.primary_model -%}", source)
+        self.assertIn("{% elif _src.primary_model in section.parent_models -%}", source)
+        self.assertIn(".exclude(id=_src_{{ _src.primary_model }}.id)", source)
+        self.assertIn("objects.filter(**{_related_lookup_{{ section.name }}: _related_value_{{ section.name }}})", source)
+        self.assertIn("context['related_{{ section.name }}_list']", source)
+
     def test_actor_self_model_uses_profile_page_not_collection_page(self):
-        from api.model.llm.gemini_make_agent.uml_mapping.interface_planner import generate_interface_plan
+        from api.model.llm.interface_generator.uml_mapping.interface_planner import generate_interface_plan
 
         uml_intelligence = {
             "actor_name": "Patient",
@@ -436,7 +625,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         )
 
     def test_other_actors_can_still_get_patient_collection_page(self):
-        from api.model.llm.gemini_make_agent.uml_mapping.interface_planner import generate_interface_plan
+        from api.model.llm.interface_generator.uml_mapping.interface_planner import generate_interface_plan
 
         uml_intelligence = {
             "actor_name": "Doctor",
@@ -466,7 +655,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         ))
 
     def test_role_actor_gets_document_collection_not_self_profile(self):
-        from api.model.llm.gemini_make_agent.uml_mapping.interface_planner import generate_interface_plan
+        from api.model.llm.interface_generator.uml_mapping.interface_planner import generate_interface_plan
 
         uml_intelligence = {
             "actor_name": "Document Analyst",
@@ -526,7 +715,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         self.assertIn("self_profile only when the actor", prompt)
 
     def test_workflow_component_semantics_are_defined_by_mapping_sections(self):
-        from api.model.llm.gemini_make_agent.uml_mapping.interface_planner import generate_interface_plan
+        from api.model.llm.interface_generator.uml_mapping.interface_planner import generate_interface_plan
 
         model_graph = {
             "Patient": {
@@ -672,6 +861,14 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         self.assertIn('name="next_url"', source)
         self.assertIn('name="next"', source)
 
+    def test_workflow_redirect_page_falls_back_to_target_url_or_actor_handoff(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "workflow_engine" / "views.py.jinja2").read_text(encoding="utf-8")
+
+        self.assertIn("if _user_can_visit_url(request, target_url):", source)
+        self.assertIn("return redirect(target_url)", source)
+        self.assertIn("return _redirect_home_success(request, target_url, _actor_from_url(target_url))", source)
+
     def test_activity_create_form_submits_to_actor_route_and_carries_workflow_node(self):
         templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
         source = (templates / "page_unified.html.jinja2").read_text(encoding="utf-8")
@@ -806,6 +1003,45 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
 
         self.assertIn("qs = Patient.objects.all()", list_class)
         self.assertNotIn("qs = self._actor_owned_queryset(Patient, create_missing=True)", list_class)
+
+    def test_base_template_renders_full_dsl_token_styles_in_live_head(self):
+        templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
+        source = (templates / "base.html.jinja2").read_text(encoding="utf-8")
+
+        self.assertIn('helpers/unified_page_styles.css.jinja2', source)
+        self.assertIn("_tokens.get('accent.hex'", source)
+        self.assertIn("_styling.get('accentColor'", source)
+        self.assertIn("_styling.accent_color", source)
+
+    def test_visual_check_signature_tracks_all_rendered_dsl_token_vars(self):
+        source = (
+            Path(__file__).resolve().parents[2]
+            / "api"
+            / "model"
+            / "generator"
+            / "api"
+            / "views"
+            / "prototypes.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("token_css_vars = {", source)
+        for css_var in (
+            "--region-header-bg",
+            "--region-footer-bg",
+            "--button-secondary-bg",
+            "--button-link-text",
+            "--method-action-bg",
+            "--method-action-text",
+            "--method-action-border",
+            "--component-list-bg",
+            "--component-workflow-bg",
+            "--card-bg",
+            "--input-border-focus",
+            "--table-header-bg",
+            "--badge-success-bg",
+            "--nav-bg",
+        ):
+            self.assertIn(css_var, source)
 
 
 if __name__ == "__main__":

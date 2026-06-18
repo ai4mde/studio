@@ -17,6 +17,7 @@ def _apply_builtin_workflow_logic(
     usecase_navigation: dict | None = None,
     model_attrs: dict | None = None,
 ) -> dict:
+    """Apply UML-derived workflow pages and sections to interface data."""
     data = dict(interface_data or {})
     pages = list(data.get("pages") or [])
     sections = list(data.get("sections") or [])

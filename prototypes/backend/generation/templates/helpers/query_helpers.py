@@ -9,6 +9,21 @@ def _coerce_query_value(value):
             return None
     return value
 
+def _resolve_query_value_from(value_from, request=None, source_obj=None):
+    if not value_from:
+        return None
+    key = str(value_from).strip()
+    if key.startswith("request.GET."):
+        return request.GET.get(key.split("request.GET.", 1)[1]) if request is not None else None
+    if key.startswith("request."):
+        return request.GET.get(key.split("request.", 1)[1]) if request is not None else None
+    if key.startswith("instance_id_"):
+        return request.GET.get(key) if request is not None else None
+    if key.startswith("source."):
+        attr = key.split("source.", 1)[1]
+        return getattr(source_obj, attr, None) if source_obj is not None else None
+    return None
+
 def _safe_select_related(qs, *fields):
     valid_fields = []
     for field in fields:
@@ -38,7 +53,7 @@ def _resolve_filter_field(field):
         return field.replace('.', '__')
     return field
 
-def _apply_section_query(qs, query, source_obj=None):
+def _apply_section_query(qs, query, source_obj=None, request=None):
     query = query or {}
     operator_map = {
         'eq': '',
@@ -57,7 +72,11 @@ def _apply_section_query(qs, query, source_obj=None):
         if not field or operator not in operator_map:
             continue
         lookup = f"{field}{operator_map[operator]}"
-        value = _coerce_query_value(condition.get('value'))
+        value = _resolve_query_value_from(condition.get('value_from'), request=request, source_obj=source_obj)
+        if value is None and condition.get('value_from'):
+            continue
+        if value is None:
+            value = _coerce_query_value(condition.get('value'))
         if operator == 'in' and not isinstance(value, (list, tuple)):
             value = [v.strip() for v in str(value).split(',') if v.strip()]
         try:

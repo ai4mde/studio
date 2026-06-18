@@ -185,6 +185,10 @@ class RedirectToProcessPageView(GenericView):
         target_node = _find_active_node_for_url(active_process_node.active_process, target_url, request.user)
         if target_node:
             return _redirect_to_active_node_or_success(request, target_node)
+        if target_url:
+            if _user_can_visit_url(request, target_url):
+                return redirect(target_url)
+            return _redirect_home_success(request, target_url, _actor_from_url(target_url))
         return _redirect_to_active_node_or_success(request, active_process_node)
 
     def post(self, request, active_process_node_id, *args, **kwargs):

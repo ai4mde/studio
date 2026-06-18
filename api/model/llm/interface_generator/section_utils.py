@@ -9,11 +9,13 @@ from .uml_mapping.usecase_workflow import (
 
 
 def _normalize_section_operations(operations) -> dict:
+    """Normalize section operations."""
     defaults = {"create": False, "update": False, "delete": False, "select": False}
     select_terms = {"select", "choose", "pick", "bulk_select", "multi_select", "batch_select"}
     false_terms = {"", "0", "false", "no", "none", "null", "off"}
 
     def enabled(value) -> bool:
+        """Provide a local helper for _normalize_section_operations."""
         if isinstance(value, str):
             return value.strip().lower() not in false_terms
         return bool(value)
@@ -101,6 +103,7 @@ _VALID_SECTION_STYLE = {
 }
 
 def _normalize_layout_alias(layout) -> str:
+    """Normalize layout alias."""
     if isinstance(layout, list):
         raw_values = layout
     else:
@@ -117,6 +120,7 @@ def _normalize_layout_alias(layout) -> str:
     return "list" if normalized == "calendar" else normalized
 
 def _workflow_task_section(step: dict, model: str, model_attrs: dict) -> dict:
+    """Build workflow task section."""
     page_id = _section_id(step.get("page_id") or step.get("page_name") or "workflow")
     model_id = _section_id(model)
     layout = _activity_layout_for_step(step.get("activity_node_name", ""), model)
@@ -151,6 +155,7 @@ def _workflow_task_section(step: dict, model: str, model_attrs: dict) -> dict:
     }
 
 def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, model_attrs: dict | None = None, usecase_navigation: dict | None = None) -> tuple[list, list]:
+    """Ensure workflow pages."""
     if not workflow_steps:
         return pages, sections
     model_attrs = model_attrs or {}
@@ -162,6 +167,7 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
 
     def page_action_id(p: dict) -> str:
+        """Build the generated activity-action section id for a workflow page."""
         action = p.get("action") or {}
         if isinstance(action, dict):
             return str(action.get("value") or action.get("id") or "")
@@ -278,6 +284,7 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
     return pages, sections
 
 def _normalize_activity_action_sections(pages: list, sections: list) -> list:
+    """Normalize activity action sections."""
     activity_page_section_ids = set()
     for page in pages:
         page_type = page.get("type", {}); page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
@@ -344,12 +351,14 @@ def _normalize_chrome_sections(sections: list) -> list:
     return normalized
 
 def _page_type_value(page: dict) -> str:
+    """Return the normalized page type value from a page dictionary."""
     page_type = page.get("type")
     if isinstance(page_type, dict):
         return str(page_type.get("value") or "").strip().lower()
     return str(page_type or "").strip().lower()
 
 def _infer_page_type_value(page: dict) -> str:
+    """Infer page type value."""
     explicit = _page_type_value(page)
     if explicit in {"normal", "activity"}:
         return explicit
@@ -360,14 +369,17 @@ def _infer_page_type_value(page: dict) -> str:
     return "normal"
 
 def _canonical_page_type(value: str) -> dict:
+    """Convert a page type string into the canonical page type reference object."""
     if value == "activity":
         return {"value": "activity", "label": "Activity"}
     return {"value": "normal", "label": "Normal"}
 
 def _ref_id(ref) -> str:
+    """Extract a stable section or page reference id from a scalar or reference object."""
     return str(ref.get("value") if isinstance(ref, dict) else ref or "")
 
 def _navigation_methods(names: list[str]) -> list[dict]:
+    """Create navigation method descriptors for the given page names."""
     return [
         {"name": str(name), "label": str(name).replace("_", " "), "action": "navigate"}
         for name in names
@@ -375,6 +387,7 @@ def _navigation_methods(names: list[str]) -> list[dict]:
     ]
 
 def _workflow_icon_links(usecase_navigation: dict, page_by_id: dict | None = None) -> list[dict]:
+    """Build workflow icon links."""
     links = []
     seen = set()
     page_by_id = page_by_id or {}
@@ -436,6 +449,7 @@ def _infer_section_component(section: dict) -> str:
 
 
 def _is_select_existing_text(text: str) -> bool:
+    """Detect labels that indicate selecting an existing related record."""
     tokens = _name_tokens(text)
     if tokens & {"search", "select", "choose", "pick", "browse"}:
         return True
@@ -521,12 +535,15 @@ _COMPONENT_FIELD_SLOT_MAP = {
 }
 
 def _attr_name(attr) -> str:
+    """Return the normalized attribute name from a string or attribute dictionary."""
     return str(attr.get("name") if isinstance(attr, dict) else attr or "")
 
 def _attr_type(attr) -> str:
+    """Return the normalized attribute type from a string or attribute dictionary."""
     return str(attr.get("type") if isinstance(attr, dict) else "").lower()
 
 def _field_kind(name: str, type_name: str = "") -> str:
+    """Classify a field as media, money, status, date, relation, or text."""
     low = name.lower()
     if type_name in {"image", "video"} or any(term in low for term in ("image", "img", "photo", "avatar", "thumbnail", "media", "video", "poster")):
         return "media"
@@ -541,11 +558,13 @@ def _field_kind(name: str, type_name: str = "") -> str:
     return "secondary"
 
 def _supported_field_slots(section: dict) -> set[str]:
+    """Return the field-layout slots supported by a section component."""
     component = str(section.get("component") or "")
     layout = str(section.get("layout") or "")
     return set(_COMPONENT_FIELD_SLOT_MAP.get(component) or _FIELD_SLOT_MAP.get(layout) or set())
 
 def _field_list(value) -> list[str]:
+    """Normalize a field-layout value into an ordered list of field names."""
     if isinstance(value, str):
         return [value] if value else []
     if not isinstance(value, list):
@@ -559,6 +578,7 @@ def _field_list(value) -> list[str]:
     return result
 
 def _normalize_field_layout(section: dict) -> dict:
+    """Normalize field layout."""
     attrs = section.get("attributes") or []
     attr_names = [_attr_name(attr) for attr in attrs if _attr_name(attr)]
     if not attr_names or not section.get("primary_model"):
@@ -603,6 +623,7 @@ def _normalize_field_layout(section: dict) -> dict:
     visible_names = [name for name in attr_names if name not in set(hidden)]
 
     def first_existing(keys: list[str]) -> str:
+        """Provide a local helper for _normalize_field_layout."""
         for key in keys:
             value = raw.get(key)
             if isinstance(value, str) and value in visible_names:
@@ -664,6 +685,7 @@ def _normalize_field_layout(section: dict) -> dict:
     return out
 
 def _model_field_names(model_attrs: dict, model: str, limit: int = 6) -> list[str]:
+    """Return displayable model field names, excluding internal id fields."""
     preferred = ["image_url", "photo_url", "avatar_url", "thumbnail_url", "poster_url", "cover_url", "logo_url", "name", "title", "status", "price", "total", "quantity", "description", "created_at"]
     attrs = list(model_attrs.get(model) or [])
     media = [name for name in attrs if name and _field_kind(name) == "media"]
@@ -675,11 +697,13 @@ def _model_field_names(model_attrs: dict, model: str, limit: int = 6) -> list[st
     return selected[:limit] or attrs[:limit]
 
 def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: int = 8) -> list:
+    """Attach missing model fields and layouts to data sections before rendering."""
     data_layouts = {"card", "list", "table", "detail", "gallery", "filter", "form"}
     model_names = set(model_attrs.keys())
     model_names_fuzzy = {re.sub(r"[\s_-]", "", str(name or "")).lower(): name for name in model_names}
 
     def canonical_model(name: str) -> str:
+        """Provide a local helper for _finalize_data_section_bindings."""
         if name in model_attrs:
             return name
         return model_names_fuzzy.get(re.sub(r"[\s_-]", "", str(name or "")).lower(), "")
@@ -724,6 +748,7 @@ def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: in
     return fixed
 
 def _model_graph_attr_names(model_graph: dict, model: str) -> set[str]:
+    """Return known attribute names for a model from the UML model graph."""
     return {
         str(attr.get("name") or "")
         for attr in ((model_graph.get(model) or {}).get("attributes") or [])
@@ -731,6 +756,7 @@ def _model_graph_attr_names(model_graph: dict, model: str) -> set[str]:
     }
 
 def _canonical_model_name(name: str, model_graph: dict) -> str:
+    """Resolve a model reference to the canonical model name in the model graph."""
     if name in model_graph:
         return name
     needle = re.sub(r"[\s_-]", "", str(name or "")).lower()
@@ -740,6 +766,7 @@ def _canonical_model_name(name: str, model_graph: dict) -> str:
     return ""
 
 def _relation_cardinality(model_graph: dict, source_model: str, target_model: str) -> str:
+    """Return the relation cardinality between two models when it is known."""
     info = model_graph.get(source_model) or {}
     for rel in (info.get("associations") or []) + (info.get("aggregations_owned") or []) + (info.get("compositions_owned") or []):
         if rel.get("model") == target_model:
@@ -749,12 +776,15 @@ def _relation_cardinality(model_graph: dict, source_model: str, target_model: st
     return ""
 
 def _is_direct_single_relation(model_graph: dict, source_model: str, target_model: str) -> bool:
+    """Check whether two models have a direct one-to-one or many-to-one relation."""
     return _relation_cardinality(model_graph, source_model, target_model) in {"many-1", "1-1"}
 
 def _is_direct_child_relation(model_graph: dict, source_model: str, child_model: str) -> bool:
+    """Check whether a model is a direct child collection of another model."""
     return _relation_cardinality(model_graph, source_model, child_model) == "1-many"
 
 def _bridge_child_model(model_graph: dict, primary_model: str, related_model: str) -> str:
+    """Find a child model that can bridge a primary model to a related model."""
     for child_model in model_graph:
         if child_model in {primary_model, related_model}:
             continue
@@ -763,9 +793,11 @@ def _bridge_child_model(model_graph: dict, primary_model: str, related_model: st
     return ""
 
 def _attr_name(attr) -> str:
+    """Return the normalized attribute name from a string or attribute dictionary."""
     return str(attr.get("name", "") if isinstance(attr, dict) else attr or "")
 
 def _readonly_related_attr(name: str) -> dict:
+    """Build a readonly related-field descriptor for a generated section."""
     return {
         "name": name,
         "source": "related",
@@ -775,6 +807,7 @@ def _readonly_related_attr(name: str) -> dict:
     }
 
 def _merge_section_attrs(existing: list, additions: list) -> list:
+    """Merge section attrs."""
     result = []
     seen = set()
     for attr in list(existing or []) + list(additions or []):
@@ -923,18 +956,23 @@ def _ensure_logical_related_sections(pages: list, sections: list, model_graph: d
     return pages, sections
 
 def _snake_name(value: str) -> str:
+    """Convert a model or field label into a lowercase snake_case name."""
     value = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", str(value or ""))
     return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
 
 def _guess_relation_field(child_model: str, parent_model: str, model_attrs: dict) -> str:
+    """Guess the foreign-key field that links a child model to a parent model."""
     attrs = set(model_attrs.get(child_model) or [])
     parent_snake = _snake_name(parent_model)
     candidates = [
         f"{parent_snake}_id",
+        parent_snake,
         f"{parent_snake}id",
         f"{parent_model}_id",
+        parent_model,
         f"{parent_model}Id",
         f"{parent_model.lower()}_id",
+        parent_model.lower(),
         f"{parent_model.lower()}id",
     ]
     for candidate in candidates:
@@ -943,6 +981,7 @@ def _guess_relation_field(child_model: str, parent_model: str, model_attrs: dict
     return ""
 
 def _related_models_from_attrs(section: dict, model_attrs: dict) -> list[str]:
+    """Infer related model names referenced by a section attribute list."""
     related: list[str] = []
     known = set(model_attrs.keys())
     known_fuzzy = {re.sub(r"[\s_-]", "", name).lower(): name for name in known}
@@ -957,6 +996,7 @@ def _related_models_from_attrs(section: dict, model_attrs: dict) -> list[str]:
     return related
 
 def _default_join_for_models(source_model: str, related_model: str) -> dict:
+    """Build default join for models."""
     related_snake = _snake_name(related_model)
     source_snake = _snake_name(source_model)
     return {
@@ -968,6 +1008,7 @@ def _default_join_for_models(source_model: str, related_model: str) -> dict:
     }
 
 def _section_is_data(section: dict) -> bool:
+    """Build section is data."""
     layout = _normalize_layout_alias(section.get("layout"))
     role = str(section.get("role") or "")
     return bool(
@@ -980,9 +1021,61 @@ def _section_is_data(section: dict) -> bool:
     )
 
 def _section_is_collection(section: dict) -> bool:
+    """Build section is collection."""
     layout = _normalize_layout_alias(section.get("layout"))
     role = str(section.get("role") or "")
     return layout in {"card", "list", "table", "gallery", "timeline", "map"} or role in {"object_collection", "child_collection", "related_collection"}
+
+def _query_filter_exists(query: dict, field: str, value_from: str) -> bool:
+    """Check whether a query already contains a matching field/value filter."""
+    for item in query.get("filters") or []:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("field") or "") == field and str(item.get("value_from") or "") == value_from:
+            return True
+    return False
+
+def _append_query_filter(query: dict, field: str, value_from: str, operator: str = "eq") -> dict:
+    """Append a query filter while preserving existing query filter entries."""
+    if not field or not value_from or _query_filter_exists(query, field, value_from):
+        return query
+    filters = list(query.get("filters") or [])
+    filters.append({"field": field, "operator": operator, "value_from": value_from})
+    query["filters"] = filters
+    query.setdefault("filter_logic", "and")
+    return query
+
+def _ensure_item_click_navigation(section: dict, target_page: str) -> None:
+    """Ensure item click navigation."""
+    if not target_page or not _section_is_collection(section):
+        return
+    behavior = dict(section.get("behavior") or {})
+    item_click = dict(behavior.get("item_click") or {})
+    if item_click.get("type") and item_click.get("target_page"):
+        return
+    item_click.update({"type": "navigate", "target_page": target_page})
+    behavior["item_click"] = item_click
+    section["behavior"] = behavior
+
+def _ensure_default_section_methods(section: dict) -> None:
+    """Ensure default section methods."""
+    model_name = str(section.get("primary_model") or "").strip()
+    if not model_name:
+        return
+    methods = list(section.get("methods") or [])
+    existing_method_names = {str(method.get("name") if isinstance(method, dict) else method).strip().lower() for method in methods}
+    export_body = (
+        "def export_csv(self, request=None):\n"
+        "    if request is not None:\n"
+        "        request.session[f\"{self.__class__.__name__.lower()}_csv_export_requested\"] = True\n"
+        "        request.session.modified = True\n"
+    )
+    for method in [
+        {"name": "Export CSV", "label": "Export CSV", "call_name": "export_csv", "body": export_body},
+    ]:
+        if method["name"].lower() not in existing_method_names:
+            methods.append(method)
+    section["methods"] = methods
 
 def _ensure_section_data_relationships(
     pages: list,
@@ -1049,6 +1142,17 @@ def _ensure_section_data_relationships(
 
             query = dict(section.get("query") or {})
             role = str(section.get("role") or "")
+            _ensure_default_section_methods(section)
+            if _section_is_collection(section):
+                _ensure_item_click_navigation(section, detail_page_by_model.get(model, ""))
+                if role in {"child_collection", "related_collection"}:
+                    query.setdefault("limit", 4)
+                else:
+                    query.setdefault("limit", 12 if _normalize_layout_alias(section.get("layout")) in {"card", "gallery"} else 20)
+                if not query.get("order_by"):
+                    order_candidates = [name for name in (model_attrs.get(model) or []) if str(name).lower() in {"name", "title", "created_at", "date"}]
+                    if order_candidates:
+                        query["order_by"] = [{"field": order_candidates[0], "direction": "asc"}]
             if source_id and source_id != str(section.get("id") or "") and _section_is_collection(section):
                 if not section.get("related_to"):
                     section["related_to"] = source_id
@@ -1061,16 +1165,20 @@ def _ensure_section_data_relationships(
                     relation_field = section.get("relation_field") or _guess_relation_field(model, source_model, model_attrs)
                     if relation_field:
                         section["relation_field"] = relation_field
+                        query = _append_query_filter(
+                            query,
+                            relation_field,
+                            f"request.GET.instance_id_{source_model}",
+                        )
                 relationship.setdefault("source_model", source_model)
                 relationship.setdefault("target_model", model)
                 section["relationship"] = relationship
-                if role in {"child_collection", "related_collection"}:
-                    query.setdefault("limit", 4)
             section["query"] = query
 
     return pages, list(section_map.values())
 
 def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
+    """Infer section layout."""
     tokens = _name_tokens(f"{page.get('name', '')} {page.get('id', '')}")
     if tokens & {"detail", "view", "profile", "summary"}:
         return "detail"
@@ -1085,6 +1193,7 @@ def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
     return ("card", "table", "list")[candidate_index % 3]
 
 def _fallback_model_for_page(page: dict, known_models: set[str]) -> str:
+    """Choose a fallback model for a page when no section binding is explicit."""
     if page.get("primary_model"):
         return str(page.get("primary_model"))
     page_name = f"{page.get('name', '')} {page.get('id', '')}".lower()

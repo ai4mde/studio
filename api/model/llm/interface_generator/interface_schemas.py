@@ -183,17 +183,31 @@ sections[].behavior:
   Use for workflow/search/navigation behavior, e.g. SearchBar/NavBar/IconActions.
   Collection components use behavior.item_click for whole-item interactions:
     {item_click: {type: "navigate", target_page: "Product_Detail", params: {"product_id": "$Product.product_id"}}}
+  For collection-to-detail navigation, prefer item_click.navigate instead of custom
+  per-field links. The renderer passes ?instance_id_Model={{ Model.id }} automatically.
   Render modes: text, link, button, badge.
   Action types: none, navigate, operation, copy, filter, expand, tooltip.
 
-sections[].methods and sections[].item_actions:
-  Use "methods" only for section-level actions that apply to the whole section.
-    Examples: refresh products, generate summary, export section, batch validate.
-  Use "item_actions" for per-record actions inside list/card/gallery/table sections.
-    Examples: add this product to cart, view this order, approve this request, remove this item.
-  Each item_action targets the current record of the section primary_model.
-  Do not place per-record actions in methods. Do not place section-level actions in item_actions.
-  Action objects may use {name, label, body?, parameters?, call_name?, target_model?}.
+sections[].methods:
+  Use "methods" for section-level actions. For actions that should apply to
+  individual records, enable operations.select on the collection section so the
+  user can multi-select rows/cards, then place the action in methods.
+    Examples: refresh products, export section, approve selected requests,
+    archive selected records, add selected products to cart.
+  Do not use item_actions. Drill-in/detail navigation belongs in behavior.item_click.
+  Method objects may use {name, label, body?, parameters?, call_name?}.
+  If body is present, write it as a Python model instance method. When multiple
+  records are selected, the generated prototype calls the same method once per
+  selected record with self bound to that record. Method bodies may accept
+  request=None when they need session/query/user context.
+  Default actions should stay conservative for SaaS/admin interfaces: use
+  Use section methods such as Export CSV only when useful. Generate
+  business-specific actions only when the model/page semantics support them,
+  e.g. publish/unpublish Product, fulfill/refund Order, assign Customer owner,
+  archive/deactivate records, adjust Inventory quantity, approve/reject Request.
+  Example selected-record method:
+    {"name": "Save Selected", "call_name": "save_selected",
+     "body": "def save_selected(self, request=None):\\n    if request is None:\\n        return\\n    request.session.setdefault('saved_product_items', []).append(str(self.pk))\\n    request.session.modified = True"}
 
 sections[].data_source:
   data_source.mode = "query"
@@ -206,10 +220,17 @@ sections[].data_source:
   ordinary sections unless joins are needed.
 
 sections[].query:
-  Optional retrieval constraints only. It is separate from attributes.
+  Retrieval constraints only. It is separate from attributes.
+  Every data section should have the query needed for its page context:
+  collection pages commonly use limit/order_by; detail pages read the selected
+  object through ?instance_id_Model; child/related sections on a detail page use
+  filters with value_from.
   select: exact primary fields or valid related dot notation.
   limit, offset, order_by, filters are allowed when the user asks for
   filtering/sorting/limits or the page semantics require them.
+  Dynamic filters may use value_from instead of value:
+    {field: "product_id", operator: "eq", value_from: "request.GET.instance_id_Product"}
+  Use value_from for parent-to-child data such as Product Detail -> Reviews.
 
 sections[].operations:
   CRUD flags or list. create/update/delete control row/form actions.
@@ -220,7 +241,7 @@ Static online image URLs:
   Put URLs in style.image_url or style.logo_url, never in attributes.
 """
 
-_CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout, methods, item_actions.
+_CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout, methods.
 
 {_LAYOUT_SCHEMA}
 - 3 candidates must be structurally different: vary nav placement, data section layouts, density, font, component treatment, or contained/wide page width. Use full width only when explicitly requested.

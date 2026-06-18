@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def _interface_to_agent_dict(interface: Interface) -> dict:
+    """Serialize an Interface ORM object into the agent payload shape."""
     return {
         "id": str(interface.id),
         "name": interface.name,
@@ -41,6 +42,282 @@ def _interface_to_agent_dict(interface: Interface) -> dict:
         "actor": str(interface.actor_id) if interface.actor_id else None,
         "data": interface.data or {},
     }
+
+
+def _sync_method_to_interface_sections(
+    classifier_id: str,
+    model_name: str,
+    method: dict,
+    system_id: str,
+) -> None:
+    """Write a newly-generated method body into every Interface section that references this classifier.
+
+    This ensures the body flows into both models.py generation and action_panel rendering,
+    which both read from Interface section.methods rather than Classifier.custom_methods.
+    """
+    from metadata.models import Interface as _Iface
+
+    method_name = method.get("name") or ""
+    if not method_name or not method.get("body"):
+        return
+
+    for iface in _Iface.objects.filter(system_id=system_id):
+        data = iface.data or {}
+        sections = data.get("sections") or []
+        changed = False
+
+        for section in sections:
+            section_class = str(section.get("class") or "")
+            # Match on classifier UUID or model name (Map sets class to model name, not UUID)
+            if section_class != str(classifier_id) and section_class != model_name:
+                continue
+            sec_methods = section.setdefault("methods", [])
+            existing = next(
+                (m for m in sec_methods if isinstance(m, dict) and m.get("name") == method_name),
+                None,
+            )
+            if existing:
+                if not existing.get("body"):
+                    existing["body"] = method["body"]
+                    changed = True
+            else:
+                sec_methods.append({
+                    "name": method_name,
+                    "call_name": method.get("call_name") or method_name,
+                    "label": method.get("label") or method_name,
+                    "body": method["body"],
+                    "parameters": method.get("parameters") or [],
+                    "description": method.get("description") or "",
+                })
+                changed = True
+
+        if changed:
+            try:
+                _Iface.objects.filter(id=iface.id).update(data=data)
+            except Exception:
+                pass
+
+
+def _generate_missing_method_bodies(
+    system_data: dict,
+    model_graph: dict,
+    system_id: str,
+) -> None:
+    """At map time: auto-generate LLM method bodies for methods that have a description but no body."""
+    import ast as _ast
+    from metadata.models import Classifier as _Clf
+    from llm.handler import llm_handler as _llm, remove_reply_markdown as _rmmd
+
+    # Build shared context strings from model_graph
+    model_lines: list[str] = []
+    rel_lines: list[str] = []
+    for mn, info in model_graph.items():
+        attrs = info.get("attributes") or []
+        parts = [f"{a['name']}({a.get('type', 'str')})" for a in attrs if a.get("name")]
+        for assoc in info.get("associations") or []:
+            rel, card = assoc["model"], assoc["cardinality"]
+            parts.append(f"{rel.lower()}_set(→{rel}[])" if card == "1-many" else f"{rel.lower()}(→{rel})")
+        model_lines.append(f"{mn}: " + (", ".join(parts) or "(no fields)"))
+        for assoc in info.get("associations") or []:
+            rel, card = assoc["model"], assoc["cardinality"]
+            if card == "1-many":
+                rel_lines.append(f"{mn} 1-many {rel}: access self.{rel.lower()}_set.all()")
+            elif card in ("many-1", "1-1"):
+                rel_lines.append(f"{mn} →{rel}: access self.{rel.lower()}")
+
+    model_ctx = "\n".join(model_lines) or "(none)"
+    rel_ctx = "\n".join(rel_lines) or "(none)"
+
+    raw_cls = _sys_as_list(system_data, "classifiers")
+    for c in raw_cls:
+        if not isinstance(c, dict) or not c.get("id"):
+            continue
+        cdata = c.get("data") or {}
+        if cdata.get("type") not in {"class", "entity", "model"}:
+            continue
+        model_name = cdata.get("name") or ""
+        if not model_name:
+            continue
+        # Classifiers store methods in "methods" field (UML diagram style).
+        # "custom_methods" is a legacy fallback.
+        methods_field = "methods" if cdata.get("methods") else "custom_methods"
+        methods = cdata.get("methods") or cdata.get("custom_methods") or []
+        if not methods:
+            continue
+
+        updated = False
+        newly_generated: list[dict] = []
+        for method in methods:
+            if not isinstance(method, dict):
+                continue
+            if method.get("body") or not method.get("description") or not method.get("name"):
+                continue  # already has body, or nothing to generate from
+
+            info = model_graph.get(model_name) or {}
+            attrs = info.get("attributes") or []
+            clf_summary = f"{model_name}: " + ", ".join(
+                f"{a['name']}({a.get('type', 'str')})" for a in attrs if a.get("name")
+            )
+            reverse_hints = "; ".join(
+                f"self.{a['model'].lower()}_set.all() → {a['model']}[]"
+                for a in (info.get("associations") or [])
+                if a["cardinality"] == "1-many"
+            ) or "self.relatedmodel_set.all()"
+
+            try:
+                raw = _llm(
+                    prompt_name="DIAGRAM_GENERATE_METHOD",
+                    model="llama-3.3-70b-versatile",
+                    input_data={
+                        "django_version": "5.0.2",
+                        "target_class": model_name,
+                        "method_name": method["name"],
+                        "method_description": method["description"],
+                        "classifier_summary": clf_summary,
+                        "model_context": model_ctx,
+                        "relation_context": rel_ctx,
+                        "reverse_fk_pattern": reverse_hints,
+                    },
+                )
+                body = _rmmd(raw).strip()
+                _ast.parse(body)  # validate syntax; raises SyntaxError if invalid
+                method["body"] = body
+                updated = True
+                newly_generated.append(method)
+            except Exception:
+                pass  # skip silently — prototype still works without this method
+
+        if updated:
+            try:
+                _Clf.objects.filter(id=c["id"], system_id=system_id).update(
+                    data={**cdata, methods_field: methods}
+                )
+            except Exception:
+                pass
+
+
+def _sync_all_classifier_methods_to_interfaces(system_id: str) -> None:
+    """After map overwrites Interface sections, re-sync all Classifier method bodies.
+
+    Called after the Interface is saved so the sync lands on the final section state,
+    not an intermediate version that gets overwritten.
+    """
+    from metadata.models import Classifier as _Clf
+
+    for clf in _Clf.objects.filter(system_id=system_id):
+        cdata = clf.data or {}
+        if cdata.get("type") not in {"class", "entity", "model"}:
+            continue
+        model_name = cdata.get("name") or ""
+        if not model_name:
+            continue
+        all_methods = (cdata.get("methods") or []) + (cdata.get("custom_methods") or [])
+        for method in all_methods:
+            if isinstance(method, dict) and method.get("body") and method.get("name"):
+                _sync_method_to_interface_sections(str(clf.id), model_name, method, str(system_id))
+
+
+def _ensure_action_panel_sections(interface_id: str, system_id: str) -> None:
+    """For each page that has a detail/form section for a model with custom methods,
+    ensure a dedicated action section (attributes=[]) exists so action_panel renders.
+
+    Uses a deterministic section id so re-running is idempotent.
+    Only adds action sections to detail/form pages — not to list/collection pages.
+    """
+    from metadata.models import Interface as _Iface, Classifier as _Clf
+
+    # Build: model_name → (classifier_id, methods_with_bodies)
+    clf_methods: dict[str, dict] = {}
+    for clf in _Clf.objects.filter(system_id=system_id):
+        cdata = clf.data or {}
+        if cdata.get("type") not in {"class", "entity", "model"}:
+            continue
+        model_name = cdata.get("name") or ""
+        if not model_name:
+            continue
+        all_methods = (cdata.get("methods") or []) + (cdata.get("custom_methods") or [])
+        methods = [
+            m for m in all_methods
+            if isinstance(m, dict) and m.get("body") and m.get("name")
+        ]
+        if methods:
+            clf_methods[model_name] = {"clf_id": str(clf.id), "methods": methods}
+
+    if not clf_methods:
+        return
+
+    iface = _Iface.objects.filter(id=interface_id).first()
+    if not iface:
+        return
+
+    data = iface.data or {}
+    pages = data.get("pages") or []
+    sections = data.get("sections") or []
+    section_map = {str(s.get("id") or ""): s for s in sections if s.get("id")}
+    existing_ids = {str(s.get("id") or "") for s in sections}
+    changed = False
+
+    _detail_roles = {"object_detail", "object_form", "object_summary"}
+
+    for page in pages:
+        page_id = str(page.get("id") or "")
+        page_section_refs = page.get("sections") or []
+        page_sections = [
+            section_map.get(str(_ref_id(ref) or ""))
+            for ref in page_section_refs
+        ]
+        page_sections = [s for s in page_sections if s]
+
+        for model_name, info in clf_methods.items():
+            clf_id = info["clf_id"]
+            methods = info["methods"]
+
+            # Only add action section if page already has a detail/form section for this model
+            has_detail = any(
+                s.get("role") in _detail_roles and
+                str(s.get("class") or s.get("primary_model") or "") in {clf_id, model_name}
+                for s in page_sections
+            )
+            if not has_detail:
+                continue
+
+            # Deterministic id — safe to re-run
+            action_id = f"{page_id}_{model_name.lower()}_action_panel"
+            if action_id in existing_ids:
+                continue  # already exists
+
+            new_section = {
+                "id": action_id,
+                "name": f"{model_name} Actions",
+                "role": "child_collection",
+                "class": clf_id,
+                "primary_model": model_name,
+                "page_id": page_id,
+                "layout": "list",
+                "component": "ObjectList",
+                "position": "main",
+                "col_span": 12,
+                "attributes": [],
+                "methods": [
+                    {
+                        "name": m["name"],
+                        "call_name": m.get("call_name") or m["name"],
+                        "label": m.get("label") or m["name"],
+                        "body": m["body"],
+                        "parameters": m.get("parameters") or [],
+                        "description": m.get("description") or "",
+                    }
+                    for m in methods
+                ],
+            }
+            sections.append(new_section)
+            existing_ids.add(action_id)
+            page["sections"] = page_section_refs + [{"value": action_id}]
+            changed = True
+
+    if changed:
+        data["sections"] = sections
+        _Iface.objects.filter(id=interface_id).update(data=data)
 
 
 def resolve_interface_semantics_with_llm(
@@ -146,6 +423,7 @@ def resolve_interface_semantics_with_llm(
     }
     model_graph = uml_intel.get("model_graph") or {}
     def _valid_fields(model: str) -> set[str]:
+        """Provide a local helper for resolve_interface_semantics_with_llm."""
         return {
             str(attr.get("name") or "")
             for attr in ((model_graph.get(model) or {}).get("attributes") or [])
@@ -153,6 +431,7 @@ def resolve_interface_semantics_with_llm(
         }
 
     def _clean_fields(model: str, values) -> list[str]:
+        """Clean fields."""
         valid = _valid_fields(model)
         out = []
         for field in values or []:
@@ -162,6 +441,7 @@ def resolve_interface_semantics_with_llm(
         return out
 
     def _fields_from_legacy_updates(model: str, values) -> list[str]:
+        """Extract editable field names from legacy workflow update semantics."""
         valid = _valid_fields(model)
         out = []
         for update in values or []:
@@ -345,6 +625,7 @@ def map_uml_to_interface(interface_id: str) -> dict:
         actor_name = _actor_name_from_context(system_data, actor_id) or ""
 
         uml_intel = extract_uml_intelligence(system_data, actor_id, actor_name)
+        _generate_missing_method_bodies(system_data, uml_intel["model_graph"], str(interface.system_id))
         initial_plan = generate_interface_plan(uml_intel)
         semantic_overrides = resolve_interface_semantics_with_llm(uml_intel, initial_plan)
         plan = (
@@ -382,6 +663,7 @@ def map_uml_to_interface(interface_id: str) -> dict:
         }
 
         def normalize_section_model(section: dict) -> dict:
+            """Normalize section model."""
             section = dict(section or {})
             model = (
                 section.get("primary_model")
@@ -464,6 +746,14 @@ def map_uml_to_interface(interface_id: str) -> dict:
         data = dict(interface.data or {})
         data.update({"pages": db_pages, "sections": db_sections})
         Interface.objects.filter(id=interface_id).update(data=data)
+
+        # Sync Classifier custom_methods bodies into the freshly-saved Interface sections.
+        # Must run AFTER the Interface is saved — map overwrites sections, so any earlier
+        # sync would be lost.
+        _sync_all_classifier_methods_to_interfaces(str(interface.system_id))
+
+        # Ensure each detail/form page has a dedicated action section for models with methods.
+        _ensure_action_panel_sections(interface_id, str(interface.system_id))
 
         return {
             "status": "ok",

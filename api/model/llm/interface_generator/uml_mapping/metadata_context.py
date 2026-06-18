@@ -8,12 +8,14 @@ from .usecase_workflow import _build_activity_diagrams
 
 
 def _node_position(node) -> tuple[object, object]:
+    """Read a node position tuple from metadata when coordinates are available."""
     data = node.data or {}
     position = data.get("position") or {}
     return position.get("x", data.get("x")), position.get("y", data.get("y"))
 
 
 def _fetch_system_context_data(system_id: str) -> dict:
+    """Load classifiers and relations needed for UML-aware interface generation."""
     system = System.objects.prefetch_related(
         "classifiers",
         "relations",
@@ -102,6 +104,7 @@ def _fetch_system_context_data(system_id: str) -> dict:
 
 
 def _actor_name_from_context(system_context: dict, actor_id: str | None) -> str | None:
+    """Resolve an actor classifier id to its display name from system context."""
     for classifier in _as_list(system_context.get("classifiers"), "classifiers"):
         if str(classifier.get("id")) == str(actor_id):
             return (classifier.get("data") or {}).get("name")

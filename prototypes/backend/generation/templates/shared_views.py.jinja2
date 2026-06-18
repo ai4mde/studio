@@ -300,8 +300,14 @@ class GenericListView(GenericViewMixin, ListView):
                 continue
             _, model, method = key.split("_", 2)
             if model_instance := apps.get_model('shared_models', model):
-                instance = get_object_or_404(model_instance, pk=value)
-                custom_method = getattr(instance, method, None)
+                selected_values = [
+                    item.strip()
+                    for item in (self.request.GET.get(f'selected_{model}') or '').split(',')
+                    if item.strip()
+                ]
+                target_ids = selected_values or [value]
+                first_instance = get_object_or_404(model_instance, pk=target_ids[0])
+                custom_method = getattr(first_instance, method, None)
                 if custom_method is None:
                     continue
                 signature = inspect.signature(custom_method)
@@ -316,7 +322,13 @@ class GenericListView(GenericViewMixin, ListView):
                     and self.kwargs.get('active_process_node_id') is not None
                 ):
                     kwargs['active_process_node_id'] = self.kwargs.get('active_process_node_id')
-                custom_method(**kwargs)
+                if 'request' in signature.parameters and 'request' not in kwargs:
+                    kwargs['request'] = self.request
+                for target_id in target_ids:
+                    instance = get_object_or_404(model_instance, pk=target_id)
+                    custom_method = getattr(instance, method, None)
+                    if custom_method is not None:
+                        custom_method(**kwargs)
                 break
 
     def _handle_favorite_toggle(self) -> None:

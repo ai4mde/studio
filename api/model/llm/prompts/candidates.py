@@ -27,6 +27,7 @@ def build_generate_candidates_prompt(
     section_skeleton: list,
     designer_prompt: str,
 ) -> str:
+    """Build generate candidates prompt."""
     diversity_rules = (
         "Generate exactly 3 structurally and visually distinct candidates.\n"
         "Each candidate MUST follow user requirement:\n"
@@ -46,7 +47,8 @@ def build_generate_candidates_prompt(
         f"DESIGNER PROMPT: {prompt_text}\n\n"
         f"{diversity_rules}\n\n"
         "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
-        '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
+        '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}, '
+        '"sections": [{"value": "section_id"}, {"type": "card", "id": "card_1", "label": "Card Title", "sections": [{"value": "section_id_a"}, {"value": "section_id_b"}]}]}], '
         '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
         '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}, '
         f'{_CANDIDATE_TOKENS_EXAMPLE}' + '}]}'
@@ -59,6 +61,7 @@ def build_regenerate_candidates_prompt(
     designer_requirements: str,
     base_styling: dict,
 ) -> str:
+    """Build regenerate candidates prompt."""
     base_ctx = ", ".join(
         f"{key}={value}"
         for key, value in {

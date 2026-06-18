@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Leiden University seal">
+  <defs>
+    <style>
+      .blue{fill:#061756}
+      .none{fill:none;stroke:#061756;stroke-width:5}
+      .thin{fill:none;stroke:#061756;stroke-width:2}
+      .txt{fill:#061756;font-family:Georgia,'Times New Roman',serif;font-size:8px;font-weight:700;letter-spacing:1px}
+    </style>
+  </defs>
+  <circle cx="80" cy="80" r="75" fill="#fff"/>
+  <circle cx="80" cy="80" r="71" class="none"/>
+  <circle cx="80" cy="80" r="52" class="thin"/>
+  <path id="top" d="M28 81a52 52 0 0 1 104 0"/>
+  <path id="bottom" d="M132 80a52 52 0 0 1-104 0"/>
+  <text class="txt">
+    <textPath href="#top" startOffset="50%" text-anchor="middle">PRAESIDIUM LIBERTATIS</textPath>
+  </text>
+  <text class="txt">
+    <textPath href="#bottom" startOffset="50%" text-anchor="middle">ACADEMIA LUGDUNO BATAVA</textPath>
+  </text>
+  <g transform="translate(42 35)">
+    <path d="M38 0l38 16v34c0 25-16 39-38 45C16 89 0 75 0 50V16z" fill="#fff" stroke="#061756" stroke-width="4"/>
+    <path d="M38 2v91M2 47h72" class="thin"/>
+    <g class="blue">
+      <path d="M18 24c7-11 22-7 19 7-2 9-12 9-10 19 1 6 7 7 10 3-2 14-21 13-24 0-2-10 8-14 9-21 1-5-2-8-4-8z"/>
+      <path d="M56 24c-7-11-22-7-19 7 2 9 12 9 10 19-1 6-7 7-10 3 2 14 21 13 24 0 2-10-8-14-9-21-1-5 2-8 4-8z"/>
+      <path d="M19 62c7-11 22-7 19 7-2 9-12 9-10 19 1 6 7 7 10 3-2 14-21 13-24 0-2-10 8-14 9-21 1-5-2-8-4-8z"/>
+      <path d="M57 62c-7-11-22-7-19 7 2 9 12 9 10 19-1 6-7 7-10 3 2 14 21 13 24 0 2-10-8-14-9-21-1-5 2-8 4-8z"/>
+    </g>
+    <text x="38" y="44" text-anchor="middle" class="blue" font-family="Georgia,serif" font-size="15" font-weight="800">1575</text>
+    <text x="38" y="82" text-anchor="middle" class="blue" font-family="Georgia,serif" font-size="16" font-weight="800">L</text>
+  </g>
+</svg>

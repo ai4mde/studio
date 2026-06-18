@@ -13,6 +13,7 @@ from .token_normalizer import _section_id
 
 
 def _default_category_for_model(model: str, model_id_by_name: dict[str, str] | None = None) -> dict | None:
+    """Build default category for model."""
     model = str(model or "").strip()
     if not model:
         return None
@@ -26,6 +27,7 @@ def _default_category_for_model(model: str, model_id_by_name: dict[str, str] | N
     }
 
 def _model_for_page_category(page: dict, sections_by_id: dict[str, dict], known_models: set[str]) -> str:
+    """Infer the model that should own a page category from its bound sections."""
     explicit = str(page.get("primary_model") or "").strip()
     if explicit in known_models:
         return explicit
@@ -38,6 +40,7 @@ def _model_for_page_category(page: dict, sections_by_id: dict[str, dict], known_
     return fallback if fallback in known_models else ""
 
 def _assign_default_page_categories(pages: list, sections: list, model_id_by_name: dict[str, str] | None = None) -> list:
+    """Assign default page categories."""
     model_id_by_name = model_id_by_name or {}
     known_models = set(model_id_by_name.keys())
     sections_by_id = {str(s.get("id")): s for s in sections or [] if s.get("id")}
@@ -57,6 +60,7 @@ def _assign_default_page_categories(pages: list, sections: list, model_id_by_nam
     return next_pages
 
 def _merge_page_categories(categories: list, pages: list) -> list:
+    """Merge page categories."""
     merged = []
     seen = set()
     for category in categories or []:
@@ -84,6 +88,7 @@ def _merge_page_categories(categories: list, pages: list) -> list:
     return merged
 
 def _default_section_for_page(page: dict, model: str, model_attrs: dict, candidate_index: int) -> dict:
+    """Build default section for page."""
     layout = _infer_section_layout(page, candidate_index)
     page_id = _section_id(page.get("id") or page.get("name") or "page")
     sid = f"{page_id}_{_section_id(model or 'content')}_{layout}"
@@ -173,6 +178,7 @@ def _header_sections_for_candidate(normal_pages: list, candidate_index: int = 0)
     }]
 
 def _footer_sections_for_candidate(candidate_index: int = 0, normal_pages: list | None = None) -> list[dict]:
+    """Build footer chrome sections for a generated candidate variant."""
     ops = {"create": False, "update": False, "delete": False}
     templates = ("site-footer", "mega-footer", "legal-footer", "newsletter-footer", "compact-footer", "social-footer", "split-footer", "app-footer", "cta-footer", "minimal-footer")
     layout = templates[candidate_index % len(templates)]
@@ -201,6 +207,7 @@ def _footer_sections_for_candidate(candidate_index: int = 0, normal_pages: list 
     }]
 
 def _top_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0) -> dict:
+    """Build the top navigation section for a candidate variant."""
     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
     return {
         "id": "app_page_nav",
@@ -227,6 +234,7 @@ def _top_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0)
     }
 
 def _sidebar_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0) -> dict:
+    """Build the sidebar navigation section for a candidate variant."""
     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
     side = "left" if int(candidate_index or 0) % 2 == 0 else "right"
     return {
@@ -257,6 +265,7 @@ def _sidebar_nav_section_for_candidate(normal_pages: list, candidate_index: int 
     }
 
 def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: list, candidate_index: int = 0) -> tuple[list, list]:
+    """Ensure normal page navigation."""
     if not normal_pages:
         return pages, sections
     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
