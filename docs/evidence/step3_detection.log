@@ -1,0 +1,5 @@
+time="2026-06-15T18:26:12+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container studio-studio-prototypes-run-b04b95557293 Creating 
+ Container studio-studio-prototypes-run-b04b95557293 Created 
+[AI4MDE][ai_config] model=BookLoan attribute=late_risk trigger={'type': 'post_save', 'class': 'BookLoan'} model_profile=cheap write_back=late_risk version=1.0
+[AI4MDE][ai_config] detected 1 AI-managed attribute(s)

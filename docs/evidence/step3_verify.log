@@ -1,0 +1,6 @@
+[PASS] resolved metadata carries BookLoan.late_risk.ai_config
+[PASS] generator logged ai_config detection for BookLoan.late_risk
+[PASS] BookLoan.late_risk rendered as stored CharField (FKs preserved)
+[PASS] no new hook/AI code in generated models.py (detection-only)
+[PASS] BookLoan delta == {late_risk CharField} + {__str__ self.Loan -> self.late_risk} (order-insensitive)
+[DONE] Step 3 ai_config detection VERIFIED.

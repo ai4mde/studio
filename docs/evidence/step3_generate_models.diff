@@ -1,0 +1,30 @@
+91a92,117
+> def detect_ai_config(metadata: str) -> list:
+>     """Step 3 - DETECTION ONLY. Scan resolved generator metadata for attribute-level
+>     `ai_config` and log each occurrence. Returns the detected list for later use
+>     (Step 4 hook generation). Must NOT alter generated code."""
+>     out = []
+>     for diagram in json.loads(metadata)["diagrams"]:
+>         if diagram["type"] != "classes":
+>             continue
+>         for node in diagram["nodes"]:
+>             cls = node.get("cls", {})
+>             if cls.get("type") != "class":
+>                 continue
+>             model_name = model_name_sanitization(cls.get("name", ""))
+>             for attribute in cls.get("attributes", []):
+>                 ai = attribute.get("ai_config")
+>                 if not ai:
+>                     continue
+>                 out.append({"model": model_name, "attribute": attribute.get("name"), "ai_config": ai})
+>                 print(
+>                     f"[AI4MDE][ai_config] model={model_name} attribute={attribute.get('name')} "
+>                     f"trigger={ai.get('trigger')} model_profile={ai.get('model_profile')} "
+>                     f"write_back={ai.get('output', {}).get('write_back')} version={ai.get('ai_config_version')}"
+>                 )
+>     return out
+> 
+> 
+140a167,168
+>     ai_managed = detect_ai_config(metadata)
+>     print(f"[AI4MDE][ai_config] detected {len(ai_managed)} AI-managed attribute(s)")

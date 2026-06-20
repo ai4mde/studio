@@ -1,0 +1,6 @@
+time="2026-06-15T18:24:28+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container studio-studio-api-run-3fcdf0123f12 Creating 
+ Container studio-studio-api-run-3fcdf0123f12 Created 
+[step3-meta] project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e (Library) system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step3-meta][PASS] BookLoan.late_risk.ai_config present in metadata: keys=['ai_config_version', 'context', 'model_profile', 'output', 'template', 'trigger']
+[step3-meta] wrote resolved metadata -> /tmp/step3_generator_metadata_sent.json
