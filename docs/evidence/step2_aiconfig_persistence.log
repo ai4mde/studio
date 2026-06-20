@@ -1,0 +1,13 @@
+time="2026-06-15T17:46:54+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container studio-studio-api-run-bef0857817c6 Creating 
+ Container studio-studio-api-run-bef0857817c6 Created 
+[INFO] preflight: system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e classifiers=6 relations=4
+[INFO] preflight: BookLoan initial attributes=[]
+[PASS] preflight: Step 1 baseline intact (6 classifiers, 4 relations; BookLoan has no attributes)
+[PASS] import: Project.import_from_json ok, project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e
+[PASS] attribute: late_risk present; type=str derived=False
+[PASS] positive: ai_config intact via import path; keys=['ai_config_version', 'context', 'model_profile', 'output', 'template', 'trigger']
+[PASS] structural: no drift (classifiers=6 relations=4)
+[PASS] negative: ai_config stripped by kernel Class schema (expected); surviving attr keys=['body', 'derived', 'description', 'enum', 'name', 'type']
+[PASS] idempotent: re-import upserted cleanly (classifiers=6, relations=4, ai_config intact)
+[DONE] Step 2 ai_config persistence VERIFIED.
