@@ -30,6 +30,7 @@ def generate_activity_model(
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,
     enable_graph_repair_agent: Optional[bool] = None,
+    use_topology_artifact_guidance: bool = False,
 ) -> Union[dict, ActivityDebugResult]:
     """
     Generate one clean activity diagram from natural-language process text.
@@ -53,6 +54,7 @@ def generate_activity_model(
         enable_sketch_review_agent=enable_sketch_review_agent,
         enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
         enable_graph_repair_agent=enable_graph_repair_agent,
+        use_topology_artifact_guidance=use_topology_artifact_guidance,
     )
 
 

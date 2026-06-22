@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from .activity_model import ActivityModel
@@ -77,8 +78,48 @@ def _branch_step_id(entry: Any, fallback: str) -> Optional[str]:
     return fallback
 
 
+def _capitalize_phrase(text: str) -> str:
+    normalized = " ".join(text.split()).strip()
+    if not normalized:
+        return normalized
+    return normalized[0].upper() + normalized[1:]
+
+
+def _normalized_loop_decision_label(block: Dict[str, Any]) -> Optional[str]:
+    note = str(block.get("notes") or "").strip()
+    if not note:
+        return None
+
+    normalized_note = " ".join(note.split())
+    lowered = normalized_note.lower()
+
+    if "all requirements are satisfied" in lowered:
+        return "All requirements satisfied?"
+
+    success_match = re.search(
+        r"\b(?:retry|repeat)\s+(.+?)\s+until it succeeds\b",
+        lowered,
+    )
+    if success_match:
+        subject = _capitalize_phrase(success_match.group(1))
+        if subject:
+            return f"{subject} successful?"
+
+    passes_match = re.search(r"\buntil\s+(.+?)\s+passes\b", lowered)
+    if passes_match:
+        subject = _capitalize_phrase(passes_match.group(1))
+        if subject:
+            return f"{subject} passed?"
+
+    return None
+
+
 def _decision_label(block_id: str, block: Dict[str, Any]) -> str:
     note = str(block.get("notes") or "").strip()
+    if str(block.get("type") or "").strip() == "loop":
+        normalized = _normalized_loop_decision_label(block)
+        if normalized:
+            return normalized
     if note.endswith("?"):
         return note
     if note:
@@ -229,7 +270,7 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
         branch_outputs: List[List[TerminalRef]] = []
         for branch_index, branch in enumerate(block.get("branches") or [], start=1):
-            branch_label = str(branch.get("label") or "").strip() or None
+            branch_label = None if block_type == "parallel" else (str(branch.get("label") or "").strip() or None)
             refs: List[TerminalRef] = [(entry_node_id, branch_label)]
 
             steps = branch.get("steps") or []

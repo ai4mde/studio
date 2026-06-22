@@ -8,6 +8,7 @@ PipelineProfile = Literal[
     "sketch_review_only",
     "graph_repair_only",
     "both_agents",
+    "semantic_deterministic",
 ]
 
 
@@ -29,6 +30,10 @@ def resolve_pipeline_config(
         sketch_review_enabled = True
         prompted_sketch_repair_enabled = False
         graph_repair_enabled = True
+    elif pipeline_profile == "semantic_deterministic":
+        sketch_review_enabled = False
+        prompted_sketch_repair_enabled = False
+        graph_repair_enabled = False
     elif pipeline_profile == "sketch_review_only":
         sketch_review_enabled = True
         prompted_sketch_repair_enabled = False

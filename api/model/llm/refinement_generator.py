@@ -94,9 +94,12 @@ from .prompt_builder import (
     build_activity_sketch_review_prompt,
 )
 from .semantic_analysis import analyze_semantic_graph
+from .semantic_sketch_experiment import generate_semantic_sketch_plan
 from .sketch_alignment import validate_graph_against_sketch
 from .sketch_repair import repair_activity_sketch, sketch_requires_retry
 from .topology_analysis import analyze_activity_graph
+from .topology_experiment import generate_topology_artifact
+from .topology_to_sketch_compiler import compile_topology_and_semantics_to_activity_sketch
 
 ActivityDebugResult = Dict[str, Any]
 logger = logging.getLogger(__name__)
@@ -104,6 +107,19 @@ DEFAULT_ACTIVITY_OPENAI_MODEL = os.environ.get(
     "OPENAI_ACTIVITY_MODEL",
     "gpt-4o-mini-2024-07-18",
 )
+
+
+class SketchGenerationError(Exception):
+    def __init__(self, message: str, *, debug_artifacts: Dict[str, Any]) -> None:
+        super().__init__(message)
+        self.debug_artifacts = debug_artifacts
+
+
+def _log_pipeline_execution(pipeline_profile: PipelineProfile, executed_stages: List[str]) -> None:
+    logger.info("Pipeline Profile: %s", pipeline_profile)
+    logger.info("Executed Stages:")
+    for stage_name in executed_stages:
+        logger.info("- %s", stage_name)
 
 
 def _is_clean_format(model: Any) -> bool:
@@ -631,19 +647,60 @@ def _generate_activity_sketch(
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
     use_sketch_review_agent: bool = False,
     use_prompted_sketch_repair_agent: bool = False,
+    use_topology_artifact_guidance: bool = False,
 ) -> tuple[dict, str, str, dict, dict, dict]:
     keyword_hints = extract_keyword_hints(process_text)
+    topology_artifact: Optional[dict] = None
+    topology_artifact_prompt: Optional[str] = None
+    topology_artifact_raw_output: Optional[str] = None
+    topology_artifact_response_mode: Optional[str] = None
+    topology_artifact_fallback_reason: Optional[str] = None
+    if use_topology_artifact_guidance:
+        topology_result = generate_topology_artifact(process_text)
+        topology_artifact = topology_result.get("artifact")
+        topology_artifact_prompt = topology_result.get("prompt")
+        topology_artifact_raw_output = topology_result.get("raw_output")
+        topology_artifact_response_mode = topology_result.get("response_mode")
+        topology_artifact_fallback_reason = topology_result.get("fallback_reason")
     prompt = build_activity_sketch_prompt_with_hints(
         process_text,
         keyword_hints=keyword_hints,
+        topology_artifact=topology_artifact,
     )
+
+    def _raise_sketch_generation_error(
+        stage: str,
+        prompt_text: str,
+        output_text: str,
+        exc: Exception,
+    ) -> None:
+        raise SketchGenerationError(
+            f"ActivitySketch validation failed during {stage}: {exc}",
+            debug_artifacts={
+                "process_text": process_text,
+                "keyword_hints": keyword_hints,
+                "topology_artifact": topology_artifact,
+                "topology_artifact_prompt": topology_artifact_prompt,
+                "topology_artifact_raw_output": topology_artifact_raw_output,
+                "topology_artifact_response_mode": topology_artifact_response_mode,
+                "topology_artifact_fallback_reason": topology_artifact_fallback_reason,
+                "sketch_prompt": prompt_text,
+                "sketch_raw_output": output_text,
+                "sketch_error_stage": stage,
+                "sketch_validation_error": str(exc),
+            },
+        ) from exc
+
     caller = (
         sketch_llm_caller
         if sketch_llm_caller is not None
         else _default_activity_sketch_llm_caller
     )
     raw_output = caller(prompt)
-    parsed = _parse_and_validate_activity_sketch_json(raw_output)
+    try:
+        parsed = _parse_and_validate_activity_sketch_json(raw_output)
+    except Exception as exc:
+        _raise_sketch_generation_error("sketch_planner_output", prompt, raw_output, exc)
     original_sketch = parsed
     reviewed_sketch: Optional[dict] = None
     if use_sketch_review_agent:
@@ -652,7 +709,10 @@ def _generate_activity_sketch(
             activity_sketch=parsed,
         )
         reviewed_raw_output = caller(review_prompt)
-        parsed = _parse_and_validate_activity_sketch_json(reviewed_raw_output)
+        try:
+            parsed = _parse_and_validate_activity_sketch_json(reviewed_raw_output)
+        except Exception as exc:
+            _raise_sketch_generation_error("sketch_review_output", review_prompt, reviewed_raw_output, exc)
         reviewed_sketch = parsed
     repaired_sketch, repair_report = repair_activity_sketch(parsed)
     deterministically_repaired_sketch = repaired_sketch
@@ -673,7 +733,10 @@ def _generate_activity_sketch(
             },
         )
         prompted_raw_output = caller(sketch_repair_prompt)
-        parsed = _parse_and_validate_activity_sketch_json(prompted_raw_output)
+        try:
+            parsed = _parse_and_validate_activity_sketch_json(prompted_raw_output)
+        except Exception as exc:
+            _raise_sketch_generation_error("prompted_sketch_repair_output", sketch_repair_prompt, prompted_raw_output, exc)
         repaired_sketch, repair_report = repair_activity_sketch(parsed)
         raw_output = prompted_raw_output
         prompted_repaired_sketch = repaired_sketch
@@ -703,7 +766,10 @@ def _generate_activity_sketch(
             + "- Keep decision decomposition simple and valid.\n"
         )
         raw_output = caller(retry_prompt)
-        parsed = _parse_and_validate_activity_sketch_json(raw_output)
+        try:
+            parsed = _parse_and_validate_activity_sketch_json(raw_output)
+        except Exception as exc:
+            _raise_sketch_generation_error("sketch_retry_output", retry_prompt, raw_output, exc)
         repaired_sketch, repair_report = repair_activity_sketch(parsed)
         probe_report = _probe_activity_sketch(
             repaired_sketch,
@@ -722,6 +788,13 @@ def _generate_activity_sketch(
         )
 
     return keyword_hints, prompt, raw_output, repaired_sketch, repair_report, {
+        "topology_artifact": topology_artifact,
+        "topology_artifact_prompt": topology_artifact_prompt,
+        "topology_artifact_raw_output": topology_artifact_raw_output,
+        "topology_artifact_response_mode": topology_artifact_response_mode,
+        "topology_artifact_fallback_reason": topology_artifact_fallback_reason,
+        "sketch_prompt": prompt,
+        "sketch_raw_output": raw_output,
         "original_sketch": original_sketch,
         "reviewed_sketch": reviewed_sketch,
         "deterministically_repaired_sketch": deterministically_repaired_sketch,
@@ -747,6 +820,7 @@ def _activity_llm_roundtrip(
     use_sketch_review_agent: bool = False,
     use_prompted_sketch_repair_agent: bool = False,
     use_graph_repair_agent: bool = False,
+    use_topology_artifact_guidance: bool = False,
 ) -> tuple[Optional[dict], Optional[dict], Optional[dict], Optional[dict], dict, str, str, dict, dict]:
     
     # Build prompt, call the LLM, and validate the returned ActivityGraph.
@@ -760,6 +834,13 @@ def _activity_llm_roundtrip(
     sketch: Optional[dict] = None
     sketch_repair: Optional[dict] = None
     stage_artifacts: dict = {
+        "topology_artifact": None,
+        "topology_artifact_prompt": None,
+        "topology_artifact_raw_output": None,
+        "topology_artifact_response_mode": None,
+        "topology_artifact_fallback_reason": None,
+        "sketch_prompt": None,
+        "sketch_raw_output": None,
         "original_sketch": None,
         "reviewed_sketch": None,
         "deterministically_repaired_sketch": None,
@@ -785,6 +866,7 @@ def _activity_llm_roundtrip(
             sketch_llm_caller=sketch_llm_caller,
             use_sketch_review_agent=use_sketch_review_agent,
             use_prompted_sketch_repair_agent=use_prompted_sketch_repair_agent,
+            use_topology_artifact_guidance=use_topology_artifact_guidance,
         )
         stage_artifacts.update(sketch_artifacts)
         if use_sketch_review_agent:
@@ -865,6 +947,7 @@ def debug_model_activity(
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,
     enable_graph_repair_agent: Optional[bool] = None,
+    use_topology_artifact_guidance: bool = False,
 ) -> ActivityDebugResult:
     """
     Same pipeline as ``model_activity``, but returns intermediates for debugging
@@ -878,6 +961,13 @@ def debug_model_activity(
         ``parsed`` / ``model`` — validated ActivityGraph ``{"nodes": [...], "edges": [...]}``
         ``sketch_alignment`` — diagnostic TopologyPlan-versus-ActivityGraph alignment report when planning is enabled
     """
+    if pipeline_profile == "semantic_deterministic":
+        if current_model is not None or instruction is not None:
+            raise ValueError("pipeline_profile='semantic_deterministic' does not yet support refinement inputs")
+        result = debug_model_activity_with_semantic_deterministic_profile(process_text)
+        result["pipeline_config"]["pipeline_profile"] = pipeline_profile
+        return result
+
     pipeline_config = resolve_pipeline_config(
         pipeline_profile=pipeline_profile,
         enable_sketch_review_agent=enable_sketch_review_agent,
@@ -894,6 +984,7 @@ def debug_model_activity(
         use_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
         use_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
         use_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
+        use_topology_artifact_guidance=use_topology_artifact_guidance,
     )
     result = _build_debug_result(
         prompt,
@@ -908,6 +999,7 @@ def debug_model_activity(
     result["stage_artifacts"] = stage_artifacts
     result["executed_stages"] = stage_artifacts.get("executed_stages", [])
     result["pipeline_config"] = pipeline_config
+    result["pipeline_config"]["use_topology_artifact_guidance"] = use_topology_artifact_guidance
     return result
 
 
@@ -917,6 +1009,7 @@ def debug_model_activity_with_experimental_compiler(
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
     use_sketch_review_agent: bool = False,
     use_prompted_sketch_repair_agent: bool = False,
+    use_topology_artifact_guidance: bool = False,
 ) -> ActivityDebugResult:
     """
     Experimental path:
@@ -932,11 +1025,19 @@ def debug_model_activity_with_experimental_compiler(
         sketch_llm_caller=sketch_llm_caller,
         use_sketch_review_agent=use_sketch_review_agent,
         use_prompted_sketch_repair_agent=use_prompted_sketch_repair_agent,
+        use_topology_artifact_guidance=use_topology_artifact_guidance,
     )
     parsed = compile_activity_sketch(sketch)
     sketch_alignment = validate_graph_against_sketch(sketch, parsed)
     semantic_analysis = analyze_semantic_graph(parsed, sketch=sketch, keyword_hints=keyword_hints)
     stage_artifacts = {
+        "topology_artifact": sketch_artifacts.get("topology_artifact"),
+        "topology_artifact_prompt": sketch_artifacts.get("topology_artifact_prompt"),
+        "topology_artifact_raw_output": sketch_artifacts.get("topology_artifact_raw_output"),
+        "topology_artifact_response_mode": sketch_artifacts.get("topology_artifact_response_mode"),
+        "topology_artifact_fallback_reason": sketch_artifacts.get("topology_artifact_fallback_reason"),
+        "sketch_prompt": sketch_artifacts.get("sketch_prompt"),
+        "sketch_raw_output": sketch_artifacts.get("sketch_raw_output"),
         "original_sketch": sketch_artifacts.get("original_sketch"),
         "reviewed_sketch": sketch_artifacts.get("reviewed_sketch"),
         "deterministically_repaired_sketch": sketch_artifacts.get("deterministically_repaired_sketch"),
@@ -987,6 +1088,95 @@ def debug_model_activity_with_experimental_compiler(
         "enable_sketch_review_agent": use_sketch_review_agent,
         "enable_prompted_sketch_repair_agent": use_prompted_sketch_repair_agent,
         "enable_graph_repair_agent": False,
+        "use_topology_artifact_guidance": use_topology_artifact_guidance,
+    }
+    return result
+
+
+def debug_model_activity_with_semantic_deterministic_profile(
+    process_text: str,
+) -> ActivityDebugResult:
+    """
+    Experimental production-style profile:
+    ProcessText -> Topology Artifact -> Semantic Sketch Plan
+    -> Deterministic Sketch Builder -> Sketch Repair
+    -> Deterministic Compiler -> Validation.
+    """
+    topology_result = generate_topology_artifact(process_text)
+    topology_artifact = topology_result["artifact"]
+    semantic_result = generate_semantic_sketch_plan(
+        process_text,
+        topology_artifact=topology_artifact,
+    )
+    semantic_plan = semantic_result["artifact"]
+    deterministic_sketch = compile_topology_and_semantics_to_activity_sketch(
+        topology_artifact,
+        semantic_plan,
+    )
+    repaired_sketch, sketch_repair = repair_activity_sketch(deterministic_sketch)
+    parsed = compile_activity_sketch(repaired_sketch)
+    keyword_hints = semantic_result["keyword_hints"]
+    sketch_alignment = validate_graph_against_sketch(repaired_sketch, parsed)
+    semantic_analysis = analyze_semantic_graph(parsed, sketch=repaired_sketch, keyword_hints=keyword_hints)
+    stage_artifacts = {
+        "topology_artifact": topology_artifact,
+        "topology_artifact_prompt": topology_result.get("prompt"),
+        "topology_artifact_raw_output": topology_result.get("raw_output"),
+        "topology_artifact_response_mode": topology_result.get("response_mode"),
+        "topology_artifact_fallback_reason": topology_result.get("fallback_reason"),
+        "semantic_plan": semantic_plan,
+        "semantic_prompt": semantic_result.get("prompt"),
+        "semantic_raw_output": semantic_result.get("raw_output"),
+        "semantic_response_mode": semantic_result.get("response_mode"),
+        "semantic_fallback_reason": semantic_result.get("fallback_reason"),
+        "sketch_prompt": semantic_result.get("prompt"),
+        "sketch_raw_output": json.dumps(deterministic_sketch, ensure_ascii=False),
+        "original_sketch": deterministic_sketch,
+        "reviewed_sketch": None,
+        "deterministically_repaired_sketch": repaired_sketch,
+        "prompted_repaired_sketch": None,
+        "repaired_sketch": repaired_sketch,
+        "probe_graph": None,
+        "probe_validation": None,
+        "deterministic_sketch": deterministic_sketch,
+        "compiled_activity_graph": parsed,
+        "initial_graph": parsed,
+        "repaired_graph": None,
+        "final_graph": parsed,
+        "validation": {
+            "sketch_alignment": sketch_alignment,
+            "semantic_analysis": semantic_analysis,
+            "topology_report": analyze_activity_graph(parsed),
+        },
+        "executed_stages": [
+            "Topology Artifact",
+            "Semantic Planner",
+            "Deterministic Sketch Builder",
+            "Sketch Repair",
+            "Deterministic Compiler",
+            "Validation",
+        ],
+    }
+    result = _build_debug_result(
+        semantic_result["prompt"],
+        json.dumps(parsed, ensure_ascii=False),
+        parsed,
+        keyword_hints=keyword_hints,
+        sketch=repaired_sketch,
+        sketch_repair=sketch_repair,
+        sketch_alignment=sketch_alignment,
+        semantic_analysis=semantic_analysis,
+    )
+    result["semantic_raw_response"] = semantic_result["raw_output"]
+    result["stage_artifacts"] = stage_artifacts
+    result["executed_stages"] = stage_artifacts["executed_stages"]
+    result["pipeline_config"] = {
+        "pipeline_profile": "semantic_deterministic",
+        "enable_sketch_review_agent": False,
+        "enable_prompted_sketch_repair_agent": False,
+        "enable_graph_repair_agent": False,
+        "use_topology_artifact_guidance": False,
+        "use_semantic_sketch_builder": True,
     }
     return result
 
@@ -998,12 +1188,14 @@ def model_activity_with_experimental_compiler(
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
     use_sketch_review_agent: bool = False,
     use_prompted_sketch_repair_agent: bool = False,
+    use_topology_artifact_guidance: bool = False,
 ) -> Union[dict, ActivityDebugResult]:
     result = debug_model_activity_with_experimental_compiler(
         process_text,
         sketch_llm_caller=sketch_llm_caller,
         use_sketch_review_agent=use_sketch_review_agent,
         use_prompted_sketch_repair_agent=use_prompted_sketch_repair_agent,
+        use_topology_artifact_guidance=use_topology_artifact_guidance,
     )
     if debug:
         return result
@@ -1023,6 +1215,7 @@ def model_activity(
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,
     enable_graph_repair_agent: Optional[bool] = None,
+    use_topology_artifact_guidance: bool = False,
 ) -> Union[dict, ActivityDebugResult]:
     """
 Core function for ActivityGraph LLM modelling.
@@ -1076,6 +1269,15 @@ llm_caller : callable, optional
     ``(prompt: str) -> str`` replacing the default OpenAI call. For tests and
     offline debugging only.
 """
+    if pipeline_profile == "semantic_deterministic":
+        if current_model is not None or instruction is not None:
+            raise ValueError("pipeline_profile='semantic_deterministic' does not yet support refinement inputs")
+        result = debug_model_activity_with_semantic_deterministic_profile(process_text)
+        _log_pipeline_execution(pipeline_profile, result.get("executed_stages") or [])
+        if debug:
+            return result
+        return result["parsed"]
+
     pipeline_config = resolve_pipeline_config(
         pipeline_profile=pipeline_profile,
         enable_sketch_review_agent=enable_sketch_review_agent,
@@ -1092,6 +1294,7 @@ llm_caller : callable, optional
         use_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
         use_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
         use_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
+        use_topology_artifact_guidance=use_topology_artifact_guidance,
     )
     if debug:
         result = _build_debug_result(
@@ -1107,7 +1310,10 @@ llm_caller : callable, optional
         result["stage_artifacts"] = stage_artifacts
         result["executed_stages"] = stage_artifacts.get("executed_stages", [])
         result["pipeline_config"] = pipeline_config
+        result["pipeline_config"]["use_topology_artifact_guidance"] = use_topology_artifact_guidance
+        _log_pipeline_execution(pipeline_config["pipeline_profile"], result.get("executed_stages") or [])
         return result
+    _log_pipeline_execution(pipeline_config["pipeline_profile"], stage_artifacts.get("executed_stages", []))
     return parsed
 
 
@@ -1120,6 +1326,7 @@ def generate_initial_candidates(
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,
     enable_graph_repair_agent: Optional[bool] = None,
+    use_topology_artifact_guidance: bool = False,
 ) -> List[dict]:
     """
     Return N independent ActivityGraph candidates for the same ``process_text``.
@@ -1156,6 +1363,7 @@ def generate_initial_candidates(
                 enable_sketch_review_agent=enable_sketch_review_agent,
                 enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
                 enable_graph_repair_agent=enable_graph_repair_agent,
+                use_topology_artifact_guidance=use_topology_artifact_guidance,
             )
         )
     return models
@@ -1171,6 +1379,7 @@ def generate_and_convert_candidates(
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,
     enable_graph_repair_agent: Optional[bool] = None,
+    use_topology_artifact_guidance: bool = False,
     name_prefix: str = "Activity candidate",
     description_template: str = "Generated candidate {index} for interactive selection",
 ) -> List[Dict[str, Any]]:
@@ -1208,6 +1417,7 @@ def generate_and_convert_candidates(
         enable_sketch_review_agent=enable_sketch_review_agent,
         enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
         enable_graph_repair_agent=enable_graph_repair_agent,
+        use_topology_artifact_guidance=use_topology_artifact_guidance,
     )
     results: List[Dict[str, Any]] = []
     for i, clean in enumerate(cleans, start=1):
@@ -1235,6 +1445,7 @@ def generate_candidates_with_conversion(
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,
     enable_graph_repair_agent: Optional[bool] = None,
+    use_topology_artifact_guidance: bool = False,
     name_prefix: str = "Activity candidate",
     description_template: str = "Generated candidate {index} for interactive selection",
 ) -> List[Dict[str, Any]]:
@@ -1247,6 +1458,7 @@ def generate_candidates_with_conversion(
         enable_sketch_review_agent=enable_sketch_review_agent,
         enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
         enable_graph_repair_agent=enable_graph_repair_agent,
+        use_topology_artifact_guidance=use_topology_artifact_guidance,
         name_prefix=name_prefix,
         description_template=description_template,
     )
@@ -1262,6 +1474,7 @@ def refine_activity_model(
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,
     enable_graph_repair_agent: Optional[bool] = None,
+    use_topology_artifact_guidance: bool = False,
 ) -> dict:
     """
 Refine **one** ActivityGraph per call (after human selection of a single candidate).
@@ -1310,6 +1523,7 @@ dict
         enable_sketch_review_agent=enable_sketch_review_agent,
         enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
         enable_graph_repair_agent=enable_graph_repair_agent,
+        use_topology_artifact_guidance=use_topology_artifact_guidance,
     )
 
     # Preserve metadata from the existing AI4MDEExport when available.

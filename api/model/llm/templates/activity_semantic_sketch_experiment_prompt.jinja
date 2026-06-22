@@ -1,0 +1,94 @@
+Purpose:
+Populate only the semantic content needed for an ActivitySketch.
+
+This is an experiment artifact, not an ActivitySketch.
+
+Process description:
+
+{{ process_text }}
+
+Topology artifact:
+Use the following topology artifact as authoritative for control structures, nesting, parent relationships, parent_branch relationships, branch handles, and topology attachment.
+Do not create, remove, retype, reorder, or re-parent control structures.
+
+{{ topology_artifact | tojson(indent=2) }}
+
+{% if keyword_hints %}
+Keyword hints:
+These are soft semantic signals extracted from the process text. Use them only when they match the text.
+
+{{ keyword_hints | tojson(indent=2) }}
+
+{% endif %}
+Output goal:
+Return only semantic content that a deterministic builder can merge into the authoritative topology.
+
+Do not include:
+- control block creation
+- control block types
+- parent
+- parent_branch
+- child_block_ids
+- next_block_id
+- entry_after
+- exit_to
+- loop_back_to
+- graph nodes or edges
+
+Produce only:
+- root-level action names for the fixed root slots below
+- branch-local action steps for the fixed topology branches below
+- semantic continuation intent for each topology branch
+
+Root semantic slots:
+These slots are already determined by the topology order. Provide one action for each slot.
+
+{{ root_slots | tojson(indent=2) }}
+
+Branch semantic slots:
+Provide one branch plan for every topology branch below, using the exact `structure_id` and `branch` values shown.
+
+{{ branch_slots | tojson(indent=2) }}
+
+Intent semantics:
+- `continue`: the branch completes and returns to the enclosing flow or proceeds to the next topology-owned structure
+- `terminate`: the branch ends the process or ends that path without rejoining later work
+- `loop_back`: the branch performs retry/rework and loops back within the same loop structure
+
+Rules:
+- Keep topology authoritative; do not restate or redesign it
+- Use the exact topology `structure_id` and `branch` handles provided above
+- Keep root actions in process order using the provided `slot_id` values
+- Root actions should name only major actions that occur at root scope
+- Branch steps should include only actions that occur on that branch before it continues, terminates, or loops back
+- Use empty `steps` when no explicit branch-local action is described
+- Use concise action names derived from the process text
+- If a branch is a rejection/cancellation/closure path, use `intent="terminate"`
+- If a branch is a retry/rework path inside a loop, use `intent="loop_back"`
+- Otherwise, use `intent="continue"`
+- Do not generate notes, topology annotations, or ownership explanations
+- Do not explain the answer
+- Do not use markdown
+
+Return a JSON object with this structure:
+
+{
+  "root_actions": [
+    {
+      "slot_id": "ROOT_START",
+      "action": "major root-level action"
+    }
+  ],
+  "branch_plans": [
+    {
+      "structure_id": "T2",
+      "branch": "retry",
+      "intent": "loop_back",
+      "steps": [
+        {
+          "action": "perform corrective action"
+        }
+      ]
+    }
+  ]
+}
