@@ -9,6 +9,7 @@ MODEL_ROOT = Path(__file__).resolve().parents[1]
 if str(MODEL_ROOT) not in sys.path:
     sys.path.insert(0, str(MODEL_ROOT))
 
+from llm.experimental_compiler import compile_activity_sketch
 from llm.refinement_generator import debug_model_activity_with_experimental_compiler
 
 
@@ -233,6 +234,227 @@ def test_experimental_compiler_preserves_child_blocks_and_parallel_reconnects() 
     assert topology["metrics"]["merge_count"] >= 1
     assert "disconnected_nodes" not in topology["issues"]
     assert "dead_end_nodes" not in topology["issues"]
+
+
+def test_experimental_compiler_suppresses_parallel_edge_labels_but_keeps_decision_and_loop_labels() -> None:
+    sketch_json = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "start deployment"},
+                {"step_id": "S2", "action": "manager reviews request"},
+                {"step_id": "S3", "action": "complete workflow"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "parallel",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start deployment",
+                    "branches": [
+                        {
+                            "label": "infrastructure",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1A", "action": "provision infrastructure"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["B2"],
+                        },
+                        {
+                            "label": "security",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1B", "action": "validate security"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["B3"],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "manager reviews request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "deployment tracks",
+                },
+                {
+                    "block_id": "B2",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start deployment",
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1C", "action": "repair provisioning"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "success",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "manager reviews request",
+                    "loop_back_to_step_id": "S1A",
+                    "loop_back_to": "provision infrastructure",
+                    "notes": None,
+                },
+                {
+                    "block_id": "B3",
+                    "type": "decision",
+                    "entry_after_step_id": "S2",
+                    "entry_after": "manager reviews request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S2A", "action": "deploy application"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S2B", "action": "reject deployment"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S3",
+                    "exit_to": "complete workflow",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "approval required",
+                },
+            ],
+        }
+    )
+
+    bundle = debug_model_activity_with_experimental_compiler(
+        "Run infrastructure and security work in parallel. Retry provisioning if needed. If approved, deploy; otherwise reject.",
+        sketch_llm_caller=lambda prompt: sketch_json,
+    )
+
+    graph = bundle["parsed"]
+    labels = {
+        edge["label"]
+        for edge in graph["edges"]
+        if isinstance(edge, dict) and str(edge.get("label") or "").strip()
+    }
+
+    assert "infrastructure" not in labels
+    assert "security" not in labels
+    assert "approved" in labels
+    assert "rejected" in labels
+    assert "retry" in labels
+    assert "success" in labels
+
+
+def test_experimental_compiler_normalizes_only_obvious_loop_labels() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "start workflow"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "L1",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start workflow",
+                    "branches": [
+                        {"label": "retry", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "success", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "start workflow",
+                    "notes": "retry provisioning until it succeeds",
+                },
+                {
+                    "block_id": "L2",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start workflow",
+                    "branches": [
+                        {"label": "retry", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "success", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "start workflow",
+                    "notes": "repeat security fixes until validation passes",
+                },
+                {
+                    "block_id": "L3",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start workflow",
+                    "branches": [
+                        {"label": "retry", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "success", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "start workflow",
+                    "notes": "repeat until all requirements are satisfied",
+                },
+                {
+                    "block_id": "L4",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start workflow",
+                    "branches": [
+                        {"label": "retry", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "success", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "start workflow",
+                    "notes": "repeat processing as needed",
+                },
+                {
+                    "block_id": "D1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start workflow",
+                    "branches": [
+                        {"label": "approved", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "rejected", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "approval required",
+                },
+            ],
+        }
+    )
+
+    labels_by_block = {
+        str(node.get("origin_block_id")): str(node.get("label") or "")
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "decision" and str(node.get("origin_block_id") or "").strip()
+    }
+
+    assert labels_by_block["L1"] == "Provisioning successful?"
+    assert labels_by_block["L2"] == "Validation passed?"
+    assert labels_by_block["L3"] == "All requirements satisfied?"
+    assert labels_by_block["L4"] == "repeat processing as needed?"
+    assert labels_by_block["D1"] == "approval required?"
 
 
 def test_experimental_compiler_sweeps_uncompiled_blocks_and_preserves_all_block_ids() -> None:
