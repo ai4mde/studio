@@ -1003,6 +1003,102 @@ def test_model_activity_explicit_overrides_win_over_pipeline_profile() -> None:
     assert bundle["pipeline_config"]["enable_graph_repair_agent"] is False
 
 
+def test_model_activity_semantic_deterministic_profile_routes_through_semantic_builder() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+                "purpose": "decision point",
+            }
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "review request"},
+            {"slot_id": "AFTER_T1", "action": "finish request"},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+        ],
+    }
+    deterministic_sketch = {
+        "main_flow": [
+            {"step_id": "S1", "action": "review request"},
+            {"step_id": "S2", "action": "finish request"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "T1",
+                "type": "decision",
+                "entry_after": "review request",
+                "entry_after_step_id": "S1",
+                "branches": [
+                    {"label": "approved", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    {"label": "rejected", "returns_to_main_flow": False, "steps": [{"action": "reject request"}], "next_block_id": None, "child_block_ids": []},
+                ],
+                "requires_merge": True,
+                "exit_to": "finish request",
+                "exit_to_step_id": "S2",
+                "loop_back_to": None,
+                "loop_back_to_step_id": None,
+                "notes": "decision point",
+            }
+        ],
+    }
+    compiled_graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "review request", "origin_step_id": "S1"},
+            {"id": "n3", "type": "decision", "label": "decision point?", "origin_block_id": "T1"},
+            {"id": "n4", "type": "action", "name": "finish request", "origin_step_id": "S2"},
+            {"id": "n5", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2", "type": "control"},
+            {"source": "n2", "target": "n3", "type": "control"},
+            {"source": "n3", "target": "n4", "type": "control", "label": "approved"},
+            {"source": "n4", "target": "n5", "type": "control"},
+        ],
+    }
+
+    with patch("llm.refinement_generator.generate_topology_artifact", return_value={"artifact": topology_artifact, "prompt": "topo prompt", "raw_output": "{}", "keyword_hints": {}, "response_mode": "fallback_json_mode", "fallback_reason": "x"}), patch(
+        "llm.refinement_generator.generate_semantic_sketch_plan",
+        return_value={"artifact": semantic_plan, "prompt": "semantic prompt", "raw_output": "{}", "keyword_hints": {}, "response_mode": "fallback_json_mode", "fallback_reason": "x"},
+    ), patch(
+        "llm.refinement_generator.compile_topology_and_semantics_to_activity_sketch",
+        return_value=deterministic_sketch,
+    ), patch(
+        "llm.refinement_generator.repair_activity_sketch",
+        return_value=(deterministic_sketch, {"metrics": {}, "critical_defects": []}),
+    ), patch(
+        "llm.refinement_generator.compile_activity_sketch",
+        return_value=compiled_graph,
+    ):
+        bundle = debug_model_activity(
+            "Review request and finish it.",
+            pipeline_profile="semantic_deterministic",
+        )
+
+    assert bundle["pipeline_config"]["pipeline_profile"] == "semantic_deterministic"
+    assert bundle["stage_artifacts"]["topology_artifact"] == topology_artifact
+    assert bundle["stage_artifacts"]["semantic_plan"] == semantic_plan
+    assert bundle["stage_artifacts"]["deterministic_sketch"] == deterministic_sketch
+    assert bundle["stage_artifacts"]["compiled_activity_graph"] == compiled_graph
+    assert bundle["executed_stages"] == [
+        "Topology Artifact",
+        "Semantic Planner",
+        "Deterministic Sketch Builder",
+        "Sketch Repair",
+        "Deterministic Compiler",
+        "Validation",
+    ]
+
+
 def test_parse_rejects_invalid_json() -> None:
     from llm.refinement_generator import _parse_and_validate_activity_graph_json
 

@@ -26,7 +26,8 @@ class GenerateModelRequest(Schema):
     process_text: str
     mode: Literal["baseline", "refinement"] = "baseline"
     project_id: Optional[str] = None
-    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents"] = "stable"
+    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "stable"
+    response_mode: Literal["full", "summary"] = "full"
     use_experimental_compiler: bool = False
     enable_sketch_review_agent: Optional[bool] = None
     enable_prompted_sketch_repair_agent: Optional[bool] = None
@@ -37,7 +38,7 @@ class RefineModelRequest(Schema):
     process_text: str
     selected_system_id: str
     refinement_instruction: str
-    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents"] = "stable"
+    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "stable"
     enable_sketch_review_agent: Optional[bool] = None
     enable_prompted_sketch_repair_agent: Optional[bool] = None
     enable_graph_repair_agent: Optional[bool] = None
@@ -76,17 +77,25 @@ def generate_model(request, body: GenerateModelRequest):
     from model.experiment_pipeline import run_pipeline
 
     try:
+        payload = run_pipeline(
+            body.process_text,
+            body.mode,
+            project_id=body.project_id,
+            pipeline_profile=body.pipeline_profile,
+            use_experimental_compiler=body.use_experimental_compiler,
+            enable_sketch_review_agent=body.enable_sketch_review_agent,
+            enable_prompted_sketch_repair_agent=body.enable_prompted_sketch_repair_agent,
+            enable_graph_repair_agent=body.enable_graph_repair_agent,
+        )
+        if body.response_mode == "summary":
+            payload = {
+                "session_id": payload["session_id"],
+                "project_id": payload["project_id"],
+                "mode": payload["mode"],
+                "pipeline_profile": payload["pipeline_profile"],
+            }
         return JsonResponse(
-            run_pipeline(
-                body.process_text,
-                body.mode,
-                project_id=body.project_id,
-                pipeline_profile=body.pipeline_profile,
-                use_experimental_compiler=body.use_experimental_compiler,
-                enable_sketch_review_agent=body.enable_sketch_review_agent,
-                enable_prompted_sketch_repair_agent=body.enable_prompted_sketch_repair_agent,
-                enable_graph_repair_agent=body.enable_graph_repair_agent,
-            )
+            payload
         )
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)

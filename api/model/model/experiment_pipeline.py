@@ -10,7 +10,6 @@ Session model
   same project; this module only handles the initial candidate generation step.
 """
 from __future__ import annotations
-
 import uuid
 from typing import Any, Dict, List, Literal, Optional
 
@@ -118,14 +117,17 @@ def run_pipeline(
                 use_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
                 use_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
             )
+            debug_bundle = None
         else:
-            clean_model = generate_activity_model(
+            debug_bundle = generate_activity_model(
                 process_text,
+                debug=True,
                 pipeline_profile=pipeline_config["pipeline_profile"],
                 enable_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
                 enable_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
                 enable_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
             )
+            clean_model = debug_bundle["parsed"]
         candidate_exports = [
             {
                 "clean": clean_model,
@@ -163,9 +165,18 @@ def run_pipeline(
         entry: Dict[str, Any] = {
             "name": system_json["name"],
             "system_id": system_json["id"],
+            "diagram_id": (
+                str((system_json.get("diagrams") or [{}])[0].get("id"))
+                if system_json.get("diagrams")
+                else None
+            ),
             "project_id": resolved_project_id,
             "import_error": None,
+            "activity_graph": candidate["clean"],
+            "ai4mde": systems_export,
         }
+        if mode == "baseline" and not use_experimental_compiler and debug_bundle is not None:
+            entry["executed_stages"] = debug_bundle.get("executed_stages") or []
         try:
             import_to_ai4mde(project, systems_export)
         except Exception as exc:  # noqa: BLE001 — surface any import failure to client
@@ -175,6 +186,8 @@ def run_pipeline(
         # Keep the exported ids visible to the caller for debugging/UI linkage.
         entry["export_system_id"] = system_json["id"]
         entry["export_name"] = system_json["name"]
+        if entry.get("diagram_id"):
+            entry["ui_path"] = f"/diagram/{entry['diagram_id']}"
 
     return {
         "session_id": session_id,

@@ -131,6 +131,119 @@ class ExperimentEndpointTests(TestCase):
         self.assertTrue(kwargs["enable_prompted_sketch_repair_agent"])
         self.assertFalse(kwargs["enable_graph_repair_agent"])
 
+    def test_generate_model_endpoint_accepts_semantic_deterministic_profile(self):
+        with patch(
+            "model.experiment_pipeline.run_pipeline",
+            return_value={
+                "session_id": "s1",
+                "project_id": str(self.project.id),
+                "mode": "baseline",
+                "pipeline_profile": "semantic_deterministic",
+                "use_experimental_compiler": False,
+                "enable_sketch_review_agent": False,
+                "enable_prompted_sketch_repair_agent": False,
+                "enable_graph_repair_agent": False,
+                "systems": [],
+            },
+        ) as mock_run:
+            response = self.client.post(
+                "/api/v1/generate-model",
+                data={
+                    "process_text": "Receive request, validate it, send confirmation.",
+                    "mode": "baseline",
+                    "pipeline_profile": "semantic_deterministic",
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["pipeline_profile"], "semantic_deterministic")
+
+        mock_run.assert_called_once()
+        _, kwargs = mock_run.call_args
+        self.assertEqual(kwargs["pipeline_profile"], "semantic_deterministic")
+
+    def test_generate_model_endpoint_supports_summary_response_mode(self):
+        with patch(
+            "model.experiment_pipeline.run_pipeline",
+            return_value={
+                "session_id": "s1",
+                "project_id": str(self.project.id),
+                "mode": "baseline",
+                "pipeline_profile": "semantic_deterministic",
+                "use_experimental_compiler": False,
+                "enable_sketch_review_agent": False,
+                "enable_prompted_sketch_repair_agent": False,
+                "enable_graph_repair_agent": False,
+                "systems": [
+                    {
+                        "system_id": "sys1",
+                        "activity_graph": {"nodes": [], "edges": []},
+                        "ai4mde": [{"id": "sys1"}],
+                    }
+                ],
+            },
+        ) as mock_run:
+            response = self.client.post(
+                "/api/v1/generate-model",
+                data={
+                    "process_text": "Receive request, validate it, send confirmation.",
+                    "mode": "baseline",
+                    "pipeline_profile": "semantic_deterministic",
+                    "response_mode": "summary",
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(
+            payload,
+            {
+                "session_id": "s1",
+                "project_id": str(self.project.id),
+                "mode": "baseline",
+                "pipeline_profile": "semantic_deterministic",
+            },
+        )
+        mock_run.assert_called_once()
+
+    def test_generate_model_endpoint_defaults_to_full_response_mode(self):
+        full_payload = {
+            "session_id": "s1",
+            "project_id": str(self.project.id),
+            "mode": "baseline",
+            "pipeline_profile": "semantic_deterministic",
+            "use_experimental_compiler": False,
+            "enable_sketch_review_agent": False,
+            "enable_prompted_sketch_repair_agent": False,
+            "enable_graph_repair_agent": False,
+            "systems": [
+                {
+                    "system_id": "sys1",
+                    "activity_graph": {"nodes": [], "edges": []},
+                    "ai4mde": [{"id": "sys1"}],
+                }
+            ],
+        }
+        with patch(
+            "model.experiment_pipeline.run_pipeline",
+            return_value=full_payload,
+        ):
+            response = self.client.post(
+                "/api/v1/generate-model",
+                data={
+                    "process_text": "Receive request, validate it, send confirmation.",
+                    "mode": "baseline",
+                    "pipeline_profile": "semantic_deterministic",
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), full_payload)
+
     def test_generate_model_endpoint_forwards_experimental_compiler_flag(self):
         with patch(
             "model.experiment_pipeline.run_pipeline",
@@ -234,3 +347,52 @@ class ExperimentPipelineCompilerTests(TestCase):
                 project_id=str(self.project.id),
                 use_experimental_compiler=True,
             )
+
+    def test_run_pipeline_includes_activity_graph_and_ai4mde_for_baseline(self):
+        clean_model = {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": "Validate request"},
+                {"id": "n3", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2", "type": "control"},
+                {"source": "n2", "target": "n3", "type": "control"},
+            ],
+        }
+        debug_bundle = {
+            "parsed": clean_model,
+            "executed_stages": [
+                "Topology Artifact",
+                "Semantic Planner",
+                "Deterministic Sketch Builder",
+                "Sketch Repair",
+                "Deterministic Compiler",
+                "Validation",
+            ],
+        }
+
+        with patch(
+            "model.experiment_pipeline.generate_activity_model",
+            return_value=debug_bundle,
+        ) as mock_generate:
+            with patch("model.experiment_pipeline.import_to_ai4mde") as mock_import:
+                from model.experiment_pipeline import run_pipeline
+
+                payload = run_pipeline(
+                    "Receive request, validate it, send confirmation.",
+                    "baseline",
+                    project_id=str(self.project.id),
+                    pipeline_profile="semantic_deterministic",
+                )
+
+        self.assertEqual(payload["pipeline_profile"], "semantic_deterministic")
+        self.assertEqual(len(payload["systems"]), 1)
+        self.assertEqual(payload["systems"][0]["activity_graph"], clean_model)
+        self.assertEqual(payload["systems"][0]["executed_stages"], debug_bundle["executed_stages"])
+        self.assertIn("ai4mde", payload["systems"][0])
+        mock_generate.assert_called_once()
+        _, kwargs = mock_generate.call_args
+        self.assertTrue(kwargs["debug"])
+        self.assertEqual(kwargs["pipeline_profile"], "semantic_deterministic")
+        mock_import.assert_called_once()
