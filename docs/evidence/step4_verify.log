@@ -1,0 +1,6 @@
+[PASS] models.py unchanged vs Step 3
+[PASS] ai_hooks.py parses as valid Python
+[PASS] imports present; exactly one @receiver(post_save, sender=BookLoan)
+[PASS] embedded _AI_CONFIG matches the declared ai_config exactly
+[PASS] single-entry invoke contract, None guard, recursion-safe .update(), no instance.save()
+[DONE] Step 4 ai_hooks generation VERIFIED.
