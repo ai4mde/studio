@@ -1,0 +1,9 @@
+time="2026-06-22T21:37:45+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container studio-studio-api-run-8484810f48bf Creating 
+ Container studio-studio-api-run-8484810f48bf Created 
+[import] ok project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e
+[counts] classifiers=7 relations=4 interfaces=1
+[PASS] BookLoan.late_risk.ai_config intact
+[PASS] actor classifier present: {'name': 'librarian', 'type': 'actor'}
+[PASS] interface 'librarian' wired to actor + BookLoan section (create/update)
+[DONE] Step 5A import + DB verification PASSED.

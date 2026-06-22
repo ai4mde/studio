@@ -1,0 +1,487 @@
+{
+  "id": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+  "name": "Library",
+  "description": "Thesis Step 1 Library case (pure domain baseline)",
+  "systems": [
+    {
+      "id": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+      "project": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+      "name": "Library",
+      "description": "",
+      "classifiers": [
+        {
+          "id": "30bf05a0-3b0f-46c8-8ef7-96946e25bd80",
+          "project": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "original_system_id": null,
+          "data": {
+            "name": "Author",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "namespace": "",
+            "methods": [],
+            "attributes": [
+              {
+                "name": "name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              },
+              {
+                "name": "nationality",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "849aeec9-3e4c-4c5d-898b-91b62f7f7401",
+          "project": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "original_system_id": null,
+          "data": {
+            "name": "Book",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "namespace": "",
+            "methods": [],
+            "attributes": [
+              {
+                "name": "title",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              },
+              {
+                "name": "isbn",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              },
+              {
+                "name": "year",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              },
+              {
+                "name": "category",
+                "type": "enum",
+                "enum": "770864b2-fa4b-4f6a-b350-c2304d3de214",
+                "derived": false,
+                "body": null,
+                "description": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "fb0ceaeb-ba1c-4b0b-87cb-f16e1977f06a",
+          "project": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "original_system_id": null,
+          "data": {
+            "name": "Customer",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "namespace": "",
+            "methods": [],
+            "attributes": [
+              {
+                "name": "name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              },
+              {
+                "name": "email",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "446c4cfe-ad0d-409f-9fd2-b73ef8114b1c",
+          "project": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "original_system_id": null,
+          "data": {
+            "name": "Loan",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "namespace": "",
+            "methods": [],
+            "attributes": [
+              {
+                "name": "loan_date",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              },
+              {
+                "name": "due_date",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              },
+              {
+                "name": "return_date",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "9f7df5b5-fde5-429e-982b-48c37e868613",
+          "project": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "original_system_id": null,
+          "data": {
+            "name": "BookLoan",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "namespace": "",
+            "methods": [],
+            "attributes": [
+              {
+                "name": "late_risk",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "body": null,
+                "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH).",
+                "ai_config": {
+                  "ai_config_version": "1.0",
+                  "trigger": {
+                    "type": "post_save",
+                    "class": "BookLoan"
+                  },
+                  "context": {
+                    "fields": [
+                      "loan_date",
+                      "due_date",
+                      "return_date"
+                    ],
+                    "relations": [
+                      "Book",
+                      "Customer",
+                      "Loan"
+                    ]
+                  },
+                  "template": {
+                    "name": "library_late_risk_v1"
+                  },
+                  "model_profile": "cheap",
+                  "output": {
+                    "format": "risk_label",
+                    "allowed_values": [
+                      "LOW",
+                      "MEDIUM",
+                      "HIGH"
+                    ],
+                    "write_back": "late_risk"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "770864b2-fa4b-4f6a-b350-c2304d3de214",
+          "project": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "original_system_id": null,
+          "data": {
+            "name": "BookCategory",
+            "type": "enum",
+            "namespace": "",
+            "literals": [
+              "FICTION",
+              "NON_FICTION",
+              "SCIENCE",
+              "HISTORY",
+              "CHILDREN"
+            ]
+          }
+        },
+        {
+          "id": "c8078430-ab2c-4a37-83c1-4c4149460165",
+          "project": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "original_system_id": null,
+          "data": {
+            "name": "librarian",
+            "type": "actor"
+          }
+        }
+      ],
+      "relations": [
+        {
+          "id": "7bc74f7f-5d24-45cb-bb25-57562dd1bb8b",
+          "data": {
+            "type": "association",
+            "label": "writes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "source": "30bf05a0-3b0f-46c8-8ef7-96946e25bd80",
+          "target": "849aeec9-3e4c-4c5d-898b-91b62f7f7401"
+        },
+        {
+          "id": "3ee5fbb1-f5ac-46a8-9e3b-15a125b7686e",
+          "data": {
+            "type": "association",
+            "label": "makes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "source": "fb0ceaeb-ba1c-4b0b-87cb-f16e1977f06a",
+          "target": "446c4cfe-ad0d-409f-9fd2-b73ef8114b1c"
+        },
+        {
+          "id": "7a02b6e8-8de6-4bb0-8f38-e0f8df548eb5",
+          "data": {
+            "type": "association",
+            "label": "contains",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "source": "446c4cfe-ad0d-409f-9fd2-b73ef8114b1c",
+          "target": "9f7df5b5-fde5-429e-982b-48c37e868613"
+        },
+        {
+          "id": "a2cf48f1-6fbb-4d18-bd51-9301922b1220",
+          "data": {
+            "type": "association",
+            "label": "includes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "source": "849aeec9-3e4c-4c5d-898b-91b62f7f7401",
+          "target": "9f7df5b5-fde5-429e-982b-48c37e868613"
+        }
+      ],
+      "diagrams": [
+        {
+          "id": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "type": "classes",
+          "name": "Structure",
+          "description": "",
+          "nodes": [
+            {
+              "id": "5199e93d-660c-495a-af1e-8bab956c588c",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "cls": "30bf05a0-3b0f-46c8-8ef7-96946e25bd80",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "d8bef4a3-0398-49a5-ab38-af771fcec354",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "cls": "849aeec9-3e4c-4c5d-898b-91b62f7f7401",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "9565d2d8-fdc3-454e-85c8-bb566f20dc05",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "cls": "fb0ceaeb-ba1c-4b0b-87cb-f16e1977f06a",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "287ef36d-2572-47c6-a618-fe71d8833a9a",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "cls": "446c4cfe-ad0d-409f-9fd2-b73ef8114b1c",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "f5a8868c-f241-4935-a459-bf0f110fd297",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "cls": "9f7df5b5-fde5-429e-982b-48c37e868613",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "e31af4e7-03c3-4846-adda-0d716d0c8504",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "cls": "770864b2-fa4b-4f6a-b350-c2304d3de214",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 0
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "24d2450a-1bdc-44b4-8f2e-2ba83d64bda2",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "rel": "7bc74f7f-5d24-45cb-bb25-57562dd1bb8b",
+              "data": {}
+            },
+            {
+              "id": "99ce1522-fa18-4712-adbd-2cabaaa33823",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "rel": "3ee5fbb1-f5ac-46a8-9e3b-15a125b7686e",
+              "data": {}
+            },
+            {
+              "id": "7b758843-d93d-4625-94d9-8dab1101f135",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "rel": "7a02b6e8-8de6-4bb0-8f38-e0f8df548eb5",
+              "data": {}
+            },
+            {
+              "id": "7e6434bc-6b4f-4ab5-95df-741f06fd75eb",
+              "diagram": "a9cb6660-0a0c-423a-9830-ec80067f459f",
+              "rel": "a2cf48f1-6fbb-4d18-bd51-9301922b1220",
+              "data": {}
+            }
+          ]
+        }
+      ],
+      "interfaces": [
+        {
+          "id": "67638059-6cad-41ae-8da5-d593efca3ba5",
+          "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+          "name": "librarian",
+          "description": "Librarian application",
+          "actor": "c8078430-ab2c-4a37-83c1-4c4149460165",
+          "data": {
+            "pages": [
+              {
+                "id": "202b33b7-5e68-47d4-a449-5a31994fe3a7",
+                "name": "loans",
+                "type": {
+                  "label": "Normal",
+                  "value": "normal"
+                },
+                "action": null,
+                "category": null,
+                "sections": [
+                  {
+                    "label": "book_loans",
+                    "value": "d4c30ee4-1d7e-4cc6-9ec7-908528f4bcc3"
+                  }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [
+              {
+                "id": "d4c30ee4-1d7e-4cc6-9ec7-908528f4bcc3",
+                "name": "book_loans",
+                "text": "Book loans",
+                "class": "9f7df5b5-fde5-429e-982b-48c37e868613",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "late_risk",
+                    "type": "str",
+                    "derived": false,
+                    "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH)."
+                  }
+                ],
+                "operations": {
+                  "create": true,
+                  "delete": false,
+                  "update": true
+                }
+              }
+            ],
+            "settings": {
+              "managerAccess": false
+            },
+            "categories": []
+          }
+        }
+      ]
+    }
+  ]
+}

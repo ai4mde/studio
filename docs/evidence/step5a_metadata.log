@@ -1,0 +1,6 @@
+time="2026-06-22T21:38:44+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container studio-studio-api-run-8e7f45156a0d Creating 
+ Container studio-studio-api-run-8e7f45156a0d Created 
+[step5-meta] system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e
+[PASS] resolved ③: useAuthentication=True, interface label/value.name='librarian', pages+sections present, BookLoan.late_risk.ai_config present
+[step5-meta] wrote /tmp/step5_generator_metadata_sent.json

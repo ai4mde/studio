@@ -1,0 +1,4 @@
+[step5a-build] wrote docs/evidence/step5_library_model.json
+[step5a-build] actor=c8078430-ab2c-4a37-83c1-4c4149460165 interface=67638059-6cad-41ae-8da5-d593efca3ba5 section.class(BookLoan)=9f7df5b5-fde5-429e-982b-48c37e868613
+[PASS] step5 artifact = step2 + 1 actor classifier + 1 librarian interface
+[PASS] librarian section attributes are editor-facing only; no ai_config copied into interface data
