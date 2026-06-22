@@ -1,0 +1,25 @@
+# GENERATED - M07 event-driven LLM invocation glue (do not edit by hand).
+# Mechanisms M01-M06 live in ai_runtime; this module only wires domain post_save
+# events to ai_runtime.invoke(ai_config, instance). Wiring (import via apps.ready)
+# is added at Step 5.
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from shared_models.models import {{ models_to_import }}
+
+{% for h in hooks %}
+{{ h.config_name }} = {{ h.config_literal }}
+
+
+@receiver(post_save, sender={{ h.model }})
+def _ai__{{ h.model }}__{{ h.func_suffix }}(sender, instance, created, **kwargs):
+    try:
+        from ai_runtime import invoke  # provided at Step 5; absent before that
+    except ImportError:
+        return  # ai_runtime not present yet: safe no-op
+    value = invoke({{ h.config_name }}, instance)
+    if value is None:
+        return
+    # recursion-safe: QuerySet.update() does NOT emit post_save
+    {{ h.model }}.objects.filter(pk=instance.pk).update({{ h.write_back }}=value)
+{% endfor %}
