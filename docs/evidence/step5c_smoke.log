@@ -1,0 +1,5 @@
+time="2026-06-23T15:20:04+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+[smoke] created BookLoan pk=1 late_risk=''
+[smoke] jsonl record: {'timestamp': '2026-06-23T13:20:04.225205+00:00', 'event': 'invoke_stub', 'model': 'BookLoan', 'pk': 1, 'write_back': 'late_risk', 'model_profile': 'cheap', 'ai_config_version': '1.0'}
+[smoke] PASS: receiver fired -> ai_runtime stub logged 1 record -> late_risk unchanged (no write-back)
+[DONE] Step 5C wiring smoke VERIFIED.

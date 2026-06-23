@@ -1,0 +1,1 @@
+{"timestamp": "2026-06-23T13:20:04.225205+00:00", "event": "invoke_stub", "model": "BookLoan", "pk": 1, "write_back": "late_risk", "model_profile": "cheap", "ai_config_version": "1.0"}

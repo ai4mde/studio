@@ -1,0 +1,54 @@
+time="2026-06-23T05:23:07+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+using /usr/src/.venv/bin/python django 5.0.2
+[AI4MDE][ai_config] model=BookLoan attribute=late_risk trigger={'type': 'post_save', 'class': 'BookLoan'} model_profile=cheap write_back=late_risk version=1.0
+[AI4MDE][ai_config] detected 1 AI-managed attribute(s)
+Migrations for 'shared_models':
+  shared_models/migrations/0001_initial.py
+    - Create model Author
+    - Create model Customer
+    - Create model User
+    - Create model Book
+    - Create model Loan
+    - Create model BookLoan
+Migrations for 'workflow_engine':
+  workflow_engine/migrations/0001_initial.py
+    - Create model ActionNode
+    - Create model ActiveProcess
+    - Create model ConvergencePoint
+    - Create model Rule
+    - Create model ActiveConvergencePoint
+    - Create model ActionLog
+    - Create model ActiveProcessNode
+    - Add field active_nodes to activeprocess
+    - Create model AssociatedModelInstance
+    - Add field active_convergence_points to activeprocess
+    - Create model Process
+    - Add field process to convergencepoint
+    - Add field process to activeprocess
+    - Add field process to actionnode
+    - Add field next_node_rule to actionnode
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, sessions, shared_models, workflow_engine
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying shared_models.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying sessions.0001_initial... OK
+  Applying workflow_engine.0001_initial... OK
+  Applying workflow_engine.0002_populate_workflow_engine... OK
+[generator.sh exit=0]
