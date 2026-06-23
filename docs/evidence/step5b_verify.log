@@ -1,0 +1,4 @@
+[PASS] models.py & ai_hooks.py content unchanged vs Step 4 (class reorder is a benign metadata-ordering effect)
+[PASS] apps.py: SharedModelsConfig.ready() imports shared_models.ai_hooks
+[PASS] ai_runtime stub: invoke()->None, JSONL at settings.BASE_DIR, no LLM deps
+[DONE] Step 5B generator assembly VERIFIED.

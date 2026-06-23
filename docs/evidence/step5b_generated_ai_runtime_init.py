@@ -1,0 +1,25 @@
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+from django.conf import settings
+
+LOG_PATH = Path(settings.BASE_DIR) / "ai_invocations.jsonl"
+
+
+def invoke(ai_config, instance):
+    """Step 5 STUB - records one JSONL line and returns None (no LLM, no write-back).
+    Replaced by the real M01-M06 runtime at Step 6/7; the import contract
+    `from ai_runtime import invoke` stays the same."""
+    record = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "event": "invoke_stub",
+        "model": instance.__class__.__name__,
+        "pk": instance.pk,
+        "write_back": ai_config.get("output", {}).get("write_back"),
+        "model_profile": ai_config.get("model_profile"),
+        "ai_config_version": ai_config.get("ai_config_version"),
+    }
+    with LOG_PATH.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    return None
