@@ -131,6 +131,35 @@ class ExperimentEndpointTests(TestCase):
         self.assertTrue(kwargs["enable_prompted_sketch_repair_agent"])
         self.assertFalse(kwargs["enable_graph_repair_agent"])
 
+    def test_generate_model_endpoint_defaults_to_semantic_deterministic_profile(self):
+        with patch(
+            "model.experiment_pipeline.run_pipeline",
+            return_value={
+                "session_id": "s1",
+                "project_id": str(self.project.id),
+                "mode": "baseline",
+                "pipeline_profile": "semantic_deterministic",
+                "use_experimental_compiler": False,
+                "enable_sketch_review_agent": False,
+                "enable_prompted_sketch_repair_agent": False,
+                "enable_graph_repair_agent": False,
+                "systems": [],
+            },
+        ) as mock_run:
+            response = self.client.post(
+                "/api/v1/generate-model",
+                data={
+                    "process_text": "Receive request, validate it, send confirmation.",
+                    "mode": "baseline",
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        mock_run.assert_called_once()
+        _, kwargs = mock_run.call_args
+        self.assertEqual(kwargs["pipeline_profile"], "semantic_deterministic")
+
     def test_generate_model_endpoint_accepts_semantic_deterministic_profile(self):
         with patch(
             "model.experiment_pipeline.run_pipeline",
@@ -289,6 +318,45 @@ class ExperimentEndpointTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("does not exist", response.json()["error"])
+
+    def test_refine_model_endpoint_defaults_to_stable_profile(self):
+        refined_export = convert_to_ai4mde(
+            clean_model={
+                "nodes": [
+                    {"id": "n1", "type": "initial"},
+                    {"id": "n2", "type": "action", "name": "Validate request"},
+                    {"id": "n3", "type": "final"},
+                ],
+                "edges": [
+                    {"source": "n1", "target": "n2", "type": "control"},
+                    {"source": "n2", "target": "n3", "type": "control"},
+                ],
+            },
+            system_id=str(self.system.id),
+            diagram_id=str(uuid4()),
+            name="Candidate System Refined",
+            description="Refined candidate",
+            project_id=str(self.project.id),
+        )
+
+        with patch(
+            "model.experiment_pipeline.refine_activity_model",
+            return_value=refined_export,
+        ) as mock_refine:
+            response = self.client.post(
+                "/api/v1/refine-model",
+                data={
+                    "process_text": "Receive request, validate it, send confirmation.",
+                    "selected_system_id": str(self.system.id),
+                    "refinement_instruction": "Add a confirmation step.",
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        mock_refine.assert_called_once()
+        _, kwargs = mock_refine.call_args
+        self.assertEqual(kwargs["pipeline_profile"], "stable")
 
 
 class ExperimentPipelineCompilerTests(TestCase):

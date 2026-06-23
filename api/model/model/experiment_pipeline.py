@@ -77,7 +77,7 @@ def run_pipeline(
     mode: Mode,
     *,
     project_id: Optional[str] = None,
-    pipeline_profile: PipelineProfile = "stable",
+    pipeline_profile: PipelineProfile = "semantic_deterministic",
     use_experimental_compiler: bool = False,
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,

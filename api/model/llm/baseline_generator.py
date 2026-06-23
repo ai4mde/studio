@@ -26,7 +26,7 @@ def generate_activity_model(
     *,
     debug: bool = False,
     use_sketch: Optional[bool] = None,
-    pipeline_profile: PipelineProfile = "stable",
+    pipeline_profile: PipelineProfile = "semantic_deterministic",
     enable_sketch_review_agent: Optional[bool] = None,
     enable_prompted_sketch_repair_agent: Optional[bool] = None,
     enable_graph_repair_agent: Optional[bool] = None,

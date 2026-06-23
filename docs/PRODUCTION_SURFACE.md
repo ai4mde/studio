@@ -6,6 +6,10 @@ This document is the single source of truth for the active thesis production run
 
 The official thesis runtime is the `semantic_deterministic` generation profile.
 
+Refinement is not part of that baseline freeze yet. The existing `/refine-model`
+workflow still defaults to the legacy graph-level `stable` profile until a
+planning-artifact refinement path is introduced.
+
 Pipeline:
 
 1. Process Text

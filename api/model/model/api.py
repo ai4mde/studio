@@ -26,7 +26,7 @@ class GenerateModelRequest(Schema):
     process_text: str
     mode: Literal["baseline", "refinement"] = "baseline"
     project_id: Optional[str] = None
-    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "stable"
+    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "semantic_deterministic"
     response_mode: Literal["full", "summary"] = "full"
     use_experimental_compiler: bool = False
     enable_sketch_review_agent: Optional[bool] = None

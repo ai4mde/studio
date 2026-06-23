@@ -1,5 +1,12 @@
 ## Actual End-to-End Pipeline
 
+Note: this document describes the legacy graph-realization pipeline. The
+official frozen thesis generation baseline is now the
+`semantic_deterministic` profile documented in
+[docs/PRODUCTION_SURFACE.md](/Users/queenie/Desktop/studio/docs/PRODUCTION_SURFACE.md).
+That baseline applies to generation only; refinement still uses the existing
+graph-level pipeline for now.
+
 ```text
 ProcessText
   ↓
