@@ -203,6 +203,15 @@ def main():
         if not generate_output_file(AI_HOOKS_TEMPLATE_PATH, AI_HOOKS_OUTPUT_PATH,
                                     {"hooks": hooks, "models_to_import": models_to_import}):
             raise Exception("Failed to generate shared_models/ai_hooks.py")
+        # --- Step 5B: wiring + runtime stub (only when hooks exist) ---
+        SHARED_APPS_TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/shared_models_apps.py.jinja2"
+        SHARED_APPS_OUTPUT_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/shared_models/apps.py"
+        AI_RUNTIME_TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/ai_runtime_init.py.jinja2"
+        AI_RUNTIME_OUTPUT_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/ai_runtime/__init__.py"
+        if not generate_output_file(SHARED_APPS_TEMPLATE_PATH, SHARED_APPS_OUTPUT_PATH, {}):
+            raise Exception("Failed to generate shared_models/apps.py")
+        if not generate_output_file(AI_RUNTIME_TEMPLATE_PATH, AI_RUNTIME_OUTPUT_PATH, {}):
+            raise Exception("Failed to generate ai_runtime/__init__.py")
 
     return True
 
