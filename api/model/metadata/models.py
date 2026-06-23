@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 import uuid
 
 from django.db import models, transaction
@@ -167,6 +167,21 @@ class System(ImportMixin):
         return system
 
 
+class SystemGenerationArtifacts(models.Model):
+    system = models.OneToOneField(
+        System,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name="generation_artifacts",
+    )
+    process_text = models.TextField()
+    pipeline_profile = models.CharField(max_length=64)
+    topology_artifact = models.JSONField()
+    semantic_sketch_plan = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class Release(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=255)
@@ -243,3 +258,38 @@ class Relation(ImportMixin):
     target = models.ForeignKey(
         Classifier, related_name="relations_from", on_delete=models.CASCADE
     )
+
+
+def persist_semantic_generation_artifacts(
+    *,
+    system_id: str,
+    process_text: str,
+    pipeline_profile: str,
+    topology_artifact: dict[str, Any],
+    semantic_sketch_plan: dict[str, Any],
+) -> SystemGenerationArtifacts:
+    system = System.objects.get(pk=system_id)
+    artifacts, _ = SystemGenerationArtifacts.objects.update_or_create(
+        system=system,
+        defaults={
+            "process_text": process_text,
+            "pipeline_profile": pipeline_profile,
+            "topology_artifact": topology_artifact,
+            "semantic_sketch_plan": semantic_sketch_plan,
+        },
+    )
+    return artifacts
+
+
+def get_topology_artifact(system_id: str) -> Optional[dict[str, Any]]:
+    artifacts = SystemGenerationArtifacts.objects.filter(system_id=system_id).first()
+    if artifacts is None:
+        return None
+    return artifacts.topology_artifact
+
+
+def get_semantic_sketch_plan(system_id: str) -> Optional[dict[str, Any]]:
+    artifacts = SystemGenerationArtifacts.objects.filter(system_id=system_id).first()
+    if artifacts is None:
+        return None
+    return artifacts.semantic_sketch_plan

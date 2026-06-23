@@ -14,7 +14,11 @@ import uuid
 from typing import Any, Dict, List, Literal, Optional
 
 from metadata.api.schemas import ExportSingleSystem
-from metadata.models import Project, System
+from metadata.models import (
+    Project,
+    System,
+    persist_semantic_generation_artifacts,
+)
 
 from llm.baseline_generator import generate_activity_model
 from llm.converter import convert_to_ai4mde, unwrap_ai4mde_systems_export, validate_ai4mde_json
@@ -26,6 +30,31 @@ from llm.refinement_generator import (
 )
 
 Mode = Literal["baseline", "refinement"]
+
+
+def _persist_semantic_artifacts_if_present(
+    *,
+    system_id: str,
+    process_text: str,
+    pipeline_profile: PipelineProfile,
+    debug_bundle: Optional[Dict[str, Any]] = None,
+) -> None:
+    if pipeline_profile != "semantic_deterministic" or not debug_bundle:
+        return
+
+    stage_artifacts = debug_bundle.get("stage_artifacts") or {}
+    topology_artifact = stage_artifacts.get("topology_artifact")
+    semantic_plan = stage_artifacts.get("semantic_plan")
+    if topology_artifact is None or semantic_plan is None:
+        return
+
+    persist_semantic_generation_artifacts(
+        system_id=system_id,
+        process_text=process_text,
+        pipeline_profile=pipeline_profile,
+        topology_artifact=topology_artifact,
+        semantic_sketch_plan=semantic_plan,
+    )
 
 
 def generate_session_id() -> str:
@@ -139,6 +168,7 @@ def run_pipeline(
                     description=f"Experiment session {session_id}",
                     project_id=resolved_project_id,
                 ),
+                "debug_bundle": debug_bundle,
             }
         ]
     elif mode == "refinement":
@@ -179,6 +209,12 @@ def run_pipeline(
             entry["executed_stages"] = debug_bundle.get("executed_stages") or []
         try:
             import_to_ai4mde(project, systems_export)
+            _persist_semantic_artifacts_if_present(
+                system_id=system_json["id"],
+                process_text=process_text,
+                pipeline_profile=pipeline_config["pipeline_profile"],
+                debug_bundle=candidate.get("debug_bundle"),
+            )
         except Exception as exc:  # noqa: BLE001 — surface any import failure to client
             entry["import_error"] = str(exc)
         results.append(entry)

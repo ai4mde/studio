@@ -3,7 +3,13 @@ from uuid import uuid4
 
 from django.test import TestCase
 from llm.converter import convert_to_ai4mde
-from metadata.models import Project, System
+from metadata.models import (
+    Project,
+    System,
+    SystemGenerationArtifacts,
+    get_semantic_sketch_plan,
+    get_topology_artifact,
+)
 
 
 class ExperimentEndpointTests(TestCase):
@@ -464,3 +470,136 @@ class ExperimentPipelineCompilerTests(TestCase):
         self.assertTrue(kwargs["debug"])
         self.assertEqual(kwargs["pipeline_profile"], "semantic_deterministic")
         mock_import.assert_called_once()
+
+    def test_run_pipeline_persists_semantic_artifacts_for_baseline_generation(self):
+        clean_model = {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": "Validate request"},
+                {"id": "n3", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2", "type": "control"},
+                {"source": "n2", "target": "n3", "type": "control"},
+            ],
+        }
+        topology_artifact = {
+            "structures": [
+                {
+                    "id": "T1",
+                    "type": "decision",
+                    "parent": "ROOT",
+                    "parent_branch": None,
+                    "branches": ["approved", "rejected"],
+                    "purpose": "approval split",
+                }
+            ]
+        }
+        semantic_plan = {
+            "root_actions": [{"slot_id": "ROOT_START", "action": "validate request"}],
+            "branch_plans": [{"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []}],
+        }
+        debug_bundle = {
+            "parsed": clean_model,
+            "executed_stages": [
+                "Topology Artifact",
+                "Semantic Planner",
+                "Deterministic Sketch Builder",
+                "Sketch Repair",
+                "Deterministic Compiler",
+                "Validation",
+            ],
+            "stage_artifacts": {
+                "topology_artifact": topology_artifact,
+                "semantic_plan": semantic_plan,
+            },
+        }
+
+        with patch(
+            "model.experiment_pipeline.generate_activity_model",
+            return_value=debug_bundle,
+        ):
+            from model.experiment_pipeline import run_pipeline
+
+            payload = run_pipeline(
+                "Receive request, validate it, send confirmation.",
+                "baseline",
+                project_id=str(self.project.id),
+                pipeline_profile="semantic_deterministic",
+            )
+
+        system_id = payload["systems"][0]["system_id"]
+        persisted = SystemGenerationArtifacts.objects.get(system_id=system_id)
+        self.assertEqual(persisted.process_text, "Receive request, validate it, send confirmation.")
+        self.assertEqual(persisted.pipeline_profile, "semantic_deterministic")
+        self.assertEqual(get_topology_artifact(system_id), topology_artifact)
+        self.assertEqual(get_semantic_sketch_plan(system_id), semantic_plan)
+
+    def test_run_pipeline_persists_semantic_artifacts_for_candidate_generation(self):
+        clean_model = {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": "Validate request"},
+                {"id": "n3", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2", "type": "control"},
+                {"source": "n2", "target": "n3", "type": "control"},
+            ],
+        }
+        topology_artifact = {
+            "structures": [
+                {
+                    "id": "T2",
+                    "type": "loop",
+                    "parent": "ROOT",
+                    "parent_branch": None,
+                    "branches": ["retry", "success"],
+                    "purpose": "retry validation",
+                }
+            ]
+        }
+        semantic_plan = {
+            "root_actions": [{"slot_id": "ROOT_START", "action": "review request"}],
+            "branch_plans": [{"structure_id": "T2", "branch": "retry", "intent": "loop_back", "steps": []}],
+        }
+        system_id = str(uuid4())
+        candidate_export = convert_to_ai4mde(
+            clean_model=clean_model,
+            system_id=system_id,
+            diagram_id=str(uuid4()),
+            name="Candidate 1",
+            description="candidate",
+            project_id=str(self.project.id),
+        )
+
+        with patch(
+            "model.experiment_pipeline.generate_and_convert_candidates",
+            return_value=[
+                {
+                    "clean": clean_model,
+                    "ai4mde": candidate_export,
+                    "debug_bundle": {
+                        "parsed": clean_model,
+                        "stage_artifacts": {
+                            "topology_artifact": topology_artifact,
+                            "semantic_plan": semantic_plan,
+                        },
+                    },
+                }
+            ],
+        ):
+            from model.experiment_pipeline import run_pipeline
+
+            payload = run_pipeline(
+                "Receive request, validate it, send confirmation.",
+                "refinement",
+                project_id=str(self.project.id),
+                pipeline_profile="semantic_deterministic",
+            )
+
+        generated_system_id = payload["systems"][0]["system_id"]
+        persisted = SystemGenerationArtifacts.objects.get(system_id=generated_system_id)
+        self.assertEqual(persisted.pipeline_profile, "semantic_deterministic")
+        self.assertEqual(get_topology_artifact(generated_system_id), topology_artifact)
+        self.assertEqual(get_semantic_sketch_plan(generated_system_id), semantic_plan)

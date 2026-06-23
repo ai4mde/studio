@@ -1409,18 +1409,31 @@ def generate_and_convert_candidates(
         Each element is ``{"clean": <ActivityGraph>, "ai4mde": <AI4MDEExport list>}``.
         Each candidate uses a new ``system_id`` and ``diagram_id`` but the same project id.
     """
-    cleans = generate_initial_candidates(
-        process_text,
-        n=n,
-        use_sketch=use_sketch,
-        pipeline_profile=pipeline_profile,
-        enable_sketch_review_agent=enable_sketch_review_agent,
-        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
-        enable_graph_repair_agent=enable_graph_repair_agent,
-        use_topology_artifact_guidance=use_topology_artifact_guidance,
-    )
     results: List[Dict[str, Any]] = []
-    for i, clean in enumerate(cleans, start=1):
+    for i in range(1, n + 1):
+        debug_bundle: Optional[ActivityDebugResult] = None
+        if pipeline_profile == "semantic_deterministic":
+            debug_bundle = model_activity(
+                process_text=process_text,
+                debug=True,
+                use_sketch=use_sketch,
+                pipeline_profile=pipeline_profile,
+                enable_sketch_review_agent=enable_sketch_review_agent,
+                enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+                enable_graph_repair_agent=enable_graph_repair_agent,
+                use_topology_artifact_guidance=use_topology_artifact_guidance,
+            )
+            clean = debug_bundle["parsed"]
+        else:
+            clean = model_activity(
+                process_text=process_text,
+                use_sketch=use_sketch,
+                pipeline_profile=pipeline_profile,
+                enable_sketch_review_agent=enable_sketch_review_agent,
+                enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+                enable_graph_repair_agent=enable_graph_repair_agent,
+                use_topology_artifact_guidance=use_topology_artifact_guidance,
+            )
         system_id = str(uuid.uuid4())
         diagram_id = str(uuid.uuid4())
         ai4mde = convert_to_ai4mde(
@@ -1431,7 +1444,7 @@ def generate_and_convert_candidates(
             description=description_template.format(index=i),
             project_id=project_id,
         )
-        results.append({"clean": clean, "ai4mde": ai4mde})
+        results.append({"clean": clean, "ai4mde": ai4mde, "debug_bundle": debug_bundle})
     return results
 
 
