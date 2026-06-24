@@ -36,7 +36,7 @@ export function resolveActorUsername(actorName: string): string {
     if (n.includes('loan') && n.includes('officer')) return 'demo-loan-officer';
     if (n.includes('officer') || n.includes('admin') || n.includes('staff') || n.includes('manager')) return 'demo-loan-officer';
     if (n.includes('system') || n.includes('automated')) return 'system';
-    return n.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'jan_devries';
+    return n.replace(/[^a-z0-9]+/g, '_').replace(/^_+/, '').replace(/_+$/, '') || 'jan_devries';
 }
 
 // ─── content builders ─────────────────────────────────────────────────────────
@@ -91,19 +91,19 @@ function sectionCard(s: any): string {
 
 function inferInstruction(dataSections: any[], model: string, actionLabel: string): string {
     const layouts = dataSections.map(s => getLayoutValue(s.layout));
-    const allOps = dataSections.flatMap(s => getOperations(s.operations));
+    const allOps = new Set(dataSections.flatMap(s => getOperations(s.operations)));
     const m = model ? `<b>${model}</b>` : 'the item';
     const btn = `<b>"${actionLabel}"</b>`;
 
     if (layouts.includes('form')) {
-        if (allOps.includes('create'))
+        if (allOps.has('create'))
             return `Fill in the ${m} form fields and submit to create the record. When done, click ${btn}.`;
-        if (allOps.includes('update'))
+        if (allOps.has('update'))
             return `Review the pre-filled ${m} form, update any fields, then click ${btn}.`;
         return `Complete the ${m} form, then click ${btn}.`;
     }
     if (layouts.some(l => ['list', 'table', 'card', 'gallery'].includes(l))) {
-        if (allOps.includes('select'))
+        if (allOps.has('select'))
             return `Browse the ${m} list and <b>select</b> the appropriate item. Then click ${btn}.`;
         return `Review the ${m} list. Add, edit, or remove items as needed. Then click ${btn}.`;
     }
@@ -119,8 +119,8 @@ function buildStepBody(
     totalSteps: number,
     actorName: string,
 ): string {
-    const sectionRefs = (page.sections || []).map(getSectionId).filter(Boolean);
-    const pageSections = allSections.filter(s => sectionRefs.includes(String(s.id)));
+    const sectionRefs = new Set((page.sections || []).map(getSectionId).filter(Boolean));
+    const pageSections = allSections.filter(s => sectionRefs.has(String(s.id)));
 
     const data = pageSections.filter(s => {
         const pos = s.position || 'main';
@@ -137,7 +137,7 @@ function buildStepBody(
 
     const model = page.primary_model || data[0]?.class || '';
     const cards = data.slice(0, 4).map(sectionCard).join('');
-    const empty = !data.length
+    const empty = data.length === 0
         ? '<div style="color:#9ca3af;font-size:11px;padding:4px 2px;font-style:italic">No data sections.</div>'
         : '';
     const instruction = inferInstruction(data, model, actionLabel);
@@ -177,7 +177,7 @@ function buildIntroBody(activityPages: any[], actorName: string): string {
 <div style="font-size:12px;line-height:1.65;max-width:340px">
     <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
         ${actorBadge(actorName)}
-        <span style="color:#6b7280;font-size:11px">${activityPages.length} workflow step${activityPages.length !== 1 ? 's' : ''}</span>
+        <span style="color:#6b7280;font-size:11px">${activityPages.length} workflow step${activityPages.length === 1 ? '' : 's'}</span>
     </div>
     <ol style="margin:0;padding:0;list-style:none">${items}</ol>
     <div style="
@@ -284,7 +284,7 @@ export function startWorkflowGuidance({
         p => String(p?.type?.value || p?.type || '').toLowerCase() === 'activity',
     );
 
-    if (!activityPages.length) {
+    if (activityPages.length === 0) {
         driver({
             overlayOpacity: 0.45,
             allowClose: true,
@@ -307,22 +307,18 @@ export function startWorkflowGuidance({
     }
 
     const totalSteps = activityPages.length;
-    const steps: any[] = [];
-
-    // ── 0. Intro ──────────────────────────────────────────────────────────────
-    steps.push({
-        popover: {
-            title: '🔄 Workflow Test',
-            description: buildIntroBody(activityPages, actorName),
+    const steps: any[] = [
+        {
+            popover: {
+                title: '🔄 Workflow Test',
+                description: buildIntroBody(activityPages, actorName),
+            },
         },
-    });
-
-    // ── 1. Map UML ────────────────────────────────────────────────────────────
-    steps.push({
-        element: '#tour-map-uml-btn',
-        popover: {
-            title: '🪄 Step 1 — Map UML',
-            description: `
+        {
+            element: '#tour-map-uml-btn',
+            popover: {
+                title: '🪄 Step 1 — Map UML',
+                description: `
 <div style="font-size:12px;line-height:1.6;max-width:300px">
     Click <b>Map UML</b> to read your class, use-case, and activity diagrams and
     generate all pages and sections automatically.<br><br>
@@ -334,17 +330,15 @@ export function startWorkflowGuidance({
         Already mapped? Skip directly to <b>Next →</b>.
     </div>
 </div>`,
-            side: 'bottom',
-            align: 'end',
+                side: 'bottom',
+                align: 'end',
+            },
         },
-    });
-
-    // ── 2. Sync Live ──────────────────────────────────────────────────────────
-    steps.push({
-        element: '#tour-sync-live-btn',
-        popover: {
-            title: '🔁 Step 2 — Sync Live',
-            description: `
+        {
+            element: '#tour-sync-live-btn',
+            popover: {
+                title: '🔁 Step 2 — Sync Live',
+                description: `
 <div style="font-size:12px;line-height:1.6;max-width:300px">
     Click <b>Sync Live</b> to rebuild the running prototype from the current
     design. This pushes your latest pages, sections, and styling to the
@@ -358,28 +352,27 @@ export function startWorkflowGuidance({
         Already synced recently? Skip directly to <b>Next →</b>.
     </div>
 </div>`,
-            side: 'bottom',
-            align: 'start',
+                side: 'bottom',
+                align: 'start',
+            },
         },
-    });
-
-    // ── 3. Switch to Live ─────────────────────────────────────────────────────
-    steps.push({
-        element: '#tour-design-live-toggle',
-        popover: {
-            title: '🖥 Step 3 — Switch to Live',
-            description: `
+        {
+            element: '#tour-design-live-toggle',
+            popover: {
+                title: '🖥 Step 3 — Switch to Live',
+                description: `
 <div style="font-size:12px;line-height:1.6;max-width:300px">
     Click the <b>Live</b> button to launch the running prototype connected to
     real data.<br><br>
     The prototype will load in the preview area. You'll interact with it
     directly in each step of this walkthrough.
 </div>`,
-            side: 'bottom',
-            align: 'start',
+                side: 'bottom',
+                align: 'start',
+            },
+            onHighlightStarted: () => switchToLive(),
         },
-        onHighlightStarted: () => switchToLive(),
-    });
+    ];
 
     // ── 4+. One step per activity page, with actor-switch steps inserted ───────
     let currentActorName = actorName;
