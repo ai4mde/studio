@@ -19,6 +19,7 @@ SYSTEM_ID            = "44000002-0000-5000-8000-000000000000"
 DIAGRAM_CLASS_ID     = "44000003-0000-5000-8000-000000000000"
 DIAGRAM_USECASE_ID   = "44000004-0000-5000-8000-000000000000"
 DIAGRAM_ACTIVITY_ID  = "44000005-0000-5000-8000-000000000000"
+SYSTEM_NAME          = "Library Management System"
 
 # Actors
 ACTOR_READER_ID      = "44100001-0000-5000-8000-000000000000"
@@ -271,7 +272,7 @@ CLASSIFIERS = [
     ]),
 
     # Usecases
-    _boundary(UC_BOUNDARY_ID, "Library Management System"),
+    _boundary(UC_BOUNDARY_ID, SYSTEM_NAME),
     _usecase(UC_SEARCH_ID,      "Search Books",    [CLS_BOOK_ID]),
     _usecase(UC_BORROW_ID,      "Borrow Book",     [CLS_BOOK_ID, CLS_LOAN_ID]),
     _usecase(UC_RETURN_ID,      "Return Book",     [CLS_LOAN_ID]),
@@ -408,7 +409,7 @@ DIAGRAMS = [
     {
         "id": DIAGRAM_CLASS_ID,
         "name": "Class Diagram",
-        "description": "Library Management System class diagram",
+        "description": f"{SYSTEM_NAME} class diagram",
         "type": "classes",
         "system": SYSTEM_ID,
         "nodes": CLASS_NODES,
@@ -417,7 +418,7 @@ DIAGRAMS = [
     {
         "id": DIAGRAM_USECASE_ID,
         "name": "Use Case Diagram",
-        "description": "Library Management System use case diagram",
+        "description": f"{SYSTEM_NAME} use case diagram",
         "type": "usecase",
         "system": SYSTEM_ID,
         "nodes": USECASE_NODES,
@@ -440,12 +441,12 @@ DIAGRAMS = [
 
 PROJECT_DATA = {
     "id": PROJECT_ID,
-    "name": "Library Management System",
-    "description": "Library Management System — seed data",
+    "name": SYSTEM_NAME,
+    "description": f"{SYSTEM_NAME} — seed data",
     "systems": [
         {
             "id": SYSTEM_ID,
-            "name": "Library Management System",
+            "name": SYSTEM_NAME,
             "description": "Core library system",
             "project": PROJECT_ID,
             "diagrams": DIAGRAMS,
@@ -462,6 +463,6 @@ PROJECT_DATA = {
 
 from metadata.models import Project
 
-print("Importing Library Management System project...")
+print(f"Importing {SYSTEM_NAME} project...")
 project = Project.import_from_json(PROJECT_DATA)
 print(f"Done: project {project.id} — {project.name}")

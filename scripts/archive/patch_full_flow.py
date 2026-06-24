@@ -5,6 +5,8 @@ django.setup()
 
 from metadata.models import Interface
 
+PRODUCT_DETAIL_PAGE = 'Product Detail'
+
 # ─── helpers ──────────────────────────────────────────────────────────────────
 def sid(): return str(uuid.uuid4())
 
@@ -79,7 +81,7 @@ s_product_list = sec(
     [attr('image_url','image'), attr('name'), attr('brand'), attr('price'),
      attr('original_price'), attr('rating'), attr('discount_pct','int')],
     ops(), columns='4', card_style='elevated',
-    view_detail_page='Product Detail',
+    view_detail_page=PRODUCT_DETAIL_PAGE,
 )
 s_category_filter = sec(
     'Categories', 'c0000003-0000-5000-8000-000000000000',
@@ -92,7 +94,7 @@ s_featured = sec(
     'card', 9, 'blue',
     [attr('image_url','image'), attr('name'), attr('price'), attr('rating')],
     ops(), columns='3', card_style='elevated',
-    view_detail_page='Product Detail',
+    view_detail_page=PRODUCT_DETAIL_PAGE,
 )
 
 # ── Product Detail: Add to Cart ───────────────────────────────────────────────
@@ -168,7 +170,7 @@ p_home = page(
     type_='normal', layout='vertical', gap='normal',
 )
 p_product_detail = page(
-    'Product Detail',
+    PRODUCT_DETAIL_PAGE,
     [existing_product, existing_gallery, s_add_to_cart,
      existing_delivery, existing_seller, existing_reviews, existing_related],
     type_='normal', single_record=True,
