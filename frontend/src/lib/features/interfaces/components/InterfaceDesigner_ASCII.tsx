@@ -39,6 +39,12 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [isLoadingAgent, setIsLoadingAgent] = useState(false);
     const [agentStatus, setAgentStatus] = useState('');
+    let previewEmptyMessage = 'Loading preview...';
+    if ((sections as any[]).length === 0) {
+        previewEmptyMessage = 'Add sections and pages to see a preview.';
+    } else if ((pages as any[]).length === 0) {
+        previewEmptyMessage = 'Add pages in the Pages tab to see a preview.';
+    }
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     // Capture latest sections/pages/previewPageIndex for the debounced callback
@@ -320,7 +326,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 12, color: '#9ca3af', marginRight: 4 }}>Preview</span>
                     {(pages as any[]).map((p: any, idx: number) => (
-                        <button key={idx} onClick={() => setPreviewPageIndex(idx)}
+                        <button key={p.id || p.name || `page-${idx + 1}`} onClick={() => setPreviewPageIndex(idx)}
                             style={{
                                 padding: '2px 10px', borderRadius: 10, fontSize: 12, cursor: 'pointer',
                                 background: previewPageIndex === idx ? '#dbeafe' : '#f3f4f6',
@@ -352,11 +358,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                     ) : (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                             <p style={{ fontSize: 13, color: '#9ca3af' }}>
-                                {(sections as any[]).length === 0
-                                    ? 'Add sections and pages to see a preview.'
-                                    : (pages as any[]).length === 0
-                                        ? 'Add pages in the Pages tab to see a preview.'
-                                        : 'Loading preview...'}
+                                {previewEmptyMessage}
                             </p>
                         </div>
                     )}

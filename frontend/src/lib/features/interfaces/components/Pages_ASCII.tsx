@@ -187,7 +187,7 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
             <div className="flex flex-wrap gap-4">
                 {isSuccess && (
                     data.map((page, index) => (
-                        <div key={index} className="flex flex-col gap-2">
+                        <div key={page.id || page.name || `page-${index + 1}`} className="flex flex-col gap-2">
                             {editIndex === index ? (
                                 <div className="w-[240px] flex flex-col gap-2 space-y-2">
                                     <div>
