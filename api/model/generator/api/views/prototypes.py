@@ -100,7 +100,7 @@ def read_prototype(request, id):
 
 
 @prototypes.post("/", response=ReadPrototype)
-def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str]):
+def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str] = None):
     prototype_system_id = prototype.system or prototype.system_id
     if not prototype_system_id:
         raise HttpError(422, "Missing required prototype system id.")
