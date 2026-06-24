@@ -944,7 +944,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 />
                                                 <div className="mt-2 space-y-2">
                                                     {selectedCustomMethods.map((method, mIdx) => (
-                                                        <div key={mIdx} className="space-y-1 bg-stone-50 p-2 rounded-md border border-stone-200">
+                                                        <div key={method.id || method.name} className="space-y-1 bg-stone-50 p-2 rounded-md border border-stone-200">
                                                             <div className="flex justify-between items-center">
                                                                 <span className="text-xs font-bold text-gray-600">{method.name}</span>
                                                             </div>
@@ -1088,7 +1088,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 </button>
                                             </div>
                                             {(data[index].data_source?.joins || []).map((join, joinIndex) => (
-                                                <div key={joinIndex} className="space-y-1 rounded-md border border-gray-200 bg-stone-50 p-2">
+                                                <div key={`${join.type || 'left'}-${join.model || 'model'}-${join.on || 'condition'}`} className="space-y-1 rounded-md border border-gray-200 bg-stone-50 p-2">
                                                     <div className="grid grid-cols-[74px_1fr_28px] gap-1">
                                                         <select
                                                             value={join.type || 'left'}
@@ -1140,7 +1140,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             </div>
                                             <p className="text-[11px] text-gray-400">Used only for SQL/query preview. It does not change rendered attributes.</p>
                                             {(data[index].query?.select || []).map((field, fieldIndex) => (
-                                                <div key={fieldIndex} className="flex gap-1">
+                                                <div key={field || 'select-field'} className="flex gap-1">
                                                     <input
                                                         type="text"
                                                         list={`query-field-list-${index}`}
@@ -1239,7 +1239,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 </button>
                                             </div>
                                             {(data[index].query?.filters || []).map((filter, filterIndex) => (
-                                                <div key={filterIndex} className="grid grid-cols-[1fr_78px_90px_1fr_28px] gap-1">
+                                                <div key={`${filter.field || 'field'}-${filter.operator || 'eq'}-${filter.value_from || filter.value || 'value'}`} className="grid grid-cols-[1fr_78px_90px_1fr_28px] gap-1">
                                                     <input
                                                         type="text"
                                                         list={`query-field-list-${index}`}
