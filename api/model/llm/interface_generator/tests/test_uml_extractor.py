@@ -174,19 +174,16 @@ def test_detect_semantic_decisions_for_calendar_timeline_and_map():
     assert ux.detect_semantic_decisions(
         "Appointment",
         {"attributes": [{"name": "start_time"}, {"name": "end_time"}], "layout_score": {}},
-        "collection_workspace",
     )["default"] == "DataTable"
     assert ux.detect_semantic_decisions(
         "AuditLog",
         {"attributes": [{"name": "created_at"}], "layout_score": {}},
-        "collection_workspace",
     )["default"] == "TimelineList"
     assert ux.detect_semantic_decisions(
         "StoreLocation",
         {"attributes": [{"name": "latitude"}], "layout_score": {"map": 0.9}},
-        "collection_workspace",
     )["default"] == "MapView"
-    assert ux.detect_semantic_decisions("Product", {"attributes": [], "layout_score": {}}, "x") is None
+    assert ux.detect_semantic_decisions("Product", {"attributes": [], "layout_score": {}}) is None
 
 
 def test_sys_as_list_accepts_wrapped_lists():

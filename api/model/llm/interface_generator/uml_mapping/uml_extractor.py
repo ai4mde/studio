@@ -696,7 +696,7 @@ _MAP_MODELS        = frozenset({"location", "address", "place", "venue", "store"
                                  "delivery", "route"})
 
 
-def detect_semantic_decisions(model_name: str, model_info: dict, page_role: str) -> dict | None:
+def detect_semantic_decisions(model_name: str, model_info: dict) -> dict | None:
     """Return a semantic_decision entry if the model requires LLM judgment for layout/component."""
     m = model_name.lower()
     score = model_info.get("layout_score") or {}
@@ -924,7 +924,7 @@ def extract_uml_intelligence(
         if info:
             # Model-level decisions ask the LLM only where deterministic mapping
             # is ambiguous, such as timeline versus table or map versus list.
-            decision = detect_semantic_decisions(model, info, "collection_workspace")
+            decision = detect_semantic_decisions(model, info)
             if decision:
                 semantic_decisions.append(decision)
     accessible_models = set(expanded_permissions.keys())

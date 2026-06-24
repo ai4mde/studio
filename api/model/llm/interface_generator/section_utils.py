@@ -215,7 +215,7 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
             and (section_map.get(sid) or {}).get("position", "main") == "main"
             for sid in ref_ids
         )
-        for sid in list(ref_ids):
+        for sid in ref_ids:
             existing = section_map.get(sid) or {}
             model = existing.get("primary_model") or existing.get("class")
             if (

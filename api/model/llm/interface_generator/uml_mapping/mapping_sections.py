@@ -498,7 +498,7 @@ def _ensure_pre_workflow_content_sections(
         if not preferred_models:
             preferred_models = [
                 m for m in (entry.get("related_models") or [])
-                if m in known_models and _is_child_collection_model(m, f"{entry.get('page_name', '')} {entry.get('usecase_name', '')}")
+                if m in known_models and _is_child_collection_model(m)
             ]
         if not preferred_models:
             preferred_models = [m for m in [entry.get("primary_model")] if m in known_models]
@@ -516,7 +516,7 @@ def _ensure_pre_workflow_content_sections(
             suffix += 1
         page_text = f"{page_id} {page.get('name', '')} {entry.get('usecase_name', '')}".lower()
         is_select_existing = any(term in page_text for term in ("search", "select", "choose", "pick", "browse"))
-        layout = "list" if _is_child_collection_model(model, f"{entry.get('page_name', '')} {entry.get('usecase_name', '')}") else _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
+        layout = "list" if _is_child_collection_model(model) else _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
         style = {
             "color": "accent",
             "density": "compact" if layout in {"list", "table"} else "normal",
@@ -528,7 +528,7 @@ def _ensure_pre_workflow_content_sections(
             style["list_style"] = "default"
         section = {
             "id": sid,
-            "name": f"{model} Items" if _is_child_collection_model(model, page_id) else f"{model} Overview",
+            "name": f"{model} Items" if _is_child_collection_model(model) else f"{model} Overview",
             "layout": layout,
             "primary_model": model,
             "class": model,

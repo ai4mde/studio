@@ -669,7 +669,7 @@ def generate_interface_plan(
     # ── Pre-compute subordinate models ───────────────────────────────────────
     # These models should appear as sections on their parent's detail page, not as standalone pages.
     subordinate_to: dict[str, str] = {}  # child_model → parent_model
-    for model in list(accessible):
+    for model in accessible:
         parent = _subordinate_parent(model, model_graph, accessible - {model})
         if parent:
             subordinate_to[model] = parent
@@ -1055,9 +1055,10 @@ def generate_interface_plan(
                 if layout == "form":
                     ops = _activity_form_operations(action)
                     editable = semantic_editable or override_editable or _pick_fields(step_model_info, "object_form", 8)
+                    editable_set = set(editable)
                     readonly = semantic_readonly or [
                         field for field in _pick_fields(step_model_info, "object_detail", 6)
-                        if field not in set(editable)
+                        if field not in editable_set
                     ]
                     visible = _merge_field_names(readonly, editable) if ops == ["update"] else editable
                 elif layout == "list":

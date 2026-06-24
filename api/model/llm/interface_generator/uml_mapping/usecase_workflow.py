@@ -164,7 +164,7 @@ def _humanize_action_label(name: str, fallback: str = "Start") -> str:
     return cleaned[:1].upper() + cleaned[1:] if cleaned else fallback
 
 
-def _is_child_collection_model(model_name: str, page_terms: str = "") -> bool:
+def _is_child_collection_model(model_name: str, _page_terms: str = "") -> bool:
     """Detect line-item or child models that should be nested under a parent."""
     name_l = str(model_name or "").lower()
     if not name_l:
