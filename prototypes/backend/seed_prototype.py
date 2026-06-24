@@ -277,14 +277,14 @@ def seed_loan_app_models():
         phone='+31 20 555 0102', employment_status='Self-employed', annual_income=58000)
 
     loan_fields = fields_for(LoanApplication)
-    loan1_values = dict(
-        application_id='loan-001', loan_amount=25000, amount=25000,
-        requires_additional_documents=False, approved=False,
-        reason='Home renovation', status='Submitted', risk='Low', submitted_date='2026-05-10')
-    loan2_values = dict(
-        application_id='loan-002', loan_amount=12000, amount=12000,
-        requires_additional_documents=True, approved=False,
-        reason='Vehicle purchase', status='Needs documents', risk='Medium', submitted_date='2026-05-12')
+    loan1_values = {
+        'application_id': 'loan-001', 'loan_amount': 25000, 'amount': 25000,
+        'requires_additional_documents': False, 'approved': False,
+        'reason': 'Home renovation', 'status': 'Submitted', 'risk': 'Low', 'submitted_date': '2026-05-10'}
+    loan2_values = {
+        'application_id': 'loan-002', 'loan_amount': 12000, 'amount': 12000,
+        'requires_additional_documents': True, 'approved': False,
+        'reason': 'Vehicle purchase', 'status': 'Needs documents', 'risk': 'Medium', 'submitted_date': '2026-05-12'}
     if 'Applicant' in loan_fields:
         loan1_values['Applicant'] = applicant1
         loan2_values['Applicant'] = applicant2
@@ -293,8 +293,8 @@ def seed_loan_app_models():
 
     if Document is not None:
         doc_fields = fields_for(Document)
-        doc1_values = dict(document_id='doc-001', file_conent='Proof_of_income.pdf', file_content='Proof_of_income.pdf', upload_date='2026-05-10', valid=True, document_type='PDF')
-        doc2_values = dict(document_id='doc-002', file_conent='Bank_statement.pdf', file_content='Bank_statement.pdf', upload_date='2026-05-12', valid=True, document_type='PDF')
+        doc1_values = {'document_id': 'doc-001', 'file_conent': 'Proof_of_income.pdf', 'file_content': 'Proof_of_income.pdf', 'upload_date': '2026-05-10', 'valid': True, 'document_type': 'PDF'}
+        doc2_values = {'document_id': 'doc-002', 'file_conent': 'Bank_statement.pdf', 'file_content': 'Bank_statement.pdf', 'upload_date': '2026-05-12', 'valid': True, 'document_type': 'PDF'}
         if 'LoanApplication' in doc_fields:
             doc1_values['LoanApplication'] = loan1
             doc2_values['LoanApplication'] = loan2
@@ -303,8 +303,8 @@ def seed_loan_app_models():
 
     if ApplicationNote is not None:
         note_fields = fields_for(ApplicationNote)
-        note1_values = dict(note_id='note-001', comment='Applicant qualifies for standard review.', created_at='2026-05-10', author_role='Loan officer')
-        note2_values = dict(note_id='note-002', comment='Additional documents requested for verification.', created_at='2026-05-12', author_role='Document analyst')
+        note1_values = {'note_id': 'note-001', 'comment': 'Applicant qualifies for standard review.', 'created_at': '2026-05-10', 'author_role': 'Loan officer'}
+        note2_values = {'note_id': 'note-002', 'comment': 'Additional documents requested for verification.', 'created_at': '2026-05-12', 'author_role': 'Document analyst'}
         if 'LoanApplication' in note_fields:
             note1_values['LoanApplication'] = loan1
             note2_values['LoanApplication'] = loan2

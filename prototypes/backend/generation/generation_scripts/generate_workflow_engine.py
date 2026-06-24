@@ -11,7 +11,7 @@ from utils.loading_json_utils import resolve_metadata_arg
 
 def main():
     if len(sys.argv) != 5:
-        raise Exception("Invalid number of system arguments.")
+        raise ValueError("Invalid number of system arguments.")
 
     project_name = project_name_sanitization(sys.argv[1])
     metadata = resolve_metadata_arg(sys.argv[2])
@@ -24,25 +24,25 @@ def main():
     )
 
     if not generate_models(system_id, project_name, metadata):
-        raise Exception("Failed to generate models")
+        raise RuntimeError("Failed to generate models")
 
     try:
         cron_jobs = generate_data(system_id, project_name, metadata)
     except Exception as e:
         if has_activity_diagrams:
-            raise Exception(f"Failed to generate workflow data from activity diagrams: {e}")
+            raise RuntimeError(f"Failed to generate workflow data from activity diagrams: {e}") from e
         # Keep prototype generation resilient only when no workflow exists at all.
-        print(f"Warning: no activity diagrams found; writing empty workflow_engine data.")
+        print("Warning: no activity diagrams found; writing empty workflow_engine data.")
         cron_jobs = []
         empty_data = {"processes": [], "action_nodes": [], "join_nodes": [], "rules": []}
         json_path = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/migrations/workflow_engine_data.json"
         write_to_file(json_path, json.dumps(empty_data, indent=4))
 
     if not generate_cron_jobs(system_id, project_name, cron_jobs):
-        raise Exception("Failed to generate cron jobs")
+        raise RuntimeError("Failed to generate cron jobs")
 
     if not generate_views(system_id, project_name, metadata, authentication_present):
-        raise Exception("Failed to generate views")
+        raise RuntimeError("Failed to generate views")
     
     return True
 

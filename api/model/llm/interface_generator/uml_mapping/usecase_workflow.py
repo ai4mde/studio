@@ -220,9 +220,12 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
     if any(term in name_l for term in inline_terms) and "manage" not in name_l:
         page_model = best_model()
         target_model = next((m for m in ranked_models + class_names if m and m != page_model), page_model)
-        operation_kind = "delete" if any(term in name_l for term in ("remove", "delete")) else (
-            "create_related" if target_model and target_model != page_model and any(term in name_l for term in ("add", "write", "create", "select")) else "object_operation"
-        )
+        if any(term in name_l for term in ("remove", "delete")):
+            operation_kind = "delete"
+        elif target_model and target_model != page_model and any(term in name_l for term in ("add", "write", "create", "select")):
+            operation_kind = "create_related"
+        else:
+            operation_kind = "object_operation"
         return {
             "role": "inline_operation",
             "page_id": _section_id(page_model or name),

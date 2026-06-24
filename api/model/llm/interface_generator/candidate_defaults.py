@@ -296,7 +296,12 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
         sid for sid in nav_ids
         if (section_map.get(sid) or {}).get("position") == "sidebar"
     ]
-    keep_nav_id = header_nav_ids[0] if header_nav_ids else (sidebar_nav_ids[0] if sidebar_nav_ids else "")
+    if header_nav_ids:
+        keep_nav_id = header_nav_ids[0]
+    elif sidebar_nav_ids:
+        keep_nav_id = sidebar_nav_ids[0]
+    else:
+        keep_nav_id = ""
     duplicate_nav_ids = set(nav_ids)
     if keep_nav_id:
         duplicate_nav_ids.discard(keep_nav_id)
