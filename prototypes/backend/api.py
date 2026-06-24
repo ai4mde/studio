@@ -140,6 +140,7 @@ except OperationalError as exc:
 
 ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
 MANAGE_PY = "manage.py"
+_SAFE_PATH_PART_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 
 RUNNING_PROTOTYPE_PROTO = os.environ.get('RUNNING_PROTOTYPE_PROTO', "http://")
 RUNNING_PROTOTYPE_HOST = os.environ.get('RUNNING_PROTOTYPE_HOST', "prototype.ai4mde.localhost")
@@ -153,6 +154,31 @@ def _running_prototype_public_url() -> str:
     port = str(RUNNING_PROTOTYPE_PUBLIC_PORT or "").strip()
     suffix = f":{port}" if port else ""
     return f"{RUNNING_PROTOTYPE_PUBLIC_PROTO}{RUNNING_PROTOTYPE_PUBLIC_HOST}{suffix}"
+
+
+def _safe_path_part(value: str) -> str:
+    part = str(value or "").strip()
+    if not part or not _SAFE_PATH_PART_RE.fullmatch(part):
+        raise ValueError("invalid prototype path component")
+    return part
+
+
+def _prototype_path(system_id: str, project_name: str) -> str:
+    root = os.path.realpath(ROOT_DIR)
+    system = _safe_path_part(system_id)
+    name = _safe_path_part(project_name)
+    candidate = os.path.realpath(os.path.join(root, system, name))
+    if os.path.commonpath([root, candidate]) != root:
+        raise ValueError("prototype path escapes root directory")
+    return candidate
+
+
+def _safe_child_path(root_path: str, *parts: str) -> str:
+    root = os.path.realpath(root_path)
+    candidate = os.path.realpath(os.path.join(root, *parts))
+    if os.path.commonpath([root, candidate]) != root:
+        raise ValueError("path escapes root directory")
+    return candidate
 
 
 manager = Manager()
@@ -264,7 +290,10 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
             running_prototype.clear()
         _stop_stale_runservers()
 
-        prototype_path = os.path.join(ROOT_DIR, prototype_system, prototype_name)
+        try:
+            prototype_path = _prototype_path(prototype_system, prototype_name)
+        except ValueError:
+            return None, "invalid_prototype_path"
         if not os.path.isdir(prototype_path):
             return None, "prototype_dir_not_found"
         
@@ -404,14 +433,17 @@ def seed_prototype_data():
     if not system_id or not project_name:
         return 'No prototype is running — start a prototype first, then seed', 400
 
-    proto_path = os.path.join(ROOT_DIR, system_id, project_name)
+    try:
+        proto_path = _prototype_path(system_id, project_name)
+    except ValueError:
+        return 'Invalid prototype path', 400
     if not os.path.isdir(proto_path):
-        return f'Prototype directory not found: {proto_path}', 404
+        return 'Prototype directory not found', 404
 
     result = _reconcile_sqlite_schema(proto_path)
     if result.returncode != 0:
         app.logger.error(f"Failed to reconcile database schema before seed for {project_name}:\n{result.stderr or result.stdout}")
-        return f'Failed to reconcile database schema before seed for {project_name}', 500
+        return 'Failed to reconcile database schema before seed', 500
 
     env = os.environ.copy()
     env['PROTOTYPE_SYSTEM'] = system_id
@@ -482,8 +514,8 @@ def autologin(request):
                 return redirect(f'/{field[3:].lower()}/')
     return redirect('/')
 '''
-    views_path = os.path.join(proto_path, 'authentication', 'views.py')
-    urls_path  = os.path.join(proto_path, 'authentication', 'urls.py')
+    views_path = _safe_child_path(proto_path, 'authentication', 'views.py')
+    urls_path = _safe_child_path(proto_path, 'authentication', 'urls.py')
 
     if not os.path.exists(views_path):
         return
@@ -534,6 +566,12 @@ def remove_prototype():
     id = data.get('id')
     name = data.get('name')
     system = data.get('system')
+    try:
+        _safe_path_part(id)
+        _safe_path_part(name)
+        _safe_path_part(system)
+    except ValueError:
+        return "Invalid prototype identifier", 400
     if "id" in running_prototype and running_prototype["id"] == id:
         stop_prototype()
     try:
