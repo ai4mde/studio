@@ -677,7 +677,7 @@ def _run_candidate_visual_check(interface_id: str, candidate_index: int) -> dict
         candidate.get("description", ""),
         candidate.get("name", ""),
     )
-    out_root = Path(os.environ.get("CANDIDATE_VISUAL_CHECK_DIR", "/tmp/candidate-visual-check"))
+    out_root = Path(os.environ.get("CANDIDATE_VISUAL_CHECK_DIR", "/usr/src/app/candidate-visual-check"))
     out_dir = out_root / str(interface_id) / f"candidate_{candidate_index}"
     out_dir.mkdir(parents=True, exist_ok=True)
 

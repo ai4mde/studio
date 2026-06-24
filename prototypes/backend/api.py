@@ -15,16 +15,23 @@ import shutil
 app = Flask(__name__)
 
 
+def _private_temp_dir() -> str:
+    path = os.environ.get('PROTOTYPE_TEMP_DIR', '/usr/src/prototypes/tmp')
+    os.makedirs(path, mode=0o700, exist_ok=True)
+    os.chmod(path, 0o700)
+    return path
+
+
 def _run_sh(path: str, args: list, **kwargs):
     """Execute a shell script after stripping Windows CRLF line endings.
 
     Scripts are volume-mounted from a Windows host so they may contain \\r\\n.
-    We write a de-CRLF'd copy to /tmp so we never mutate the mounted file.
+    We write a de-CRLF'd copy to a private temp dir so we never mutate the mounted file.
     """
     with open(path, 'r', errors='replace') as f:
         src = f.read().replace('\r\n', '\n').replace('\r', '\n')
     with tempfile.NamedTemporaryFile(
-        mode='w', suffix='.sh', delete=False, dir='/tmp'
+        mode='w', suffix='.sh', delete=False, dir=_private_temp_dir()
     ) as tmp:
         tmp.write(src)
         tmp_path = tmp.name
@@ -39,7 +46,7 @@ def _run_generator(path: str, id: str, system: str, name: str, metadata: str, va
     metadata_path = None
     try:
         with tempfile.NamedTemporaryFile(
-            mode='w', suffix='.json', delete=False, dir='/tmp'
+            mode='w', suffix='.json', delete=False, dir=_private_temp_dir()
         ) as tmp:
             tmp.write(metadata or '')
             metadata_path = tmp.name

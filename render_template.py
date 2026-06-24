@@ -13,8 +13,8 @@ files = render_layout(interface_data, classifiers, None,
                       interface_name=iface.name, relations=relations, preview_mode=False)
 
 targets = {
-    'product_detail': '/tmp/Customer_Product_Detail.html',
-    'view_cart':      '/tmp/Customer_View_Cart.html',
+    'product_detail': 'Customer_Product_Detail.html',
+    'view_cart':      'Customer_View_Cart.html',
 }
 
 for f in files:

@@ -662,7 +662,7 @@ def visual_check(request, payload: VisualCheckPayload):
     live_user = payload.live_user or "jan_devries"
 
     checks = []
-    screenshot_root = Path(os.environ.get("PREVIEW_LIVE_SCREENSHOT_DIR", "/tmp/preview-live-visual-check"))
+    screenshot_root = Path(os.environ.get("PREVIEW_LIVE_SCREENSHOT_DIR", "/usr/src/app/preview-live-visual-check"))
     screenshot_dir = screenshot_root / str(payload.interface_id) / str(int(time.time()))
     screenshot_dir.mkdir(parents=True, exist_ok=True)
     for file in expected_files[:8]:
