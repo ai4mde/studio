@@ -1097,7 +1097,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         const body = {
             name: prototypeName,
             description: `Synced from ${iface?.name || 'preview'}`,
-            system_id: systemId,
+            system: systemId,
             database_hash: `sync-${systemId}-${interfaceId}`,
             metadata: {
                 diagrams,
@@ -1188,7 +1188,10 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
             const payload = await buildGeneratorPrototypePayload(overrideSections, overridePages, overrideStyling, overrideTokens);
             const databasePrototypeName = payload.query.database_prototype_name || '';
             const previousPrototypeId = payload.previous_prototype_id || '';
-            const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${encodeURIComponent(databasePrototypeName)}`, payload.body);
+            const databasePrototypeQuery = databasePrototypeName
+                ? `?database_prototype_name=${encodeURIComponent(databasePrototypeName)}`
+                : '';
+            const { data: prototype } = await authAxios.post(`/v1/generator/prototypes/${databasePrototypeQuery}`, payload.body);
             await authAxios.post(`/v1/generator/prototypes/run/${prototype.id}`);
             if (previousPrototypeId && previousPrototypeId !== prototype.id) {
                 try {
