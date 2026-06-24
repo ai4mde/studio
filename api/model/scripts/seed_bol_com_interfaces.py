@@ -15,6 +15,9 @@ from metadata.models import Classifier, Interface, Relation
 
 NAMESPACE = uuid.UUID("77d86611-70f8-4b87-a6d4-112f857dcb37")
 SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID = "d0000003-0000-5000-8000-000000000000"
+PRODUCT_DETAIL_PAGE = "Product Detail"
+ORDER_DETAIL_PAGE = "Order Detail"
+SEND_ORDER_CONFIRMATION_LABEL = "Send Order Confirmation"
 VIEW_ORDER_CONFIRMATION_ACTION_ID = "ac000016-0000-5000-8000-000000000000"
 SHOPPING_INITIAL_ACTION_ID = "ac000001-0000-5000-8000-000000000000"
 VIEW_CART_ACTION_ID = "ac000002-0000-5000-8000-000000000000"
@@ -439,7 +442,7 @@ def ensure_usecase_activity_links():
             "activities": [SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID],
             "classes": ["Payment"],
         },
-        "Send Order Confirmation": {
+        SEND_ORDER_CONFIRMATION_LABEL: {
             "actions": [SEND_ORDER_CONFIRMATION_ACTION_ID],
             "activities": [SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID],
             "classes": ["Order"],
@@ -579,7 +582,7 @@ def ensure_shopping_activity_diagram():
         (
             "seller_confirmation",
             SEND_ORDER_CONFIRMATION_ACTION_ID,
-            "Send Order Confirmation",
+            SEND_ORDER_CONFIRMATION_LABEL,
             "Seller",
             ["Order", "OrderLine"],
             "A paid order is ready for seller confirmation",
@@ -722,7 +725,7 @@ def build_customer_interface():
         },
         columns="4",
         text="Find everything for home, school, work, gifts, and daily life.",
-        view_detail_page="Product Detail",
+        view_detail_page=PRODUCT_DETAIL_PAGE,
     )
     categories = sec(
         actor,
@@ -757,7 +760,7 @@ def build_customer_interface():
             "order_by": [{"field": "name", "direction": "asc"}],
         },
         columns="4",
-        view_detail_page="Product Detail",
+        view_detail_page=PRODUCT_DETAIL_PAGE,
     )
     deals = sec(
         actor,
@@ -776,7 +779,7 @@ def build_customer_interface():
             "order_by": [{"field": "price", "direction": "asc"}],
         },
         columns="4",
-        view_detail_page="Product Detail",
+        view_detail_page=PRODUCT_DETAIL_PAGE,
     )
     search_results = sec(
         actor,
@@ -792,7 +795,7 @@ def build_customer_interface():
             "order_by": [{"field": "name", "direction": "asc"}],
         },
         columns="4",
-        view_detail_page="Product Detail",
+        view_detail_page=PRODUCT_DETAIL_PAGE,
     )
     product_info = sec(
         actor,
@@ -893,7 +896,7 @@ def build_customer_interface():
         query={"limit": 4, "exclude_source": True},
         related_to=product_info["id"],
         columns="4",
-        view_detail_page="Product Detail",
+        view_detail_page=PRODUCT_DETAIL_PAGE,
     )
     cart_items = sec(
         actor,
@@ -1010,11 +1013,11 @@ def build_customer_interface():
         "orange",
         attrs("order_id", "status", "created_at", "updated_at", "total_amount"),
         query={"limit": 10, "order_by": [{"field": "created_at", "direction": "desc"}]},
-        view_detail_page="Order Detail",
+        view_detail_page=ORDER_DETAIL_PAGE,
     )
     order_detail = sec(
         actor,
-        "Order Detail",
+        ORDER_DETAIL_PAGE,
         "Order",
         "detail",
         12,
@@ -1051,14 +1054,14 @@ def build_customer_interface():
     pages = [
         page(actor, "Browse Products", [hero, categories, featured, deals]),
         page(actor, "Search Results", [categories, search_results]),
-        page(actor, "Product Detail", [product_info, gallery, add_to_cart, delivery, seller, reviews, related], single_record=True, category=page_category("Product")),
+        page(actor, PRODUCT_DETAIL_PAGE, [product_info, gallery, add_to_cart, delivery, seller, reviews, related], single_record=True, category=page_category("Product")),
         page(actor, "Shopping Cart", [cart_items, cart_summary], type_="activity", action=option("View Cart", "f0000202-0000-5000-8000-000000000000")),
         page(actor, "Checkout Address", [address_form, cart_summary], type_="activity", action=option("Enter Shipping Address", "f0000204-0000-5000-8000-000000000000")),
         page(actor, "Checkout Payment", [payment_method, payment_summary], type_="activity", action=option("Select Payment Method", "f0000205-0000-5000-8000-000000000000")),
         page(actor, "Order Confirmation", [order_confirm, order_lines], type_="activity", action=option("View Order Confirmation", VIEW_ORDER_CONFIRMATION_NODE_ID)),
         page(actor, "My Account", [account, addresses]),
         page(actor, "My Orders", [orders]),
-        page(actor, "Order Detail", [order_detail, order_lines], single_record=True, category=page_category("Order")),
+        page(actor, ORDER_DETAIL_PAGE, [order_detail, order_lines], single_record=True, category=page_category("Order")),
     ]
     return sections, pages
 
@@ -1134,7 +1137,7 @@ def build_seller_interface():
     )
     order_detail = sec(
         actor,
-        "Order Detail",
+        ORDER_DETAIL_PAGE,
         "Order",
         "detail",
         6,
@@ -1191,7 +1194,7 @@ def build_seller_interface():
     pages = [
         page(actor, "Seller Dashboard", [seller_stats, products, incoming_orders]),
         page(actor, "Product Management", [product_editor, inventory], single_record=True, category=page_category("Product")),
-        page(actor, "Order Management", [order_detail, order_items], type_="activity", action=option("Send Order Confirmation", "f0000209-0000-5000-8000-000000000000")),
+        page(actor, "Order Management", [order_detail, order_items], type_="activity", action=option(SEND_ORDER_CONFIRMATION_LABEL, "f0000209-0000-5000-8000-000000000000")),
         page(actor, "Reviews", [reviews]),
         page(actor, "Seller Settings", [seller_profile]),
     ]
