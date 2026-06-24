@@ -1,8 +1,11 @@
-FROM node:18-alpine
+FROM node:18.20.8-alpine3.20
 WORKDIR /usr/src/app
-COPY . /usr/src/app
-RUN npm install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm ci
 ENV NODE_OPTIONS=--max-old-space-size=1536
 RUN apk add --no-cache nginx && mkdir -p /usr/share/nginx/html
+COPY index.html postcss.config.js tailwind.config.js tsconfig.json tsconfig.node.json vite.config.ts vitest.config.ts ./
+COPY public ./public
+COPY src ./src
 COPY nginx.cloud.conf /etc/nginx/http.d/default.conf
 CMD ["sh", "-c", "npm run build && cp -r /usr/src/app/dist/* /usr/share/nginx/html/ && exec nginx -g 'daemon off;'"]

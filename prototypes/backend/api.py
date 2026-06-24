@@ -449,7 +449,7 @@ def seed_prototype_data():
 
     result = _reconcile_sqlite_schema(proto_path)
     if result.returncode != 0:
-        app.logger.error(f"Failed to reconcile database schema before seed for {project_name}:\n{result.stderr or result.stdout}")
+        app.logger.error("Failed to reconcile database schema before seed for %s:\n%s", project_name, result.stderr or result.stdout)
         return 'Failed to reconcile database schema before seed', 500
 
     env = os.environ.copy()

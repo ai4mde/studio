@@ -5,7 +5,7 @@ const SESSION_KEY = "studio_session_id";
 export function getSessionId(): string {
     let id = sessionStorage.getItem(SESSION_KEY);
     if (!id) {
-        id = Math.random().toString(36).slice(2, 10);
+        id = globalThis.crypto.randomUUID();
         sessionStorage.setItem(SESSION_KEY, id);
     }
     return id;

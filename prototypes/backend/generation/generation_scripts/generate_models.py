@@ -89,9 +89,10 @@ def retrieve_model_attributes(metadata: str, node: str, model_names: set[str] | 
     """Function that parses the attributes of a class node from JSON to a Python objects"""
     out = []
     model_names = model_names or set()
-    current_model = model_name_sanitization(node["cls"].get("name", ""))
+    node_cls = node.get("cls") or {}
+    current_model = model_name_sanitization(node_cls.get("name", ""))
 
-    for attribute in node["cls"]["attributes"]:
+    for attribute in node_cls.get("attributes", []):
         relation_model = _id_reference_model(attribute.get("name", ""), current_model, model_names)
         if relation_model:
             out.append(Attribute(

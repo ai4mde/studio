@@ -97,7 +97,7 @@ def create_demo_session(request, response: HttpResponse):
         },
         settings.SECRET_KEY,
     )
-    response.set_cookie("key", token, httponly=True)
+    response.set_cookie("key", token, httponly=True, secure=True, samesite="Lax")
     return {
         "token": token,
         "id": str(user.id),
