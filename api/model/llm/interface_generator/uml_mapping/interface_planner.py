@@ -1051,7 +1051,12 @@ def generate_interface_plan(
                 if override_role in {"object_form", "object_collection", "object_detail"}:
                     role = override_role
                 else:
-                    role = "object_form" if layout == "form" else ("object_collection" if layout == "list" else "object_detail")
+                    if layout == "form":
+                        role = "object_form"
+                    elif layout == "list":
+                        role = "object_collection"
+                    else:
+                        role = "object_detail"
                 if layout == "form":
                     ops = _activity_form_operations(action)
                     editable = semantic_editable or override_editable or _pick_fields(step_model_info, "object_form", 8)

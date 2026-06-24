@@ -703,7 +703,12 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             ))
 
         type_field = p_raw.get("type")
-        page_type = type_field.get("value", "normal") if isinstance(type_field, dict) else (str(type_field) if type_field else "normal")
+        if isinstance(type_field, dict):
+            page_type = type_field.get("value", "normal")
+        elif type_field:
+            page_type = str(type_field)
+        else:
+            page_type = "normal"
 
         layout_field = p_raw.get("layout")
         if isinstance(layout_field, dict):
@@ -712,7 +717,12 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             page_layout = str(layout_field) if layout_field else "vertical"
 
         gap_field = p_raw.get("gap")
-        page_gap = gap_field.get("value", "normal") if isinstance(gap_field, dict) else (str(gap_field) if gap_field else "normal")
+        if isinstance(gap_field, dict):
+            page_gap = gap_field.get("value", "normal")
+        elif gap_field:
+            page_gap = str(gap_field)
+        else:
+            page_gap = "normal"
 
         action_field = p_raw.get("action")
         activity_name = action_field.get("label") if isinstance(action_field, dict) else None

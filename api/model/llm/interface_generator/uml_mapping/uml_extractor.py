@@ -96,9 +96,21 @@ def score_layout(attr_names: set[str]) -> dict[str, float]:
     # These scores are intentionally soft hints, not final layout choices. Later
     # mapping stages combine them with use-case role, workflow role, and LLM
     # candidate styling before deciding on concrete components.
+    gallery_score = 0.1
+    if has_image:
+        gallery_score = 0.9
+    elif hits["rating"] > 0:
+        gallery_score = 0.3
+
+    table_score = 0.4
+    if has_price and has_status:
+        table_score = 0.85
+    elif has_status or attr_count > 8:
+        table_score = 0.7
+
     return {
-        "gallery":   0.9 if has_image else (0.3 if hits["rating"] > 0 else 0.1),
-        "table":     0.85 if (has_price and has_status) else (0.7 if (has_status or attr_count > 8) else 0.4),
+        "gallery":   gallery_score,
+        "table":     table_score,
         "list":      0.75 if (has_status and has_date and not has_image) else 0.35,
         "detail":    0.9 if (has_content or attr_count > 8) else 0.5,
         "form":      0.8 if (has_contact or hits["identity"] > 0) else 0.5,

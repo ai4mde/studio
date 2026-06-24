@@ -194,7 +194,13 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
 
     def best_model(default: str = "") -> str:
         """Provide a local helper for _nav_mapping_for_usecase."""
-        return primary or (ranked_models[0] if ranked_models else (class_names[0] if class_names else default))
+        if primary:
+            return primary
+        if ranked_models:
+            return ranked_models[0]
+        if class_names:
+            return class_names[0]
+        return default
 
     if any(term in name_l for term in ("system process", "background", "automated", "notification")):
         return {"role": "background", "page_id": "", "page_name": "", "page_model": primary, "operation_kind": "background"}
