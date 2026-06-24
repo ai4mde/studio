@@ -2,7 +2,7 @@ import { authAxios, useAuthStore } from '$auth/state/auth';
 import { trackEvent } from '$lib/features/analytics/trackEvent';
 import { Button, Modal, ModalClose, ModalDialog, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, HelpCircle, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, PlayCircle, Plus, RefreshCw, Table2, User, Wand2 } from 'lucide-react';
+import { AlignJustify, Code2, Database, GalleryHorizontal, GripVertical, HelpCircle, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, PlayCircle, Plus, RefreshCw, Table2, User, Wand2 } from 'lucide-react';
 import { startInterfaceTour } from './useInterfaceTour';
 import { startWorkflowGuidance } from './useWorkflowGuidance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -618,7 +618,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
     const containerRef = useRef<HTMLDivElement>(null);
 
     const toggleBrowserFullScreen = () => {
-        if (!containerRef.current) return;
+        if (containerRef.current == null) return;
         if (!document.fullscreenElement) {
             containerRef.current.requestFullscreen().catch(err => {
                 console.error(`Error attempting to enable full-screen mode: ${err.message}`);

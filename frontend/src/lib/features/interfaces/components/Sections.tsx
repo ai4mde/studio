@@ -585,10 +585,10 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
             target_page: pageName || '',
             params: behavior.item_click?.params || {},
         };
-        if (!pageName) {
-            delete behavior.item_click.target_page;
-        } else {
+        if (pageName) {
             behavior.item_click.type = 'navigate';
+        } else {
+            delete behavior.item_click.target_page;
         }
         newData[index].behavior = behavior;
         setData(newData);
