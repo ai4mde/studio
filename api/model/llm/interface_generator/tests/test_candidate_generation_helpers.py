@@ -72,8 +72,9 @@ def import_candidate_generation(interface_items=None):
     does_not_exist = type("DoesNotExist", (Exception,), {})
 
     class FakeInterface:
-        DoesNotExist = does_not_exist
         objects = Manager(interface_items or [], does_not_exist)
+
+    setattr(FakeInterface, "DoesNotExist", does_not_exist)
 
     metadata_models.Interface = FakeInterface
     metadata_models.System = type("System", (), {"objects": Manager([])})

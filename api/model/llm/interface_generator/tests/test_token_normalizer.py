@@ -1,6 +1,7 @@
 """Tests for llm.interface_generator.token_normalizer — all pure functions, no DB needed."""
 
 from unittest import TestCase
+from typing import cast
 
 from llm.interface_generator.token_normalizer import (
     _as_list,
@@ -53,7 +54,7 @@ class NameIdTests(TestCase):
 
     def test_none_fallback(self):
         """Verify that none fallback."""
-        self.assertEqual(_name_id(None), "workflow_step")
+        self.assertEqual(_name_id(cast(str, None)), "workflow_step")
 
     def test_consecutive_spaces(self):
         """Verify that consecutive spaces."""
@@ -113,7 +114,7 @@ class SidTests(TestCase):
 
     def test_none_fallback(self):
         """Verify that none fallback."""
-        self.assertEqual(_sid(None), "section")
+        self.assertEqual(_sid(cast(str, None)), "section")
 
     def test_strips_leading_trailing_underscore(self):
         """Verify that strips leading trailing underscore."""

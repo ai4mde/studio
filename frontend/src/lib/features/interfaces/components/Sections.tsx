@@ -80,53 +80,6 @@ const SECTION_DATA_ROLE_OPTIONS = [
     { value: 'notify_summary', label: 'Notify summary', hint: 'Show a notification or result summary.' },
 ];
 
-const DATA_ROLE_CONFIG: Record<string, any> = {
-    display_records: {
-        layout: 'list',
-        role: 'object_collection',
-        component: 'ObjectList',
-        operations: { create: false, update: false, delete: false, select: false },
-    },
-    show_record: {
-        layout: 'detail',
-        role: 'object_detail',
-        component: 'DetailPanel',
-        operations: { create: false, update: false, delete: false, select: false },
-    },
-    create_record: {
-        layout: 'form',
-        role: 'object_form',
-        component: 'ObjectForm',
-        operations: { create: true, update: false, delete: false, select: false },
-    },
-    update_record: {
-        layout: 'form',
-        role: 'object_form',
-        component: 'ObjectForm',
-        operations: { create: false, update: true, delete: false, select: false },
-    },
-    select_existing: {
-        layout: 'list',
-        role: 'object_collection',
-        component: 'ObjectList',
-        operations: { create: false, update: false, delete: false, select: true },
-    },
-    decision_check: {
-        layout: 'detail',
-        role: 'object_detail',
-        component: 'SummaryPanel',
-        operations: { create: false, update: false, delete: false, select: false },
-        workflowIntent: 'check',
-    },
-    notify_summary: {
-        layout: 'detail',
-        role: 'object_detail',
-        component: 'SummaryPanel',
-        operations: { create: false, update: false, delete: false, select: false },
-        workflowIntent: 'notify',
-    },
-};
-
 const SectionEditorGroup = ({
     title,
     description,
@@ -694,33 +647,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         setSelectedOperations(updatedOperations);
         const newData = [...data];
         newData[sectionIndex].operations = updatedOperations;
-        setData(newData);
-    };
-
-    const handleDataRoleChange = (sectionIndex: number, dataRole: string) => {
-        const config = DATA_ROLE_CONFIG[dataRole] || DATA_ROLE_CONFIG.display_records;
-        const newData = [...data];
-        const current = newData[sectionIndex] || {};
-        const style = { ...asRecord(current.style) };
-        if (config.workflowIntent) {
-            style.workflow_semantics = {
-                ...asRecord(style.workflow_semantics),
-                intent: config.workflowIntent,
-            };
-        } else if (style.workflow_semantics?.intent && ['check', 'notify'].includes(String(style.workflow_semantics.intent))) {
-            style.workflow_semantics = { ...asRecord(style.workflow_semantics) };
-            delete style.workflow_semantics.intent;
-        }
-        newData[sectionIndex] = {
-            ...current,
-            data_role: dataRole,
-            layout: config.layout,
-            role: config.role,
-            component: config.component,
-            operations: config.operations,
-            style,
-        };
-        setSelectedOperations(config.operations);
         setData(newData);
     };
 

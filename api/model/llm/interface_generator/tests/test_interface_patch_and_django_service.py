@@ -72,8 +72,9 @@ def install_fake_modules(interfaces=None, classifiers=None, systems=None):
     iface_exc = type("InterfaceDoesNotExist", (Exception,), {})
 
     class FakeInterface:
-        DoesNotExist = iface_exc
         objects = Manager(interfaces or [], iface_exc)
+
+    setattr(FakeInterface, "DoesNotExist", iface_exc)
 
     class FakeClassifier:
         objects = Manager(classifiers or [])

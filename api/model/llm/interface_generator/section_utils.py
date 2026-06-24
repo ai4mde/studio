@@ -900,7 +900,6 @@ def _ensure_logical_related_sections(pages: list, sections: list, model_graph: d
             ),
             None,
         )
-        child_info = model_graph.get(child_model) or {}
         child_attrs = _model_field_names(
             {
                 child_model: _model_graph_attr_names(model_graph, child_model)
