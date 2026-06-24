@@ -93,11 +93,11 @@ def _collect_position_sections(pages, position):
     return out
 
 
-def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str, tokens_override: dict = None) -> bool:
+def generate_base_page(application_component: ApplicationComponent, output_templates_directory: str, tokens_override: dict = None) -> bool:
     application_name = app_name_sanitization(application_component.name)
 
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/base.html.jinja2"
-    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_base.html"
+    OUTPUT_FILE_PATH = output_templates_directory + "/" + application_name + "_base.html"
 
     logo = "" # TODO: retrieve from metadata
     categories = application_component.categories
@@ -162,10 +162,10 @@ def _make_task_home_page(application_component: ApplicationComponent) -> Page:
     )
 
 
-def generate_home_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str, tokens: dict) -> bool:
+def generate_home_page(application_component: ApplicationComponent, output_templates_directory: str, tokens: dict) -> bool:
     application_name = app_name_sanitization(application_component.name)
 
-    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_home.html"
+    OUTPUT_FILE_PATH = output_templates_directory + "/" + application_name + "_home.html"
     home_page = _make_task_home_page(application_component)
     home_page.is_task_page = True
     gen_html = _render_unified_page(
