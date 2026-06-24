@@ -1126,11 +1126,11 @@ def _candidate_list_from_llm_response(text: str) -> list:
 
 
 _FULL_WIDTH_PROMPT_RE = re.compile(
-    r"(?:\b(?:full[- ]?width|fullscreen|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|全宽|全屏|通栏|沉浸)",
+    r"(?:\b(?:full[- ]?width|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|全宽|全屏|通栏|沉浸)",
     re.I,
 )
 _WIDTH_PROMPT_RE = re.compile(
-    r"(?:\b(?:contained|wide|full[- ]?width|fullscreen|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|居中|宽版|全宽|全屏|通栏|沉浸)",
+    r"(?:\b(?:contained|wide|full[- ]?width|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|居中|宽版|全宽|全屏|通栏|沉浸)",
     re.I,
 )
 _DEFAULT_WIDTH_VARIANTS = (

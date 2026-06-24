@@ -340,7 +340,11 @@ def run_prototype():
     id = data.get('id')
     name = data.get('name')
     system = data.get('system')
-    result, error_code = start_prototype(id, name, system)
+    try:
+        safe_id = _safe_path_part(id)
+    except ValueError:
+        return "Invalid prototype identifier", 400
+    result, error_code = start_prototype(safe_id, name, system)
     if result:
         return redirect(_running_prototype_public_url(), code=307)
     else:
@@ -393,38 +397,48 @@ def generate_prototype():
     metadata = data.get('metadata')
     variant_id = data.get('variant_id', '1')
     try:
-        _run_generator(GENERATOR_PATH, id, system, name, metadata, variant_id,
+        safe_id = _safe_path_part(id)
+        safe_name = _safe_path_part(name)
+        safe_system = _safe_path_part(system)
+        safe_variant_id = _safe_path_part(variant_id)
+    except ValueError:
+        return "Invalid prototype request", 400
+
+    try:
+        _run_generator(GENERATOR_PATH, safe_id, safe_system, safe_name, metadata, safe_variant_id,
                        check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
-        error_detail = (e.stderr or e.stdout or "no output captured")
-        failed_path = os.path.join(ROOT_DIR, system, name)
+        failed_path = _prototype_path(safe_system, safe_name)
         if os.path.isdir(failed_path):
             shutil.rmtree(failed_path, ignore_errors=True)
-        app.logger.error(f"Generation failed for {name}:\n{error_detail}")
-        return f"Failed to generate prototype, id={id}\n{error_detail}", 500
+        app.logger.error("Generation failed with return code %s", e.returncode)
+        return "Failed to generate prototype", 500
 
     # TODO: this database retrieval should be done using ids
     if 'database_prototype_name' in data:
-        database_prototype_name = data.get('database_prototype_name')
         try:
-            _run_sh(COPY_DATABASE_PATH, [database_prototype_name, name, system], check=True)
+            database_prototype_name = _safe_path_part(data.get('database_prototype_name'))
+        except ValueError:
+            return "Invalid database prototype name", 400
+        try:
+            _run_sh(COPY_DATABASE_PATH, [database_prototype_name, safe_name, safe_system], check=True)
         except subprocess.CalledProcessError:
-            return f"Failed to copy database from {database_prototype_name} to {name}", 500
+            return "Failed to copy database", 500
         # The copied database may be from an older schema version; re-run migrate
         # so any new tables (e.g. shared_models_user) are created without losing data.
-        prototype_path = os.path.join(ROOT_DIR, system, name)
+        prototype_path = _prototype_path(safe_system, safe_name)
         result = subprocess.run(
             ["python", MANAGE_PY, "migrate", "--skip-checks"],
             cwd=prototype_path,
             capture_output=True,
         )
         if result.returncode != 0:
-            return f"Failed to migrate database after copy for {name}", 500
+            return "Failed to migrate database after copy", 500
         result = _reconcile_sqlite_schema(prototype_path)
         if result.returncode != 0:
-            app.logger.error(f"Failed to reconcile copied database schema for {name}:\n{result.stderr or result.stdout}")
-            return f"Failed to reconcile database schema after copy for {name}", 500
-    return f"Generated {name} prototype", 200
+            app.logger.error("Failed to reconcile copied database schema")
+            return "Failed to reconcile database schema after copy", 500
+    return "Generated prototype", 200
 
 
 @app.route('/seed', methods=['POST'])
@@ -462,7 +476,7 @@ def seed_prototype_data():
         capture_output=True, text=True, timeout=90, env=env,
     )
     if result.returncode != 0:
-        return result.stderr or 'Seed failed', 500
+        return 'Seed failed', 500
 
     _patch_autologin(proto_path, project_name)
     return result.stdout or 'Seeded OK', 200
@@ -574,18 +588,18 @@ def remove_prototype():
     name = data.get('name')
     system = data.get('system')
     try:
-        _safe_path_part(id)
-        _safe_path_part(name)
-        _safe_path_part(system)
+        safe_id = _safe_path_part(id)
+        safe_name = _safe_path_part(name)
+        safe_system = _safe_path_part(system)
     except ValueError:
         return "Invalid prototype identifier", 400
     if "id" in running_prototype and running_prototype["id"] == id:
         stop_prototype()
     try:
-        _run_sh(REMOVER_PATH, [id, name, system], check=True)
+        _run_sh(REMOVER_PATH, [safe_id, safe_name, safe_system], check=True)
     except subprocess.CalledProcessError:
-        return f"Failed to remove {name} prototype, id={id}", 500
-    return f"Removed {name} prototype, id={id}", 200
+        return "Failed to remove prototype", 500
+    return "Removed prototype", 200
 
 
 TEMPLATES_DIR = "/usr/src/prototypes/backend/generation/templates"
@@ -663,8 +677,8 @@ def preview_template():
     env = jinja2.Environment()
     try:
         rendered = env.from_string(full_html).render(**_PREVIEW_SAMPLE)
-    except Exception as exc:
-        return str(exc), 500, {'Content-Type': 'text/plain'}
+    except Exception:
+        return "Failed to render preview template", 500, {'Content-Type': 'text/plain'}
 
     return rendered, 200, {'Content-Type': 'text/html; charset=utf-8'}
 
