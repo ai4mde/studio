@@ -395,7 +395,8 @@ def resolve_interface_semantics_with_llm(
         )
         resp.raise_for_status()
         text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-        text = _re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+        text = _re.sub(r"^```(?:json)?\s*", "", text)
+        text = _re.sub(r"\s*```$", "", text).strip()
         raw = _json.loads(text)
     except Exception as exc:
         logger.warning("semantic resolver fallback to rules: %s", exc)
@@ -869,7 +870,8 @@ def apply_prompt_to_interface(interface_id: str, system_id: str, user_request: s
             },
         )
         raw_text = str(getattr(response, "text", "") or "").strip()
-        raw_text = _re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text).strip()
+        raw_text = _re.sub(r"^```(?:json)?\s*", "", raw_text)
+        raw_text = _re.sub(r"\s*```$", "", raw_text).strip()
         patch = _json.loads(raw_text)
         if not isinstance(patch, dict):
             return {"status": "error", "message": "Model did not return a JSON object patch."}

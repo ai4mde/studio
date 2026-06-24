@@ -622,16 +622,16 @@ def preview_template():
     if variant not in ('1', '2', '3'):
         abort(400)
 
-    path = os.path.join(TEMPLATES_DIR, f'page_v{variant}.html.jinja2')
+    path = _safe_child_path(TEMPLATES_DIR, f'page_v{variant}.html.jinja2')
     if not os.path.exists(path):
         abort(404)
 
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    fallback_css_path = os.path.join(TEMPLATES_DIR, 'helpers', 'tailwind_fallback.css.jinja2')
+    fallback_css_path = _safe_child_path(TEMPLATES_DIR, 'helpers', 'tailwind_fallback.css.jinja2')
     try:
-        with open(fallback_css_path, 'r') as f:
+        with open(fallback_css_path, 'r', encoding='utf-8') as f:
             fallback_css = f.read()
     except OSError:
         fallback_css = ''

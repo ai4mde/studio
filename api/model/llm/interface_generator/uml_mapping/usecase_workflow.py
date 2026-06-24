@@ -516,11 +516,11 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
 
     def _node_classifier(node: dict) -> tuple[str, dict]:
         """Provide a local helper for _workflow_plan."""
-        raw = node.get("cls") or {}
-        if isinstance(raw, dict):
-            cls_id = str(raw.get("id") or node.get("cls_ptr") or node.get("cls_id") or "")
-            return cls_id, raw
-        cls_id = str(node.get("cls_ptr") or node.get("cls_id") or raw or "")
+        raw_cls = node.get("cls")
+        if isinstance(raw_cls, dict):
+            cls_id = str(raw_cls.get("id") or node.get("cls_ptr") or node.get("cls_id") or "")
+            return cls_id, raw_cls
+        cls_id = str(node.get("cls_ptr") or node.get("cls_id") or raw_cls or "")
         return cls_id, classifiers.get(cls_id, {})
 
     def _resolve_actor_node(raw_actor_node: object, nodes: dict[str, dict]) -> tuple[str, str]:
