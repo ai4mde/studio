@@ -224,6 +224,7 @@ function buildActorSwitchBody(prevActor: string, nextActor: string, nextUsername
 }
 
 function buildOutroBody(totalSteps: number, actorName: string): string {
+    const stepSuffix = totalSteps === 1 ? '' : 's';
     return `
 <div style="font-size:12px;line-height:1.65;max-width:320px">
     <div style="
@@ -235,7 +236,7 @@ function buildOutroBody(totalSteps: number, actorName: string): string {
         <div>
             <div style="font-weight:700;font-size:13px;color:#14532d">Workflow complete</div>
             <div style="font-size:11px;color:#166534;margin-top:2px">
-                ${totalSteps} step${totalSteps !== 1 ? 's' : ''} tested for <b>${actorName}</b>
+                ${totalSteps} step${stepSuffix} tested for <b>${actorName}</b>
             </div>
         </div>
     </div>

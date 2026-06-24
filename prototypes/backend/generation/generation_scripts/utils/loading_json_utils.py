@@ -710,7 +710,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
     except Exception as _e:
         import traceback as _tb, logging as _log
         _log.error("retrieve_pages error: %s\n%s", _e, _tb.format_exc())
-        raise Exception(f"Failed to retrieve pages from metadata: parsing error — {_e}")
+        raise ValueError(f"Failed to retrieve pages from metadata: parsing error — {_e}") from _e
 
     return out
 

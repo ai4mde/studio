@@ -306,7 +306,12 @@ def _sections_for_activity_step(step: dict, model_attrs: dict, workflow_entries:
     for model in models[:2]:
         layout = _activity_layout(step.get("activity_node_name", ""))
         is_select_step = bool(_ACTIVITY_SELECT_TERMS.search(step.get("activity_node_name", "")))
-        role = "object_form" if layout == "form" else ("object_collection" if layout in {"list", "table", "card", "gallery"} else "object_detail")
+        if layout == "form":
+            role = "object_form"
+        elif layout in {"list", "table", "card", "gallery"}:
+            role = "object_collection"
+        else:
+            role = "object_detail"
         visible = _pick_fields(model_attrs, model, role)
         component = _component_for_section(role, layout, model, page_id)
         style: dict = {

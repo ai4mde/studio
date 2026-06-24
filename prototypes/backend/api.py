@@ -130,7 +130,7 @@ except OperationalError as exc:
     env = os.environ.copy()
     env['DJANGO_SETTINGS_MODULE'] = f'{os.path.basename(prototype_path)}.settings'
     return subprocess.run(
-        ["python", "manage.py", "shell", "-c", code],
+        ["python", MANAGE_PY, "shell", "-c", code],
         cwd=prototype_path,
         env=env,
         capture_output=True,
@@ -139,6 +139,7 @@ except OperationalError as exc:
 
 
 ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
+MANAGE_PY = "manage.py"
 
 RUNNING_PROTOTYPE_PROTO = os.environ.get('RUNNING_PROTOTYPE_PROTO', "http://")
 RUNNING_PROTOTYPE_HOST = os.environ.get('RUNNING_PROTOTYPE_HOST', "prototype.ai4mde.localhost")
@@ -237,7 +238,7 @@ def _terminate_pid(pid: int):
 
 def _stop_stale_runservers():
     subprocess.run(
-        ["pkill", "-f", f"manage.py runserver 0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
+        ["pkill", "-f", f"{MANAGE_PY} runserver 0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
         check=False,
     )
     for _ in range(20):
@@ -268,7 +269,7 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
             return None, "prototype_dir_not_found"
         
         process = subprocess.Popen(
-            ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}", "--noreload"],
+            ["python", MANAGE_PY, "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}", "--noreload"],
             cwd=prototype_path,
             stdout=sys.stdout,
             stderr=sys.stderr,
@@ -377,7 +378,7 @@ def generate_prototype():
         # so any new tables (e.g. shared_models_user) are created without losing data.
         prototype_path = os.path.join(ROOT_DIR, system, name)
         result = subprocess.run(
-            ["python", "manage.py", "migrate", "--skip-checks"],
+            ["python", MANAGE_PY, "migrate", "--skip-checks"],
             cwd=prototype_path,
             capture_output=True,
         )

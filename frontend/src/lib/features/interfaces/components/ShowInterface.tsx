@@ -43,8 +43,8 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState<number | string>(0);
     const [autoSaveEnabled, setAutoSaveEnabled] = useState(() => {
-        if (typeof window === 'undefined') return false;
-        return window.localStorage.getItem('interfaceAutoSave') === 'true';
+        if (typeof globalThis.window === 'undefined') return false;
+        return globalThis.localStorage.getItem('interfaceAutoSave') === 'true';
     });
     const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     //const actorId = data?.actor || '';
@@ -98,7 +98,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const toggleAutoSave = () => {
         const next = !autoSaveEnabled;
         setAutoSaveEnabled(next);
-        window.localStorage.setItem('interfaceAutoSave', String(next));
+        globalThis.localStorage.setItem('interfaceAutoSave', String(next));
     };
 
     useEffect(() => {
@@ -156,9 +156,9 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
             }
         };
 
-        window.addEventListener('interface-local-storage-updated', onLocalStorageUpdate as EventListener);
+        globalThis.addEventListener('interface-local-storage-updated', onLocalStorageUpdate as EventListener);
         return () => {
-            window.removeEventListener('interface-local-storage-updated', onLocalStorageUpdate as EventListener);
+            globalThis.removeEventListener('interface-local-storage-updated', onLocalStorageUpdate as EventListener);
             if (autoSaveTimer.current) {
                 clearTimeout(autoSaveTimer.current);
                 autoSaveTimer.current = null;

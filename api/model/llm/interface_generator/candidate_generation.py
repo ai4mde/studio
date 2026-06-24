@@ -52,6 +52,9 @@ from .uml_mapping.mapping_sections import (
     _ensure_usecase_pages,
 )
 
+BUTTON_PRIMARY_BG_HEX = "button.primary.bg_hex"
+BUTTON_PRIMARY_TEXT_HEX = "button.primary.text_hex"
+
 
 def _render_candidate_preview_local(interface_id: str, candidate_index: int) -> str:
     """Render candidate preview local."""
@@ -139,7 +142,7 @@ _STYLING_TOKEN_KEYS = frozenset({
     "region.footer.bg_hex", "region.footer.text_hex",
     "region.main.bg_hex", "region.sidebar.bg_hex", "region.border_hex",
     "component.card.bg_hex", "component.card.border_hex",
-    "button.primary.bg_hex", "button.primary.text_hex",
+    BUTTON_PRIMARY_BG_HEX, BUTTON_PRIMARY_TEXT_HEX,
     "button.secondary.bg_hex", "button.secondary.text_hex",
     "button.ghost.text_hex", "button.danger.bg_hex", "button.link.text_hex",
     "input.bg_hex", "input.border_hex", "input.border_focus_hex", "input.text_hex",
@@ -463,7 +466,7 @@ def _candidate_compliance_report(
     add(
         "gold_buttons",
         wants_gold_buttons,
-        _is_gold(tokens.get("button.primary.bg_hex")) and _is_gold(tokens.get("button.secondary.bg_hex")),
+        _is_gold(tokens.get(BUTTON_PRIMARY_BG_HEX)) and _is_gold(tokens.get("button.secondary.bg_hex")),
         "Primary and secondary button background tokens must be gold.",
     )
     add(
@@ -1353,7 +1356,7 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
         "region.footer.bg_hex", "region.footer.text_hex",
         "region.main.bg_hex", "region.sidebar.bg_hex", "region.border_hex",
         "component.card.bg_hex", "component.card.border_hex",
-        "button.primary.bg_hex", "button.primary.text_hex",
+        BUTTON_PRIMARY_BG_HEX, BUTTON_PRIMARY_TEXT_HEX,
         "button.secondary.bg_hex", "button.secondary.text_hex",
         "button.ghost.text_hex", "button.danger.bg_hex", "button.link.text_hex",
         "input.bg_hex", "input.border_hex", "input.border_focus_hex", "input.text_hex",

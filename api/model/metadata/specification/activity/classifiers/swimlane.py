@@ -4,24 +4,26 @@ from typing import Annotated, Union, Literal, List
 from diagram.models import Node
 from metadata.models import Classifier
 
+UNKNOWN_ACTOR = "Unknown actor"
+
 
 def resolve_actor_name(actor_node_id: str) -> str:
     node = Node.objects.filter(id=actor_node_id).select_related("cls").first()
     if node:
-        return node.cls.data.get("name", "Unknown actor")
+        return node.cls.data.get("name", UNKNOWN_ACTOR)
 
     actor = Classifier.objects.filter(id=actor_node_id, data__type="actor").first()
     if actor:
-        return actor.data.get("name", "Unknown actor")
+        return actor.data.get("name", UNKNOWN_ACTOR)
 
-    return "Unknown actor"
+    return UNKNOWN_ACTOR
 
 
 class SwimLane(BaseModel):
     type: Literal["swimlane"] = "swimlane"
     role: Literal["swimlane"] = "swimlane"
     actorNode: str
-    actorNodeName: str = "Unknown actor"
+    actorNodeName: str = UNKNOWN_ACTOR
 
     @field_validator("actorNodeName", mode="before")
     @classmethod
@@ -29,7 +31,7 @@ class SwimLane(BaseModel):
         actor_node_id = values.data.get("actorNode")
         if actor_node_id:
             return resolve_actor_name(actor_node_id)
-        return "Unknown actor"
+        return UNKNOWN_ACTOR
 
 
 class SwimLaneGroup(BaseModel):

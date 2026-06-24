@@ -6,7 +6,7 @@ from utils.sanitization import project_name_sanitization
 
 def main():
     if len(sys.argv) != 4:
-        raise Exception("Invalid number of system arguments.")
+        raise ValueError("Invalid number of system arguments.")
 
     project_name = project_name_sanitization(sys.argv[1])
     authentication_present = sys.argv[2] == "True"
@@ -22,7 +22,7 @@ def main():
         output_file_path,
         {"authentication_present": authentication_present},
     ):
-        raise Exception(f"Failed to generate {project_name}/shared_models/views.py")
+        raise RuntimeError(f"Failed to generate {project_name}/shared_models/views.py")
 
 
 if __name__ == "__main__":

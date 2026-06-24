@@ -1273,7 +1273,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 </button>
                                             </div>
                                             {(data[index].query?.order_by || []).map((order, orderIndex) => (
-                                                <div key={orderIndex} className="flex gap-1">
+                                                <div key={`${order.field || 'field'}-${order.direction || 'asc'}`} className="flex gap-1">
                                                     <input
                                                         type="text"
                                                         list={`query-field-list-${index}`}

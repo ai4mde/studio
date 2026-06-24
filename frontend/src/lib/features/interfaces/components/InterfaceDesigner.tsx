@@ -48,6 +48,8 @@ const HEADER_LAYOUTS: LayoutOption[] = ['promo-bar', 'logo', 'search-bar', 'icon
 const FOOTER_LAYOUTS: LayoutOption[] = ['service-bar', 'link-grid', 'brand-strip', 'compact-footer', 'legal-footer', 'newsletter-footer', 'social-footer', 'mega-footer', 'site-footer'];
 const MAX_AUTO_PREVIEW_BYTES = 2_000_000;
 
+const sectionRefId = (ref: any) => typeof ref === 'string' ? ref : ref?.value;
+
 const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     table:   ['color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     card:    ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
@@ -792,11 +794,10 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                 });
                 setPages((prev: any[]) => prev.map((page: any) => {
                     const refs = [...(page.sections || [])];
-                    const refId = (ref: any) => typeof ref === 'string' ? ref : ref?.value;
-                    const fi = refs.findIndex((ref: any) => refId(ref) === fromId);
+                    const fi = refs.findIndex((ref: any) => sectionRefId(ref) === fromId);
                     if (fi === -1) return page;
                     const [movingRef] = refs.splice(fi, 1);
-                    const ti = beforeId === '__end__' ? refs.length : refs.findIndex((ref: any) => refId(ref) === beforeId);
+                    const ti = beforeId === '__end__' ? refs.length : refs.findIndex((ref: any) => sectionRefId(ref) === beforeId);
                     refs.splice(ti === -1 ? refs.length : ti, 0, movingRef);
                     return { ...page, sections: refs };
                 }));
@@ -1253,11 +1254,12 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             if (s.id !== sectionId) return s;
             if (field === 'layout') {
                 const nextLayout = value as LayoutOption;
-                const nextPosition = HEADER_LAYOUTS.includes(nextLayout)
-                    ? 'header'
-                    : FOOTER_LAYOUTS.includes(nextLayout)
-                        ? 'footer'
-                        : s.position;
+                let nextPosition = s.position;
+                if (HEADER_LAYOUTS.includes(nextLayout)) {
+                    nextPosition = 'header';
+                } else if (FOOTER_LAYOUTS.includes(nextLayout)) {
+                    nextPosition = 'footer';
+                }
                 const options = COMPONENT_OPTIONS_BY_LAYOUT[nextLayout] || [];
                 const nextComponent = options.includes(s.component) ? s.component : (options[0] || s.component || '');
                 return { ...s, layout: value, position: nextPosition, component: nextComponent };
@@ -1306,7 +1308,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 return { ...s, behavior };
             }
             if (field === 'item_click_target_page') {
-                const behavior = { ...(s.behavior || {}) };
+                const behavior = s.behavior ? { ...s.behavior } : {};
                 behavior.item_click = {
                     ...(behavior.item_click || {}),
                     type: value ? 'navigate' : (behavior.item_click?.type || 'none'),
@@ -2062,6 +2064,27 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 const visualPages = Array.isArray(visualCheck?.pages) ? visualCheck.pages : [];
                                 const visualIssues = visualPages.flatMap((page: any) => Array.isArray(page?.issues) ? page.issues : []);
                                 const hasVisualCheck = visualCheck && (typeof visualCheck.passed === 'boolean' || visualCheck.skipped);
+                                let visualCheckBackground = '#fef2f2';
+                                let visualCheckBorder = '#fecaca';
+                                let visualCheckColor = '#b91c1c';
+                                if (visualCheck?.skipped) {
+                                    visualCheckBackground = '#f8fafc';
+                                    visualCheckBorder = '#e2e8f0';
+                                    visualCheckColor = '#475569';
+                                } else if (visualCheck?.passed) {
+                                    visualCheckBackground = '#ecfdf5';
+                                    visualCheckBorder = '#bbf7d0';
+                                    visualCheckColor = '#166534';
+                                }
+                                let visualCheckMessage = `Screenshot warnings: ${visualIssues.length}`;
+                                if (visualIssues.length) {
+                                    visualCheckMessage += ` - ${visualIssues.slice(0, 2).join(' ')}`;
+                                }
+                                if (visualCheck?.skipped) {
+                                    visualCheckMessage = `Screenshot check skipped: ${visualCheck.reason || 'unavailable'}`;
+                                } else if (visualCheck?.passed) {
+                                    visualCheckMessage = `Screenshot OK (${visualPages.length} page${visualPages.length === 1 ? '' : 's'})`;
+                                }
                                 return (
                                     <div key={idx} style={{
                                         border: `1px solid ${isExpanded ? '#2563eb' : '#e5e7eb'}`,
@@ -2112,16 +2135,12 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                         margin: '0 0 8px',
                                                         padding: '4px 6px',
                                                         borderRadius: 5,
-                                                        background: visualCheck.skipped ? '#f8fafc' : visualCheck.passed ? '#ecfdf5' : '#fef2f2',
-                                                        border: `1px solid ${visualCheck.skipped ? '#e2e8f0' : visualCheck.passed ? '#bbf7d0' : '#fecaca'}`,
-                                                        color: visualCheck.skipped ? '#475569' : visualCheck.passed ? '#166534' : '#b91c1c',
+                                                        background: visualCheckBackground,
+                                                        border: `1px solid ${visualCheckBorder}`,
+                                                        color: visualCheckColor,
                                                     }}
                                                 >
-                                                    {visualCheck.skipped
-                                                        ? `Screenshot check skipped: ${visualCheck.reason || 'unavailable'}`
-                                                        : visualCheck.passed
-                                                            ? `Screenshot OK (${visualPages.length} page${visualPages.length === 1 ? '' : 's'})`
-                                                            : `Screenshot warnings: ${visualIssues.length}${visualIssues.length ? ` - ${visualIssues.slice(0, 2).join(' ')}` : ''}`}
+                                                    {visualCheckMessage}
                                                 </div>
                                             )}
 
