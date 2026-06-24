@@ -9,6 +9,7 @@ import difflib
 
 
 UNIFIED_TEMPLATE = "page_unified.html.jinja2"
+ACCENT_HEX_TOKEN = "accent.hex"
 
 
 HEADER_CHROME_LAYOUTS = {
@@ -68,7 +69,7 @@ def _expand_legacy_token_hex(tokens: dict) -> None:
         ("page.body.text", "page.body.text_hex"),
         ("region.header.bg", "region.header.bg_hex"),
         ("region.footer.bg", "region.footer.bg_hex"),
-        ("element.text.accent", "accent.hex"),
+        ("element.text.accent", ACCENT_HEX_TOKEN),
     ):
         if not tokens.get(hex_key):
             color = _class_to_hex(tokens.get(class_key))
@@ -99,9 +100,9 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
     tokens = dict(tokens_override or getattr(application_component, "tokens", {}) or {})
     default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
     styling_accent = (application_component.styling.accent_color or '') if application_component.styling else ''
-    if styling_accent and tokens.get("accent.hex") in default_blues:
-        tokens["accent.hex"] = styling_accent
-    accent_hex = tokens.get("accent.hex") or styling_accent or '#0000a4'
+    if styling_accent and tokens.get(ACCENT_HEX_TOKEN) in default_blues:
+        tokens[ACCENT_HEX_TOKEN] = styling_accent
+    accent_hex = tokens.get(ACCENT_HEX_TOKEN) or styling_accent or '#0000a4'
     header_sections = _collect_position_sections(application_component.pages, 'header')
     footer_sections = _collect_position_sections(application_component.pages, 'footer')
 
@@ -190,7 +191,7 @@ def _render_unified_page(page, all_pages, tokens, styling, application_name, pro
         tokens=tokens,
         all_pages=all_pages,
         preview_mode=preview_mode,
-        _accent_hex=tokens.get("accent.hex", (styling.accent_color if styling and getattr(styling, 'accent_color', None) else '#0000a4')),
+        _accent_hex=tokens.get(ACCENT_HEX_TOKEN, (styling.accent_color if styling and getattr(styling, 'accent_color', None) else '#0000a4')),
         _brand_name=tokens.get("brand.name", application_name),
     )
 
@@ -249,9 +250,9 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
     if styling:
         styling_accent = getattr(styling, 'accent_color', None)
-        if styling_accent and tokens.get("accent.hex") in default_blues:
-            tokens["accent.hex"] = styling_accent
-        accent = tokens.get("accent.hex")
+        if styling_accent and tokens.get(ACCENT_HEX_TOKEN) in default_blues:
+            tokens[ACCENT_HEX_TOKEN] = styling_accent
+        accent = tokens.get(ACCENT_HEX_TOKEN)
         if accent:
             tokens.setdefault("region.header.bg", f"bg-[{accent}]")
             tokens.setdefault("page.header.text", "text-white")
@@ -273,7 +274,7 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     tokens.setdefault("theme.card.hover", getattr(styling, 'card_hover', 'lift') if styling else 'lift')
     tokens.setdefault("theme.image.ratio", getattr(styling, 'image_ratio', '4:3') if styling else '4:3')
     tokens.setdefault("theme.divider", getattr(styling, 'divider', 'none') if styling else 'none')
-    accent_hex = tokens.get("accent.hex")
+    accent_hex = tokens.get(ACCENT_HEX_TOKEN)
     if accent_hex:
         for key in ("region.header.bg_hex", "region.footer.bg_hex", "button.primary.bg_hex", "button.primary.border_hex", "input.border_focus_hex"):
             if tokens.get(key) in default_blues:

@@ -12,6 +12,7 @@ from llm.interface_generator.section_utils import _normalize_select_existing_sec
 
 TEMPLATE_DIR = "/usr/src/templates"
 UNIFIED_TEMPLATE = "page_unified.html.jinja2"
+ACCENT_HEX_TOKEN = "accent.hex"
 
 DEFAULT_SECTION_STYLE = {
     "color": "blue",
@@ -863,10 +864,10 @@ def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> N
     tokens.setdefault("brand.name", interface_name)
     default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
     styling_accent = styling.get("accentColor", "")
-    current_accent = tokens.get("accent.hex")
+    current_accent = tokens.get(ACCENT_HEX_TOKEN)
     if styling_accent and current_accent in default_blues:
-        tokens["accent.hex"] = styling_accent
-    accent = tokens.get("accent.hex")
+        tokens[ACCENT_HEX_TOKEN] = styling_accent
+    accent = tokens.get(ACCENT_HEX_TOKEN)
     if accent:
         if "region.header.bg" not in tokens:
             tokens["region.header.bg"] = f"bg-[{accent}]"
@@ -913,7 +914,7 @@ def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> N
     tokens.setdefault("theme.image.ratio", styling.get("imageRatio", "4:3"))
     tokens.setdefault("theme.divider", styling.get("divider", "none"))
 
-    accent_hex = tokens.get("accent.hex")
+    accent_hex = tokens.get(ACCENT_HEX_TOKEN)
     if accent_hex:
         for key in ("region.header.bg_hex", "region.footer.bg_hex", "button.primary.bg_hex", "button.primary.border_hex", "input.border_focus_hex"):
             if tokens.get(key) in default_blues:
