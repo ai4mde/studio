@@ -315,7 +315,7 @@ const livePathForPage = (interfaceName: string | undefined, page: any) => {
 };
 
 const normalizeDesignTokens = (raw: any, styling: any) => {
-    const tokens = { ...(raw || {}) };
+    const tokens = raw ? { ...raw } : {};
     [
         'region.header.bg_hex', 'region.header.text_hex',
         'region.footer.bg_hex', 'region.footer.text_hex',

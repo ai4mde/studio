@@ -112,10 +112,9 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
         description=prototype.description or "",
         system=system,
         database_hash=prototype.database_hash or "",
-        metadata=metadata # TODO: maybe we do not want to push all metadata to the DB?
+        metadata=metadata
     )
     GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
-    layout_config = metadata.get('layout_config') if isinstance(metadata, dict) else None
 
     # Enrich metadata with system classifiers, diagrams, and relations so the
     # generator can resolve model names and workflows even when the initial
