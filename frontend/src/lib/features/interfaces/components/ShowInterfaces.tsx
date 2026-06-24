@@ -27,6 +27,15 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
     const [interfaceToDelete, setInterfaceToDelete] = useState("");
     const [isMappingAll, setIsMappingAll] = useState(false);
     const [mapAllStatus, setMapAllStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    let mapAllButtonBackground = '#ede9fe';
+    let mapAllButtonLabel = 'Map All';
+    if (mapAllStatus === 'ok') {
+        mapAllButtonBackground = '#f0fdf4';
+        mapAllButtonLabel = 'Mapped!';
+    } else if (mapAllStatus === 'error') {
+        mapAllButtonBackground = '#fef2f2';
+        mapAllButtonLabel = 'Failed';
+    }
 
     const handleLoadInterface = (app_comp) => {
 
@@ -132,14 +141,14 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
                         title="Map UML diagrams to interfaces for all actors in this system"
                         className="flex h-fit w-30 flex-col gap-2 overflow-hidden text-ellipsis rounded-md p-4 hover:bg-stone-300"
                         style={{
-                            background: mapAllStatus === 'ok' ? '#f0fdf4' : mapAllStatus === 'error' ? '#fef2f2' : '#ede9fe',
+                            background: mapAllButtonBackground,
                             opacity: isMappingAll || !systemId ? 0.6 : 1,
                             cursor: isMappingAll ? 'default' : 'pointer',
                         }}
                     >
                         <div className="flex flex-row gap-1 items-center">
                             {isMappingAll ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={20} />}
-                            <p>{mapAllStatus === 'ok' ? 'Mapped!' : mapAllStatus === 'error' ? 'Failed' : 'Map All'}</p>
+                            <p>{mapAllButtonLabel}</p>
                         </div>
                     </button>
                     <button

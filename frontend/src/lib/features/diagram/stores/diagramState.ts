@@ -47,9 +47,18 @@ export const useDiagramStore = create<DiagramState>((set) => ({
         );
         set(() => ({
             nodes: nds.map((e) => {
-                const parentNode = e?.cls?.parentNode
-                    ? classifierNodeMap.get(e.cls.parentNode) ?? e.cls.parentNode
-                    : (e?.cls?.actorNode ? swimlaneGroupUUID : null);
+                let parentNode = null;
+                if (e?.cls?.parentNode) {
+                    parentNode = classifierNodeMap.get(e.cls.parentNode) ?? e.cls.parentNode;
+                } else if (e?.cls?.actorNode) {
+                    parentNode = swimlaneGroupUUID;
+                }
+                let zIndex = 1;
+                if (e?.cls?.type === "swimlanegroup") {
+                    zIndex = -1;
+                } else if (e?.cls?.type === "system_boundary") {
+                    zIndex = 0;
+                }
 
                 return {
                     id: e?.id,
@@ -65,8 +74,8 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     },
                     parentNode,
                     extent: parentNode ? 'parent' : null,
-                    connectable: e?.cls?.type === 'swimlanegroup' ? false : true,
-                    zIndex: e?.cls?.type === "swimlanegroup" ? -1 : e?.cls?.type === "system_boundary" ? 0 : 1,
+                    connectable: e?.cls?.type !== 'swimlanegroup',
+                    zIndex,
                 };
             }),
         }))
