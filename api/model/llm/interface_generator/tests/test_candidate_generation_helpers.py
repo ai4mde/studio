@@ -61,6 +61,11 @@ class Obj:
         self.__dict__.update(kwargs)
 
 
+def _raise_skip_context(_system_id):
+    """Raise a controlled error when a test should skip context loading."""
+    raise RuntimeError("skip")
+
+
 def import_candidate_generation(interface_items=None):
     """Provide the import candidate generation test helper."""
     sys.modules.pop("llm.interface_generator.candidate_generation", None)
@@ -176,7 +181,7 @@ def test_validate_and_save_candidate_normalizes_and_persists(monkeypatch):
     """Verify that validate and save candidate normalizes and persists."""
     interface = make_interface({"pages": [], "sections": [], "candidates": []})
     cg = import_candidate_generation([interface])
-    monkeypatch.setattr(cg, "_fetch_system_context_data", lambda system_id: (_ for _ in ()).throw(RuntimeError("skip")))
+    monkeypatch.setattr(cg, "_fetch_system_context_data", _raise_skip_context)
 
     result = cg.validate_and_save_candidate(
         "iface",
@@ -209,7 +214,7 @@ def test_validate_and_save_candidate_patches_and_checks_prompt_compliance(monkey
     """Verify that explicit designer requirements are patched and checked."""
     interface = make_interface({"pages": [], "sections": [], "candidates": []})
     cg = import_candidate_generation([interface])
-    monkeypatch.setattr(cg, "_fetch_system_context_data", lambda system_id: (_ for _ in ()).throw(RuntimeError("skip")))
+    monkeypatch.setattr(cg, "_fetch_system_context_data", _raise_skip_context)
 
     prompt = "Use navy header, beige cards, gold buttons, contained main layout, left sidebar navigation, smaller table text and bigger hero title."
     result = cg.validate_and_save_candidate(
@@ -354,10 +359,10 @@ def test_candidate_variant_name_cycles_labels():
     """Verify that candidate variant name cycles labels."""
     cg = import_candidate_generation()
 
-    assert cg._candidate_variant_name("ignored", 0) == "Agent Gallery"
-    assert cg._candidate_variant_name("ignored", 1) == "Agent Table"
-    assert cg._candidate_variant_name("ignored", 2) == "Agent Showcase"
-    assert cg._candidate_variant_name("ignored", 3) == "Agent Gallery"
+    assert cg._candidate_variant_name(0) == "Agent Gallery"
+    assert cg._candidate_variant_name(1) == "Agent Table"
+    assert cg._candidate_variant_name(2) == "Agent Showcase"
+    assert cg._candidate_variant_name(3) == "Agent Gallery"
 
 
 def test_parse_llm_json_handles_fences_embedded_json_and_repair():
@@ -457,7 +462,6 @@ def test_tokens_from_llm_styling_and_schema_merge_non_empty_values():
     tokens = cg._tokens_from_llm_styling(
         {"accentColor": "#111", "accentSecondary": "#222", "backgroundColor": "#fff", "textColor": "#000", "textSize": "lg"},
         {"base": "x"},
-        "",
         2,
     )
     assert tokens["base"] == "x"
@@ -468,7 +472,6 @@ def test_tokens_from_llm_styling_and_schema_merge_non_empty_values():
     schema_tokens = cg._tokens_from_llm_schema(
         {"styling": '{"accentColor":"#333"}', "tokens": {"accent.hex": "#444", "empty": ""}},
         {},
-        "",
         1,
     )
     assert schema_tokens["accent.hex"] == "#444"

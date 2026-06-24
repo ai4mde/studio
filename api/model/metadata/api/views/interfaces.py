@@ -172,7 +172,6 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
             relations=renderer_relations,
         )
         yield json.dumps({"status": "Done", "files": files, "message": "AI Generation Successful.", "interface_data": interface.data}) + "\n"
-        return
 
 
     resp = StreamingHttpResponse(stream_generator(), content_type="application/x-ndjson")
@@ -352,7 +351,6 @@ def regenerate_candidates_from_selected(request, id: str, candidate_index: int, 
             for i, c in enumerate(refreshed_candidates[:3])
         ]
         yield json.dumps({"status": "Done", "message": "Candidate regeneration complete.", "candidates": summary}) + "\n"
-        return
 
 
     resp = StreamingHttpResponse(stream_generator(), content_type="application/x-ndjson")

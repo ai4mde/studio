@@ -996,7 +996,7 @@ def validate_and_save_candidate(
         fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
 
         label_prompt = prompt or designer_requirements
-        name = name or _candidate_variant_name(label_prompt, candidate_index)
+        name = name or _candidate_variant_name(candidate_index)
         variation_strategy = variation_strategy or name
         fixed_pages, fixed_sections, tokens_d, styling_d = _apply_design_intent_patch(
             fixed_pages,
@@ -1100,7 +1100,7 @@ def get_candidate_regeneration_context(interface_id: str, candidate_index: int, 
     except Exception as e:
         return f"Error fetching candidate regeneration context: {e}"
 
-def _candidate_variant_name(prompt: str, index: int) -> str:
+def _candidate_variant_name(index: int) -> str:
     """Build candidate variant name."""
     prefix = "Agent"
     suffixes = ("Gallery", "Table", "Showcase")
@@ -1365,7 +1365,7 @@ _TEXT_SIZE_TOKENS = {
 }
 
 
-def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, index: int) -> dict:
+def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, index: int) -> dict:
     """Build color and typography tokens seeded from LLM styling output."""
     tokens = dict(base_tokens or {})
     accent = llm_styling.get("accentColor") or ""
@@ -1407,7 +1407,7 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     return tokens
 
 
-def _tokens_from_llm_schema(llm_candidate: dict, base_tokens: dict, prompt: str, index: int) -> dict:
+def _tokens_from_llm_schema(llm_candidate: dict, base_tokens: dict, index: int) -> dict:
     """Prefer the LLM's complete top-level tokens; use styling only as a fallback seed."""
     llm_styling = llm_candidate.get("styling") or {}
     if isinstance(llm_styling, str):
@@ -1416,7 +1416,7 @@ def _tokens_from_llm_schema(llm_candidate: dict, base_tokens: dict, prompt: str,
         except Exception:
             llm_styling = {}
 
-    tokens = _tokens_from_llm_styling(llm_styling, base_tokens, prompt, index)
+    tokens = _tokens_from_llm_styling(llm_styling, base_tokens, index)
     llm_tokens = llm_candidate.get("tokens") or {}
     if isinstance(llm_tokens, str):
         try:
@@ -1460,7 +1460,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
 
             llm_styling = llm_cand.get("styling") or {}
             llm_tokens = llm_cand.get("tokens") or {}
-            tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, prompt, index)
+            tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, index)
 
             styling = dict(base_styling or {})
             for key in (
@@ -1472,7 +1472,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                     styling[key] = llm_styling[key]
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
-            fallback_name = _candidate_variant_name(prompt, index)
+            fallback_name = _candidate_variant_name(index)
             variant_name = llm_cand.get("name") or fallback_name
             styling["variantIndex"] = index
             styling["variantName"] = variant_name
@@ -1531,7 +1531,7 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
 
             llm_styling = llm_cand.get("styling") or {}
             llm_tokens = llm_cand.get("tokens") or {}
-            tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, designer_requirements, index)
+            tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, index)
 
             styling = dict(base_styling or {})
             for key in (
@@ -1543,7 +1543,7 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                     styling[key] = llm_styling[key]
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
-            fallback_name = _candidate_variant_name(designer_requirements, index)
+            fallback_name = _candidate_variant_name(index)
             base_variant_name = llm_cand.get("name") or fallback_name
             styling["variantIndex"] = index
             styling["variantName"] = base_variant_name
