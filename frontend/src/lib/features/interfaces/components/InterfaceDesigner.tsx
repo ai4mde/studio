@@ -1848,6 +1848,20 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const seedButtonLabel = statusLabel(seedStatus, 'Seeded!', 'Failed', 'Seed Data');
     const syncButtonLabel = statusLabel(syncStatus, 'Synced!', 'Sync Failed', 'Sync Live');
     const visualCheckButtonLabel = statusLabel(visualCheckStatus, 'Matched', 'Diff', 'Visual Check');
+    let candidatePreviewMessage = 'Select a candidate to preview.';
+    if (isGeneratingCandidates) {
+        candidatePreviewMessage = 'Generating candidates...';
+    } else if (candidates.length === 0) {
+        candidatePreviewMessage = 'Generate candidates to see previews here.';
+    }
+    let previewEmptyMessage = 'Loading preview...';
+    if (previewError) {
+        previewEmptyMessage = previewError;
+    } else if ((sections as any[]).length === 0) {
+        previewEmptyMessage = 'Add sections and pages to see a preview.';
+    } else if ((pages as any[]).length === 0) {
+        previewEmptyMessage = 'Add pages in the Pages tab to see a preview.';
+    }
     const pageLayout = currentPage?.layout?.value || 'vertical';
     const pageMainWidth = currentPage?.layout?.main_width || 'contained';
     const pageHeaderWidth = currentPage?.layout?.header_width || 'contained';
@@ -3070,17 +3084,19 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             )}
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Layout</p>
-                            {isActivityAction ? (
+                            {isActivityAction && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                                     <span style={{ ...btnBase, ...active(true), cursor: 'default', pointerEvents: 'none' }}>Activity Button</span>
                                     <span style={{ fontSize: 11, color: '#9ca3af' }}>workflow step action</span>
                                 </div>
-                            ) : isMethodOnly ? (
+                            )}
+                            {!isActivityAction && isMethodOnly && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                                     <span style={{ ...btnBase, ...active(true), cursor: 'default', pointerEvents: 'none' }}>Action Panel</span>
                                     <span style={{ fontSize: 11, color: '#9ca3af' }}>auto — no attributes</span>
                                 </div>
-                            ) : (
+                            )}
+                            {!isActivityAction && !isMethodOnly && (
                                 <div style={{ marginBottom: 10 }}>
                                     {layoutGroupsForSelected.map(group => (
                                         <div key={group.label} style={{ marginBottom: 4 }}>
@@ -3873,14 +3889,15 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
                 {/* iframe */}
                 <div style={{ flex: 1, overflow: 'hidden', background: '#f8fafc' }}>
-                    {previewMode === 'live' ? (
+                    {previewMode === 'live' && (
                         <iframe
                             key={`live-${liveKey}-${previewPageIndex}`}
                             src={`${prototypeURL}/autologin?as=${encodeURIComponent(liveUser)}&next=${encodeURIComponent(livePathForPage(currentInterface?.name, selectedVisiblePage))}`}
                             title="Live prototype"
                             style={{ width: '100%', height: '100%', border: 'none' }}
                         />
-                    ) : designMode === 'explore' && selectedCandidateHtml ? (
+                    )}
+                    {previewMode !== 'live' && designMode === 'explore' && selectedCandidateHtml && (
                         <iframe
                             key={`candidate-${previewCandidateIdx}-${previewPageIndex}`}
                             srcDoc={selectedCandidateHtml}
@@ -3888,14 +3905,16 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             style={{ width: '100%', height: '100%', border: 'none' }}
                             sandbox="allow-scripts allow-same-origin"
                         />
-                    ) : designMode === 'explore' ? (
+                    )}
+                    {previewMode !== 'live' && designMode === 'explore' && !selectedCandidateHtml && (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 12 }}>
                             <p style={{ fontSize: 13, color: '#9ca3af' }}>
-                                {isGeneratingCandidates ? 'Generating candidates...' : candidates.length === 0 ? 'Generate candidates to see previews here.' : 'Select a candidate to preview.'}
+                                {candidatePreviewMessage}
                             </p>
                             {isGeneratingCandidates && <Loader2 size={20} style={{ color: '#9ca3af', animation: 'spin 1s linear infinite' }} />}
                         </div>
-                    ) : previewHtml && !previewError ? (
+                    )}
+                    {previewMode !== 'live' && designMode !== 'explore' && previewHtml && !previewError && (
                         <iframe
                             key={`${interfaceId}-${previewPageIndex}`}
                             srcDoc={previewHtml}
@@ -3903,16 +3922,11 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             style={{ width: '100%', height: '100%', border: 'none' }}
                             sandbox="allow-scripts allow-same-origin"
                         />
-                    ) : (
+                    )}
+                    {previewMode !== 'live' && designMode !== 'explore' && (!previewHtml || previewError) && (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                             <p style={{ fontSize: 13, color: '#9ca3af' }}>
-                                {previewError
-                                    ? previewError
-                                    : (sections as any[]).length === 0
-                                    ? 'Add sections and pages to see a preview.'
-                                    : (pages as any[]).length === 0
-                                        ? 'Add pages in the Pages tab to see a preview.'
-                                        : 'Loading preview...'}
+                                {previewEmptyMessage}
                             </p>
                         </div>
                     )}
@@ -4041,14 +4055,16 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                         background: '#0f172a',
                         padding: 16,
                     }}>
-                        {isLoadingMetadata ? (
+                        {isLoadingMetadata && (
                             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', gap: 8 }}>
                                 <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
                                 Building metadata...
                             </div>
-                        ) : metadataError ? (
+                        )}
+                        {!isLoadingMetadata && metadataError && (
                             <pre style={{ margin: 0, color: '#fecaca', whiteSpace: 'pre-wrap', fontSize: 12 }}>{metadataError}</pre>
-                        ) : (
+                        )}
+                        {!isLoadingMetadata && !metadataError && (
                             <pre style={{
                                 margin: 0,
                                 color: '#dbeafe',
