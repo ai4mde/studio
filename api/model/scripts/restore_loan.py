@@ -14,6 +14,15 @@ import os
 SYSTEM_ID = os.environ.get("LOAN_SYSTEM_ID", "a3000001-0000-5000-8000-000000000000")
 SYSTEM_NAME = os.environ.get("LOAN_SYSTEM_NAME", "Loan Application")
 PROJECT_ID = "f3d1c958-af29-45b5-82cd-9145f5912423"
+DOCUMENT_ANALYST_LABEL = "Document analyst"
+LOAN_OFFICER_LABEL = "Loan officer"
+FILL_APPLICATION_LABEL = "Fill In Loan Application"
+UPLOAD_DOCUMENTS_LABEL = "Upload Documents"
+RECEIVE_RESULTS_LABEL = "Receive Application Results"
+ASSESS_RISK_LABEL = "Assess Risk"
+APPROVE_LOAN_LABEL = "Approve Or Reject Loan"
+LOAN_APPLICATIONS_LABEL = "Loan Applications"
+APPLICATIONS_TO_REVIEW_LABEL = "Applications To Review"
 
 
 def _attr(name, type_):
@@ -207,8 +216,8 @@ LOAN_DECISION_CLASS = "c3000006-0000-5000-8000-000000000000"
 
 ACTORS = [
     _classifier(APPLICANT_ACTOR, "Applicant", "actor", []),
-    _classifier(DOCUMENT_ANALYST_ACTOR, "Document analyst", "actor", []),
-    _classifier(LOAN_OFFICER_ACTOR, "Loan officer", "actor", []),
+    _classifier(DOCUMENT_ANALYST_ACTOR, DOCUMENT_ANALYST_LABEL, "actor", []),
+    _classifier(LOAN_OFFICER_ACTOR, LOAN_OFFICER_LABEL, "actor", []),
     _classifier(SYSTEM_ACTOR, "System", "actor", []),
 ]
 
@@ -267,24 +276,24 @@ RECEIVE_RESULTS_ACTION = "a3000210-0000-5000-8000-000000000000"
 LOAN_FINAL = "a3000211-0000-5000-8000-000000000000"
 
 USECASES = [
-    _usecase(FILL_APPLICATION_UC, "Fill In Loan Application", [APPLICANT_ACTOR],
+    _usecase(FILL_APPLICATION_UC, FILL_APPLICATION_LABEL, [APPLICANT_ACTOR],
              [APPLICANT_CLASS, LOAN_APPLICATION_CLASS],
              [FILL_APPLICATION_ACTION, UPLOAD_DOCUMENTS_ACTION, SUBMIT_APPLICATION_ACTION],
              [LOAN_ACTIVITY_DIAGRAM_ID], "Applicant wants financing", "Loan application is submitted"),
-    _usecase(UPLOAD_DOCUMENTS_UC, "Upload Documents", [APPLICANT_ACTOR],
+    _usecase(UPLOAD_DOCUMENTS_UC, UPLOAD_DOCUMENTS_LABEL, [APPLICANT_ACTOR],
              [DOCUMENT_CLASS, LOAN_APPLICATION_CLASS], [UPLOAD_DOCUMENTS_ACTION], [LOAN_ACTIVITY_DIAGRAM_ID]),
     _usecase(TRACK_APPLICATIONS_UC, "Track Applications", [APPLICANT_ACTOR],
              [LOAN_APPLICATION_CLASS, DOCUMENT_CLASS, APPLICATION_NOTE_CLASS]),
-    _usecase(RECEIVE_RESULTS_UC, "Receive Application Results", [APPLICANT_ACTOR],
+    _usecase(RECEIVE_RESULTS_UC, RECEIVE_RESULTS_LABEL, [APPLICANT_ACTOR],
              [LOAN_APPLICATION_CLASS, LOAN_DECISION_CLASS], [RECEIVE_RESULTS_ACTION], [LOAN_ACTIVITY_DIAGRAM_ID]),
     _usecase(ANALYZE_DOCUMENTS_UC, "Analyze Documents", [DOCUMENT_ANALYST_ACTOR],
              [DOCUMENT_CLASS, LOAN_APPLICATION_CLASS, APPLICATION_NOTE_CLASS],
              [ANALYZE_DOCUMENTS_ACTION], [LOAN_ACTIVITY_DIAGRAM_ID]),
     _usecase(REVIEW_APPLICATIONS_UC, "Review Applications", [LOAN_OFFICER_ACTOR],
              [LOAN_APPLICATION_CLASS, APPLICANT_CLASS, DOCUMENT_CLASS, APPLICATION_NOTE_CLASS]),
-    _usecase(ASSESS_RISK_UC, "Assess Risk", [LOAN_OFFICER_ACTOR],
+    _usecase(ASSESS_RISK_UC, ASSESS_RISK_LABEL, [LOAN_OFFICER_ACTOR],
              [LOAN_APPLICATION_CLASS, RISK_ASSESSMENT_CLASS], [ASSESS_RISK_ACTION], [LOAN_ACTIVITY_DIAGRAM_ID]),
-    _usecase(APPROVE_LOAN_UC, "Approve Or Reject Loan", [LOAN_OFFICER_ACTOR],
+    _usecase(APPROVE_LOAN_UC, APPROVE_LOAN_LABEL, [LOAN_OFFICER_ACTOR],
              [LOAN_APPLICATION_CLASS, RISK_ASSESSMENT_CLASS, LOAN_DECISION_CLASS],
              [REVIEW_APPLICATION_ACTION, MAKE_DECISION_ACTION], [LOAN_ACTIVITY_DIAGRAM_ID]),
 ]
@@ -292,28 +301,28 @@ USECASES = [
 ACTIVITY_CLASSIFIERS = [
     _swimlane_group(LOAN_SWIMLANE_GROUP, [
         (APPLICANT_ACTOR, "Applicant"),
-        (DOCUMENT_ANALYST_ACTOR, "Document analyst"),
-        (LOAN_OFFICER_ACTOR, "Loan officer"),
+        (DOCUMENT_ANALYST_ACTOR, DOCUMENT_ANALYST_LABEL),
+        (LOAN_OFFICER_ACTOR, LOAN_OFFICER_LABEL),
         (SYSTEM_ACTOR, "System"),
     ]),
     _control(LOAN_INITIAL, "initial"),
-    _action(FILL_APPLICATION_ACTION, "Fill In Loan Application", APPLICANT_ACTOR, "Applicant",
+    _action(FILL_APPLICATION_ACTION, FILL_APPLICATION_LABEL, APPLICANT_ACTOR, "Applicant",
             [APPLICANT_CLASS, LOAN_APPLICATION_CLASS], "Applicant starts application", "Application draft is complete"),
-    _action(UPLOAD_DOCUMENTS_ACTION, "Upload Documents", APPLICANT_ACTOR, "Applicant",
+    _action(UPLOAD_DOCUMENTS_ACTION, UPLOAD_DOCUMENTS_LABEL, APPLICANT_ACTOR, "Applicant",
             [DOCUMENT_CLASS, LOAN_APPLICATION_CLASS], "Application draft exists", "Documents are uploaded"),
     _action(SUBMIT_APPLICATION_ACTION, "Submit Application", APPLICANT_ACTOR, "Applicant",
             [LOAN_APPLICATION_CLASS, DOCUMENT_CLASS], "Required fields and documents are present", "Application is submitted"),
-    _action(ANALYZE_DOCUMENTS_ACTION, "Analyze Documents", DOCUMENT_ANALYST_ACTOR, "Document analyst",
+    _action(ANALYZE_DOCUMENTS_ACTION, "Analyze Documents", DOCUMENT_ANALYST_ACTOR, DOCUMENT_ANALYST_LABEL,
             [DOCUMENT_CLASS, LOAN_APPLICATION_CLASS, APPLICATION_NOTE_CLASS], "Submitted application is waiting", "Documents are validated"),
-    _action(ASSESS_RISK_ACTION, "Assess Risk", LOAN_OFFICER_ACTOR, "Loan officer",
+    _action(ASSESS_RISK_ACTION, ASSESS_RISK_LABEL, LOAN_OFFICER_ACTOR, LOAN_OFFICER_LABEL,
             [LOAN_APPLICATION_CLASS, RISK_ASSESSMENT_CLASS], "Documents are validated", "Risk assessment is complete"),
-    _action(REVIEW_APPLICATION_ACTION, "Review Application", LOAN_OFFICER_ACTOR, "Loan officer",
+    _action(REVIEW_APPLICATION_ACTION, "Review Application", LOAN_OFFICER_ACTOR, LOAN_OFFICER_LABEL,
             [LOAN_APPLICATION_CLASS, APPLICANT_CLASS, DOCUMENT_CLASS], "Risk assessment is complete", "Officer has reviewed the application"),
-    _action(MAKE_DECISION_ACTION, "Approve Or Reject Loan", LOAN_OFFICER_ACTOR, "Loan officer",
+    _action(MAKE_DECISION_ACTION, APPROVE_LOAN_LABEL, LOAN_OFFICER_ACTOR, LOAN_OFFICER_LABEL,
             [LOAN_APPLICATION_CLASS, RISK_ASSESSMENT_CLASS, LOAN_DECISION_CLASS], "Application is reviewed", "Decision is recorded"),
     _action(NOTIFY_APPLICANT_ACTION, "Notify Applicant", SYSTEM_ACTOR, "System",
             [LOAN_APPLICATION_CLASS, LOAN_DECISION_CLASS], "Decision is recorded", "Applicant is notified", True),
-    _action(RECEIVE_RESULTS_ACTION, "Receive Application Results", APPLICANT_ACTOR, "Applicant",
+    _action(RECEIVE_RESULTS_ACTION, RECEIVE_RESULTS_LABEL, APPLICANT_ACTOR, "Applicant",
             [LOAN_APPLICATION_CLASS, LOAN_DECISION_CLASS], "Applicant has been notified", "Applicant has seen the result"),
     _control(LOAN_FINAL, "final"),
 ]
@@ -409,10 +418,10 @@ DIAGRAMS = [
 ]
 
 _applicant_sections = [
-    _section("s3000001-0000-5000-8000-000000000000", "Loan Applications", LOAN_APPLICATION_CLASS, "list",
+    _section("s3000001-0000-5000-8000-000000000000", LOAN_APPLICATIONS_LABEL, LOAN_APPLICATION_CLASS, "list",
              [("application_id", "str"), ("loan_amount", "int"), ("status", "str"), ("risk", "str"), ("submitted_date", "datetime")],
              {"create": True, "delete": False, "update": True}),
-    _section("s3000002-0000-5000-8000-000000000000", "Upload Documents", DOCUMENT_CLASS, "detail",
+    _section("s3000002-0000-5000-8000-000000000000", UPLOAD_DOCUMENTS_LABEL, DOCUMENT_CLASS, "detail",
              [("file_conent", "str"), ("document_type", "str"), ("upload_date", "datetime")],
              {"create": True, "delete": True, "update": True}),
     _section("s3000003-0000-5000-8000-000000000000", "Application Results", LOAN_DECISION_CLASS, "detail",
@@ -420,9 +429,9 @@ _applicant_sections = [
              {"create": False, "delete": False, "update": False}),
 ]
 _applicant_pages = [
-    _page("p3000001-0000-5000-8000-000000000000", "Track Applications", [{"label": "Loan Applications", "value": "s3000001-0000-5000-8000-000000000000"}]),
-    _page("p3000002-0000-5000-8000-000000000000", "Fill In Loan Application", [{"label": "Loan Applications", "value": "s3000001-0000-5000-8000-000000000000"}, {"label": "Upload Documents", "value": "s3000002-0000-5000-8000-000000000000"}]),
-    _page("p3000003-0000-5000-8000-000000000000", "Receive Application Results", [{"label": "Application Results", "value": "s3000003-0000-5000-8000-000000000000"}]),
+    _page("p3000001-0000-5000-8000-000000000000", "Track Applications", [{"label": LOAN_APPLICATIONS_LABEL, "value": "s3000001-0000-5000-8000-000000000000"}]),
+    _page("p3000002-0000-5000-8000-000000000000", FILL_APPLICATION_LABEL, [{"label": LOAN_APPLICATIONS_LABEL, "value": "s3000001-0000-5000-8000-000000000000"}, {"label": UPLOAD_DOCUMENTS_LABEL, "value": "s3000002-0000-5000-8000-000000000000"}]),
+    _page("p3000003-0000-5000-8000-000000000000", RECEIVE_RESULTS_LABEL, [{"label": "Application Results", "value": "s3000003-0000-5000-8000-000000000000"}]),
 ]
 
 _analyst_sections = [
@@ -438,7 +447,7 @@ _analyst_pages = [
 ]
 
 _officer_sections = [
-    _section("s3000006-0000-5000-8000-000000000000", "Applications To Review", LOAN_APPLICATION_CLASS, "list",
+    _section("s3000006-0000-5000-8000-000000000000", APPLICATIONS_TO_REVIEW_LABEL, LOAN_APPLICATION_CLASS, "list",
              [("application_id", "str"), ("loan_amount", "int"), ("status", "str"), ("risk", "str"), ("submitted_date", "datetime")],
              {"create": False, "delete": False, "update": True}),
     _section("s3000007-0000-5000-8000-000000000000", "Risk Assessment", RISK_ASSESSMENT_CLASS, "detail",
@@ -449,9 +458,9 @@ _officer_sections = [
              {"create": True, "delete": False, "update": True}),
 ]
 _officer_pages = [
-    _page("p3000005-0000-5000-8000-000000000000", "Review Applications", [{"label": "Applications To Review", "value": "s3000006-0000-5000-8000-000000000000"}]),
-    _page("p3000006-0000-5000-8000-000000000000", "Assess Risk", [{"label": "Applications To Review", "value": "s3000006-0000-5000-8000-000000000000"}, {"label": "Risk Assessment", "value": "s3000007-0000-5000-8000-000000000000"}]),
-    _page("p3000007-0000-5000-8000-000000000000", "Approve Or Reject Loan", [{"label": "Applications To Review", "value": "s3000006-0000-5000-8000-000000000000"}, {"label": "Loan Decision", "value": "s3000008-0000-5000-8000-000000000000"}]),
+    _page("p3000005-0000-5000-8000-000000000000", "Review Applications", [{"label": APPLICATIONS_TO_REVIEW_LABEL, "value": "s3000006-0000-5000-8000-000000000000"}]),
+    _page("p3000006-0000-5000-8000-000000000000", ASSESS_RISK_LABEL, [{"label": APPLICATIONS_TO_REVIEW_LABEL, "value": "s3000006-0000-5000-8000-000000000000"}, {"label": "Risk Assessment", "value": "s3000007-0000-5000-8000-000000000000"}]),
+    _page("p3000007-0000-5000-8000-000000000000", APPROVE_LOAN_LABEL, [{"label": APPLICATIONS_TO_REVIEW_LABEL, "value": "s3000006-0000-5000-8000-000000000000"}, {"label": "Loan Decision", "value": "s3000008-0000-5000-8000-000000000000"}]),
 ]
 
 def _interface(id_, name, actor, pages, sections):
@@ -472,8 +481,8 @@ def _interface(id_, name, actor, pages, sections):
 
 INTERFACES = [
     _interface("ab300001-0000-5000-8000-000000000000", "Applicant", APPLICANT_ACTOR, _applicant_pages, _applicant_sections),
-    _interface("ab300002-0000-5000-8000-000000000000", "Document analyst", DOCUMENT_ANALYST_ACTOR, _analyst_pages, _analyst_sections),
-    _interface("ab300003-0000-5000-8000-000000000000", "Loan officer", LOAN_OFFICER_ACTOR, _officer_pages, _officer_sections),
+    _interface("ab300002-0000-5000-8000-000000000000", DOCUMENT_ANALYST_LABEL, DOCUMENT_ANALYST_ACTOR, _analyst_pages, _analyst_sections),
+    _interface("ab300003-0000-5000-8000-000000000000", LOAN_OFFICER_LABEL, LOAN_OFFICER_ACTOR, _officer_pages, _officer_sections),
 ]
 
 loan_data = {
