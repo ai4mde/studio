@@ -11,12 +11,12 @@ class Command(BaseCommand):
         parser.add_argument("--email", default="demo@localhost")
 
     def handle(self, *args, **options):
-        User = get_user_model()
+        user_model = get_user_model()
         username = options["username"]
         password = options["password"]
         email = options["email"]
 
-        user, created = User.objects.get_or_create(
+        user, created = user_model.objects.get_or_create(
             username=username,
             defaults={"email": email, "is_staff": False, "is_superuser": False},
         )

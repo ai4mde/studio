@@ -77,10 +77,10 @@ def get_token(request, body: GetTokenSchema, response: HttpResponse):
     response={200: TokenResponseSchema},
 )
 def create_demo_session(request, response: HttpResponse):
-    User = get_user_model()
+    user_model = get_user_model()
     username = f"demo_{uuid.uuid4().hex[:8]}"
     password = secrets.token_urlsafe(16)
-    user = User.objects.create_user(
+    user = user_model.objects.create_user(
         username=username,
         email=f"{username}@demo.localhost",
         password=password,
