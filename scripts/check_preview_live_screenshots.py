@@ -11,6 +11,9 @@ from playwright.sync_api import sync_playwright
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_LOCAL_SCHEME = "http"
+DEFAULT_API_BASE = f"{DEFAULT_LOCAL_SCHEME}://api.ai4mde.localhost/api"
+DEFAULT_LIVE_BASE = f"{DEFAULT_LOCAL_SCHEME}://prototype.ai4mde.localhost"
 
 
 def validated_http_url(url: str) -> str:
@@ -148,11 +151,11 @@ METRICS_SCRIPT = """
 
 def main():
     parser = argparse.ArgumentParser(description="Screenshot and compare Studio design preview vs live prototype.")
-    parser.add_argument("--api-base", default="http://api.ai4mde.localhost/api")
+    parser.add_argument("--api-base", default=DEFAULT_API_BASE)
     parser.add_argument("--interface-id", required=True)
     parser.add_argument("--interface-name", required=True)
     parser.add_argument("--page", required=True, help="Page name, e.g. Categories")
-    parser.add_argument("--live-base", default="http://prototype.ai4mde.localhost")
+    parser.add_argument("--live-base", default=DEFAULT_LIVE_BASE)
     parser.add_argument("--live-user", default="jan_devries")
     parser.add_argument("--auth-user", default="admin")
     parser.add_argument("--auth-password", default="sequoias")

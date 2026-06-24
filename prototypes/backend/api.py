@@ -581,14 +581,14 @@ def autologin(request):
     with open(urls_path) as f:
         ucontent = f.read()
     if 'autologin' not in ucontent:
-        # Ensure the last path() entry before ] ends with a comma
-        import re as _re
-        ucontent = _re.sub(
-            r'(path\([^)]+\))\s*\n(\s*\])',
-            lambda m: m.group(1) + ',\n' + m.group(2)
-            if not m.group(1).rstrip().endswith(',') else m.group(0),
-            ucontent,
-        )
+        # Ensure the last path() entry before ] ends with a comma.
+        lines = ucontent.splitlines()
+        closing_index = next((i for i in range(len(lines) - 1, -1, -1) if lines[i].strip() == "]"), None)
+        if closing_index is not None:
+            previous_index = next((i for i in range(closing_index - 1, -1, -1) if lines[i].strip()), None)
+            if previous_index is not None and lines[previous_index].lstrip().startswith("path("):
+                lines[previous_index] = lines[previous_index].rstrip().rstrip(",") + ","
+                ucontent = "\n".join(lines) + ("\n" if ucontent.endswith("\n") else "")
         ucontent = ucontent.replace(
             ']',
             "    path('autologin', views.autologin, name='autologin'),\n]",
@@ -692,7 +692,7 @@ def preview_template():
         '</body></html>'
     )
 
-    env = jinja2.Environment()
+    env = jinja2.Environment(autoescape=True)
     try:
         rendered = env.from_string(full_html).render(**_PREVIEW_SAMPLE)
     except Exception:

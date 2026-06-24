@@ -430,8 +430,13 @@ def _is_beige(value: str) -> bool:
 
 def _px_number(value: str) -> float | None:
     """Extract a px number from a CSS size token."""
-    match = re.search(r"(\d+(?:\.\d+)?)px", str(value or ""))
-    return float(match.group(1)) if match else None
+    text = str(value or "").strip().lower()
+    if not text.endswith("px"):
+        return None
+    try:
+        return float(text[:-2])
+    except ValueError:
+        return None
 
 
 def _candidate_compliance_report(
@@ -1111,8 +1116,12 @@ def _parse_llm_json(text: str):
     """Parse llm json."""
     raw = str(text or "").strip()
     if raw.startswith("```"):
-        raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.I)
-        raw = re.sub(r"\s*```$", "", raw)
+        lines = raw.splitlines()
+        if lines and lines[0].strip().lower() in {"```", "```json"}:
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        raw = "\n".join(lines).strip()
     try:
         return json.loads(raw)
     except Exception:
