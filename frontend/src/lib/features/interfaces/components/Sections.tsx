@@ -208,24 +208,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
             .filter((attr: any) => attr.name),
         [selectedAttributes],
     );
-    const selectedReadonlyAttributeOptions = React.useMemo(
-        () => (selectedAttributes || [])
-            .filter(isReadonlyAttribute)
-            .map((attr: any) => ({ ...toAttributeOption(attr), readonly: true, source: 'related' }))
-            .filter((attr: any) => attr.name),
-        [selectedAttributes],
-    );
-    const selectedAttributeNames = React.useMemo(
-        () => new Set((selectedAttributes || []).map(getAttributeName).filter(Boolean)),
-        [selectedAttributes],
-    );
-    const readonlyAttributeOptions = React.useMemo(
-        () => availablePaths
-            .filter((path) => !selectedClassName || !path.toLowerCase().startsWith(`${String(selectedClassName).toLowerCase()}.`))
-            .filter((path) => !selectedAttributeNames.has(path))
-            .map((path) => ({ name: path, readonly: true, source: 'related' })),
-        [availablePaths, selectedClassName, selectedAttributeNames],
-    );
     const classNameOptions = React.useMemo(
         () => (classes || []).map((cls: any) => cls.data?.name).filter(Boolean),
         [classes],
@@ -677,27 +659,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const updatedAttributes = selectedAttributes.filter(attr => 
             (typeof attr === 'string' ? attr : attr.name) !== (typeof selectedItem === 'string' ? selectedItem : selectedItem.name)
         );
-        setSelectedAttributes(updatedAttributes);
-        const newData = [...data];
-        newData[sectionIndex].attributes = updatedAttributes;
-        setData(newData);
-    };
-
-    const handleReadonlyAttributeSelect = (selectedList, selectedItem, sectionIndex: number) => {
-        const selectedName = getAttributeName(selectedItem);
-        if (!selectedName) return;
-        const existingNames = new Set((selectedAttributes || []).map(getAttributeName));
-        const readonlyAttr = {
-            ...toAttributeOption(selectedItem),
-            name: selectedName,
-            readonly: true,
-            source: 'related',
-            render: selectedItem?.render || { as: 'text' },
-            action: selectedItem?.action || { type: 'none' },
-        };
-        const updatedAttributes = existingNames.has(selectedName)
-            ? selectedAttributes
-            : [...selectedAttributes, readonlyAttr];
         setSelectedAttributes(updatedAttributes);
         const newData = [...data];
         newData[sectionIndex].attributes = updatedAttributes;

@@ -1,10 +1,10 @@
 import { authAxios, useAuthStore } from '$auth/state/auth';
 import { trackEvent } from '$lib/features/analytics/trackEvent';
-import { Button, Modal, ModalClose, ModalDialog, Tooltip, Typography } from '@mui/joy';
+import { Button, Modal, ModalClose, ModalDialog, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
 import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, HelpCircle, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, PlayCircle, Plus, RefreshCw, Table2, User, Wand2 } from 'lucide-react';
 import { startInterfaceTour } from './useInterfaceTour';
-import { startWorkflowGuidance, resolveActorUsername } from './useWorkflowGuidance';
+import { startWorkflowGuidance } from './useWorkflowGuidance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
@@ -558,7 +558,6 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
     const [previewError, setPreviewError] = useState('');
     const [previewPageIndex, setPreviewPageIndex] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
     const [isSeedingData, setIsSeedingData] = useState(false);
     const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [isMapping, setIsMapping] = useState(false);

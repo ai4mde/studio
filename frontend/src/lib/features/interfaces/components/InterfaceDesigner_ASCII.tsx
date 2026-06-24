@@ -1,7 +1,7 @@
 import { authAxios } from '$auth/state/auth';
 import { Button, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Eye, LayoutGrid, Loader2, RefreshCw, Table2 } from 'lucide-react';
+import { AlignJustify, Code2, LayoutGrid, Loader2, RefreshCw, Table2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import useLocalStorage from './useLocalStorage';
 
@@ -34,8 +34,6 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
     const [previewHtml, setPreviewHtml] = useState<string>('');
     const [previewPageIndex, setPreviewPageIndex] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
-
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [isLoadingAgent, setIsLoadingAgent] = useState(false);
     const [agentStatus, setAgentStatus] = useState('');
