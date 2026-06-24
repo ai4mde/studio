@@ -28,7 +28,8 @@ def _run_sh(path: str, args: list, **kwargs):
     Scripts are volume-mounted from a Windows host so they may contain \\r\\n.
     We write a de-CRLF'd copy to a private temp dir so we never mutate the mounted file.
     """
-    with open(path, 'r', errors='replace') as f:
+    script_path = _safe_script_path(path)
+    with open(script_path, 'r', errors='replace') as f:
         src = f.read().replace('\r\n', '\n').replace('\r', '\n')
     with tempfile.NamedTemporaryFile(
         mode='w', suffix='.sh', delete=False, dir=_private_temp_dir()
@@ -146,6 +147,7 @@ except OperationalError as exc:
 
 
 ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
+SCRIPT_ROOT_DIR = "/usr/src/prototypes/backend/generation"
 MANAGE_PY = "manage.py"
 _SAFE_PATH_PART_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 
@@ -165,9 +167,19 @@ def _running_prototype_public_url() -> str:
 
 def _safe_path_part(value: str) -> str:
     part = str(value or "").strip()
-    if not part or not _SAFE_PATH_PART_RE.fullmatch(part):
+    if not part or part in {".", ".."} or not _SAFE_PATH_PART_RE.fullmatch(part):
         raise ValueError("invalid prototype path component")
     return part
+
+
+def _safe_script_path(path: str) -> str:
+    root = os.path.realpath(SCRIPT_ROOT_DIR)
+    candidate = os.path.realpath(path)
+    if os.path.commonpath([root, candidate]) != root:
+        raise ValueError("script path escapes generation directory")
+    if not candidate.endswith(".sh"):
+        raise ValueError("script path must reference a shell script")
+    return candidate
 
 
 def _prototype_path(system_id: str, project_name: str) -> str:
@@ -230,13 +242,13 @@ def _running_prototype_is_healthy() -> bool:
         return False
     pid = int(running_prototype["pid"])
     port = int(running_prototype["port"])
-    prototype_path = os.path.realpath(
-        os.path.join(
-            ROOT_DIR,
+    try:
+        prototype_path = _prototype_path(
             running_prototype.get("system", ""),
             running_prototype.get("name", ""),
         )
-    )
+    except ValueError:
+        return False
     return (
         _is_pid_alive(pid)
         and not _is_pid_zombie(pid)
@@ -298,7 +310,10 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
         _stop_stale_runservers()
 
         try:
-            prototype_path = _prototype_path(prototype_system, prototype_name)
+            safe_id = _safe_path_part(prototype_id)
+            safe_name = _safe_path_part(prototype_name)
+            safe_system = _safe_path_part(prototype_system)
+            prototype_path = _prototype_path(safe_system, safe_name)
         except ValueError:
             return None, "invalid_prototype_path"
         if not os.path.isdir(prototype_path):
@@ -325,26 +340,28 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
                 process.terminate()
             return None, "prototype_startup_failed"
 
-        running_prototype["id"] = prototype_id
+        running_prototype["id"] = safe_id
         running_prototype["pid"] = process.pid
         running_prototype["port"] = RUNNING_PROTOTYPE_PORT
-        running_prototype["system"] = prototype_system
-        running_prototype["name"] = prototype_name
+        running_prototype["system"] = safe_system
+        running_prototype["name"] = safe_name
         return (process, RUNNING_PROTOTYPE_PORT), None
 
 
 @app.route('/run', methods=['POST'])
 def run_prototype():
     stop_prototype()
-    data = request.json
+    data = request.json or {}
     id = data.get('id')
     name = data.get('name')
     system = data.get('system')
     try:
         safe_id = _safe_path_part(id)
+        safe_name = _safe_path_part(name)
+        safe_system = _safe_path_part(system)
     except ValueError:
         return "Invalid prototype identifier", 400
-    result, error_code = start_prototype(safe_id, name, system)
+    result, error_code = start_prototype(safe_id, safe_name, safe_system)
     if result:
         return redirect(_running_prototype_public_url(), code=307)
     else:
@@ -390,7 +407,7 @@ def get_active_prototype():
 def generate_prototype():
     GENERATOR_PATH = "/usr/src/prototypes/backend/generation/generator.sh" # TODO: put in env
     COPY_DATABASE_PATH = "/usr/src/prototypes/backend/generation/copy_database.sh"
-    data = request.json
+    data = request.json or {}
     id = data.get('id')
     name = data.get('name')
     system = data.get('system')
@@ -455,6 +472,8 @@ def seed_prototype_data():
         return 'No prototype is running — start a prototype first, then seed', 400
 
     try:
+        system_id = _safe_path_part(system_id)
+        project_name = _safe_path_part(project_name)
         proto_path = _prototype_path(system_id, project_name)
     except ValueError:
         return 'Invalid prototype path', 400
@@ -479,7 +498,7 @@ def seed_prototype_data():
         return 'Seed failed', 500
 
     _patch_autologin(proto_path, project_name)
-    return result.stdout or 'Seeded OK', 200
+    return 'Seeded OK', 200
 
 
 
@@ -583,7 +602,7 @@ def autologin(request):
 @app.route('/remove', methods=['DELETE'])
 def remove_prototype():
     REMOVER_PATH = "/usr/src/prototypes/backend/generation/remover.sh"
-    data = request.json
+    data = request.json or {}
     id = data.get('id')
     name = data.get('name')
     system = data.get('system')
@@ -593,7 +612,7 @@ def remove_prototype():
         safe_system = _safe_path_part(system)
     except ValueError:
         return "Invalid prototype identifier", 400
-    if "id" in running_prototype and running_prototype["id"] == id:
+    if "id" in running_prototype and running_prototype["id"] == safe_id:
         stop_prototype()
     try:
         _run_sh(REMOVER_PATH, [safe_id, safe_name, safe_system], check=True)

@@ -1125,13 +1125,9 @@ def _candidate_list_from_llm_response(text: str) -> list:
     return []
 
 
-_FULL_WIDTH_PROMPT_RE = re.compile(
-    r"(?:\b(?:full[- ]?width|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|全宽|全屏|通栏|沉浸)",
-    re.I,
-)
-_WIDTH_PROMPT_RE = re.compile(
-    r"(?:\b(?:contained|wide|full[- ]?width|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|居中|宽版|全宽|全屏|通栏|沉浸)",
-    re.I,
+_WIDTH_PROMPT_TERMS = (
+    "contained", "wide", "fullwidth", "full width", "fullscreen", "full screen",
+    "edge to edge", "immersive", "kiosk", "居中", "宽版", "全宽", "全屏", "通栏", "沉浸",
 )
 _DEFAULT_WIDTH_VARIANTS = (
     {"main_width": "contained", "header_width": "contained", "footer_width": "contained"},
@@ -1143,7 +1139,8 @@ _DEFAULT_WIDTH_VARIANTS = (
 def _guard_generated_page_widths(candidate: dict, prompt: str, candidate_index: int = 0) -> dict:
     """Distribute candidate widths unless the prompt explicitly specifies width."""
     guarded = copy.deepcopy(candidate)
-    if _WIDTH_PROMPT_RE.search(prompt or ""):
+    normalized_prompt = re.sub(r"[-_]+", " ", str(prompt or "").lower())
+    if any(term in normalized_prompt for term in _WIDTH_PROMPT_TERMS):
         return guarded
 
     width_variant = _DEFAULT_WIDTH_VARIANTS[candidate_index % len(_DEFAULT_WIDTH_VARIANTS)]
