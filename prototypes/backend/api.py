@@ -428,7 +428,7 @@ def generate_prototype():
         failed_path = _prototype_path(safe_system, safe_name)
         if os.path.isdir(failed_path):
             shutil.rmtree(failed_path, ignore_errors=True)
-        app.logger.error("Generation failed with return code %s", e.returncode)
+        app.logger.exception("Generation failed with return code %s", e.returncode)
         return "Failed to generate prototype", 500
 
     # TODO: this database retrieval should be done using ids
