@@ -76,7 +76,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         from jinja2 import Environment, FileSystemLoader
 
         templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
-        env = Environment(loader=FileSystemLoader(str(templates)))
+        env = Environment(loader=FileSystemLoader(str(templates)), autoescape=True)
         template = env.get_template("views.py.jinja2")
 
         class Attr:
@@ -155,7 +155,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         from jinja2 import Environment, FileSystemLoader
 
         templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
-        env = Environment(loader=FileSystemLoader(str(templates)))
+        env = Environment(loader=FileSystemLoader(str(templates)), autoescape=True)
         template = env.get_template("views.py.jinja2")
 
         class Section:
@@ -224,7 +224,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         from jinja2 import Environment, FileSystemLoader
 
         templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
-        env = Environment(loader=FileSystemLoader(str(templates)))
+        env = Environment(loader=FileSystemLoader(str(templates)), autoescape=True)
         template = env.get_template("views.py.jinja2")
 
         class Attr:
@@ -298,7 +298,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         from jinja2 import Environment, FileSystemLoader
 
         templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
-        env = Environment(loader=FileSystemLoader(str(templates)))
+        env = Environment(loader=FileSystemLoader(str(templates)), autoescape=True)
         template = env.get_template("views.py.jinja2")
 
         class Section:
@@ -397,7 +397,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         from jinja2 import Environment, FileSystemLoader
 
         templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
-        env = Environment(loader=FileSystemLoader(str(templates)))
+        env = Environment(loader=FileSystemLoader(str(templates)), autoescape=True)
 
         env.get_template("page_unified.html.jinja2")
 
@@ -946,7 +946,7 @@ class WorkflowEngineGenerationTests(unittest.TestCase):
         from jinja2 import Environment, FileSystemLoader
 
         templates = Path(__file__).resolve().parents[1] / "backend" / "generation" / "templates"
-        env = Environment(loader=FileSystemLoader(str(templates)))
+        env = Environment(loader=FileSystemLoader(str(templates)), autoescape=True)
         template = env.get_template("views.py.jinja2")
 
         class Section:

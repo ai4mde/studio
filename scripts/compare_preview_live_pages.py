@@ -27,7 +27,7 @@ from utils.sanitization import project_name_sanitization  # noqa: E402
 
 def read_local_template_file(template_path: str):
     template_name = Path(template_path).name
-    env = Environment(loader=FileSystemLoader(str(GENERATION_DIR / "templates")))
+    env = Environment(loader=FileSystemLoader(str(GENERATION_DIR / "templates")), autoescape=True)
     return env.get_template(template_name)
 
 

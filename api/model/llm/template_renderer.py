@@ -949,7 +949,7 @@ def render_layout(
     styling = interface_data.get("styling", {})
     _apply_styling_tokens(tokens, styling, app_name)
 
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=True)
     template = env.get_template(UNIFIED_TEMPLATE)
 
     output_files = []
@@ -989,7 +989,7 @@ def render_preview(
     styling = interface_data.get("styling", {})
     _apply_styling_tokens(tokens, styling, app_name)
 
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=True)
     template = env.get_template(UNIFIED_TEMPLATE)
 
     output_files = []
