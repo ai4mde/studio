@@ -1,5 +1,7 @@
 from ninja import ModelSchema
+from ninja import Schema
 from generator.models import Prototype
+from typing import Any, Dict, Optional
 
 
 class ReadPrototype(ModelSchema):
@@ -14,16 +16,13 @@ class ReadPrototype(ModelSchema):
         ]
 
 
-class CreatePrototype(ModelSchema):
-    class Meta:
-        model = Prototype
-        fields = [
-            "name", 
-            "description", 
-            "system", 
-            "database_hash",
-            "metadata",
-        ]
+class CreatePrototype(Schema):
+    name: str
+    description: Optional[str] = ""
+    system: Optional[str] = None
+    system_id: Optional[str] = None
+    database_hash: Optional[str] = ""
+    metadata: Dict[str, Any]
 
 
 class UpdatePrototype(ModelSchema):

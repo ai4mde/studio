@@ -101,13 +101,17 @@ def read_prototype(request, id):
 
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str]):
-    system = System.objects.get(pk=prototype.system)
+    prototype_system_id = prototype.system or prototype.system_id
+    if not prototype_system_id:
+        raise HttpError(422, "Missing required prototype system id.")
+
+    system = System.objects.get(pk=prototype_system_id)
     metadata = _metadata_with_latest_interface_data(system, prototype.metadata)
     new_prototype = Prototype.objects.create(
         name=prototype.name,
-        description=prototype.description,
+        description=prototype.description or "",
         system=system,
-        database_hash=prototype.database_hash,
+        database_hash=prototype.database_hash or "",
         metadata=metadata # TODO: maybe we do not want to push all metadata to the DB?
     )
     GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
