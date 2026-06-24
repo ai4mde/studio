@@ -3542,21 +3542,14 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
                 {/* AI generate */}
                 <div style={{ borderTop: '1px solid #e5e7eb' }}>
-                    <div
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', cursor: 'pointer', userSelect: 'none' }}
-                        role="button"
-                        tabIndex={0}
+                    <button
+                        type="button"
+                        style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', cursor: 'pointer', userSelect: 'none', border: 0, background: 'transparent', textAlign: 'left' }}
                         onClick={() => setIsAIExpanded(v => !v)}
-                        onKeyDown={(event) => {
-                            if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                setIsAIExpanded(v => !v);
-                            }
-                        }}
                     >
                         <Typography level="title-sm" sx={{ fontSize: 13 }}>AI Generate</Typography>
                         <span style={{ fontSize: 10, color: '#9ca3af' }}>{isAIExpanded ? '▲' : '▼'}</span>
-                    </div>
+                    </button>
 
                     {isAIExpanded && (
                         <div style={{ padding: '0 12px 12px' }}>

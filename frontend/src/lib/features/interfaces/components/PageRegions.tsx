@@ -60,17 +60,10 @@ export const PageRegions: React.FC<Props> = () => {
             key={region.value}
             className={`border-2 rounded-lg p-4 ${region.color}`}
           >
-            <div
+            <button
+              type="button"
               onClick={() => toggleRegion(region.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  toggleRegion(region.value);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              className="flex items-center justify-between cursor-pointer mb-2"
+              className="flex w-full items-center justify-between cursor-pointer mb-2 border-0 bg-transparent p-0 text-left"
             >
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-bold">{region.label}</h3>
@@ -81,7 +74,7 @@ export const PageRegions: React.FC<Props> = () => {
               <span className="text-xl">
                 {isExpanded ? '▼' : '▶'}
               </span>
-            </div>
+            </button>
 
             {isExpanded && (
               <div className="space-y-2 mt-3">

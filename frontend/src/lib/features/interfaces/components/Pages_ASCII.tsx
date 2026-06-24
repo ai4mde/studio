@@ -326,20 +326,13 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
                                 </div>
                             ) : (
                                 <div className="flex justify-between items-center w-full">
-                                    <h3
+                                    <button
+                                        type="button"
                                         onClick={() => handleEdit(index)}
-                                        onKeyDown={(event) => {
-                                            if (event.key === 'Enter' || event.key === ' ') {
-                                                event.preventDefault();
-                                                handleEdit(index);
-                                            }
-                                        }}
-                                        role="button"
-                                        tabIndex={0}
-                                        className="flex h-fit w-48 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300 cursor-pointer"
+                                        className="flex h-fit w-48 flex-col gap-2 overflow-hidden text-ellipsis rounded-md border-0 bg-stone-200 p-4 text-left hover:bg-stone-300 cursor-pointer"
                                     >
                                         {page.name}
-                                    </h3>
+                                    </button>
                                 </div>
                             )}
                         </div>

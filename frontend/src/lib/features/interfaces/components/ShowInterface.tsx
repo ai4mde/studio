@@ -43,7 +43,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState<number | string>(0);
     const [autoSaveEnabled, setAutoSaveEnabled] = useState(() => {
-        if (typeof globalThis.window === 'undefined') return false;
+        if (globalThis.window === undefined) return false;
         return globalThis.localStorage.getItem('interfaceAutoSave') === 'true';
     });
     const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
