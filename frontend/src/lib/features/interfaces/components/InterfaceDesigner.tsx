@@ -492,6 +492,17 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
         .split('-')
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
+    const methods = layout === 'logo' || layout === 'search-bar' || layout === 'minimal-header'
+        ? []
+        : [{ name: layout === 'link-grid' ? 'Customer service' : 'Contact' }];
+    let text = '';
+    if (layout === 'logo') {
+        text = 'Brand';
+    } else if (layout === 'search-bar') {
+        text = 'Search products';
+    } else if (layout === 'minimal-header') {
+        text = '0,00';
+    }
     return {
         id: `${position}-${layout}-${Date.now()}`,
         name: label,
@@ -500,16 +511,8 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
         class: '',
         operations: { create: false, update: false, delete: false },
         attributes: [],
-        methods: layout === 'logo' || layout === 'search-bar' || layout === 'minimal-header'
-            ? []
-            : [{ name: layout === 'link-grid' ? 'Customer service' : 'Contact' }],
-        text: layout === 'logo'
-            ? 'Brand'
-            : layout === 'search-bar'
-                ? 'Search products'
-                : layout === 'minimal-header'
-                    ? '0,00'
-                    : '',
+        methods,
+        text,
         col_span: 12,
         position,
         style: {},
@@ -1796,17 +1799,18 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const hasControl = (c: string) => layoutControls.includes(c) && (!['sidebar_side', 'sidebar_width'].includes(c) || selectedSection?.position === 'sidebar');
     const hasDataShape = !!selectedPrimaryModel || selectedAttrs.length > 0;
     const isChromeLike = CHROME_LAYOUTS.includes(secLayout) || ['NavBar', 'Logo', 'BrandLockup', 'ImageLogo', 'IconActions', 'SearchBar', 'SiteFooter', 'FooterLinkGrid'].includes(secComponent);
-    const layoutGroupsForSelected = (isChromeLike && !hasDataShape
-        ? LAYOUT_GROUPS.filter(group => group.label === 'Header' || group.label === 'Footer')
-        : hasDataShape
-            ? LAYOUT_GROUPS
-                .filter(group => group.label === 'Generic')
-                .map(group => ({
-                    ...group,
-                    options: group.options.filter(opt => opt.value !== 'activity_action'),
-                }))
-            : LAYOUT_GROUPS
-    ).filter(group => group.options.length > 0);
+    let baseLayoutGroupsForSelected = LAYOUT_GROUPS;
+    if (isChromeLike && !hasDataShape) {
+        baseLayoutGroupsForSelected = LAYOUT_GROUPS.filter(group => group.label === 'Header' || group.label === 'Footer');
+    } else if (hasDataShape) {
+        baseLayoutGroupsForSelected = LAYOUT_GROUPS
+            .filter(group => group.label === 'Generic')
+            .map(group => ({
+                ...group,
+                options: group.options.filter(opt => opt.value !== 'activity_action'),
+            }));
+    }
+    const layoutGroupsForSelected = baseLayoutGroupsForSelected.filter(group => group.options.length > 0);
 
     const currentPage = (pages as any[])[previewPageIndex];
     const isActivityPage = (page: any) => getPageTypeValue(page) === 'activity';
@@ -2085,8 +2089,15 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 } else if (visualCheck?.passed) {
                                     visualCheckMessage = `Screenshot OK (${visualPages.length} page${visualPages.length === 1 ? '' : 's'})`;
                                 }
+                                let complianceMessage = 'Compliance warnings: ' + complianceIssues.length;
+                                if (complianceIssues.length) {
+                                    complianceMessage += ` - ${complianceIssues.slice(0, 2).join(' ')}`;
+                                }
+                                if (compliance?.passed) {
+                                    complianceMessage = `Compliance OK (${compliance.checked || 0} checks)`;
+                                }
                                 return (
-                                    <div key={idx} style={{
+                                    <div key={candidate.id || candidate.name || `candidate-${idx + 1}`} style={{
                                         border: `1px solid ${isExpanded ? '#2563eb' : '#e5e7eb'}`,
                                         borderRadius: 8, marginBottom: 8, overflow: 'hidden',
                                         background: isExpanded ? '#eff6ff' : '#fff',
@@ -2121,9 +2132,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                         color: compliance.passed ? '#166534' : '#9a3412',
                                                     }}
                                                 >
-                                                    {compliance.passed
-                                                        ? `Compliance OK (${compliance.checked || 0} checks)`
-                                                        : 'Compliance warnings: ' + complianceIssues.length + (complianceIssues.length ? ` - ${complianceIssues.slice(0, 2).join(' ')}` : '')}
+                                                    {complianceMessage}
                                                 </div>
                                             )}
                                             {hasVisualCheck && (
