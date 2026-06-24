@@ -146,7 +146,7 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
         'name': prototype.name,
         'system': str(system.id),
         'metadata': json.dumps(enriched_metadata),
-        'variant_id': json.dumps(layout_config) if layout_config else '1',
+        'variant_id': '1',
     }
     # TODO: database retrieval should be done using ids
     if database_prototype_name and database_prototype_name != "":
