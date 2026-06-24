@@ -17,6 +17,9 @@ import os
 
 SYSTEM_ID = "a2000001-0000-5000-8000-000000000000"
 PROJECT_ID = "f3d1c958-af29-45b5-82cd-9145f5912423"
+APPOINTMENT_LIST_LABEL = "Appointment List"
+DOCTOR_LIST_LABEL = "Doctor List"
+PATIENT_LIST_LABEL = "Patient List"
 
 
 def _attr(name, type_):
@@ -1010,7 +1013,7 @@ DIAGRAMS = [
 _patient_sections = [
     _section(
         "s2000001-0000-5000-8000-000000000000",
-        "Appointment List",
+        APPOINTMENT_LIST_LABEL,
         "c2000007-0000-5000-8000-000000000000",
         "list",
         [
@@ -1024,7 +1027,7 @@ _patient_sections = [
     ),
     _section(
         "s2000002-0000-5000-8000-000000000000",
-        "Doctor List",
+        DOCTOR_LIST_LABEL,
         "c2000004-0000-5000-8000-000000000000",
         "list",
         [
@@ -1084,13 +1087,13 @@ _patient_pages = [
     _page(
         "p2000001-0000-5000-8000-000000000000",
         "My Appointments",
-        [{"label": "Appointment List", "value": "s2000001-0000-5000-8000-000000000000"}],
+        [{"label": APPOINTMENT_LIST_LABEL, "value": "s2000001-0000-5000-8000-000000000000"}],
     ),
     _page(
         "p2000002-0000-5000-8000-000000000000",
         "Book Appointment",
         [
-            {"label": "Doctor List", "value": "s2000002-0000-5000-8000-000000000000"},
+            {"label": DOCTOR_LIST_LABEL, "value": "s2000002-0000-5000-8000-000000000000"},
             {"label": "Appointment Form", "value": "s2000003-0000-5000-8000-000000000000"},
         ],
     ),
@@ -1132,7 +1135,7 @@ PATIENT_INTERFACE = {
 _doctor_sections = [
     _section(
         "s2000006-0000-5000-8000-000000000000",
-        "Appointment List",
+        APPOINTMENT_LIST_LABEL,
         "c2000007-0000-5000-8000-000000000000",
         "list",
         [
@@ -1146,7 +1149,7 @@ _doctor_sections = [
     ),
     _section(
         "s2000007-0000-5000-8000-000000000000",
-        "Patient List",
+        PATIENT_LIST_LABEL,
         "c2000003-0000-5000-8000-000000000000",
         "list",
         [
@@ -1193,12 +1196,12 @@ _doctor_pages = [
     _page(
         "p2000005-0000-5000-8000-000000000000",
         "Today's Schedule",
-        [{"label": "Appointment List", "value": "s2000006-0000-5000-8000-000000000000"}],
+        [{"label": APPOINTMENT_LIST_LABEL, "value": "s2000006-0000-5000-8000-000000000000"}],
     ),
     _page(
         "p2000006-0000-5000-8000-000000000000",
         "My Patients",
-        [{"label": "Patient List", "value": "s2000007-0000-5000-8000-000000000000"}],
+        [{"label": PATIENT_LIST_LABEL, "value": "s2000007-0000-5000-8000-000000000000"}],
     ),
     _page(
         "p2000007-0000-5000-8000-000000000000",
@@ -1240,7 +1243,7 @@ DOCTOR_INTERFACE = {
 _admin_sections = [
     _section(
         "s2000010-0000-5000-8000-000000000000",
-        "Patient List",
+        PATIENT_LIST_LABEL,
         "c2000003-0000-5000-8000-000000000000",
         "list",
         [
@@ -1255,7 +1258,7 @@ _admin_sections = [
     ),
     _section(
         "s2000011-0000-5000-8000-000000000000",
-        "Doctor List",
+        DOCTOR_LIST_LABEL,
         "c2000004-0000-5000-8000-000000000000",
         "list",
         [
@@ -1303,12 +1306,12 @@ _admin_pages = [
     _page(
         "p2000009-0000-5000-8000-000000000000",
         "Patient Management",
-        [{"label": "Patient List", "value": "s2000010-0000-5000-8000-000000000000"}],
+        [{"label": PATIENT_LIST_LABEL, "value": "s2000010-0000-5000-8000-000000000000"}],
     ),
     _page(
         "p2000010-0000-5000-8000-000000000000",
         "Doctor Management",
-        [{"label": "Doctor List", "value": "s2000011-0000-5000-8000-000000000000"}],
+        [{"label": DOCTOR_LIST_LABEL, "value": "s2000011-0000-5000-8000-000000000000"}],
     ),
     _page(
         "p2000011-0000-5000-8000-000000000000",
