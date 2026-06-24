@@ -2352,7 +2352,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
                 {/* Properties panel */}
                 <div id="tour-section-inspector" style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
-                    {selectedRegion ? (
+                    {selectedRegion && (
                         <>
                             <button
                                 onClick={() => setSelectedRegion(null)}
@@ -2405,7 +2405,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 ))}
                             </div>
                         </>
-                    ) : !selectedSection ? (
+                    )}
+                    {!selectedRegion && !selectedSection && (
                         <>
                             <Typography level="title-sm" sx={{ mb: 1.5, fontSize: 13 }}>
                                 Page Settings ({currentPage?.name || 'Untitled'})
@@ -2725,7 +2726,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 </details>
                             </div>
                         </>
-                    ) : (
+                    )}
+                    {!selectedRegion && selectedSection && (
                         <>
                             <button
                                 onClick={() => setSelectedSectionId(null)}
