@@ -293,8 +293,8 @@ const livePathForPage = (interfaceName: string | undefined, page: any) => {
     return pageName ? `/${app}/render_${app}_${pageName}` : `/${app}/`;
 };
 
-const normalizeDesignTokens = (raw: any = {}, styling: any = {}) => {
-    const tokens = { ...(raw || {}) };
+const normalizeDesignTokens = (raw: any, styling: any) => {
+    const tokens = Object.assign({}, raw);
     [
         'region.header.bg_hex', 'region.header.text_hex',
         'region.footer.bg_hex', 'region.footer.text_hex',
@@ -809,7 +809,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                     const normalizedPosition = ['header', 'hero', 'main', 'sidebar', 'footer'].includes(newPosition)
                         ? newPosition
                         : (moving.position || 'main');
-                    const nextStyle = { ...(moving.style || {}) };
+                    const nextStyle = { ...moving.style };
                     if (normalizedPosition === 'sidebar' && ['left', 'right'].includes(sidebarSide)) {
                         nextStyle.sidebar_side = sidebarSide;
                     } else if (normalizedPosition !== 'sidebar') {
@@ -839,7 +839,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                 const nextWidth = Number(sidebar_width);
                 if (!Number.isFinite(nextWidth) || nextWidth < 1) return;
                 setSections((prev: any[]) => prev.map((s: any) =>
-                    s.id === id ? { ...s, style: { ...(s.style || {}), sidebar_width: Math.round(nextWidth) } } : s
+                    s.id === id ? { ...s, style: { ...s.style, sidebar_width: Math.round(nextWidth) } } : s
                 ));
             } else if (e.data?.type === 'section-height') {
                 const { id, min_height } = e.data;
@@ -1051,7 +1051,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
             const syncedInterface = {
                 ...iface,
                 data: {
-                    ...((iface as any).data || {}),
+                    ...(iface as any).data,
                     sections: effectiveSections,
                     pages: effectivePages,
                     ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
@@ -1754,7 +1754,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             }
         }
         const nextFieldStyles = { ...fieldLayoutFields };
-        const currentCfg = { ...(nextFieldStyles[field] || {}) };
+        const currentCfg = { ...nextFieldStyles[field] };
         if (nextSlot === 'hidden') {
             currentCfg.visible = 'hidden';
             nextFieldStyles[field] = currentCfg;
@@ -1782,7 +1782,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         }
         const nextLayout: any = { ...fieldLayout };
         nextLayout.hidden = (Array.isArray(nextLayout.hidden) ? nextLayout.hidden : []).filter((item: any) => item !== field);
-        const current = { ...(fieldLayoutFields[field] || {}) };
+        const current = { ...fieldLayoutFields[field] };
         delete current.visible;
         nextLayout.field_styles = { ...fieldLayoutFields, [field]: current };
         updateSection(selectedSection.id, 'field_layout', nextLayout);
@@ -1800,7 +1800,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         const nextFieldStyles = { ...fieldLayoutFields };
         nextOrder.forEach((field, index) => {
             nextFieldStyles[field] = {
-                ...(nextFieldStyles[field] || {}),
+                ...nextFieldStyles[field],
                 order: index + 1,
             };
         });
@@ -1887,14 +1887,14 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         setStyling((prev: Record<string, string>) => ({ ...prev, [key]: value }));
     const updateDesignToken = (key: string, value: string) =>
         setTokens((prev: Record<string, string>) => {
-            const next = { ...(prev || {}) };
+            const next = { ...prev };
             if (value === '' || value == null) delete next[key];
             else next[key] = value;
             return normalizeDesignTokens(next, styling);
         });
     const updateTokenGroup = (updates: Record<string, string>, legacy?: Record<string, string>) => {
-        setTokens((prev: Record<string, string>) => normalizeDesignTokens({ ...(prev || {}), ...updates }, styling));
-        if (legacy) setStyling((prev: Record<string, string>) => ({ ...(prev || {}), ...legacy }));
+        setTokens((prev: Record<string, string>) => normalizeDesignTokens({ ...prev, ...updates }, styling));
+        if (legacy) setStyling((prev: Record<string, string>) => ({ ...prev, ...legacy }));
     };
     const tokenValue = (key: string, fallback = '') => String(designTokens?.[key] ?? fallback);
 

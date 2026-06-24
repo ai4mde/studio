@@ -94,7 +94,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         setSections((prev: any[]) => prev.map((s: any) => {
             if (s.id !== sectionId) return s;
             if (field === 'layout') return { ...s, layout: value };
-            return { ...s, style: { ...(s.style || {}), [field]: value } };
+            return { ...s, style: { ...s.style, [field]: value } };
         }));
     }, [setSections]);
 
