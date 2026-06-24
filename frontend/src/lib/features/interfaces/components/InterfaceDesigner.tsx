@@ -1,7 +1,6 @@
 import { authAxios, useAuthStore } from '$auth/state/auth';
 import { trackEvent } from '$lib/features/analytics/trackEvent';
 import { Button, Modal, ModalClose, ModalDialog, Typography } from '@mui/joy';
-import Editor from '@monaco-editor/react';
 import { AlignJustify, Code2, Database, GalleryHorizontal, GripVertical, HelpCircle, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, PlayCircle, Plus, RefreshCw, Table2, User, Wand2 } from 'lucide-react';
 import { startInterfaceTour } from './useInterfaceTour';
 import { startWorkflowGuidance } from './useWorkflowGuidance';
@@ -1962,8 +1961,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             }}
                         />
                     ))}
-                    <label style={{ position: 'relative', width: 22, height: 22, borderRadius: 999, overflow: 'hidden', border: '1px solid #cbd5e1', cursor: 'pointer', background: value }}>
+                    <label htmlFor={`color-token-${tokenKey}`} style={{ position: 'relative', width: 22, height: 22, borderRadius: 999, overflow: 'hidden', border: '1px solid #cbd5e1', cursor: 'pointer', background: value }}>
                         <input
+                            id={`color-token-${tokenKey}`}
+                            aria-label={`${label} custom color`}
                             type="color"
                             value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback}
                             onChange={(e) => {
@@ -2656,8 +2657,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             onClick={() => updateStyling('textColor', p.hex)}
                                             style={{ width: 20, height: 20, borderRadius: '50%', background: p.hex, cursor: 'pointer', border: stl.textColor === p.hex ? '2px solid #2563eb' : '1.5px solid #d1d5db', outline: stl.textColor === p.hex ? '2px solid #93c5fd' : 'none', outlineOffset: 1, flexShrink: 0 }} />
                                     ))}
-                                    <label title="Custom" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
-                                        <input type="color" value={stl.textColor || '#111827'} onChange={e => updateStyling('textColor', e.target.value)}
+                                    <label htmlFor="interface-text-color-custom" title="Custom" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
+                                        <input id="interface-text-color-custom" aria-label="Custom text color" type="color" value={stl.textColor || '#111827'} onChange={e => updateStyling('textColor', e.target.value)}
                                             style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
                                     </label>
                                     {stl.textColor && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.textColor}</span>}

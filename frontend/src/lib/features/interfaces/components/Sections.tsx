@@ -750,15 +750,17 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                     <FormControl className="space-y-2">
                                         <h3 className="text-xl font-bold">Activity Button</h3>
                                         <p className="text-xs text-gray-500">This section completes the current workflow step. Place it on activity pages just like other sections.</p>
-                                        <label className="text-xs text-gray-500">Button label</label>
+                                        <label htmlFor={`activity-label-${index}`} className="text-xs text-gray-500">Button label</label>
                                         <input
+                                            id={`activity-label-${index}`}
                                             type="text"
                                             value={data[index].label || data[index].name || ''}
                                             onChange={(e) => handleActivityActionChange(index, { label: e.target.value, name: e.target.value || data[index].name })}
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
                                         />
-                                        <label className="text-xs text-gray-500">Variant</label>
+                                        <label htmlFor={`activity-variant-${index}`} className="text-xs text-gray-500">Variant</label>
                                         <select
+                                            id={`activity-variant-${index}`}
                                             value={data[index].style?.variant || 'button'}
                                             onChange={(e) => handleActivityActionChange(index, { style: { variant: e.target.value } })}
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
@@ -767,8 +769,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 <option key={option.value} value={option.value}>{option.label}</option>
                                             ))}
                                         </select>
-                                        <label className="text-xs text-gray-500">Align</label>
+                                        <label htmlFor={`activity-align-${index}`} className="text-xs text-gray-500">Align</label>
                                         <select
+                                            id={`activity-align-${index}`}
                                             value={data[index].style?.align || 'right'}
                                             onChange={(e) => handleActivityActionChange(index, { style: { align: e.target.value } })}
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
@@ -777,8 +780,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 <option key={option.value} value={option.value}>{option.label}</option>
                                             ))}
                                         </select>
-                                        <label className="text-xs text-gray-500">Size</label>
+                                        <label htmlFor={`activity-size-${index}`} className="text-xs text-gray-500">Size</label>
                                         <select
+                                            id={`activity-size-${index}`}
                                             value={data[index].style?.size || 'lg'}
                                             onChange={(e) => handleActivityActionChange(index, { style: { size: e.target.value } })}
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
@@ -1030,7 +1034,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         <h3 className="text-sm font-semibold text-gray-700">Data Source / Query</h3>
                                         <p className="text-xs text-gray-500">Configure how this section reads data. Display attributes are edited above; query columns are separate.</p>
                                         <div className="space-y-1">
-                                            <label className="text-xs text-gray-500">From</label>
+                                            <span className="text-xs text-gray-500">From</span>
                                             <div className="border border-gray-200 rounded-md px-2 py-1.5 text-sm w-full bg-stone-50 text-gray-700">
                                                 {sectionPrimaryModel(data[index]) || 'Select a primary class first'}
                                             </div>
@@ -1040,7 +1044,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         </div>
                                         <div className="space-y-1">
                                             <div className="flex items-center justify-between gap-2">
-                                                <label className="text-xs text-gray-500">Joins</label>
+                                                <span className="text-xs text-gray-500">Joins</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleAddJoin(index)}
@@ -1091,7 +1095,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         </div>
                                         <div className="space-y-1">
                                             <div className="flex items-center justify-between gap-2">
-                                                <label className="text-xs text-gray-500">Select Columns</label>
+                                                <span className="text-xs text-gray-500">Select Columns</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleAddSelectField(index)}
@@ -1128,8 +1132,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="space-y-1">
-                                                <label className="text-xs text-gray-500">Limit</label>
+                                                <label htmlFor={`query-limit-${index}`} className="text-xs text-gray-500">Limit</label>
                                                 <input
+                                                    id={`query-limit-${index}`}
                                                     type="number"
                                                     min="1"
                                                     value={data[index].query?.limit || ''}
@@ -1139,8 +1144,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-xs text-gray-500">Offset</label>
+                                                <label htmlFor={`query-offset-${index}`} className="text-xs text-gray-500">Offset</label>
                                                 <input
+                                                    id={`query-offset-${index}`}
                                                     type="number"
                                                     min="0"
                                                     value={data[index].query?.offset || ''}
@@ -1152,7 +1158,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         </div>
                                         <div className="space-y-1">
                                             <div className="flex items-center justify-between gap-2">
-                                                <label className="text-xs text-gray-500">Sort</label>
+                                                <span className="text-xs text-gray-500">Sort</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleAddOrderBy(index)}
@@ -1191,7 +1197,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         </div>
                                         <div className="space-y-1">
                                             <div className="flex items-center justify-between gap-2">
-                                                <label className="text-xs text-gray-500">Filters (AND)</label>
+                                                <span className="text-xs text-gray-500">Filters (AND)</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleAddFilter(index)}
@@ -1253,7 +1259,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             ))}
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs text-gray-500">SQL Preview</label>
+                                            <span className="text-xs text-gray-500">SQL Preview</span>
                                             <pre className="max-h-44 overflow-auto rounded-md border border-gray-200 bg-gray-950 p-2 text-[11px] leading-relaxed text-green-100 whitespace-pre-wrap">
                                                 {buildSqlPreview(data[index])}
                                             </pre>
@@ -1266,6 +1272,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             <h3 className="text-sm font-semibold text-gray-700">Item Click Action</h3>
                                             <p className="text-xs text-gray-500">Component-level interaction for clicking a card, list item, or table row.</p>
                                             <select
+                                                aria-label="Item click action"
                                                 value={data[index].behavior?.item_click?.type || 'none'}
                                                 onChange={(e) => handleItemClickTypeChange(index, e.target.value)}
                                                 className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
@@ -1276,8 +1283,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             </select>
                                             {data[index].behavior?.item_click?.type === 'navigate' && (
                                                 <div className="space-y-1">
-                                                    <label className="text-xs text-gray-500">Target Page</label>
+                                                    <label htmlFor={`item-click-target-${index}`} className="text-xs text-gray-500">Target Page</label>
                                                     <select
+                                                        id={`item-click-target-${index}`}
                                                         value={data[index].behavior?.item_click?.target_page || ''}
                                                         onChange={(e) => handleItemClickTargetPageChange(index, e.target.value)}
                                                         className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"

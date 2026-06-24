@@ -1,6 +1,5 @@
 import { authAxios } from '$auth/state/auth';
 import { Button, Typography } from '@mui/joy';
-import Editor from '@monaco-editor/react';
 import { AlignJustify, Code2, LayoutGrid, Loader2, RefreshCw, Table2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import useLocalStorage from './useLocalStorage';
