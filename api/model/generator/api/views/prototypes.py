@@ -151,7 +151,7 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
 
     if response.status_code != 200:
         detail = response.text[:1000] if response.text else f"HTTP {response.status_code}"
-        raise Exception(f"Failed to generate prototype {prototype.name}: {detail}")
+        raise RuntimeError(f"Failed to generate prototype {prototype.name}: {detail}")
 
     return new_prototype
 
@@ -261,10 +261,10 @@ def seed_prototype_data(request, system_id: Optional[str] = None):
             seed_data = {'system': str(proto.system.id), 'name': proto.name}
     try:
         response = requests.post(SEED_URL, json=seed_data, timeout=120)
-    except Exception as e:
-        raise Exception(f"Failed to reach prototype API: {e}")
+    except requests.RequestException as e:
+        raise RuntimeError(f"Failed to reach prototype API: {e}") from e
     if response.status_code != 200:
-        raise Exception(response.text or "Seed failed")
+        raise RuntimeError(response.text or "Seed failed")
     return response.text
 
 
@@ -503,7 +503,7 @@ def _html_signature(html: str) -> Dict[str, Any]:
     }
     text = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", " ", html, flags=re.I)
     text = re.sub(r"<[^>]+>", " ", text)
-    words = re.findall(r"[A-Za-z0-9_]{3,}", text.lower())
+    words = re.findall(r"\w{3,}", text.lower())
     return {
         "css_vars": {k: v.strip() for k, v in css_vars.items() if k in token_css_vars},
         "word_sample": words[:80],

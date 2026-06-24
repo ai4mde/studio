@@ -37,6 +37,7 @@ type LogoSizeOption = 'sm' | 'md' | 'lg' | 'xl';
 type LogoShapeOption = 'rounded' | 'circle' | 'square';
 type LogoVariantOption = 'lockup' | 'image-only' | 'text-only';
 type ActionVariantOption = 'link' | 'ghost' | 'button';
+type AsyncStatus = 'idle' | 'ok' | 'error';
 
 const CHROME_LAYOUTS: LayoutOption[] = [
     'promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header',
@@ -314,7 +315,7 @@ const livePathForPage = (interfaceName: string | undefined, page: any) => {
 };
 
 const normalizeDesignTokens = (raw: any, styling: any) => {
-    const tokens = Object.assign({}, raw);
+    const tokens = { ...(raw || {}) };
     [
         'region.header.bg_hex', 'region.header.text_hex',
         'region.footer.bg_hex', 'region.footer.text_hex',
@@ -579,13 +580,13 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
     const [previewPageIndex, setPreviewPageIndex] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isSeedingData, setIsSeedingData] = useState(false);
-    const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [seedStatus, setSeedStatus] = useState<AsyncStatus>('idle');
     const [isMapping, setIsMapping] = useState(false);
-    const [mapStatus, setMapStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [mapStatus, setMapStatus] = useState<AsyncStatus>('idle');
     const [isSyncingLive, setIsSyncingLive] = useState(false);
-    const [syncStatus, setSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [syncStatus, setSyncStatus] = useState<AsyncStatus>('idle');
     const [isVisualChecking, setIsVisualChecking] = useState(false);
-    const [visualCheckStatus, setVisualCheckStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [visualCheckStatus, setVisualCheckStatus] = useState<AsyncStatus>('idle');
     const [visualCheckSummary, setVisualCheckSummary] = useState('');
     const [previewMode, setPreviewMode] = useState<'design' | 'live'>('design');
     const [isFullScreen, setIsFullScreen] = useState(false);

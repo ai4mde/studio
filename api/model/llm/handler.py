@@ -29,7 +29,7 @@ def call_openai(model: str, prompt: str, base_url: str = None) -> str:
         key_name = "OPENAI_API_KEY / OPENAI_KEY"
 
     if not api_key:
-        raise Exception(f"Missing API Key: {key_name} is not set in the environment.")
+        raise RuntimeError(f"Missing API Key: {key_name} is not set in the environment.")
 
     client = OpenAI(
         api_key=api_key,
@@ -48,14 +48,14 @@ def call_openai(model: str, prompt: str, base_url: str = None) -> str:
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
-        raise Exception(f"Failed to call OpenAI/Gemini ({model}), error: {str(e)}")
+        raise RuntimeError(f"Failed to call OpenAI/Gemini ({model}), error: {str(e)}") from e
 
 
 def call_anthropic(model: str, prompt: str) -> str:
     """Send a prompt to Anthropic and return the generated text."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        raise Exception("Missing API Key: ANTHROPIC_API_KEY is not set in the environment.")
+        raise RuntimeError("Missing API Key: ANTHROPIC_API_KEY is not set in the environment.")
     client = Anthropic(api_key=api_key)
     try:
         message = client.messages.create(
@@ -65,14 +65,14 @@ def call_anthropic(model: str, prompt: str) -> str:
         )
         return message.content[0].text
     except Exception as e:
-        raise Exception(f"Failed to call Anthropic ({model}), error: {str(e)}")
+        raise RuntimeError(f"Failed to call Anthropic ({model}), error: {str(e)}") from e
 
 
 def call_groq(model: str, prompt: str) -> str:
     """Send a prompt to Groq and return the generated text."""
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
-        raise Exception("Missing API Key: GROQ_API_KEY is not set in the environment.")
+        raise RuntimeError("Missing API Key: GROQ_API_KEY is not set in the environment.")
 
     client = Groq(
         api_key=api_key,
@@ -89,7 +89,7 @@ def call_groq(model: str, prompt: str) -> str:
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
-        raise Exception(f"Failed to call Groq ({model}), error: {str(e)}")
+        raise RuntimeError(f"Failed to call Groq ({model}), error: {str(e)}") from e
 
 
 
@@ -97,7 +97,7 @@ def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_
 
     """Render a named prompt and dispatch it to the configured LLM provider."""
     if not input_data:
-        raise Exception("No input data given")
+        raise ValueError("No input data given")
     
     if prompt_name == "DIAGRAM_GENERATE_ATTRIBUTE":
         prompt = DIAGRAM_GENERATE_ATTRIBUTE.format(data=input_data)
@@ -108,7 +108,7 @@ def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_
     elif prompt_name == "GEMINI_MAKE_PROTOTYPE":
         prompt = GEMINI_MAKE_PROTOTYPE.format(**input_data)
     else:
-        raise Exception("Invalid prompt name")
+        raise ValueError("Invalid prompt name")
     
     if model.startswith('gpt'):
         return call_openai(model=model, prompt=prompt)
