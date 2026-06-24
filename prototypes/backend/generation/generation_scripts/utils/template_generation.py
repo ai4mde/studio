@@ -52,7 +52,7 @@ def _class_to_hex(value: str | None) -> str | None:
     value = str(value).strip()
     if value.startswith("#"):
         return value
-    if value.startswith("bg-[") or value.startswith("text-[") or value.startswith("border-["):
+    if value.startswith(("bg-[", "text-[", "border-[")):
         return value.split("[", 1)[1].split("]", 1)[0]
     for part in value.split():
         for prefix in ("bg-", "text-", "border-"):
@@ -80,7 +80,11 @@ def _expand_legacy_token_hex(tokens: dict) -> None:
 def _collect_position_sections(pages, position):
     seen = set()
     out = []
-    chrome_layouts = HEADER_CHROME_LAYOUTS if position == 'header' else FOOTER_CHROME_LAYOUTS if position == 'footer' else set()
+    chrome_layouts = set()
+    if position == 'header':
+        chrome_layouts = HEADER_CHROME_LAYOUTS
+    elif position == 'footer':
+        chrome_layouts = FOOTER_CHROME_LAYOUTS
     for page in pages:
         for sc in page.section_components:
             if (sc.position == position or sc.layout in chrome_layouts) and sc.id not in seen:

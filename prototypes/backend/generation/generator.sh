@@ -95,7 +95,7 @@ update_global_app_settings() {
     lower_app="$(printf '%s' "$app" | tr '[:upper:]' '[:lower:]')"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "urlpatterns += [path(\"$app/\", include(\"$app.urls\"))]" >> urls.py
-    if [ "$lower_app" != "$app" ]; then
+    if [[ "$lower_app" != "$app" ]]; then
         echo "urlpatterns += [path(\"$lower_app/\", include(\"$app.urls\"))]" >> urls.py
     fi
 	echo "INSTALLED_APPS += ['$app']" >> settings.py

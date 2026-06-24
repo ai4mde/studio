@@ -497,12 +497,12 @@ def seed_prototype_data():
     if result.returncode != 0:
         return 'Seed failed', 500
 
-    _patch_autologin(proto_path, project_name)
+    _patch_autologin(proto_path)
     return 'Seeded OK', 200
 
 
 
-def _patch_autologin(proto_path: str, project_name: str):
+def _patch_autologin(proto_path: str):
     AUTOLOGIN_VIEW = '''
 def autologin(request):
     from django.contrib.auth import login as _login
@@ -565,11 +565,10 @@ def autologin(request):
     if 'def autologin' in vcontent:
         import re as _re
         vcontent = _re.sub(
-            r'\ndef autologin\(request\):\n.*?(?=\ndef\s+\w+\(request\):|\Z)',
+            r'\ndef autologin\(request\):\n(?:(?!\ndef\s+\w+\(request\):)[\s\S])*',
             '\n' + AUTOLOGIN_VIEW.strip() + '\n',
             vcontent,
             count=1,
-            flags=_re.S,
         )
         with open(views_path, 'w') as f:
             f.write(vcontent)
