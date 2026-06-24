@@ -750,17 +750,17 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                     <FormControl className="space-y-2">
                                         <h3 className="text-xl font-bold">Activity Button</h3>
                                         <p className="text-xs text-gray-500">This section completes the current workflow step. Place it on activity pages just like other sections.</p>
-                                        <label htmlFor={`activity-label-${index}`} className="text-xs text-gray-500">Button label</label>
+                                        <span className="text-xs text-gray-500">Button label</span>
                                         <input
-                                            id={`activity-label-${index}`}
+                                            aria-label="Activity button label"
                                             type="text"
                                             value={data[index].label || data[index].name || ''}
                                             onChange={(e) => handleActivityActionChange(index, { label: e.target.value, name: e.target.value || data[index].name })}
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
                                         />
-                                        <label htmlFor={`activity-variant-${index}`} className="text-xs text-gray-500">Variant</label>
+                                        <span className="text-xs text-gray-500">Variant</span>
                                         <select
-                                            id={`activity-variant-${index}`}
+                                            aria-label="Activity button variant"
                                             value={data[index].style?.variant || 'button'}
                                             onChange={(e) => handleActivityActionChange(index, { style: { variant: e.target.value } })}
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
@@ -769,9 +769,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 <option key={option.value} value={option.value}>{option.label}</option>
                                             ))}
                                         </select>
-                                        <label htmlFor={`activity-align-${index}`} className="text-xs text-gray-500">Align</label>
+                                        <span className="text-xs text-gray-500">Align</span>
                                         <select
-                                            id={`activity-align-${index}`}
+                                            aria-label="Activity button alignment"
                                             value={data[index].style?.align || 'right'}
                                             onChange={(e) => handleActivityActionChange(index, { style: { align: e.target.value } })}
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
@@ -780,9 +780,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 <option key={option.value} value={option.value}>{option.label}</option>
                                             ))}
                                         </select>
-                                        <label htmlFor={`activity-size-${index}`} className="text-xs text-gray-500">Size</label>
+                                        <span className="text-xs text-gray-500">Size</span>
                                         <select
-                                            id={`activity-size-${index}`}
+                                            aria-label="Activity button size"
                                             value={data[index].style?.size || 'lg'}
                                             onChange={(e) => handleActivityActionChange(index, { style: { size: e.target.value } })}
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
@@ -1132,9 +1132,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="space-y-1">
-                                                <label htmlFor={`query-limit-${index}`} className="text-xs text-gray-500">Limit</label>
+                                                <span className="text-xs text-gray-500">Limit</span>
                                                 <input
-                                                    id={`query-limit-${index}`}
+                                                    aria-label="Query limit"
                                                     type="number"
                                                     min="1"
                                                     value={data[index].query?.limit || ''}
@@ -1144,9 +1144,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label htmlFor={`query-offset-${index}`} className="text-xs text-gray-500">Offset</label>
+                                                <span className="text-xs text-gray-500">Offset</span>
                                                 <input
-                                                    id={`query-offset-${index}`}
+                                                    aria-label="Query offset"
                                                     type="number"
                                                     min="0"
                                                     value={data[index].query?.offset || ''}
@@ -1283,9 +1283,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             </select>
                                             {data[index].behavior?.item_click?.type === 'navigate' && (
                                                 <div className="space-y-1">
-                                                    <label htmlFor={`item-click-target-${index}`} className="text-xs text-gray-500">Target Page</label>
+                                                    <span className="text-xs text-gray-500">Target Page</span>
                                                     <select
-                                                        id={`item-click-target-${index}`}
+                                                        aria-label="Item click target page"
                                                         value={data[index].behavior?.item_click?.target_page || ''}
                                                         onChange={(e) => handleItemClickTargetPageChange(index, e.target.value)}
                                                         className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"

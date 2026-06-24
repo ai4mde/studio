@@ -1961,9 +1961,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             }}
                         />
                     ))}
-                    <label htmlFor={`color-token-${tokenKey}`} style={{ position: 'relative', width: 22, height: 22, borderRadius: 999, overflow: 'hidden', border: '1px solid #cbd5e1', cursor: 'pointer', background: value }}>
+                    <span style={{ position: 'relative', width: 22, height: 22, borderRadius: 999, overflow: 'hidden', border: '1px solid #cbd5e1', cursor: 'pointer', background: value }}>
                         <input
-                            id={`color-token-${tokenKey}`}
                             aria-label={`${label} custom color`}
                             type="color"
                             value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback}
@@ -1974,7 +1973,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             }}
                             style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
                         />
-                    </label>
+                    </span>
                 </div>
             </div>
         );
@@ -2657,10 +2656,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             onClick={() => updateStyling('textColor', p.hex)}
                                             style={{ width: 20, height: 20, borderRadius: '50%', background: p.hex, cursor: 'pointer', border: stl.textColor === p.hex ? '2px solid #2563eb' : '1.5px solid #d1d5db', outline: stl.textColor === p.hex ? '2px solid #93c5fd' : 'none', outlineOffset: 1, flexShrink: 0 }} />
                                     ))}
-                                    <label htmlFor="interface-text-color-custom" title="Custom" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
-                                        <input id="interface-text-color-custom" aria-label="Custom text color" type="color" value={stl.textColor || '#111827'} onChange={e => updateStyling('textColor', e.target.value)}
+                                    <span title="Custom" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
+                                        <input aria-label="Custom text color" type="color" value={stl.textColor || '#111827'} onChange={e => updateStyling('textColor', e.target.value)}
                                             style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
-                                    </label>
+                                    </span>
                                     {stl.textColor && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.textColor}</span>}
                                 </div>
 
