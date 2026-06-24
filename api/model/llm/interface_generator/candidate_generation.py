@@ -852,10 +852,6 @@ def validate_and_save_candidate(
             return re.sub(r'[\s_-]', '', str(n or '')).lower()
         model_names_fuzzy = {_norm_model(m): m for m in known_models}
 
-        def _canonical_model_name(name):
-            """Return the canonical known model name for a fuzzy model reference."""
-            return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
-
         page_names = {p.get("name", "") for p in pages}
         page_ref_to_name: dict = {}
         for p in pages:

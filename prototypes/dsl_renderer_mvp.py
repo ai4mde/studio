@@ -1,6 +1,8 @@
 import json
 from jinja2 import Template
 
+THUMBNAIL_PLACEHOLDER_URL = "https://via.placeholder.com/150"
+
 # Example DSL provided in the requirements
 DSL_INPUT = {
     "page": {
@@ -67,9 +69,9 @@ DSL_INPUT = {
             "description": "Latest Apple smartphone with powerful features and sleek design.",
             "images": [
                 "https://via.placeholder.com/600",
-                "https://via.placeholder.com/150",
-                "https://via.placeholder.com/150",
-                "https://via.placeholder.com/150"
+                THUMBNAIL_PLACEHOLDER_URL,
+                THUMBNAIL_PLACEHOLDER_URL,
+                THUMBNAIL_PLACEHOLDER_URL
             ]
         }
     }
