@@ -804,7 +804,7 @@ def _expand_actor_scope(model_graph: dict, initial_permissions: dict) -> dict:
     expanded: dict[str, set] = {m: set(ps) for m, ps in initial_permissions.items()}
     frontier = list(initial_permissions.keys())
     visited = set(frontier)
-    depth_map = {m: 0 for m in frontier}
+    depth_map = dict.fromkeys(frontier, 0)
 
     while frontier:
         model = frontier.pop(0)

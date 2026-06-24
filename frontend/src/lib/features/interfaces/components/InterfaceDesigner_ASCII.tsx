@@ -118,8 +118,8 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                 prompt,
                 model: 'gemini-1.5-pro',
             });
-            const htmlFiles = (res.data.files || []).filter((f: any) => f.path.endsWith('.html'));
-            if (htmlFiles[0]?.content) setPreviewHtml(htmlFiles[0].content);
+            const htmlFile = (res.data.files || []).find((f: any) => f.path.endsWith('.html'));
+            if (htmlFile?.content) setPreviewHtml(htmlFile.content);
             setAgentStatus(res.data.message || 'Done.');
         } catch (e: any) {
             setAgentStatus(`Error: ${e.message}`);
@@ -191,7 +191,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
 
                 {/* Properties panel */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
-                    {!selectedSection ? (
+                    {selectedSection == null ? (
                         <>
                             <Typography level="title-sm" sx={{ mb: 1.5, fontSize: 13 }}>
                                 Page Settings ({currentPage?.name || 'Untitled'})

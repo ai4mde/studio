@@ -116,7 +116,14 @@ def _pick_fields(model_info: dict, role: str, limit: int = 8) -> list[str]:
 
 # ─── component selection ─────────────────────────────────────────────────────
 
-_MODEL_PERSON   = re.compile(r"user|person|people|customer|client|patient|doctor|member|staff|employee|contact|vendor|seller|supplier|student|teacher|author|owner|passenger|operator|admin|applicant|borrower|officer|analyst|reviewer", re.I)
+_MODEL_PERSON_WORDS = (
+    "user", "person", "people", "customer", "client", "patient", "doctor", "member",
+    "staff", "employee", "contact", "vendor", "seller", "supplier", "student",
+    "teacher", "author", "owner", "passenger", "operator", "admin", "applicant",
+    "borrower", "officer", "analyst", "reviewer",
+)
+
+_MODEL_PERSON   = re.compile("|".join(_MODEL_PERSON_WORDS), re.I)
 _MODEL_DOCUMENT = re.compile(r"report|document|record|contract|invoice|receipt|statement|transcript|certificate|permit|license|policy|agreement", re.I)
 _MODEL_CATEGORY = re.compile(r"categor|genre|collection|group|class|tag|label", re.I)
 

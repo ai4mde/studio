@@ -32,6 +32,6 @@ class Command(BaseCommand):
                 updated_count += 1
                 self.stdout.write(self.style.SUCCESS(f"✓ 更新 Interface: {interface.name}"))
         
-        self.stdout.write(self.style.SUCCESS(f"\n迁移完成！"))
+        self.stdout.write(self.style.SUCCESS("\n迁移完成！"))
         self.stdout.write(f"修改了 {updated_count} 个 Interface")
         self.stdout.write(f"补充了 {section_updated_count} 个 Section 的 position 字段")
