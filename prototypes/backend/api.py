@@ -639,8 +639,8 @@ def _watchdog():
             app.logger.warning(f"Watchdog: prototype {prototype_name} is unhealthy, restarting...")
             start_prototype(prototype_id, prototype_name, prototype_system)
             app.logger.info(f"Watchdog: restarted {prototype_name}")
-        except Exception as e:
-            app.logger.error(f"Watchdog error: {e}")
+        except Exception:
+            app.logger.exception("Watchdog error")
 
 
 _watchdog_thread = threading.Thread(target=_watchdog, daemon=True)

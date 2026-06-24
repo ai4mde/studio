@@ -766,7 +766,7 @@ def map_uml_to_interface(interface_id: str) -> dict:
     except Exception as exc:
         import traceback
 
-        logger.error("map_uml_to_interface error: %s", exc)
+        logger.exception("map_uml_to_interface error")
         return {"status": "error", "message": str(exc), "detail": traceback.format_exc()}
 
 

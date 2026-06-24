@@ -611,9 +611,9 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                     out.append(sec)
             return out
     except Exception as _e:
-        import traceback as _tb, logging as _log
-        _log.error("retrieve_section_components error: %s\n%s", _e, _tb.format_exc())
-        raise Exception(f"Failed to retrieve section components from metadata: parsing error — {_e}")
+        import logging as _log
+        _log.exception("retrieve_section_components error")
+        raise ValueError(f"Failed to retrieve section components from metadata: parsing error - {_e}") from _e
 
     return out
 
@@ -708,9 +708,9 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                 )
                 out.append(pg)
     except Exception as _e:
-        import traceback as _tb, logging as _log
-        _log.error("retrieve_pages error: %s\n%s", _e, _tb.format_exc())
-        raise ValueError(f"Failed to retrieve pages from metadata: parsing error — {_e}") from _e
+        import logging as _log
+        _log.exception("retrieve_pages error")
+        raise ValueError(f"Failed to retrieve pages from metadata: parsing error - {_e}") from _e
 
     return out
 

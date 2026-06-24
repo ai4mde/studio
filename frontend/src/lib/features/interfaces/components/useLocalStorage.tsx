@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 const useLocalStorage = (key, initialValue) => {
     const [storedValue, setStoredValue] = useState(() => {
         try {
-            const item = window.localStorage.getItem(key);
+            const item = globalThis.localStorage.getItem(key);
             return item ? JSON.parse(item) : initialValue;
         } catch (error) {
             console.error(error);
@@ -15,7 +15,7 @@ const useLocalStorage = (key, initialValue) => {
 
     useEffect(() => {
         try {
-            const item = window.localStorage.getItem(key);
+            const item = globalThis.localStorage.getItem(key);
             setStoredValue(item ? JSON.parse(item) : initialValue);
         } catch (error) {
             console.error(error);
@@ -44,11 +44,11 @@ const useLocalStorage = (key, initialValue) => {
             setStoredValue(event.detail.value);
         };
 
-        window.addEventListener('storage', handleStorage);
-        window.addEventListener('interface-local-storage-updated', handleLocalUpdate);
+        globalThis.addEventListener('storage', handleStorage);
+        globalThis.addEventListener('interface-local-storage-updated', handleLocalUpdate);
         return () => {
-            window.removeEventListener('storage', handleStorage);
-            window.removeEventListener('interface-local-storage-updated', handleLocalUpdate);
+            globalThis.removeEventListener('storage', handleStorage);
+            globalThis.removeEventListener('interface-local-storage-updated', handleLocalUpdate);
         };
     }, [initialValue, key]);
 
@@ -57,12 +57,12 @@ const useLocalStorage = (key, initialValue) => {
         setStoredValue(valueToStore);
 
         try {
-            window.localStorage.setItem(key, JSON.stringify(valueToStore));
+            globalThis.localStorage.setItem(key, JSON.stringify(valueToStore));
         } catch (error) {
             console.error(error);
         }
 
-        window.dispatchEvent(new CustomEvent('interface-local-storage-updated', {
+        globalThis.dispatchEvent(new CustomEvent('interface-local-storage-updated', {
             detail: { key, value: valueToStore },
         }));
     };

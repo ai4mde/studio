@@ -63,7 +63,8 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         if (!data) return;
         const scoped = (key: string, fallback: string) => {
             const raw = localStorage.getItem(`interface:${app_comp}:${key}`) ?? localStorage.getItem(fallback);
-            return raw ? JSON.parse(raw) : (key === 'styling' || key === 'settings' ? {} : []);
+            if (raw) return JSON.parse(raw);
+            return key === 'styling' || key === 'settings' ? {} : [];
         };
         const styling = scoped('styling', 'styling');
         const categories = scoped('categories', 'categories');

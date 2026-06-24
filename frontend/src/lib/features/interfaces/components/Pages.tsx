@@ -220,7 +220,7 @@ export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
         const cardCount = (selectedSections || []).filter(isCard).length;
         const newCard: CardEntry = {
             type: 'card',
-            id: window.crypto.randomUUID(),
+            id: globalThis.crypto.randomUUID(),
             label: `Card ${cardCount + 1}`,
             sections: [],
         };
@@ -477,7 +477,7 @@ export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
                 )}
                 <button
                     onClick={() => {
-                        const newPage = { id: window.crypto.randomUUID(), name: `Page ${data.length + 1}`, category: null, type: { label: 'Normal', value: 'normal' } };
+                        const newPage = { id: globalThis.crypto.randomUUID(), name: `Page ${data.length + 1}`, category: null, type: { label: 'Normal', value: 'normal' } };
                         setData([...data, newPage]);
                         setEditIndex(data.length);
                     }}

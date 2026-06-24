@@ -1434,7 +1434,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                     ))}
                     <button
                         onClick={() => {
-                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", primary_model: "", data_role: "display_records", operations: { "create": false, "update": false, "delete": false, "select": false }, attributes: [], fields: [], actions: [], layout: "table", role: "object_collection", component: "ObjectList", col_span: 12, style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
+                            const newSection = { id: globalThis.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", primary_model: "", data_role: "display_records", operations: { "create": false, "update": false, "delete": false, "select": false }, attributes: [], fields: [], actions: [], layout: "table", role: "object_collection", component: "ObjectList", col_span: 12, style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
 
                             // Automatically use first class for new section component
                             if (isSuccessClasses && classes[0].id) {
@@ -1451,7 +1451,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                         onClick={() => {
                             const name = `Activity Button ${data.length + 1}`;
                             const newSection = {
-                                id: window.crypto.randomUUID(),
+                                id: globalThis.crypto.randomUUID(),
                                 name,
                                 label: 'Complete step',
                                 type: 'activity_action',
