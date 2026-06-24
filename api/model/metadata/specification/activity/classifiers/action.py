@@ -1,23 +1,7 @@
 from pydantic import BaseModel, model_validator
 from typing import Literal, Optional
 from metadata.specification.kernel import Operation, NamespacedElement, NamedElement
-from diagram.models import Node
-from metadata.models import Classifier
-
-
-UNKNOWN_ACTOR = "Unknown actor"
-
-
-def resolve_actor_name(actor_node_id: str) -> str:
-    node = Node.objects.filter(id=actor_node_id).select_related("cls").first()
-    if node:
-        return node.cls.data.get("name", UNKNOWN_ACTOR)
-
-    actor = Classifier.objects.filter(id=actor_node_id, data__type="actor").first()
-    if actor:
-        return actor.data.get("name", UNKNOWN_ACTOR)
-
-    return UNKNOWN_ACTOR
+from metadata.specification.activity.classifiers.actor_resolution import UNKNOWN_ACTOR, resolve_actor_name
 
 
 class ActionClasses(BaseModel):
