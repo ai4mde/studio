@@ -100,26 +100,17 @@ export const CreatePrototype: React.FC = () => {
     >({
         mutationFn: async (input) => {
             const { name, description, system, metadata } = input;
-            if (selectedDatabasePrototype) {
-                const { data } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${selectedDatabasePrototype.label}`, {
-                    name,
-                    description,
-                    system_id: system,
-                    metadata,
-                    database_hash: databaseHash,
-                });
-                return data
-            }
-            else {
-                const { data } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=`, {
-                    name,
-                    description,
-                    system_id: system,
-                    metadata,
-                    database_hash: databaseHash,
-                });
-                return data
-            }
+            const databasePrototypeQuery = selectedDatabasePrototype
+                ? `?database_prototype_name=${encodeURIComponent(selectedDatabasePrototype.label)}`
+                : "";
+            const { data } = await authAxios.post(`/v1/generator/prototypes/${databasePrototypeQuery}`, {
+                name,
+                description,
+                system,
+                metadata,
+                database_hash: databaseHash,
+            });
+            return data
 
         },
         onError: (error) => {

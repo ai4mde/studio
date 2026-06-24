@@ -140,7 +140,7 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
     data = {
         'id': str(new_prototype.id),
         'name': prototype.name,
-        'system': str(prototype.system),
+        'system': str(system.id),
         'metadata': json.dumps(enriched_metadata),
         'variant_id': json.dumps(layout_config) if layout_config else '1',
     }
