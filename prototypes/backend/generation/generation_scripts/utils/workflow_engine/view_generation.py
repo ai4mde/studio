@@ -18,10 +18,10 @@ def generate_views(system_id: str, project_name: str, metadata: str, authenticat
         with open(OUTPUT_FILE_PATH, "r") as f:
             content = f.read()
         if "StartProcessView" not in content:
-            raise Exception(
+            raise RuntimeError(
                 f"Generated {project_name}/workflow_engine/views.py is missing StartProcessView — "
                 "template rendering may have failed silently."
             )
         return True
     
-    raise Exception(f"Failed to generate {project_name}/workflow_engine/views.py")
+    raise RuntimeError(f"Failed to generate {project_name}/workflow_engine/views.py")

@@ -59,7 +59,7 @@ create_workflow_engine_app() {
     python -m django startapp "workflow_engine"
     python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
     if ! grep -q "class StartProcessView" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/views.py"; then
-        echo "Error: workflow_engine/views.py generation failed (StartProcessView missing)."
+        echo "Error: workflow_engine/views.py generation failed (StartProcessView missing)." >&2
         exit 1
     fi
     cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"

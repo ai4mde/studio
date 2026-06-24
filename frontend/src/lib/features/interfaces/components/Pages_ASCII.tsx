@@ -183,8 +183,7 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
     };
 
     return (
-        <>
-            <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-4">
                 {isSuccess && (
                     data.map((page, index) => (
                         <div key={page.id || page.name || `page-${index + 1}`} className="flex flex-col gap-2">
@@ -340,7 +339,7 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
                 )}
                 <button
                     onClick={() => {
-                        const newPage = { id: window.crypto.randomUUID(), name: `Page ${data.length + 1}`, category: null, type: { label: 'Normal', value: 'normal' } };
+                        const newPage = { id: globalThis.crypto.randomUUID(), name: `Page ${data.length + 1}`, category: null, type: { label: 'Normal', value: 'normal' } };
                         setData([...data, newPage]);
                         setEditIndex(data.length);
                     }}
@@ -348,8 +347,7 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
                 >
                     <Plus />
                 </button>
-            </div>
-        </>
+        </div>
     );
 };
 

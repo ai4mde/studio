@@ -129,7 +129,7 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
         return {"message": f"Generated {len(files)} page(s).", "files": files}
 
     def stream_generator():
-        renderer_classifiers = [dict(id=str(c.id), data=c.data) for c in system.classifiers.all()]
+        renderer_classifiers = [{"id": str(c.id), "data": c.data} for c in system.classifiers.all()]
         renderer_relations = [
             {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
             for r in system.relations.all()

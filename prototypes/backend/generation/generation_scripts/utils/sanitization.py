@@ -8,7 +8,7 @@ def general_name_sanitization(proposed_name: str) -> str:
         proposed_name = str(uuid4())
     proposed_name = proposed_name.replace(' ', '_')
     proposed_name = proposed_name.replace('-', '_')
-    proposed_name = re.sub(r'[^a-zA-Z0-9_]', '', proposed_name)
+    proposed_name = re.sub(r'\W', '', proposed_name, flags=re.ASCII)
     while '__' in proposed_name:
         proposed_name = proposed_name.replace('__', '_')
     proposed_name = proposed_name.strip('_')

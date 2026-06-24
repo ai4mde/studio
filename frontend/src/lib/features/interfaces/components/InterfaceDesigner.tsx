@@ -1219,6 +1219,8 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                 setIsVisualChecking(false);
             }
         } catch (error) {
+            const message = error instanceof Error ? error.message : 'Live prototype sync failed.';
+            setVisualCheckSummary(message);
             setSyncStatus('error');
         } finally {
             setIsSyncingLive(false);

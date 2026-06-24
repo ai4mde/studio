@@ -59,7 +59,7 @@ class SectionAttribute():
     
 
 def extract_call_name(body: str) -> str:
-    match = re.search(r"def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", body or "")
+    match = re.search(r"def\s+([A-Za-z_]\w*)\s*\(", body or "")
     if match:
         return match.group(1)
     return None
