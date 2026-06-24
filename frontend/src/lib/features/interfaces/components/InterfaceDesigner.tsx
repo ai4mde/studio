@@ -281,7 +281,7 @@ const previewFileMatchesPage = (file: any, page: any, interfaceName?: string) =>
 };
 
 const djangoName = (value: string | undefined) =>
-    String(value || '').trim().replace(/\W+/g, '_').replace(/^_+|_+$/g, '');
+    String(value || '').trim().replace(/\W+/g, '_').replace(/^_+/, '').replace(/_+$/, '');
 
 const livePathForPage = (interfaceName: string | undefined, page: any) => {
     const app = djangoName(interfaceName);
@@ -727,7 +727,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         if (actorName.includes('system')) return 'system';
         if (actorName.includes('applicant')) return 'demo-applicant';
         if (actorName.includes('loan') && actorName.includes('officer')) return 'demo-loan-officer';
-        return actorName.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'jan_devries';
+        return actorName.replace(/[^a-z0-9]+/g, '_').replace(/^_+/, '').replace(/_+$/, '') || 'jan_devries';
     }, [currentInterface, systemClassifiers]);
 
     useEffect(() => {
@@ -1044,7 +1044,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
             const effectiveSections = overrideSections ?? secs;
             const effectivePages = overridePages ?? pgs;
             const effectiveStyling = overrideStyling ?? stl;
-            const effectiveTokens = normalizeDesignTokens(overrideTokens ?? tks ?? ((iface as any).data || {}).tokens, effectiveStyling);
+            const effectiveTokens = normalizeDesignTokens(overrideTokens ?? tks ?? (iface as any).data?.tokens, effectiveStyling);
             const hasPreviewOverride = Boolean(
                 overrideSections || overridePages || overrideStyling || overrideTokens
             );
@@ -1302,12 +1302,12 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 return {
                     ...s,
                     related_to: value || null,
-                    relationship: value ? (s.relationship || { mode: 'direct' }) : undefined,
+                    relationship: value ? (s.relationship ?? { mode: 'direct' }) : undefined,
                     relation_field: value ? s.relation_field : undefined,
                 };
             }
             if (field === 'relationship_mode') {
-                return { ...s, relationship: { ...(s.relationship || {}), mode: value } };
+                return { ...s, relationship: { ...s.relationship, mode: value } };
             }
             if (field === 'relation_field') return { ...s, relation_field: value || null };
             if (field === 'data_source_from') {
@@ -1315,39 +1315,39 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 return {
                     ...s,
                     data_source: {
-                        ...(s.data_source || {}),
+                        ...s.data_source,
                         mode: 'query',
                         from: { model },
-                        joins: (s.data_source || {}).joins || [],
+                        joins: s.data_source?.joins || [],
                     },
                 };
             }
             if (field === 'query_limit') {
                 const parsed = Number.parseInt(String(value || ''), 10);
-                return { ...s, query: { ...(s.query || {}), limit: Number.isNaN(parsed) ? null : parsed } };
+                return { ...s, query: { ...s.query, limit: Number.isNaN(parsed) ? null : parsed } };
             }
             if (field === 'item_click_type') {
-                const behavior = { ...(s.behavior || {}) };
+                const behavior = { ...s.behavior };
                 if (!value || value === 'none') {
                     delete behavior.item_click;
                 } else {
-                    behavior.item_click = { ...(behavior.item_click || {}), type: value };
+                    behavior.item_click = { ...behavior.item_click, type: value };
                 }
                 return { ...s, behavior };
             }
             if (field === 'item_click_target_page') {
                 const behavior = s.behavior ? { ...s.behavior } : {};
                 behavior.item_click = {
-                    ...(behavior.item_click || {}),
+                    ...behavior.item_click,
                     type: value ? 'navigate' : (behavior.item_click?.type || 'none'),
                     target_page: value || '',
                 };
                 if (!value) delete behavior.item_click.target_page;
                 return { ...s, behavior };
             }
-            if (field === 'workflow_action') return { ...s, workflow: { ...(s.workflow || {}), action: value } };
-            if (field === 'workflow_target_page') return { ...s, workflow: { ...(s.workflow || {}), target_page: value } };
-            return { ...s, style: { ...(s.style || {}), [field]: value } };
+            if (field === 'workflow_action') return { ...s, workflow: { ...s.workflow, action: value } };
+            if (field === 'workflow_target_page') return { ...s, workflow: { ...s.workflow, target_page: value } };
+            return { ...s, style: { ...s.style, [field]: value } };
         }));
     }, [setSections]);
 
@@ -1362,7 +1362,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         if (!interfaceId) return;
         try {
             const res = await authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`);
-            const found = ((res.data as any)?.data || {}).candidates || [];
+            const found = (res.data as any)?.data?.candidates || [];
             setCandidates(found);
             if (found.length === 0) setCandidateStatus(prev => prev.startsWith('Done') ? 'No candidates saved by agent. Check agent logs.' : prev);
         } catch (e: any) {
@@ -3177,7 +3177,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 <input
                                     type="number"
                                     min="1"
-                                    value={(selectedSection.query || {}).limit || ''}
+                                    value={selectedSection.query?.limit || ''}
                                     onChange={e => updateSection(selectedSection.id, 'query_limit', e.target.value)}
                                     placeholder="e.g. 4"
                                     style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 8, boxSizing: 'border-box' }}
@@ -3186,7 +3186,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     <>
                                         <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Item Click Action</p>
                                         <select
-                                            value={(selectedSection.behavior || {}).item_click?.type || 'none'}
+                                            value={selectedSection.behavior?.item_click?.type || 'none'}
                                             onChange={e => updateSection(selectedSection.id, 'item_click_type', e.target.value)}
                                             style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12, marginBottom: 8 }}
                                         >
@@ -3194,9 +3194,9 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             <option value="navigate">Navigate</option>
                                             <option value="select">Select</option>
                                         </select>
-                                        {(selectedSection.behavior || {}).item_click?.type === 'navigate' && (
+                                        {selectedSection.behavior?.item_click?.type === 'navigate' && (
                                             <select
-                                                value={(selectedSection.behavior || {}).item_click?.target_page || ''}
+                                                value={selectedSection.behavior?.item_click?.target_page || ''}
                                                 onChange={e => updateSection(selectedSection.id, 'item_click_target_page', e.target.value)}
                                                 style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
                                             >
@@ -3509,7 +3509,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Workflow Action</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
                                 {(['complete','navigate','complete_then_page'] as const).map(v => (
-                                    <button key={v} style={{ ...btnBase, ...active(((selectedSection.workflow || {}).action || 'complete') === v), padding: '3px 7px', fontSize: 11 }}
+                                    <button key={v} style={{ ...btnBase, ...active((selectedSection.workflow?.action || 'complete') === v), padding: '3px 7px', fontSize: 11 }}
                                         onClick={() => updateSection(selectedSection.id, 'workflow_action', v)}>{v}</button>
                                 ))}
                             </div></>)}
@@ -3517,7 +3517,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             {hasControl('activity_target_page') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Target Page</p>
                             <select
-                                value={(selectedSection.workflow || {}).target_page ?? ''}
+                                value={selectedSection.workflow?.target_page ?? ''}
                                 onChange={e => updateSection(selectedSection.id, 'workflow_target_page', e.target.value)}
                                 style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
                             >
