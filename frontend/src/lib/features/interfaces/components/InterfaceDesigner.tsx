@@ -463,6 +463,32 @@ const COLOR_HEX: Record<ColorOption, string> = {
     orange: '#f97316', rose: '#f43f5e', slate: '#64748b',
 };
 
+const statusTone = (status: string, idle: { border: string; background: string; color: string }) => {
+    if (status === 'ok') {
+        return { border: '#86efac', background: '#f0fdf4', color: '#16a34a' };
+    }
+    if (status === 'error') {
+        return { border: '#fca5a5', background: '#fef2f2', color: '#dc2626' };
+    }
+    return idle;
+};
+
+const statusLabel = (status: string, ok: string, error: string, idle: string) => {
+    if (status === 'ok') return ok;
+    if (status === 'error') return error;
+    return idle;
+};
+
+const spacingTokensFor = (value: string) => {
+    if (value === '12px') {
+        return { 'spacing.sm': '6px', 'spacing.md': value, 'spacing.lg': '18px', 'spacing.xl': '24px' };
+    }
+    if (value === '20px') {
+        return { 'spacing.sm': '10px', 'spacing.md': value, 'spacing.lg': '32px', 'spacing.xl': '40px' };
+    }
+    return { 'spacing.sm': '8px', 'spacing.md': value, 'spacing.lg': '24px', 'spacing.xl': '32px' };
+};
+
 const getPageTypeValue = (page: any) => typeof page?.type === 'string' ? page.type : page?.type?.value;
 const isActivityActionSection = (section: any) => {
     const layout = typeof section?.layout === 'string' ? section.layout : section?.layout?.value;
@@ -1814,6 +1840,14 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
     const currentPage = (pages as any[])[previewPageIndex];
     const isActivityPage = (page: any) => getPageTypeValue(page) === 'activity';
+    const mapTone = statusTone(mapStatus, { border: '#e9d5ff', background: '#faf5ff', color: '#7c3aed' });
+    const seedTone = statusTone(seedStatus, { border: '#d1d5db', background: '#fff', color: '#374151' });
+    const syncTone = statusTone(syncStatus, { border: '#bfdbfe', background: '#eff6ff', color: '#1d4ed8' });
+    const visualCheckTone = statusTone(visualCheckStatus, { border: '#d1d5db', background: '#fff', color: '#374151' });
+    const mapButtonLabel = statusLabel(mapStatus, 'Mapped!', 'Failed', 'Map UML');
+    const seedButtonLabel = statusLabel(seedStatus, 'Seeded!', 'Failed', 'Seed Data');
+    const syncButtonLabel = statusLabel(syncStatus, 'Synced!', 'Sync Failed', 'Sync Live');
+    const visualCheckButtonLabel = statusLabel(visualCheckStatus, 'Matched', 'Diff', 'Visual Check');
     const pageLayout = currentPage?.layout?.value || 'vertical';
     const pageMainWidth = currentPage?.layout?.main_width || 'contained';
     const pageHeaderWidth = currentPage?.layout?.header_width || 'contained';
@@ -2483,12 +2517,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             <span style={{ fontSize: 10, fontWeight: 700, color: '#475569' }}>Base spacing</span>
                                             <select
                                                 value={tokenValue('spacing.md', '16px')}
-                                                onChange={(e) => updateTokenGroup({
-                                                    'spacing.sm': e.target.value === '12px' ? '6px' : e.target.value === '20px' ? '10px' : '8px',
-                                                    'spacing.md': e.target.value,
-                                                    'spacing.lg': e.target.value === '12px' ? '18px' : e.target.value === '20px' ? '32px' : '24px',
-                                                    'spacing.xl': e.target.value === '12px' ? '24px' : e.target.value === '20px' ? '40px' : '32px',
-                                                })}
+                                                onChange={(e) => updateTokenGroup(spacingTokensFor(e.target.value))}
                                                 style={{ height: 28, borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 11, padding: '0 7px', background: '#fff' }}
                                             >
                                                 <option value="12px">Compact</option>
@@ -3631,7 +3660,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                     </div>
                     <span id="tour-page-tabs" style={{ display: 'contents' }}>
                     {previewMode === 'design' && (visiblePages as any[]).map((p: any, idx: number) => (
-                        <button key={idx} onClick={() => {
+                        <button key={p.id || p.name || `page-${idx + 1}`} onClick={() => {
                             setPreviewPageIndex(idx);
                             setSelectedSectionId(null);
                             setSelectedRegion(null);
@@ -3736,50 +3765,50 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
                                 cursor: isMapping ? 'default' : 'pointer',
-                                border: `1px solid ${mapStatus === 'ok' ? '#86efac' : mapStatus === 'error' ? '#fca5a5' : '#e9d5ff'}`,
-                                background: mapStatus === 'ok' ? '#f0fdf4' : mapStatus === 'error' ? '#fef2f2' : '#faf5ff',
-                                color: mapStatus === 'ok' ? '#16a34a' : mapStatus === 'error' ? '#dc2626' : '#7c3aed',
+                                border: `1px solid ${mapTone.border}`,
+                                background: mapTone.background,
+                                color: mapTone.color,
                                 opacity: isMapping || !interfaceId ? 0.6 : 1,
                             }}>
                             {isMapping ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={12} />}
-                            {mapStatus === 'ok' ? 'Mapped!' : mapStatus === 'error' ? 'Failed' : 'Map UML'}
+                            {mapButtonLabel}
                         </button>
                         <button onClick={handleSeedData} disabled={isSeedingData}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12, cursor: isSeedingData ? 'default' : 'pointer',
-                                border: `1px solid ${seedStatus === 'ok' ? '#86efac' : seedStatus === 'error' ? '#fca5a5' : '#d1d5db'}`,
-                                background: seedStatus === 'ok' ? '#f0fdf4' : seedStatus === 'error' ? '#fef2f2' : '#fff',
-                                color: seedStatus === 'ok' ? '#16a34a' : seedStatus === 'error' ? '#dc2626' : '#374151',
+                                border: `1px solid ${seedTone.border}`,
+                                background: seedTone.background,
+                                color: seedTone.color,
                                 opacity: isSeedingData ? 0.6 : 1,
                             }}>
                             {isSeedingData ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Database size={12} />}
-                            {seedStatus === 'ok' ? 'Seeded!' : seedStatus === 'error' ? 'Failed' : 'Seed Data'}
+                            {seedButtonLabel}
                         </button>
                         <button id="tour-sync-live-btn" onClick={handleSyncLivePrototype} disabled={isSyncingLive || !interfaceId || !systemId}
                             title="Regenerate a live prototype from the current preview"
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
                                 cursor: isSyncingLive ? 'default' : 'pointer',
-                                border: `1px solid ${syncStatus === 'ok' ? '#86efac' : syncStatus === 'error' ? '#fca5a5' : '#bfdbfe'}`,
-                                background: syncStatus === 'ok' ? '#f0fdf4' : syncStatus === 'error' ? '#fef2f2' : '#eff6ff',
-                                color: syncStatus === 'ok' ? '#16a34a' : syncStatus === 'error' ? '#dc2626' : '#1d4ed8',
+                                border: `1px solid ${syncTone.border}`,
+                                background: syncTone.background,
+                                color: syncTone.color,
                                 opacity: isSyncingLive ? 0.6 : 1,
                             }}>
                             {isSyncingLive ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
-                            {syncStatus === 'ok' ? 'Synced!' : syncStatus === 'error' ? 'Sync Failed' : 'Sync Live'}
+                            {syncButtonLabel}
                         </button>
                         <button onClick={handleVisualCheck} disabled={isVisualChecking || !interfaceId}
                             title={visualCheckSummary || 'Compare current design schema against the live prototype'}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
                                 cursor: isVisualChecking ? 'default' : 'pointer',
-                                border: `1px solid ${visualCheckStatus === 'ok' ? '#86efac' : visualCheckStatus === 'error' ? '#fca5a5' : '#d1d5db'}`,
-                                background: visualCheckStatus === 'ok' ? '#f0fdf4' : visualCheckStatus === 'error' ? '#fef2f2' : '#fff',
-                                color: visualCheckStatus === 'ok' ? '#16a34a' : visualCheckStatus === 'error' ? '#dc2626' : '#374151',
+                                border: `1px solid ${visualCheckTone.border}`,
+                                background: visualCheckTone.background,
+                                color: visualCheckTone.color,
                                 opacity: isVisualChecking ? 0.6 : 1,
                             }}>
                             {isVisualChecking ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Monitor size={12} />}
-                            {visualCheckStatus === 'ok' ? 'Matched' : visualCheckStatus === 'error' ? 'Diff' : 'Visual Check'}
+                            {visualCheckButtonLabel}
                         </button>
                         <button onClick={handleViewGeneratorMetadata} disabled={!interfaceId || !systemId || isLoadingMetadata}
                             title="View metadata sent to the prototype generator"
