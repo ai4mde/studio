@@ -15,7 +15,7 @@ urlpatterns = [
     {% endif -%}
     {% for page in pages -%}
     path("render_{{ application_name }}_{{ page }}{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name }}_{{ page }}"),
-    path("render_{{ application_name }}_{{ page }}{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name|lower }}_{{ page|lower }}"),
+    path("render_{{ application_name|lower }}_{{ page|lower }}{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name|lower }}_{{ page|lower }}"),
     {% for section_component in page.section_components -%}
     {% if section_component.has_create_operation -%}
     path('{{ page }}_{{ section_component }}_create{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}', views.{{ page }}_{{ section_component }}_CreateView.as_view(), name='{{ page }}_{{ section_component }}_create'),
