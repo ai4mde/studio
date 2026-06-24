@@ -52,10 +52,7 @@ class CandidateDefaultCategoryTests(unittest.TestCase):
         """Verify that assign default page categories skips activity pages."""
         pages = [{"name": "Checkout", "type": {"value": "activity"}, "primary_model": "Order"}]
 
-        self.assertEqual(
-            _assign_default_page_categories(pages, [], {"Order": "order-id"})[0]["category"],
-            None,
-        )
+        self.assertIsNone(_assign_default_page_categories(pages, [], {"Order": "order-id"})[0]["category"])
 
     def test_assign_default_page_categories_keeps_existing_category(self):
         """Verify that assign default page categories keeps existing category."""

@@ -323,7 +323,7 @@ class WorkflowSemanticTests(TestCase):
         loan_section = next(s for s in fixed_sections if s.get("primary_model") == "Loan")
         self.assertEqual(loan_section["role"], "child_collection")
         self.assertEqual(
-            set(a["name"] if isinstance(a, dict) else a for a in loan_section["attributes"]),
+            {a["name"] if isinstance(a, dict) else a for a in loan_section["attributes"]},
             {"loan_date", "status"},
         )
         self.assertIn(

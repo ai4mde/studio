@@ -391,7 +391,7 @@ def _is_beige(value: str) -> bool:
 
 def _px_number(value: str) -> float | None:
     """Extract a px number from a CSS size token."""
-    match = re.search(r"([0-9]+(?:\.[0-9]+)?)px", str(value or ""))
+    match = re.search(r"(\d+(?:\.\d+)?)px", str(value or ""))
     return float(match.group(1)) if match else None
 
 

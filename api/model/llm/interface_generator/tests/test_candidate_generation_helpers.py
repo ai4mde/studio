@@ -260,9 +260,10 @@ def test_candidate_compliance_report_flags_description_mismatch():
     )
 
     assert report["passed"] is False
-    assert "table_layout" in {req["key"] for req in report["requirements"] if not req["passed"]}
-    assert "left_sidebar_navigation" in {req["key"] for req in report["requirements"] if not req["passed"]}
-    assert "gold_buttons" in {req["key"] for req in report["requirements"] if not req["passed"]}
+    failed_requirement_keys = set(req["key"] for req in report["requirements"] if not req["passed"])
+    assert "table_layout" in failed_requirement_keys
+    assert "left_sidebar_navigation" in failed_requirement_keys
+    assert "gold_buttons" in failed_requirement_keys
 
 
 def test_visual_report_from_metrics_flags_rendered_mismatch():

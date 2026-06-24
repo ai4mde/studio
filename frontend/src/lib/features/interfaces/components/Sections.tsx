@@ -147,12 +147,13 @@ const SectionEditorGroup = ({
     </details>
 );
 
+const asRecord = (value: any) => (value && typeof value === 'object' ? value : {});
 const getAttributeName = (attr: any) => typeof attr === 'string' ? attr : attr?.name;
 const toAttributeOption = (attr: any) => {
     if (typeof attr === 'string') return { name: attr };
-    return { ...(attr || {}), name: attr?.name || '' };
+    return { ...asRecord(attr), name: attr?.name || '' };
 };
-const normalizeAttribute = (attr: any) => typeof attr === 'string' ? { name: attr } : { ...(attr || {}) };
+const normalizeAttribute = (attr: any) => typeof attr === 'string' ? { name: attr } : { ...asRecord(attr) };
 const operationFlags = (operations: any) => {
     if (Array.isArray(operations)) {
         return {
@@ -163,7 +164,7 @@ const operationFlags = (operations: any) => {
             read: operations.includes('read'),
         };
     }
-    return { ...(operations || {}) };
+    return { ...asRecord(operations) };
 };
 const isReadonlyAttribute = (attr: any) => {
     const normalized = normalizeAttribute(attr);
@@ -396,7 +397,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
 
     const handleImageUrlChange = (index: number) => {
         const newData = [...data];
-        const style = { ...(newData[index].style || {}) };
+        const style = { ...asRecord(newData[index].style) };
         if (newImageUrl) style.image_url = newImageUrl;
         else delete style.image_url;
         if (newImageAlt) style.image_alt = newImageAlt;
@@ -422,7 +423,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const parsed = Number.parseInt(value, 10);
         newData[index].query = {
-            ...(newData[index].query || {}),
+            ...asRecord(newData[index].query),
             [key]: Number.isNaN(parsed) ? null : parsed,
         };
         setData(newData);
@@ -432,7 +433,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const firstField = classAttributes[0]?.name || '';
         newData[index].query = {
-            ...(newData[index].query || {}),
+            ...asRecord(newData[index].query),
             order_by: [...(newData[index].query?.order_by || []), { field: firstField, direction: 'asc' }],
         };
         setData(newData);
@@ -441,8 +442,8 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
     const handleOrderByChange = (index: number, orderIndex: number, key: 'field' | 'direction', value: string) => {
         const newData = [...data];
         const orderBy = [...(newData[index].query?.order_by || [])];
-        orderBy[orderIndex] = { ...(orderBy[orderIndex] || {}), [key]: value };
-        newData[index].query = { ...(newData[index].query || {}), order_by: orderBy };
+        orderBy[orderIndex] = { ...asRecord(orderBy[orderIndex]), [key]: value };
+        newData[index].query = { ...asRecord(newData[index].query), order_by: orderBy };
         setData(newData);
     };
 
@@ -450,7 +451,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const orderBy = [...(newData[index].query?.order_by || [])];
         orderBy.splice(orderIndex, 1);
-        newData[index].query = { ...(newData[index].query || {}), order_by: orderBy };
+        newData[index].query = { ...asRecord(newData[index].query), order_by: orderBy };
         setData(newData);
     };
 
@@ -458,7 +459,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const firstField = classAttributes[0]?.name || '';
         newData[index].query = {
-            ...(newData[index].query || {}),
+            ...asRecord(newData[index].query),
             filter_logic: 'and',
             filters: [...(newData[index].query?.filters || []), { field: firstField, operator: 'eq', value: '' }],
         };
@@ -468,18 +469,18 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
     const handleFilterChange = (index: number, filterIndex: number, key: 'field' | 'operator' | 'value' | 'value_from', value: string) => {
         const newData = [...data];
         const filters = [...(newData[index].query?.filters || [])];
-        const nextFilter = { ...(filters[filterIndex] || {}), [key]: value };
+        const nextFilter = { ...asRecord(filters[filterIndex]), [key]: value };
         if (key === 'value') delete nextFilter.value_from;
         if (key === 'value_from') delete nextFilter.value;
         filters[filterIndex] = nextFilter;
-        newData[index].query = { ...(newData[index].query || {}), filter_logic: 'and', filters };
+        newData[index].query = { ...asRecord(newData[index].query), filter_logic: 'and', filters };
         setData(newData);
     };
 
     const handleFilterValueSourceChange = (index: number, filterIndex: number, source: 'value' | 'value_from') => {
         const newData = [...data];
         const filters = [...(newData[index].query?.filters || [])];
-        const current = { ...(filters[filterIndex] || {}) };
+        const current = { ...asRecord(filters[filterIndex]) };
         if (source === 'value_from') {
             filters[filterIndex] = {
                 ...current,
@@ -495,7 +496,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
             };
             delete filters[filterIndex].value_from;
         }
-        newData[index].query = { ...(newData[index].query || {}), filter_logic: 'and', filters };
+        newData[index].query = { ...asRecord(newData[index].query), filter_logic: 'and', filters };
         setData(newData);
     };
 
@@ -503,7 +504,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const filters = [...(newData[index].query?.filters || [])];
         filters.splice(filterIndex, 1);
-        newData[index].query = { ...(newData[index].query || {}), filters };
+        newData[index].query = { ...asRecord(newData[index].query), filters };
         setData(newData);
     };
 
@@ -511,7 +512,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const firstField = queryFieldOptions[0] || '';
         newData[index].query = {
-            ...(newData[index].query || {}),
+            ...asRecord(newData[index].query),
             select: [...(newData[index].query?.select || []), firstField],
         };
         setData(newData);
@@ -521,7 +522,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const select = [...(newData[index].query?.select || [])];
         select[fieldIndex] = value;
-        newData[index].query = { ...(newData[index].query || {}), select };
+        newData[index].query = { ...asRecord(newData[index].query), select };
         setData(newData);
     };
 
@@ -529,7 +530,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const select = [...(newData[index].query?.select || [])];
         select.splice(fieldIndex, 1);
-        newData[index].query = { ...(newData[index].query || {}), select };
+        newData[index].query = { ...asRecord(newData[index].query), select };
         setData(newData);
     };
 
@@ -537,7 +538,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         section?.primary_model || selectedClassName || '';
 
     const normalizedDataSource = (section: any) => ({
-        ...(section.data_source || {}),
+        ...asRecord(section.data_source),
         mode: 'query',
         from: { model: sectionPrimaryModel(section) },
         joins: section.data_source?.joins || [],
@@ -563,7 +564,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
     const handleJoinChange = (index: number, joinIndex: number, key: 'type' | 'model' | 'on', value: string) => {
         const newData = [...data];
         const joins = [...(newData[index].data_source?.joins || [])];
-        joins[joinIndex] = { ...(joins[joinIndex] || {}), [key]: value };
+        joins[joinIndex] = { ...asRecord(joins[joinIndex]), [key]: value };
         newData[index].data_source = {
             ...normalizedDataSource(newData[index]),
             joins,
@@ -623,12 +624,12 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
 
     const handleItemClickTypeChange = (index: number, type: string) => {
         const newData = [...data];
-        const behavior = { ...(newData[index].behavior || {}) };
+        const behavior = { ...asRecord(newData[index].behavior) };
         if (!type || type === 'none') {
             delete behavior.item_click;
         } else {
             behavior.item_click = {
-                ...(behavior.item_click || {}),
+                ...asRecord(behavior.item_click),
                 type,
             };
             if (type !== 'navigate') {
@@ -641,9 +642,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
 
     const handleItemClickTargetPageChange = (index: number, pageName: string) => {
         const newData = [...data];
-        const behavior = { ...(newData[index].behavior || {}) };
+        const behavior = { ...asRecord(newData[index].behavior) };
         behavior.item_click = {
-            ...(behavior.item_click || {}),
+            ...asRecord(behavior.item_click),
             type: pageName ? 'navigate' : (behavior.item_click?.type || 'none'),
             target_page: pageName || '',
             params: behavior.item_click?.params || {},
@@ -700,14 +701,14 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const config = DATA_ROLE_CONFIG[dataRole] || DATA_ROLE_CONFIG.display_records;
         const newData = [...data];
         const current = newData[sectionIndex] || {};
-        const style = { ...(current.style || {}) };
+        const style = { ...asRecord(current.style) };
         if (config.workflowIntent) {
             style.workflow_semantics = {
-                ...(style.workflow_semantics || {}),
+                ...asRecord(style.workflow_semantics),
                 intent: config.workflowIntent,
             };
         } else if (style.workflow_semantics?.intent && ['check', 'notify'].includes(String(style.workflow_semantics.intent))) {
-            style.workflow_semantics = { ...(style.workflow_semantics || {}) };
+            style.workflow_semantics = { ...asRecord(style.workflow_semantics) };
             delete style.workflow_semantics.intent;
         }
         newData[sectionIndex] = {
@@ -806,7 +807,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const newData = [...data];
         const section = { ...newData[sectionIndex] };
         if (patch.style) {
-            section.style = { ...(section.style || {}), ...patch.style };
+            section.style = { ...asRecord(section.style), ...patch.style };
             delete patch.style;
         }
         newData[sectionIndex] = { ...section, ...patch };

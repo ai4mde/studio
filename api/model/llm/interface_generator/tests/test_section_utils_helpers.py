@@ -157,7 +157,7 @@ class SectionUtilsPrimitiveTests(unittest.TestCase):
 
     def test_related_attr_and_attr_merge_helpers(self):
         """Verify that related attr and attr merge helpers."""
-        self.assertEqual(_readonly_related_attr("Product.name")["readonly"], True)
+        self.assertTrue(_readonly_related_attr("Product.name")["readonly"])
         self.assertEqual(_merge_section_attrs(["name"], [{"name": "name"}, "price"]), ["name", "price"])
 
     def test_snake_relation_and_join_helpers(self):
