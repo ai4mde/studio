@@ -79,7 +79,19 @@ function sectionCard(s: any): string {
     const ops = getOperations(s.operations).filter(o => !['view', 'read'].includes(o));
     const attrs = (s.attributes || []).slice(0, 5).map(getFieldName).filter(Boolean);
     const more = Math.max(0, (s.attributes || []).length - 5);
-    const icon = LAYOUT_ICON[layout] || '📄';
+    const icon = LAYOUT_ICON[layout] || '*';
+    const layoutBadge = layout
+        ? `<span style="color:#6b7280;font-size:10px;background:#f3f4f6;padding:1px 5px;border-radius:4px">${layout}</span>`
+        : '';
+    const operationsBadge = ops.length
+        ? `<span style="font-size:10px;color:#1d4ed8;background:#dbeafe;padding:1px 6px;border-radius:8px;margin-left:auto">${ops.join(' / ')}</span>`
+        : '';
+    const moreBadge = more > 0 ? ` <span style="color:#9ca3af">+${more}</span>` : '';
+    const attrsBlock = attrs.length
+        ? `<div style="margin-top:4px;color:#6b7280;font-size:10.5px;margin-left:18px">
+            ${attrs.join(', ')}${moreBadge}
+        </div>`
+        : '';
 
     return `<div style="
         background:#f9fafb;border:1px solid #e5e7eb;
@@ -88,12 +100,10 @@ function sectionCard(s: any): string {
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span>${icon}</span>
             <b style="font-size:12px;color:#111827">${s.name || s.id}</b>
-            ${layout ? `<span style="color:#6b7280;font-size:10px;background:#f3f4f6;padding:1px 5px;border-radius:4px">${layout}</span>` : ''}
-            ${ops.length ? `<span style="font-size:10px;color:#1d4ed8;background:#dbeafe;padding:1px 6px;border-radius:8px;margin-left:auto">${ops.join(' · ')}</span>` : ''}
+            ${layoutBadge}
+            ${operationsBadge}
         </div>
-        ${attrs.length ? `<div style="margin-top:4px;color:#6b7280;font-size:10.5px;margin-left:18px">
-            ${attrs.join(', ')}${more > 0 ? ` <span style="color:#9ca3af">+${more}</span>` : ''}
-        </div>` : ''}
+        ${attrsBlock}
     </div>`;
 }
 
@@ -421,7 +431,7 @@ export function startWorkflowGuidance({
         steps.push({
             element: '#tour-preview-area',
             popover: {
-                title: `${idx + 1}. ${page.name || `Step ${idx + 1}`}`,
+                title: `${idx + 1}. ${page.name || 'Step ' + (idx + 1)}`,
                 description: buildStepBody(page, allSections, idx + 1, totalSteps, currentActorName),
                 side: 'left',
                 align: 'start',

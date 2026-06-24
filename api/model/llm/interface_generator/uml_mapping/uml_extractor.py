@@ -330,7 +330,7 @@ def _best_model_for_text(text: str, model_names: list[str], model_attr_names: di
     # model names; short words are skipped to avoid false positives.
     # Pass 2: action words match model attribute names (len >= 5 to avoid generic words)
     if model_attr_names:
-        action_words = {w for w in re.findall(r'\b\w{5,}\b', t)}
+        action_words = set(re.findall(r'\b\w{5,}\b', t))
         for m in model_names_sorted:
             if action_words & (model_attr_names.get(m) or set()):
                 return m
@@ -447,17 +447,13 @@ def extract_use_case_diagram(
                 for key in ("classes", "application_model", "models"):
                     model_refs.extend(_ref_list(action_cls.get(key)))
 
-            explicit_models = []
-            seen_models = set()
-            for ref in model_refs:
-                model_name = classifiers.get(str(ref), {}).get("name")
-                if (
-                    classifiers.get(str(ref), {}).get("type") in {"class", "entity", "model"}
-                    and model_name in model_names
-                    and model_name not in seen_models
-                ):
-                    explicit_models.append(model_name)
-                    seen_models.add(model_name)
+            explicit_models = list(dict.fromkeys(
+                classifier.get("name")
+                for ref in model_refs
+                for classifier in [classifiers.get(str(ref), {})]
+                if classifier.get("type") in {"class", "entity", "model"}
+                and classifier.get("name") in model_names
+            ))
 
             primary_model = explicit_models[0] if explicit_models else _best_model_for_text(uc_name, model_names_list)
             has_workflow = uc_cls_id in uc_ids_with_workflows

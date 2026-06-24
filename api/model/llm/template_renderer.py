@@ -878,10 +878,9 @@ def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> N
     if styling_accent and current_accent in default_blues:
         tokens[ACCENT_HEX_TOKEN] = styling_accent
     accent = tokens.get(ACCENT_HEX_TOKEN)
-    if accent:
-        if "region.header.bg" not in tokens:
-            tokens["region.header.bg"] = f"bg-[{accent}]"
-            tokens["page.header.text"] = "text-white"
+    if accent and "region.header.bg" not in tokens:
+        tokens["region.header.bg"] = f"bg-[{accent}]"
+        tokens["page.header.text"] = "text-white"
 
     bg = styling.get("backgroundColor", "")
     if bg and "page.body.bg" not in tokens:

@@ -166,7 +166,10 @@ const sqlValue = (filter: any) => {
     if (filter.operator === 'isnull') return '';
     if (filter.value_from) return `:${filter.value_from}`;
     if (filter.operator === 'contains') return `'%${filter.value || ''}%'`;
-    if (filter.operator === 'in') return `(${String(filter.value || '').split(',').map((v) => `'${v.trim()}'`).join(', ')})`;
+    if (filter.operator === 'in') {
+        const values = String(filter.value || '').split(',').map((v) => `'${v.trim()}'`).join(', ');
+        return `(${values})`;
+    }
     return filter.value ? `'${filter.value}'` : ':value';
 };
 
@@ -539,7 +542,8 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
             .map((filter: any) => {
                 const op = sqlOperator(filter.operator || 'eq');
                 const value = sqlValue(filter);
-                return `  ${sqlFieldRef(filter.field, fromModel)} ${op}${value ? ` ${value}` : ''}`;
+                const suffix = value ? ` ${value}` : '';
+                return `  ${sqlFieldRef(filter.field, fromModel)} ${op}${suffix}`;
             });
         const orderBy = (section.query?.order_by || [])
             .filter((order: any) => order.field)
