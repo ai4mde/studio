@@ -674,8 +674,6 @@ def generate_interface_plan(
         if parent:
             subordinate_to[model] = parent
     subordinate_models: set[str] = set(subordinate_to.keys())
-    # Standalone models are those NOT subordinate
-    standalone_accessible = accessible - subordinate_models
 
     pages: list[dict] = []
     sections: list[dict] = []
@@ -966,7 +964,6 @@ def generate_interface_plan(
             # Swim lane filter: only generate pages for steps in this actor's lane.
             step_actor = (step.get("actor_node_name") or "").strip().lower()
             actor_lane_assigned = bool(step_actor and current_actor_name_l and step_actor == current_actor_name_l)
-            other_actor_step = False
             if step_actor and current_actor_name_l and step_actor != current_actor_name_l:
                 continue
 
@@ -1116,10 +1113,10 @@ def generate_interface_plan(
 
             # Content section — always emit; confirmation/summary steps get a
             # SummaryPanel even with no model so the page has something to render.
-            # Steps owned by another actor are rendered read-only (context/status view).
+            # Steps owned by another actor are skipped above; rendered steps use their own operations.
             _is_confirm = any(w in action.lower() for w in ("confirm", "summary", "check", "complete", "finish", "approve", "submit", "review"))
-            effective_ops = ["read"] if other_actor_step else ops
-            effective_editable = [] if other_actor_step else editable
+            effective_ops = ops
+            effective_editable = editable
             effective_readonly = [
                 field for field in visible or []
                 if field not in set(effective_editable or [])
@@ -1152,10 +1149,10 @@ def generate_interface_plan(
                 add_section(_section(
                     page_id=step_page_id,
                     section_id=f"{step_page_id}_content",
-                    role="object_detail" if other_actor_step else role,
+                    role=role,
                     name=action,
-                    layout="detail" if other_actor_step else layout,
-                    component="DetailPanel" if other_actor_step else component,
+                    layout=layout,
+                    component=component,
                     model=step_model,
                     visible=visible,
                     editable=effective_editable,
@@ -1177,22 +1174,20 @@ def generate_interface_plan(
                     attributes=[],
                 ))
 
-            # Action button: omit only for other-actor steps.
-            if not other_actor_step:
-                add_section(_section(
-                    page_id=step_page_id,
-                    section_id=f"{step_page_id}_action",
-                    role="activity_action",
-                    name=action,
-                    layout="activity_action",
-                    component="WorkflowActionButton",
-                    model=step_model,
-                    visible=[],
-                    editable=[],
-                    operations=[],
-                    style={"variant": "button", "align": "right", "size": "lg"},
-                    workflow={"action": "complete"},
-                ))
+            add_section(_section(
+                page_id=step_page_id,
+                section_id=f"{step_page_id}_action",
+                role="activity_action",
+                name=action,
+                layout="activity_action",
+                component="WorkflowActionButton",
+                model=step_model,
+                visible=[],
+                editable=[],
+                operations=[],
+                style={"variant": "button", "align": "right", "size": "lg"},
+                workflow={"action": "complete"},
+            ))
 
     # ── Finalize page.sections lists ─────────────────────────────────────────
 

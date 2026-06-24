@@ -85,11 +85,9 @@ def score_layout(attr_names: set[str]) -> dict[str, float]:
                 hits[sig_key] += 1
 
     has_image = hits["image"] > 0
-    has_video = hits["video"] > 0
     has_price = hits["price"] > 0
     has_status = hits["status"] > 0
     has_date = hits["date"] > 0
-    has_time = hits["time"] > 0
     has_content = hits["content"] > 0
     has_contact = hits["contact"] > 0
     has_geo = hits["geo"] > 0
