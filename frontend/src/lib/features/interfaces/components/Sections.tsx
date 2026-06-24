@@ -23,6 +23,7 @@ const CHROME_LAYOUTS = [
     'service-bar', 'link-grid', 'brand-strip', 'compact-footer', 'legal-footer', 'newsletter-footer', 'social-footer', 'mega-footer',
     'site-nav', 'site-footer',
 ];
+const CHROME_LAYOUT_SET = new Set(CHROME_LAYOUTS);
 
 const METHODS_HINTS: Record<string, string> = {
     'promo-bar':      'Each line = promo strip item (e.g. "Gratis verzending vanaf €25,-"). Text field = right-side CTA label.',
@@ -869,9 +870,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                     <SectionEditorGroup title="Content" description="Optional copy, media, and section-level actions shown once for this component." defaultOpen={false}>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-sm font-semibold text-gray-700">
-                                            {CHROME_LAYOUTS.includes(data[index].layout) ? 'Methods (one per line)' : 'Section Actions'}
+                                            {CHROME_LAYOUT_SET.has(data[index].layout) ? 'Methods (one per line)' : 'Section Actions'}
                                         </h3>
-                                        {CHROME_LAYOUTS.includes(data[index].layout) ? (
+                                        {CHROME_LAYOUT_SET.has(data[index].layout) ? (
                                             <>
                                                 {METHODS_HINTS[data[index].layout] && (
                                                     <p className="text-xs text-gray-400">{METHODS_HINTS[data[index].layout]}</p>

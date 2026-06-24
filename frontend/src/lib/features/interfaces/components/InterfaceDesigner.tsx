@@ -46,6 +46,9 @@ const CHROME_LAYOUTS: LayoutOption[] = [
 ];
 const HEADER_LAYOUTS: LayoutOption[] = ['promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav'];
 const FOOTER_LAYOUTS: LayoutOption[] = ['service-bar', 'link-grid', 'brand-strip', 'compact-footer', 'legal-footer', 'newsletter-footer', 'social-footer', 'mega-footer', 'site-footer'];
+const CHROME_LAYOUT_SET = new Set(CHROME_LAYOUTS);
+const HEADER_LAYOUT_SET = new Set(HEADER_LAYOUTS);
+const FOOTER_LAYOUT_SET = new Set(FOOTER_LAYOUTS);
 const MAX_AUTO_PREVIEW_BYTES = 2_000_000;
 
 const sectionRefId = (ref: any) => typeof ref === 'string' ? ref : ref?.value;
@@ -1108,8 +1111,8 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         try {
             let overrideSections: any[] | undefined;
             let overridePages: any[] | undefined;
-            let overrideStyling: any | undefined;
-            let overrideTokens: any | undefined;
+            let overrideStyling: Record<string, unknown> | undefined;
+            let overrideTokens: Record<string, unknown> | undefined;
             if (designMode === 'explore' && previewCandidateIdx !== null && candidates[previewCandidateIdx]) {
                 const cand = candidates[previewCandidateIdx];
                 overrideSections = cand.sections;
@@ -1154,8 +1157,8 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
             // so the live prototype matches what the preview shows.
             let overrideSections: any[] | undefined;
             let overridePages: any[] | undefined;
-            let overrideStyling: any | undefined;
-            let overrideTokens: any | undefined;
+            let overrideStyling: Record<string, unknown> | undefined;
+            let overrideTokens: Record<string, unknown> | undefined;
             if (designMode === 'explore' && previewCandidateIdx !== null && candidates[previewCandidateIdx]) {
                 const cand = candidates[previewCandidateIdx];
                 overrideSections = cand.sections;
@@ -1283,9 +1286,9 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             if (field === 'layout') {
                 const nextLayout = value as LayoutOption;
                 let nextPosition = s.position;
-                if (HEADER_LAYOUTS.includes(nextLayout)) {
+                if (HEADER_LAYOUT_SET.has(nextLayout)) {
                     nextPosition = 'header';
-                } else if (FOOTER_LAYOUTS.includes(nextLayout)) {
+                } else if (FOOTER_LAYOUT_SET.has(nextLayout)) {
                     nextPosition = 'footer';
                 }
                 const options = COMPONENT_OPTIONS_BY_LAYOUT[nextLayout] || [];
@@ -1634,7 +1637,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const secActionVariant: ActionVariantOption = (secStyle.action_variant as ActionVariantOption) || 'link';
     const secShowLogout = !(secStyle.show_logout === false || secStyle.show_logout === 'false' || secStyle.show_logout === '0' || secStyle.show_logout === 'hidden');
     const isActivityAction = isActivityActionSection(selectedSection);
-    const isChromeLayout = CHROME_LAYOUTS.includes(secLayout);
+    const isChromeLayout = CHROME_LAYOUT_SET.has(secLayout);
     const isMethodOnly = !isActivityAction && !isChromeLayout && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
     const attrNameOf = (attr: any) => typeof attr === 'string' ? attr : attr?.name || '';
     const selectedPrimaryModel = selectedSection?.primary_model || selectedSection?.class || '';
@@ -1816,14 +1819,14 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         return rawType === 'image' || rawType === 'video' || /image|photo|avatar|thumbnail|media|video/.test(name);
     });
     const componentControls = COMPONENT_CONTROLS[secComponent];
-    const baseLayoutControls = CHROME_LAYOUTS.includes(secLayout)
+    const baseLayoutControls = CHROME_LAYOUT_SET.has(secLayout)
         ? ['text', 'methods', ...(['nav-links', 'site-nav'].includes(secLayout) ? ['nav_height'] : []), 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width']
         : (LAYOUT_CONTROLS[secLayout] ?? []);
-    const layoutControls = Array.from(new Set([...(baseLayoutControls || []), ...(componentControls || [])]))
-        .filter((control) => (control !== 'image_position' && control !== 'image_size') || hasMediaAttr || secComponent.toLowerCase().includes('media') || secComponent.toLowerCase().includes('productdetail'));
-    const hasControl = (c: string) => layoutControls.includes(c) && (!['sidebar_side', 'sidebar_width'].includes(c) || selectedSection?.position === 'sidebar');
+    const layoutControls = new Set(Array.from(new Set([...(baseLayoutControls || []), ...(componentControls || [])]))
+        .filter((control) => (control !== 'image_position' && control !== 'image_size') || hasMediaAttr || secComponent.toLowerCase().includes('media') || secComponent.toLowerCase().includes('productdetail')));
+    const hasControl = (c: string) => layoutControls.has(c) && (!['sidebar_side', 'sidebar_width'].includes(c) || selectedSection?.position === 'sidebar');
     const hasDataShape = !!selectedPrimaryModel || selectedAttrs.length > 0;
-    const isChromeLike = CHROME_LAYOUTS.includes(secLayout) || ['NavBar', 'Logo', 'BrandLockup', 'ImageLogo', 'IconActions', 'SearchBar', 'SiteFooter', 'FooterLinkGrid'].includes(secComponent);
+    const isChromeLike = CHROME_LAYOUT_SET.has(secLayout) || ['NavBar', 'Logo', 'BrandLockup', 'ImageLogo', 'IconActions', 'SearchBar', 'SiteFooter', 'FooterLinkGrid'].includes(secComponent);
     let baseLayoutGroupsForSelected = LAYOUT_GROUPS;
     if (isChromeLike && !hasDataShape) {
         baseLayoutGroupsForSelected = LAYOUT_GROUPS.filter(group => group.label === 'Header' || group.label === 'Footer');
@@ -2339,8 +2342,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             {posOpt.label}
                                         </span>
                                     )}
-                                    <span style={{ fontSize: 11, color: !CHROME_LAYOUTS.includes(s.layout as LayoutOption) && !(s.attributes?.length) && s.methods?.length ? '#9333ea' : '#6b7280' }}>
-                                        {!CHROME_LAYOUTS.includes(s.layout as LayoutOption) && !(s.attributes?.length) && s.methods?.length ? 'action' : (s.layout || 'table')}
+                                    <span style={{ fontSize: 11, color: !CHROME_LAYOUT_SET.has(s.layout as LayoutOption) && !(s.attributes?.length) && s.methods?.length ? '#9333ea' : '#6b7280' }}>
+                                        {!CHROME_LAYOUT_SET.has(s.layout as LayoutOption) && !(s.attributes?.length) && s.methods?.length ? 'action' : (s.layout || 'table')}
                                     </span>
                                 </span>
                             </button>
