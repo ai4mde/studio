@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from html.parser import HTMLParser
 from pathlib import Path
@@ -31,6 +32,13 @@ def read_local_template_file(template_path: str):
 
 
 template_generation.read_template_file = read_local_template_file
+
+
+def validated_http_url(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("Only absolute http(s) URLs are supported")
+    return url
 
 
 class SectionParser(HTMLParser):
@@ -295,7 +303,7 @@ def request_json(method: str, url: str, body: dict | None = None, token: str | N
         headers["Content-Type"] = "application/json"
     if token:
         headers["Authorization"] = f"Bearer {token}"
-    request = urllib.request.Request(url, data=data, headers=headers, method=method)
+    request = urllib.request.Request(validated_http_url(url), data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             payload = response.read().decode("utf-8")
@@ -428,7 +436,7 @@ def main():
     parser.add_argument("--live-login-user", default="", help="Prototype autologin user, e.g. jan_devries.")
     args = parser.parse_args()
 
-    metadata_path = Path(args.metadata)
+    metadata_path = Path(args.metadata).resolve()
     metadata = metadata_path.read_text(encoding="utf-8")
     metadata_json = json.loads(metadata)
     interfaces = list(metadata_json.get("interfaces", []) or [])
@@ -468,7 +476,7 @@ def main():
 
     app = get_application_component(args.project_name, interface_name, metadata_for_loader, False)
     tokens = dict(getattr(app, "tokens", {}) or {})
-    out_dir = Path(args.out) / interface_name
+    out_dir = Path(args.out).resolve() / interface_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
     pages = [_make_task_home_page(app)] + list(app.pages)

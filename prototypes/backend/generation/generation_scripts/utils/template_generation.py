@@ -1,10 +1,9 @@
 from utils.definitions.application_component import ApplicationComponent
 from utils.definitions.page import Page
 from utils.sanitization import project_name_sanitization, app_name_sanitization, page_name_sanitization, app_namespace_sanitization
-from utils.file_generation import generate_output_file, read_template_file, write_to_file
+from utils.file_generation import ensure_generated_directory, generate_output_file, read_template_file, write_to_file
 from utils.definitions.model import AttributeType
 from utils.loading_json_utils import make_activity_start_section, make_activity_tasks_section
-from os import makedirs
 import re
 import difflib
 
@@ -285,7 +284,7 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/" + application_name + "/templates"
     
     try:
-        makedirs(OUTPUT_TEMPLATES_DIRECTORY, exist_ok=True)
+        ensure_generated_directory(OUTPUT_TEMPLATES_DIRECTORY)
     except:
         raise Exception("Failed to create templates directory for " + application_name + " application")
     

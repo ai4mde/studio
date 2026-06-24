@@ -13,6 +13,13 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def validated_http_url(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("Only absolute http(s) URLs are supported")
+    return url
+
+
 def request_json(method: str, url: str, body: dict | None = None, token: str = "") -> dict:
     data = None
     headers = {"Accept": "application/json"}
@@ -21,7 +28,7 @@ def request_json(method: str, url: str, body: dict | None = None, token: str = "
         headers["Content-Type"] = "application/json"
     if token:
         headers["Authorization"] = f"Bearer {token}"
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    req = urllib.request.Request(validated_http_url(url), data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             raw = resp.read().decode("utf-8")
@@ -155,7 +162,7 @@ def main():
     parser.add_argument("--height", type=int, default=1100)
     args = parser.parse_args()
 
-    out_dir = Path(args.out) / args.interface_name / args.page
+    out_dir = Path(args.out).resolve() / args.interface_name / args.page
     out_dir.mkdir(parents=True, exist_ok=True)
 
     token = args.auth_token or auth_token(args.api_base, args.auth_user, args.auth_password)

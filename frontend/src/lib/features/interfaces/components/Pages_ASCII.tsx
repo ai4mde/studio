@@ -328,6 +328,14 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
                                 <div className="flex justify-between items-center w-full">
                                     <h3
                                         onClick={() => handleEdit(index)}
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter' || event.key === ' ') {
+                                                event.preventDefault();
+                                                handleEdit(index);
+                                            }
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
                                         className="flex h-fit w-48 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300 cursor-pointer"
                                     >
                                         {page.name}

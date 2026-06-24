@@ -8,7 +8,10 @@ from utils.definitions.model import AttributeType, Model, Cardinality, define_ca
 from utils.definitions.styling import Styling, StyleType
 from utils.definitions.settings import Settings
 import json
+import os
+from pathlib import Path
 import re
+import tempfile
 from uuid import uuid4
 
 
@@ -41,9 +44,23 @@ def normalize_section_operations(operations) -> dict:
     return {"create": False, "update": False, "delete": False, "select": False}
 
 
+def _safe_metadata_path(path: str) -> Path:
+    metadata_path = Path(path).resolve()
+    allowed_roots = {
+        Path(os.environ.get("PROTOTYPE_TEMP_DIR", "/usr/src/prototypes/tmp")).resolve(),
+        Path(tempfile.gettempdir()).resolve(),
+        Path.cwd().resolve(),
+    }
+    if not metadata_path.is_file():
+        raise ValueError("Metadata file does not exist")
+    if not any(metadata_path == root or root in metadata_path.parents for root in allowed_roots):
+        raise ValueError("Metadata file path is outside allowed directories")
+    return metadata_path
+
+
 def resolve_metadata_arg(metadata: str) -> str:
     if isinstance(metadata, str) and metadata.startswith("@"):
-        with open(metadata[1:], "r", encoding="utf-8") as f:
+        with _safe_metadata_path(metadata[1:]).open("r", encoding="utf-8") as f:
             return f.read()
     return metadata
 

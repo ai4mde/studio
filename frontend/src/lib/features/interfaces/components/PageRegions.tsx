@@ -62,6 +62,14 @@ export const PageRegions: React.FC<Props> = () => {
           >
             <div
               onClick={() => toggleRegion(region.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  toggleRegion(region.value);
+                }
+              }}
+              role="button"
+              tabIndex={0}
               className="flex items-center justify-between cursor-pointer mb-2"
             >
               <div className="flex items-center gap-2">

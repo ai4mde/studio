@@ -33,6 +33,7 @@ import argparse
 import json
 import sys
 import time
+from pathlib import Path
 from typing import Any
 
 try:
@@ -272,6 +273,14 @@ def upload_to_maze(api_key: str, prototype_url: str) -> str:
 # CLI
 # ---------------------------------------------------------------------------
 
+def safe_output_path(path: str) -> Path:
+    output_path = Path(path).resolve()
+    if output_path.suffix.lower() != ".json":
+        raise ValueError("Dry-run output must be a .json file")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    return output_path
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate a Maze evaluation study for the thesis.")
     parser.add_argument("--api-key", help="Maze API key (not needed with --dry-run)")
@@ -294,8 +303,8 @@ def main() -> None:
 
     if args.dry_run:
         payload = build_maze_payload(args.prototype_url)
-        out_path = args.output
-        with open(out_path, "w", encoding="utf-8") as f:
+        out_path = safe_output_path(args.output)
+        with out_path.open("w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False)
         print(f"Dry-run complete. Study JSON written to: {out_path}")
         print(f"  Blocks: {len(payload['blocks'])}")
