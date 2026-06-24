@@ -1,11 +1,11 @@
-import json, urllib.request, time
+import json, urllib.error, urllib.request, time
 
 # First stop any running prototype
 try:
     req = urllib.request.Request('http://localhost:8010/stop_prototypes', data=b'', method='POST')
     urllib.request.urlopen(req)
     time.sleep(1)
-except:
+except urllib.error.URLError:
     pass
 
 # Start the prototype

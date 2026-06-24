@@ -419,7 +419,7 @@ export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
                                                         ))}
                                                         <Select
                                                             placeholder="Add section to card..."
-                                                            options={sectionOptions.filter((opt: any) => !(entry.sections || []).find((s: SectionRef) => s.value === opt.value))}
+                                                            options={sectionOptions.filter((opt: any) => !(entry.sections || []).some((s: SectionRef) => s.value === opt.value))}
                                                             onChange={(opt: any) => handleAddSectionToCard(entryIdx, opt)}
                                                             value={null}
                                                             styles={{ control: (base: any) => ({ ...base, minHeight: '28px', fontSize: '11px' }) }}

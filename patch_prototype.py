@@ -91,7 +91,7 @@ else:
     with open(models_path, "w") as f:
         f.write(patched)
 
-    print(f"Patched models.py: added addCartItem to Product class")
+    print("Patched models.py: added addCartItem to Product class")
 
 # Verify
 with open(models_path, "r") as f:

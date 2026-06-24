@@ -2123,7 +2123,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                 >
                                                     {compliance.passed
                                                         ? `Compliance OK (${compliance.checked || 0} checks)`
-                                                        : `Compliance warnings: ${complianceIssues.length}${complianceIssues.length ? ` - ${complianceIssues.slice(0, 2).join(' ')}` : ''}`}
+                                                        : 'Compliance warnings: ' + complianceIssues.length + (complianceIssues.length ? ` - ${complianceIssues.slice(0, 2).join(' ')}` : '')}
                                                 </div>
                                             )}
                                             {hasVisualCheck && (

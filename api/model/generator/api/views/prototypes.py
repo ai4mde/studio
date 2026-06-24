@@ -25,7 +25,8 @@ import time
 
 prototypes = Router()
 
-PROTOTYPE_API_PROTO = os.environ.get('PROTOTYPE_API_PROTO', "http://")
+DEFAULT_HTTP_PROTO = "http://"
+PROTOTYPE_API_PROTO = os.environ.get('PROTOTYPE_API_PROTO', DEFAULT_HTTP_PROTO)
 PROTOTYPE_API_HOST = os.environ.get('PROTOTYPE_API_HOST', "studio-prototypes")
 PROTOTYPE_API_PORT = os.environ.get('PROTOTYPE_API_PORT', 8010)
 PROTOTYPE_API_URL = f"{PROTOTYPE_API_PROTO}{PROTOTYPE_API_HOST}:{PROTOTYPE_API_PORT}"
@@ -634,9 +635,9 @@ def visual_check(request, payload: VisualCheckPayload):
     expected_files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
 
     public_host = os.environ.get("RUNNING_PROTOTYPE_HOST", "prototype.ai4mde.localhost")
-    public_proto = os.environ.get("RUNNING_PROTOTYPE_PROTO", "http://")
+    public_proto = os.environ.get("RUNNING_PROTOTYPE_PROTO", DEFAULT_HTTP_PROTO)
     public_base_url = f"{public_proto}{public_host}"
-    check_proto = os.environ.get("RUNNING_PROTOTYPE_CHECK_PROTO", "http://")
+    check_proto = os.environ.get("RUNNING_PROTOTYPE_CHECK_PROTO", DEFAULT_HTTP_PROTO)
     check_host = os.environ.get("RUNNING_PROTOTYPE_CHECK_HOST")
     if not check_host:
         check_host = f"{PROTOTYPE_API_HOST}:{status.get('port') or os.environ.get('RUNNING_PROTOTYPE_PORT', 8020)}"
