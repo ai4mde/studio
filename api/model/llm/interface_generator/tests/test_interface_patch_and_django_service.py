@@ -234,7 +234,9 @@ def test_sync_all_classifier_methods_to_interfaces_calls_sync(monkeypatch):
 
     ds._sync_all_classifier_methods_to_interfaces("system")
 
-    assert tuple(calls[0][0:3]) == ("product", "Product", {"name": "score", "body": "return 1"})
+    synced_call = next(iter(calls), None)
+    assert synced_call is not None
+    assert tuple(synced_call[0:3]) == ("product", "Product", {"name": "score", "body": "return 1"})
 
 
 def test_ensure_action_panel_sections_adds_detail_page_actions():
