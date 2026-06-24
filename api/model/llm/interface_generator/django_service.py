@@ -32,6 +32,17 @@ from .workflow_application import _apply_builtin_workflow_logic
 logger = logging.getLogger(__name__)
 
 
+def _strip_json_fence(value: str) -> str:
+    text = str(value or "").strip()
+    if text.startswith("```"):
+        newline = text.find("\n")
+        if newline != -1 and text[3:newline].strip().lower() in {"", "json"}:
+            text = text[newline + 1:].strip()
+    if text.endswith("```"):
+        text = text[:-3].strip()
+    return text
+
+
 def _interface_to_agent_dict(interface: Interface) -> dict:
     """Serialize an Interface ORM object into the agent payload shape."""
     return {
@@ -394,9 +405,7 @@ def resolve_interface_semantics_with_llm(
             timeout=12,
         )
         resp.raise_for_status()
-        text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-        text = _re.sub(r"^```(?:json)?\s*", "", text)
-        text = _re.sub(r"\s*```$", "", text).strip()
+        text = _strip_json_fence(resp.json()["candidates"][0]["content"]["parts"][0]["text"])
         raw = _json.loads(text)
     except Exception as exc:
         logger.warning("semantic resolver fallback to rules: %s", exc)
@@ -869,9 +878,7 @@ def apply_prompt_to_interface(interface_id: str, system_id: str, user_request: s
                 "max_output_tokens": 65536,
             },
         )
-        raw_text = str(getattr(response, "text", "") or "").strip()
-        raw_text = _re.sub(r"^```(?:json)?\s*", "", raw_text)
-        raw_text = _re.sub(r"\s*```$", "", raw_text).strip()
+        raw_text = _strip_json_fence(str(getattr(response, "text", "") or ""))
         patch = _json.loads(raw_text)
         if not isinstance(patch, dict):
             return {"status": "error", "message": "Model did not return a JSON object patch."}
