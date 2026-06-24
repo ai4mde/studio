@@ -25,7 +25,7 @@ create_outdir() {
 
 create_new_django_project() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}"
-    if [ -d "$PROJECT_NAME" ]; then
+    if [[ -d "$PROJECT_NAME" ]]; then
         echo "Error: Directory with project name already exists."
         exit 1
     fi
@@ -40,7 +40,7 @@ update_django_project_settings() {
     echo "MIDDLEWARE = [m for m in MIDDLEWARE if 'XFrameOptionsMiddleware' not in m]" >> settings.py
     echo "from django.urls import include" >> urls.py
     
-    if [ "$AUTH_PRESENT" = "True" ]; then
+    if [[ "$AUTH_PRESENT" = "True" ]]; then
         echo "AUTH_USER_MODEL = \"shared_models.User\"" >> settings.py
     fi
 }
@@ -104,7 +104,7 @@ update_global_app_settings() {
 create_new_django_app() {
     local app="$1"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    if [ -d "$app" ]; then
+    if [[ -d "$app" ]]; then
         echo "Error: Directory with application component name already exists."
         exit 1
     fi
@@ -120,7 +120,7 @@ create_django_apps() {
     
     create_shared_models_app
     create_workflow_engine_app
-    if [ "$AUTH_PRESENT" = "True" ]; then
+    if [[ "$AUTH_PRESENT" = "True" ]]; then
         create_authentication_app
     else
         create_noauth_home_app

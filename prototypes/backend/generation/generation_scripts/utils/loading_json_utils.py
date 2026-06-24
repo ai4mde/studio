@@ -698,7 +698,12 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     page_gap = "normal"
 
                 type_field = page.get("type")
-                page_type = type_field.get("value", "normal") if isinstance(type_field, dict) else (str(type_field) if type_field else "normal")
+                if isinstance(type_field, dict):
+                    page_type = type_field.get("value", "normal")
+                elif type_field:
+                    page_type = str(type_field)
+                else:
+                    page_type = "normal"
                 activity_name = page['action']['label'] if page.get('action') else None
                 section_components = retrieve_section_components(
                     application_name=application_name,
