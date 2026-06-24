@@ -29,6 +29,7 @@ WORKDIR /usr/src/app
 COPY --from=venv /usr/src/.venv /usr/src/.venv
 COPY model /usr/src/model
 COPY entrypoint.sh /entrypoint.sh
+RUN /usr/src/.venv/bin/python -m playwright install --with-deps chromium
 RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 ENV PATH="/usr/src/.venv/bin:$PATH"
 

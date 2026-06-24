@@ -105,42 +105,42 @@ def seed_ecommerce_models():
     seller2 = Seller.objects.create(seller_id='sel-002', business_name='GadgetShop', rating='4.5', review_count=873, is_verified=True, ships_from='Rotterdam', response_time='< 2 hours')
     print('Created 2 sellers.')
 
-    p1 = Product.objects.create(
+    p1 = create_supported(Product,
         product_id='prod-001', name='Samsung Galaxy S24 Ultra', brand='Samsung', ean='8806095268835',
         description='Flagship smartphone with 200MP camera and Galaxy AI. 6.8-inch QHD+ AMOLED, S Pen included.',
         price='EUR 1149', original_price='EUR 1299', discount_pct=11, stock_quantity=42,
         rating='4.7', review_count=328, weight_kg='0.23', is_active=True, Category=cat_phones, Seller=seller1)
-    p2 = Product.objects.create(
+    p2 = create_supported(Product,
         product_id='prod-002', name='Apple iPhone 15 Pro', brand='Apple', ean='0195949038785',
         description='Titanium design with A17 Pro chip, 48MP main camera, and Action Button. 128GB storage.',
         price='EUR 1029', original_price='EUR 1029', discount_pct=0, stock_quantity=28,
         rating='4.8', review_count=512, weight_kg='0.19', is_active=True, Category=cat_phones, Seller=seller1)
-    p3 = Product.objects.create(
+    p3 = create_supported(Product,
         product_id='prod-003', name='MacBook Air M3 15-inch', brand='Apple', ean='0195949130403',
         description='M3 chip, 15-inch Liquid Retina display, 8GB RAM, 256GB SSD. All-day battery life.',
         price='EUR 1499', original_price='EUR 1599', discount_pct=6, stock_quantity=15,
         rating='4.9', review_count=187, weight_kg='1.51', is_active=True, Category=cat_laptops, Seller=seller2)
-    p4 = Product.objects.create(
+    p4 = create_supported(Product,
         product_id='prod-004', name='Dell XPS 15 OLED', brand='Dell', ean='5397184758419',
         description='15.6-inch OLED laptop, Intel Core i7, 16GB RAM, 512GB SSD. InfinityEdge display.',
         price='EUR 1349', original_price='EUR 1549', discount_pct=13, stock_quantity=8,
         rating='4.6', review_count=94, weight_kg='1.86', is_active=True, Category=cat_laptops, Seller=seller2)
-    p5 = Product.objects.create(
+    p5 = create_supported(Product,
         product_id='prod-005', name='Google Pixel 8 Pro', brand='Google', ean='0840244700522',
         description='Google AI phone with Tensor G3, 50MP camera, Magic Eraser and 7 years of OS updates.',
         price='EUR 799', original_price='EUR 999', discount_pct=20, stock_quantity=33,
         rating='4.5', review_count=201, weight_kg='0.21', is_active=True, Category=cat_phones, Seller=seller2)
-    p6 = Product.objects.create(
+    p6 = create_supported(Product,
         product_id='prod-006', name='Sony WH-1000XM5', brand='Sony', ean='4548736132412',
         description='Industry-leading noise cancelling headphones. 30-hour battery, multipoint connection.',
         price='EUR 299', original_price='EUR 379', discount_pct=21, stock_quantity=67,
         rating='4.8', review_count=892, weight_kg='0.25', is_active=True, Category=cat_audio, Seller=seller1)
-    p7 = Product.objects.create(
+    p7 = create_supported(Product,
         product_id='prod-007', name='Philips Hue Starter Kit', brand='Philips', ean='8718699703288',
         description='Smart LED starter kit with Bridge. 16 million colours, voice control, energy saving.',
         price='EUR 79', original_price='EUR 99', discount_pct=20, stock_quantity=120,
         rating='4.4', review_count=445, weight_kg='0.45', is_active=True, Category=cat_home, Seller=seller1)
-    p8 = Product.objects.create(
+    p8 = create_supported(Product,
         product_id='prod-008', name='Lenovo ThinkPad X1 Carbon', brand='Lenovo', ean='0196380105483',
         description='Ultra-light business laptop, 14-inch IPS, Intel Core i5, 16GB RAM, 512GB SSD.',
         price='EUR 1199', original_price='EUR 1399', discount_pct=14, stock_quantity=20,

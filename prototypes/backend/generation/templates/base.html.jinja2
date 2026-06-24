@@ -15,7 +15,7 @@
         {%- endif %}
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+<body class="min-h-screen font-sans" style="background-color:var(--page-bg);color:var(--page-text);">
 {% raw %}{% if request.GET.workflow_success %}{% endraw %}
 <div class="mx-auto mt-4 max-w-6xl px-6">
     <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-sm">
@@ -102,7 +102,7 @@
   {%- set _ = _main_row_open.append(1) %}
   {%- set _row_style = sc.style if sc.style is defined and sc.style else {} %}
   {%- set _row_variant = _row_style.get('header_variant', '') %}
-<header class="{% if _row_variant == 'split-dark' %}{{ _header_shell_class }} py-3 flex items-center gap-4 shadow-sm{% elif _row_variant == 'showcase' %}bg-white {{ _header_shell_class }} py-5 flex items-center gap-5 border-b border-gray-100 shadow-sm{% else %}bg-white {{ _header_shell_class }} py-3 flex items-center gap-4{% endif %}" style="{% if _row_variant == 'split-dark' %}background-color:#111827;color:#ffffff;{% endif %}" data-position="header" data-layout="main-header-row" data-header-variant="{{ _row_variant }}">
+<header class="{% if _row_variant == 'showcase' %}{{ _header_shell_class }} py-5 flex items-center gap-5 border shadow-sm{% else %}{{ _header_shell_class }} py-3 flex items-center gap-4{% endif %}" style="background-color:var(--region-header-bg);color:var(--region-header-text);border-color:var(--nav-border);" data-position="header" data-layout="main-header-row" data-header-variant="{{ _row_variant }}">
 {%- elif not _inline_lay and _main_row_open %}
   {%- set _ = _main_row_open.clear() %}
 </header>
@@ -110,7 +110,7 @@
 
 {%- if sc.layout in ('promo-bar', 'promo-strip') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
-    <div style="background-color:{{ _accent_hex }};" class="{{ _header_shell_class }} py-1.5 flex items-center justify-between text-xs text-white select-none">
+    <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="{{ _header_shell_class }} py-1.5 flex items-center justify-between text-xs select-none">
         <div class="flex items-center gap-6">
             {%- for m in sc.custom_methods[:3] %}
             <span>{{ m }}</span>
@@ -134,7 +134,7 @@
         {%- endif %}
         {%- if _logo_variant != 'image-only' %}
         <span class="flex flex-col min-w-0">
-            <span class="text-3xl font-black truncate" style="color:{% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}#ffffff{% else %}{{ _accent_hex }}{% endif %};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _sc_style.get('logo_text') or _brand_name }}{% if _sc_style.get('dot', false) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
+            <span class="text-3xl font-black truncate" style="color:var(--region-header-text);font-family:'Georgia',serif;letter-spacing:0;">{{ sc.text or _sc_style.get('logo_text') or _brand_name }}{% if _sc_style.get('dot', false) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
             {%- if _tagline %}<span class="text-xs font-medium {% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}text-gray-300{% else %}text-gray-500{% endif %} mt-1 truncate">{{ _tagline }}</span>{%- endif %}
         </span>
         {%- endif %}
@@ -144,10 +144,10 @@
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
     {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
-    <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex items-center rounded-full border-2 overflow-hidden {% if _sc_style.get('header_variant') == 'split-dark' %}bg-white/95{% endif %}" style="border-color:{{ _accent_hex }};">
+    <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--button-primary-bg);background-color:var(--input-bg);">
         <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
-        <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
-            <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <button type="submit" class="px-4 py-3" style="background-color:var(--button-primary-bg);color:var(--button-primary-text);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
     </form>
 </div>
@@ -159,7 +159,7 @@
 {%- set _logout_label = _sc_style.get('logout_label', 'Logout') %}
 {%- set _action_cls = 'si-btn si-btn-primary px-3 py-2 text-sm font-semibold' if _action_variant == 'button' else ('si-btn si-btn-ghost px-3 py-2 text-sm font-semibold' if _action_variant == 'ghost' else 'cursor-pointer hover:opacity-75 whitespace-nowrap') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
-    <div class="flex items-center gap-3 text-sm {% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}text-white{% else %}text-gray-700{% endif %} shrink-0">
+    <div class="flex items-center gap-3 text-sm shrink-0" style="color:var(--region-header-text);">
         {%- if sc.custom_methods %}
         {%- for m in sc.custom_methods %}
         <span class="{{ _action_cls }}">{{ m }}</span>
@@ -177,15 +177,15 @@
 
 {%- elif sc.layout in ('main-header','commerce-header','dashboard-header','split-header','app-header','mega-header','hero-header','tabbed-header','glass-header','command-header') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
-    <header class="bg-white {{ _header_shell_class }} py-3 flex items-center gap-4">
-        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}</a>
-        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <header class="{{ _header_shell_class }} py-3 flex items-center gap-4" style="background-color:var(--region-header-bg);color:var(--region-header-text);">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:var(--region-header-text);font-family:'Georgia',serif;letter-spacing:0;">{{ _brand_name }}</a>
+        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--button-primary-bg);background-color:var(--input-bg);">
             <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
-            <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
-                <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <button type="submit" class="px-4 py-3" style="background-color:var(--button-primary-bg);color:var(--button-primary-text);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </button>
         </form>
-        <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+        <div class="flex items-center gap-5 text-sm shrink-0" style="color:var(--region-header-text);">
             <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
             <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">鈾?/a>
             <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer">
@@ -250,21 +250,21 @@
         </div>
         {%- if sc.text %}<span>{{ sc.text }}</span>{%- endif %}
     </div>
-    <header class="bg-white {{ _header_shell_class }} py-3 flex items-center gap-4">
-        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}</a>
-        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <header class="{{ _header_shell_class }} py-3 flex items-center gap-4" style="background-color:var(--region-header-bg);color:var(--region-header-text);">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:var(--region-header-text);font-family:'Georgia',serif;letter-spacing:0;">{{ _brand_name }}</a>
+        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--button-primary-bg);background-color:var(--input-bg);">
             <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
-            <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
-                <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <button type="submit" class="px-4 py-3" style="background-color:var(--button-primary-bg);color:var(--button-primary-text);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </button>
         </form>
-        <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+        <div class="flex items-center gap-5 text-sm shrink-0" style="color:var(--region-header-text);">
             <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="cursor-pointer hover:opacity-75">Logout</a>
             <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">鈾?/a>
             <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
         </div>
     </header>
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <nav class="border-b sticky top-0 z-40" style="background-color:var(--nav-bg);border-color:var(--nav-border);color:var(--nav-text);">
         <div class="{{ _header_shell_class }} flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
             <div class="flex items-center gap-0">
                 <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 鈻?/span>

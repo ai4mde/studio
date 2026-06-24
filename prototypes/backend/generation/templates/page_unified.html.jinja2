@@ -1957,30 +1957,30 @@ href="#"
 
 {%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'hero-header', 'tabbed-header', 'glass-header', 'command-header', 'site-nav', 'nav-links') %}
   {%- if section_component.position == 'sidebar' and lay in ('nav-links', 'nav-bar', 'site-nav') %}
-  <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+  <nav class="border rounded-xl overflow-hidden" style="background-color:var(--region-sidebar-bg);border-color:var(--nav-border);color:var(--nav-text);">
     <div class="px-3 py-3 flex flex-col gap-1 text-sm">
-      <div class="font-bold text-gray-900 px-2 py-2">{{ section_component.display_name }}</div>
+      <div class="font-bold px-2 py-2" style="color:var(--nav-text);">{{ section_component.display_name }}</div>
       {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
-      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
+      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors"
+        style="{% if p.display_name == page.display_name %}background-color:var(--button-primary-bg);color:var(--button-primary-text);{% else %}color:var(--nav-text);{% endif %}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
     </div>
   </nav>
   {%- elif lay in ('nav-links', 'nav-bar', 'site-nav') %}
-  <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+  <nav class="border rounded-xl overflow-x-auto" style="background-color:var(--nav-bg);border-color:var(--nav-border);color:var(--nav-text);">
     <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
-      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium cursor-pointer rounded mr-1" style="color:var(--nav-text);">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         {{ section_component.custom_methods[0] if section_component.custom_methods else section_component.display_name }}
       </span>
       {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
-      <a {{ nav_href_attrs(_p_name) }} class="{% if _sc_style.get('nav_variant') == 'pills' %}px-3 py-2 cursor-pointer rounded-full font-semibold transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}{% else %}px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}{% endif %}"
-        style="{% if _sc_style.get('nav_variant') == 'pills' and p.display_name == page.display_name %}background-color:{{ _accent_hex }};{% elif p.display_name == page.display_name %}border-color:{{ _accent_hex }};color:{{ _accent_hex }}{% endif %}">{{ p.display_name }}</a>
+      <a {{ nav_href_attrs(_p_name) }} class="{% if _sc_style.get('nav_variant') == 'pills' %}px-3 py-2 cursor-pointer rounded-full font-semibold transition-colors{% else %}px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% endif %}{% endif %}"
+        style="{% if p.display_name == page.display_name %}background-color:var(--button-primary-bg);color:var(--button-primary-text);border-color:var(--button-primary-border);{% else %}color:var(--nav-text);{% endif %}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
     </div>
@@ -1994,16 +1994,16 @@ href="#"
     </button>
   </div>
   {%- else %}
-  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+  <div class="border rounded-xl overflow-hidden" style="background-color:var(--region-header-bg);border-color:var(--nav-border);color:var(--region-header-text);">
     <header class="px-5 py-3 flex items-center gap-4">
-      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}</a>
+      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:var(--region-header-text);font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}</a>
       <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
         <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
         <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
           <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
       </form>
-      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+      <div class="flex items-center gap-5 text-sm shrink-0" style="color:var(--region-header-text);">
         <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
         {%- set _icon_links = _s.get('icon_links', []) %}
         {%- if _icon_links %}
@@ -3271,45 +3271,45 @@ href="#"
     </button>
   </div>
   {%- elif section_component.position == 'sidebar' and lay in ('nav-links', 'nav-bar', 'site-nav') %}
-  <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+  <nav class="border rounded-xl overflow-hidden" style="background-color:var(--region-sidebar-bg);border-color:var(--nav-border);color:var(--nav-text);">
     <div class="px-3 py-3 flex flex-col gap-1 text-sm">
-      <div class="font-bold text-gray-900 px-2 py-2">{{ section_component.display_name }}</div>
+      <div class="font-bold px-2 py-2" style="color:var(--nav-text);">{{ section_component.display_name }}</div>
       {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
-      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
+      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors"
+        style="{% if p.display_name == page.display_name %}background-color:var(--button-primary-bg);color:var(--button-primary-text);{% else %}color:var(--nav-text);{% endif %}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
     </div>
   </nav>
   {%- elif lay in ('nav-links', 'nav-bar', 'site-nav') %}
-  <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+  <nav class="border rounded-xl overflow-x-auto" style="background-color:var(--nav-bg);border-color:var(--nav-border);color:var(--nav-text);">
     <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
-      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium cursor-pointer rounded mr-1" style="color:var(--nav-text);">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         {{ section_component.custom_methods[0] if section_component.custom_methods else section_component.display_name }}
       </span>
       {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
-      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
+      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% endif %}"
+        style="{% if p.display_name == page.display_name %}background-color:var(--button-primary-bg);color:var(--button-primary-text);border-color:var(--button-primary-border);{% else %}color:var(--nav-text);{% endif %}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
     </div>
   </nav>
   {%- else %}
-  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+  <div class="border rounded-xl overflow-hidden" style="background-color:var(--region-header-bg);border-color:var(--nav-border);color:var(--region-header-text);">
     <header class="px-5 py-3 flex items-center gap-4">
-      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}</a>
+      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:var(--region-header-text);font-family:'Georgia',serif;letter-spacing:0;">{{ _brand_name }}</a>
       <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
         <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
-        <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
-          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <button type="submit" class="px-4 py-3" style="background-color:var(--button-primary-bg);color:var(--button-primary-text);">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
       </form>
-      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+      <div class="flex items-center gap-5 text-sm shrink-0" style="color:var(--region-header-text);">
         <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
         {%- set _icon_links = _s.get('icon_links', []) %}
         {%- if _icon_links %}

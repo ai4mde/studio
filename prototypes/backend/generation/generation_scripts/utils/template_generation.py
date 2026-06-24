@@ -143,6 +143,7 @@ def _make_task_home_page(application_component: ApplicationComponent) -> Page:
         "style": {"columns": "1", "card_style": "elevated"},
     })
     chrome_sections = _collect_position_sections(application_component.pages, 'header')
+    chrome_sections.extend(_collect_position_sections(application_component.pages, 'sidebar'))
     chrome_sections.extend(_collect_position_sections(application_component.pages, 'footer'))
     return Page(
         id="task-home",

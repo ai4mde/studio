@@ -5,6 +5,7 @@ import json
 import os
 import re
 from collections import defaultdict
+from pathlib import Path
 
 import requests
 from metadata.models import Interface
@@ -168,6 +169,557 @@ def _drop_deprecated_section_fields(section: dict) -> dict:
     section = dict(section or {})
     section.pop("item_actions", None)
     return section
+
+
+def _intent_text(*values) -> str:
+    """Normalize design intent text for requirement detection."""
+    return " ".join(str(value or "").lower() for value in values if value is not None)
+
+
+def _mentions(text: str, *patterns: str) -> bool:
+    """Return true when any regex pattern is present in text."""
+    return any(re.search(pattern, text, re.I) for pattern in patterns)
+
+
+def _is_nav_section(section: dict) -> bool:
+    """Return true when a section represents navigation."""
+    layout = _normalize_layout_alias(section.get("layout"))
+    return (
+        str(section.get("role") or "").lower() in {"navigation", "nav"}
+        or str(section.get("component") or "") == "NavBar"
+        or layout in {"site-nav", "nav-links", "nav-bar"}
+    )
+
+
+def _page_ref_ids(page: dict) -> set[str]:
+    """Collect referenced section ids from a page."""
+    return {_ref_id(ref) for ref in (page.get("sections") or []) if _ref_id(ref)}
+
+
+def _ensure_nav_section(pages: list, sections: list) -> dict:
+    """Return an existing navigation section or create a minimal one."""
+    for section in sections:
+        if _is_nav_section(section):
+            return section
+    nav_methods = [p.get("name") or p.get("id") for p in pages if p.get("name") or p.get("id")]
+    nav_section = {
+        "id": "app_sidebar_nav",
+        "name": "Navigation",
+        "role": "navigation",
+        "layout": "site-nav",
+        "component": "NavBar",
+        "primary_model": "",
+        "class": "",
+        "attributes": [],
+        "operations": {"create": False, "update": False, "delete": False, "select": False},
+        "methods": nav_methods,
+        "col_span": 12,
+        "position": "header",
+        "style": {"color": "accent", "density": "normal", "shadow": "sm", "border": "light", "bg": "white"},
+    }
+    sections.append(nav_section)
+    return nav_section
+
+
+def _apply_design_intent_patch(
+    pages: list,
+    sections: list,
+    tokens: dict,
+    styling: dict,
+    prompt: str = "",
+    description: str = "",
+    name: str = "",
+) -> tuple[list, list, dict, dict]:
+    """Apply deterministic DSL patches for explicit designer requirements."""
+    text = _intent_text(prompt, description, name)
+    patched_pages = copy.deepcopy(pages or [])
+    patched_sections = copy.deepcopy(sections or [])
+    patched_tokens = dict(tokens or {})
+    patched_styling = dict(styling or {})
+
+    wants_contained = _mentions(text, r"\bcontained\b", r"\bmax[- ]?width\b", r"\bcentered\b")
+    wants_left_sidebar_nav = _mentions(text, r"\bleft\s+sidebar\s+nav", r"\bsidebar\s+navigation\b", r"\bleft\s+nav")
+    wants_sidebar_nav = wants_left_sidebar_nav or _mentions(text, r"\bside\s*bar\s+nav", r"\bsidebar\s+nav")
+    wants_top_nav = _mentions(text, r"\btop\s+(horizontal\s+)?nav", r"\bhorizontal\s+navigation\b")
+    wants_navy_header = _mentions(text, r"\bnavy\s+header\b", r"\bdark\s+blue\s+header\b")
+    wants_beige_cards = _mentions(text, r"\bbeige\s+cards?\b", r"\bcream\s+cards?\b")
+    wants_gold_buttons = _mentions(text, r"\bgold(en)?\s+buttons?\b", r"\byellow\s+buttons?\b")
+    wants_table = _mentions(text, r"\btable\b", r"\bdata\s*table\b", r"\btabular\b")
+    wants_small_table_text = wants_table and _mentions(text, r"\bsmall(er)?\s+table\s+text\b", r"\bcompact\s+table\b")
+    wants_big_hero = _mentions(text, r"\bbig(ger)?\s+hero\s+title\b", r"\blarge\s+hero\b", r"\bhero\s+title\b")
+
+    if wants_contained:
+        for page in patched_pages:
+            layout = dict(page.get("layout") or {})
+            layout["main_width"] = "contained"
+            page["layout"] = layout
+
+    if wants_sidebar_nav or wants_top_nav:
+        nav = _ensure_nav_section(patched_pages, patched_sections)
+        nav["layout"] = "site-nav"
+        nav["component"] = "NavBar"
+        nav["role"] = "navigation"
+        style = dict(nav.get("style") or {})
+        if wants_sidebar_nav and not wants_top_nav:
+            nav["position"] = "sidebar"
+            style["variant"] = "rail"
+            style["sidebar_side"] = "left" if wants_left_sidebar_nav else style.get("sidebar_side", "left")
+            style["sidebar_width"] = style.get("sidebar_width", 3)
+            style["nav_height"] = "tall"
+            for page in patched_pages:
+                refs = list(page.get("sections") or [])
+                if nav.get("id") and nav.get("id") not in _page_ref_ids(page):
+                    page["sections"] = [{"value": nav["id"]}] + refs
+        elif wants_top_nav:
+            nav["position"] = "header"
+            style.pop("sidebar_side", None)
+            style.pop("sidebar_width", None)
+            style["variant"] = "page-nav"
+        nav["style"] = style
+
+    if wants_navy_header:
+        patched_tokens["page.bg.hex"] = "#f9fafb"
+        patched_tokens["page.body.bg_hex"] = "#f9fafb"
+        patched_tokens["page.text.hex"] = "#111827"
+        patched_tokens["page.body.text_hex"] = "#111827"
+        patched_tokens["region.main.bg_hex"] = "#ffffff"
+        patched_tokens["region.main.bg_sunken_hex"] = "#f9fafb"
+        patched_tokens["color.secondary.hex"] = "#9ca3af"
+        patched_tokens["text.muted.hex"] = "#6b7280"
+        patched_tokens["region.header.bg_hex"] = "#061756"
+        patched_tokens["region.header.text_hex"] = "#ffffff"
+        patched_tokens["nav.bg_hex"] = "#061756"
+        patched_tokens["nav.text_hex"] = "#ffffff"
+        if wants_sidebar_nav:
+            patched_tokens["region.sidebar.bg_hex"] = "#061756"
+
+    if wants_beige_cards:
+        patched_tokens["component.card.bg_hex"] = "#f4ead7"
+        patched_tokens["component.card.border_hex"] = "#d8c7a6"
+        patched_tokens["component.card.text_hex"] = patched_tokens.get("component.card.text_hex") or "#111827"
+        patched_tokens["component.card.muted_hex"] = patched_tokens.get("component.card.muted_hex") or "#6b7280"
+        for section in patched_sections:
+            if section.get("layout") in {"card", "gallery", "detail"}:
+                style = dict(section.get("style") or {})
+                style["bg"] = "beige"
+                section["style"] = style
+
+    if wants_gold_buttons:
+        for prefix in ("button.primary", "button.secondary"):
+            patched_tokens[f"{prefix}.bg_hex"] = "#d4a017"
+            patched_tokens[f"{prefix}.text_hex"] = "#061756"
+            patched_tokens[f"{prefix}.border_hex"] = "#b8870d"
+
+    if wants_table:
+        for section in patched_sections:
+            if section.get("position", "main") != "main":
+                continue
+            if not section.get("primary_model"):
+                continue
+            if section.get("layout") in {"card", "gallery", "list", "table"} or section.get("role") in {"object_collection", "object_summary"}:
+                section["layout"] = "table"
+                section["component"] = "DataTable"
+                style = dict(section.get("style") or {})
+                if wants_small_table_text:
+                    style["density"] = "compact"
+                section["style"] = style
+                section["field_layout"] = _normalize_field_layout(section)
+        if wants_small_table_text:
+            patched_tokens["typography.body.size"] = "13px"
+            patched_tokens["typography.label.size"] = "12px"
+            patched_tokens["typography.caption.size"] = "11px"
+
+    if wants_big_hero:
+        patched_tokens["typography.hero.size"] = "72px"
+        patched_tokens["typography.display.size"] = "52px"
+        for section in patched_sections:
+            if str(section.get("role") or "").lower() == "header" or section.get("position") == "header":
+                if section.get("layout") in _HEADER_TEMPLATE_LAYOUTS or str(section.get("component") or "") == "HeaderTemplate":
+                    section["layout"] = "hero-header"
+                    section["component"] = "HeaderTemplate"
+                    style = dict(section.get("style") or {})
+                    style["header_variant"] = "hero"
+                    section["style"] = style
+                    break
+
+    patched_styling.update({key: val for key, val in patched_tokens.items() if key in _STYLING_TOKEN_KEYS})
+    return patched_pages, patched_sections, patched_tokens, patched_styling
+
+
+def _hex_rgb(value: str) -> tuple[int, int, int] | None:
+    """Parse #rgb or #rrggbb colors."""
+    value = str(value or "").strip()
+    if not value.startswith("#"):
+        return None
+    raw = value[1:]
+    if len(raw) == 3:
+        raw = "".join(ch * 2 for ch in raw)
+    if len(raw) != 6 or not re.fullmatch(r"[0-9a-fA-F]{6}", raw):
+        return None
+    return int(raw[0:2], 16), int(raw[2:4], 16), int(raw[4:6], 16)
+
+
+def _is_dark_blue(value: str) -> bool:
+    """Heuristic for navy/dark blue token validation."""
+    rgb = _hex_rgb(value)
+    if not rgb:
+        return False
+    r, g, b = rgb
+    return b >= r and b >= g and max(rgb) <= 120
+
+
+def _is_gold(value: str) -> bool:
+    """Heuristic for gold/yellow button validation."""
+    rgb = _hex_rgb(value)
+    if not rgb:
+        return False
+    r, g, b = rgb
+    return r >= 160 and g >= 110 and b <= 90
+
+
+def _is_beige(value: str) -> bool:
+    """Heuristic for beige/cream surface validation."""
+    rgb = _hex_rgb(value)
+    if not rgb:
+        return False
+    r, g, b = rgb
+    return r >= 210 and g >= 190 and b >= 150 and abs(r - g) <= 45 and r >= b
+
+
+def _px_number(value: str) -> float | None:
+    """Extract a px number from a CSS size token."""
+    match = re.search(r"([0-9]+(?:\.[0-9]+)?)px", str(value or ""))
+    return float(match.group(1)) if match else None
+
+
+def _candidate_compliance_report(
+    pages: list,
+    sections: list,
+    tokens: dict,
+    prompt: str = "",
+    description: str = "",
+    name: str = "",
+) -> dict:
+    """Check whether candidate metadata satisfies explicit prompt/description claims."""
+    text = _intent_text(prompt, description, name)
+    requirements: list[dict] = []
+
+    def add(key: str, required: bool, passed: bool, detail: str):
+        if required:
+            requirements.append({"key": key, "passed": bool(passed), "detail": detail})
+
+    nav_sections = [s for s in sections or [] if _is_nav_section(s)]
+    data_sections = [
+        s for s in sections or []
+        if s.get("position", "main") == "main" and s.get("primary_model") and s.get("layout") in _DATA_SECTION_LAYOUTS
+    ]
+    wants_sidebar = _mentions(text, r"\bsidebar\s+nav", r"\bsidebar\s+navigation\b", r"\bleft\s+nav")
+    wants_left_sidebar = _mentions(text, r"\bleft\s+sidebar\s+nav", r"\bleft\s+nav")
+    wants_table = _mentions(text, r"\btable\b", r"\bdata\s*table\b", r"\btabular\b")
+    wants_small_table = wants_table and _mentions(text, r"\bsmall(er)?\s+table\s+text\b", r"\bcompact\s+table\b")
+    wants_contained = _mentions(text, r"\bcontained\b", r"\bmax[- ]?width\b", r"\bcentered\b")
+    wants_navy_header = _mentions(text, r"\bnavy\s+header\b", r"\bdark\s+blue\s+header\b")
+    wants_beige_cards = _mentions(text, r"\bbeige\s+cards?\b", r"\bcream\s+cards?\b")
+    wants_gold_buttons = _mentions(text, r"\bgold(en)?\s+buttons?\b", r"\byellow\s+buttons?\b")
+    wants_big_hero = _mentions(text, r"\bbig(ger)?\s+hero\s+title\b", r"\blarge\s+hero\b", r"\bhero\s+title\b")
+
+    add(
+        "left_sidebar_navigation" if wants_left_sidebar else "sidebar_navigation",
+        wants_sidebar,
+        any(s.get("position") == "sidebar" and (not wants_left_sidebar or (s.get("style") or {}).get("sidebar_side") == "left") for s in nav_sections),
+        "Navigation must be rendered as a sidebar, left-sided when requested.",
+    )
+    add(
+        "table_layout",
+        wants_table,
+        any(s.get("layout") == "table" or s.get("component") == "DataTable" for s in data_sections),
+        "At least one data section must render as DataTable/table.",
+    )
+    add(
+        "small_table_text",
+        wants_small_table,
+        any((s.get("style") or {}).get("density") == "compact" for s in data_sections)
+        or (_px_number(tokens.get("typography.body.size")) or 99) <= 14,
+        "Compact table density or small typography token is required.",
+    )
+    add(
+        "contained_main_layout",
+        wants_contained,
+        all((p.get("layout") or {}).get("main_width") == "contained" for p in pages or []),
+        "Every page should use layout.main_width='contained'.",
+    )
+    add(
+        "navy_header",
+        wants_navy_header,
+        _is_dark_blue(tokens.get("region.header.bg_hex")) or _is_dark_blue(tokens.get("nav.bg_hex")),
+        "Header/nav background token must be a dark blue/navy hex color.",
+    )
+    add(
+        "beige_cards",
+        wants_beige_cards,
+        _is_beige(tokens.get("component.card.bg_hex")),
+        "Card background token must be beige/cream.",
+    )
+    add(
+        "gold_buttons",
+        wants_gold_buttons,
+        _is_gold(tokens.get("button.primary.bg_hex")) and _is_gold(tokens.get("button.secondary.bg_hex")),
+        "Primary and secondary button background tokens must be gold.",
+    )
+    add(
+        "large_hero_title",
+        wants_big_hero,
+        (_px_number(tokens.get("typography.hero.size")) or 0) >= 64
+        or any(s.get("layout") == "hero-header" for s in sections or []),
+        "Hero title must use a large hero typography token or hero-header layout.",
+    )
+
+    issues = [req["detail"] for req in requirements if not req["passed"]]
+    return {
+        "passed": not issues,
+        "checked": len(requirements),
+        "requirements": requirements,
+        "issues": issues,
+    }
+
+
+_VISUAL_METRICS_SCRIPT = """
+() => {
+  const css = getComputedStyle(document.documentElement);
+  const cssVar = (name) => (css.getPropertyValue(name) || '').trim();
+  const rect = (el) => {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return {x: r.x, y: r.y, width: r.width, height: r.height};
+  };
+  const sections = Array.from(document.querySelectorAll('[data-section-id]')).map((el) => ({
+    id: el.getAttribute('data-section-id') || '',
+    name: el.getAttribute('data-section-name') || '',
+    position: el.getAttribute('data-position') || '',
+    layout: el.getAttribute('data-layout') || '',
+    rect: rect(el),
+  }));
+  const buttons = Array.from(document.querySelectorAll('button, a.si-btn, .si-btn')).map((el) => {
+    const s = getComputedStyle(el);
+    return {
+      text: (el.textContent || '').trim().slice(0, 40),
+      backgroundColor: s.backgroundColor,
+      color: s.color,
+      rect: rect(el),
+    };
+  });
+  const main = document.querySelector('main, .si-main');
+  const header = document.querySelector('header, [data-position="header"]');
+  const contentRects = sections
+    .filter((section) => !['header', 'footer'].includes(section.position) && section.rect && section.rect.width > 0)
+    .map((section) => section.rect);
+  const contentBounds = contentRects.length ? {
+    x: Math.min(...contentRects.map((r) => r.x)),
+    y: Math.min(...contentRects.map((r) => r.y)),
+    width: Math.max(...contentRects.map((r) => r.x + r.width)) - Math.min(...contentRects.map((r) => r.x)),
+    height: Math.max(...contentRects.map((r) => r.y + r.height)) - Math.min(...contentRects.map((r) => r.y)),
+  } : rect(main);
+  return {
+    title: document.title,
+    viewport: {width: innerWidth, height: innerHeight},
+    document: {
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      bodyTextLength: (document.body.innerText || '').trim().length,
+    },
+    cssVars: {
+      regionHeaderBg: cssVar('--region-header-bg'),
+      navBg: cssVar('--nav-bg'),
+      cardBg: cssVar('--card-bg'),
+      buttonPrimaryBg: cssVar('--button-primary-bg'),
+      buttonSecondaryBg: cssVar('--button-secondary-bg'),
+      heroSize: cssVar('--text-hero-size'),
+      bodySize: cssVar('--text-body-size'),
+      labelSize: cssVar('--text-label-size'),
+    },
+    main: rect(main),
+    mainContent: contentBounds,
+    header: rect(header),
+    sections,
+    buttons,
+    tableCount: document.querySelectorAll('table, .si-table, [data-layout="table"]').length,
+    sidebarCount: sections.filter((section) => section.position === 'sidebar').length,
+    heroCount: sections.filter((section) => section.layout === 'hero-header' || section.position === 'hero').length,
+  };
+}
+"""
+
+
+def _css_rgb(value: str) -> tuple[int, int, int] | None:
+    """Parse rgb()/rgba() CSS colors."""
+    match = re.search(r"rgba?\((\d+),\s*(\d+),\s*(\d+)", str(value or ""))
+    if not match:
+        return _hex_rgb(str(value or ""))
+    return int(match.group(1)), int(match.group(2)), int(match.group(3))
+
+
+def _visual_color_is_dark_blue(value: str) -> bool:
+    """Validate rendered CSS dark blue/navy colors."""
+    rgb = _css_rgb(value)
+    if not rgb:
+        return False
+    r, g, b = rgb
+    return b >= r and b >= g and max(rgb) <= 120
+
+
+def _visual_color_is_gold(value: str) -> bool:
+    """Validate rendered CSS gold/yellow colors."""
+    rgb = _css_rgb(value)
+    if not rgb:
+        return False
+    r, g, b = rgb
+    return r >= 160 and g >= 110 and b <= 90
+
+
+def _visual_color_is_beige(value: str) -> bool:
+    """Validate rendered CSS beige/cream colors."""
+    rgb = _css_rgb(value)
+    if not rgb:
+        return False
+    r, g, b = rgb
+    return r >= 210 and g >= 190 and b >= 150 and abs(r - g) <= 45 and r >= b
+
+
+def _visual_requirements_from_intent(prompt: str, description: str = "", name: str = "") -> dict:
+    """Return visual checks implied by the designer intent."""
+    text = _intent_text(prompt, description, name)
+    wants_table = _mentions(text, r"\btable\b", r"\bdata\s*table\b", r"\btabular\b")
+    return {
+        "sidebar": _mentions(text, r"\bsidebar\s+nav", r"\bsidebar\s+navigation\b", r"\bleft\s+nav"),
+        "table": wants_table,
+        "small_table_text": wants_table and _mentions(text, r"\bsmall(er)?\s+table\s+text\b", r"\bcompact\s+table\b"),
+        "contained": _mentions(text, r"\bcontained\b", r"\bmax[- ]?width\b", r"\bcentered\b"),
+        "navy_header": _mentions(text, r"\bnavy\s+header\b", r"\bdark\s+blue\s+header\b"),
+        "beige_cards": _mentions(text, r"\bbeige\s+cards?\b", r"\bcream\s+cards?\b"),
+        "gold_buttons": _mentions(text, r"\bgold(en)?\s+buttons?\b", r"\byellow\s+buttons?\b"),
+        "large_hero_title": _mentions(text, r"\bbig(ger)?\s+hero\s+title\b", r"\blarge\s+hero\b", r"\bhero\s+title\b"),
+    }
+
+
+def _visual_report_from_metrics(metrics: dict, requirements: dict, page_name: str = "") -> dict:
+    """Compare rendered screenshot/DOM metrics with explicit visual requirements."""
+    issues: list[str] = []
+    css_vars = metrics.get("cssVars") or {}
+    viewport_width = ((metrics.get("viewport") or {}).get("width") or 0)
+    main_width = ((metrics.get("mainContent") or metrics.get("main") or {}).get("width") or 0)
+    page_label = str(page_name or "").lower()
+    is_data_page = bool(re.search(r"(product|categor|gallery|collection|list|table|overview)", page_label))
+
+    if ((metrics.get("document") or {}).get("bodyTextLength") or 0) <= 0:
+        issues.append("Rendered page appears blank.")
+    if ((metrics.get("document") or {}).get("scrollWidth") or 0) > viewport_width + 2:
+        issues.append("Rendered page has horizontal overflow.")
+    if requirements.get("sidebar") and (metrics.get("sidebarCount") or 0) <= 0:
+        issues.append("Screenshot DOM has no sidebar navigation region.")
+    if requirements.get("table") and is_data_page and (metrics.get("tableCount") or 0) <= 0:
+        issues.append("Screenshot DOM has no rendered table/DataTable.")
+    if requirements.get("small_table_text") and is_data_page:
+        body_px = _px_number(css_vars.get("bodySize")) or 99
+        label_px = _px_number(css_vars.get("labelSize")) or 99
+        if min(body_px, label_px) > 14:
+            issues.append("Rendered table/body typography is not compact.")
+    if requirements.get("contained") and viewport_width and main_width and main_width >= viewport_width - 24:
+        issues.append("Main content is rendered full-width, not contained.")
+    if requirements.get("navy_header") and not (
+        _visual_color_is_dark_blue(css_vars.get("regionHeaderBg")) or _visual_color_is_dark_blue(css_vars.get("navBg"))
+    ):
+        issues.append("Rendered header/nav CSS is not navy.")
+    if requirements.get("beige_cards") and not _visual_color_is_beige(css_vars.get("cardBg")):
+        issues.append("Rendered card CSS is not beige.")
+    if requirements.get("gold_buttons") and not (
+        _visual_color_is_gold(css_vars.get("buttonPrimaryBg")) and _visual_color_is_gold(css_vars.get("buttonSecondaryBg"))
+    ):
+        issues.append("Rendered primary/secondary button CSS is not gold.")
+    if requirements.get("large_hero_title") and (_px_number(css_vars.get("heroSize")) or 0) < 64 and (metrics.get("heroCount") or 0) <= 0:
+        issues.append("Rendered hero title is not large or hero-header is absent.")
+
+    return {"passed": not issues, "issues": issues}
+
+
+def _run_candidate_visual_check(interface_id: str, candidate_index: int) -> dict:
+    """Screenshot rendered candidate previews and verify visual consistency."""
+    def _save_visual_report(report: dict) -> dict:
+        try:
+            interface_obj = Interface.objects.get(id=interface_id)
+            data = dict(interface_obj.data or {})
+            updated_candidates = list(data.get("candidates", []))
+            if 0 <= candidate_index < len(updated_candidates) and updated_candidates[candidate_index]:
+                updated_candidates[candidate_index] = dict(updated_candidates[candidate_index])
+                updated_candidates[candidate_index]["visual_check"] = report
+                data["candidates"] = updated_candidates
+                Interface.objects.filter(id=interface_id).update(data=data)
+        except Exception:
+            pass
+        return report
+
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception as exc:
+        return _save_visual_report({"passed": None, "skipped": True, "reason": f"playwright unavailable: {exc}", "pages": []})
+
+    interface = Interface.objects.get(id=interface_id)
+    candidates = (interface.data or {}).get("candidates", [])
+    if candidate_index < 0 or candidate_index >= len(candidates) or not candidates[candidate_index]:
+        return _save_visual_report({"passed": False, "skipped": False, "reason": "candidate not found", "pages": []})
+
+    candidate = candidates[candidate_index]
+    files = [f for f in candidate.get("preview_files") or [] if str(f.get("path") or "").endswith(".html")]
+    requirements = _visual_requirements_from_intent(
+        candidate.get("prompt", ""),
+        candidate.get("description", ""),
+        candidate.get("name", ""),
+    )
+    out_root = Path(os.environ.get("CANDIDATE_VISUAL_CHECK_DIR", "/tmp/candidate-visual-check"))
+    out_dir = out_root / str(interface_id) / f"candidate_{candidate_index}"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    page_reports: list[dict] = []
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            context = browser.new_context(viewport={"width": 1440, "height": 1100})
+            page = context.new_page()
+            for page_idx, file_obj in enumerate(files[:8]):
+                html = str(file_obj.get("content") or "")
+                path_name = Path(str(file_obj.get("path") or f"page_{page_idx}.html")).stem
+                shot_path = out_dir / f"{page_idx:02d}_{re.sub(r'[^A-Za-z0-9_.-]+', '_', path_name)}.png"
+                try:
+                    page.set_content(html, wait_until="networkidle")
+                    page.screenshot(path=str(shot_path), full_page=True)
+                    metrics = page.evaluate(_VISUAL_METRICS_SCRIPT)
+                    visual = _visual_report_from_metrics(metrics, requirements, path_name)
+                    page_reports.append({
+                        "page": path_name,
+                        "screenshot": str(shot_path),
+                        "passed": visual["passed"],
+                        "issues": visual["issues"],
+                        "metrics": metrics,
+                    })
+                except Exception as exc:
+                    page_reports.append({
+                        "page": path_name,
+                        "screenshot": str(shot_path),
+                        "passed": False,
+                        "issues": [f"screenshot check failed: {exc}"],
+                        "metrics": {},
+                    })
+            context.close()
+            browser.close()
+    except Exception as exc:
+        return _save_visual_report({"passed": None, "skipped": True, "reason": f"playwright failed: {exc}", "pages": []})
+
+    report = {
+        "passed": all(page_report.get("passed") for page_report in page_reports) if page_reports else False,
+        "skipped": False,
+        "requirements": requirements,
+        "pages": page_reports,
+    }
+    return _save_visual_report(report)
 
 
 def validate_and_save_candidate(
@@ -405,16 +957,35 @@ def validate_and_save_candidate(
             p["sections"] = filtered
         fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
 
-        data = dict(iface.get("data") or {})
-        data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
-        candidates = list(data.get("candidates") or [])
         label_prompt = prompt or designer_requirements
         name = name or _candidate_variant_name(label_prompt, candidate_index)
         variation_strategy = variation_strategy or name
+        fixed_pages, fixed_sections, tokens_d, styling_d = _apply_design_intent_patch(
+            fixed_pages,
+            fixed_sections,
+            tokens_d,
+            styling_dict or {},
+            prompt=label_prompt,
+            description=description,
+            name=name,
+        )
+        compliance = _candidate_compliance_report(
+            fixed_pages,
+            fixed_sections,
+            tokens_d,
+            prompt=label_prompt,
+            description=description,
+            name=name,
+        )
+
+        data = dict(iface.get("data") or {})
+        data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
+        candidates = list(data.get("candidates") or [])
         candidate = {
             "id": f"c{candidate_index}", "name": name, "description": description,
             "pages": fixed_pages, "sections": fixed_sections,
             "generated_by": "interface_generator", "prompt": prompt or designer_requirements,
+            "compliance": compliance,
             **({"tokens": tokens_d} if tokens_d else {}),
             **({"styling": styling_d} if styling_d else {}),
         }
@@ -425,7 +996,8 @@ def validate_and_save_candidate(
         candidates[candidate_index] = candidate
         data["candidates"] = candidates
         Interface.objects.filter(id=interface_id).update(data=data)
-        return f"OK: candidate {candidate_index} '{name}' saved successfully."
+        warning_suffix = "" if compliance.get("passed") else f" with {len(compliance.get('issues') or [])} compliance warning(s)"
+        return f"OK: candidate {candidate_index} '{name}' saved successfully{warning_suffix}."
     except Interface.DoesNotExist:
         return f"Error saving candidate: Interface {interface_id} not found."
     except Exception as e:
@@ -887,6 +1459,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
             if not str(result).startswith("OK:"):
                 return f"ERROR: candidate {index} failed: {result}"
             _render_candidate_preview_local(interface_id, index)
+            _run_candidate_visual_check(interface_id, index)
         return "OK: generated and saved 3 candidates. " + " | ".join(results)
     except Interface.DoesNotExist:
         return f"ERROR: interface {interface_id} not found."
@@ -960,6 +1533,7 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
             if not str(result).startswith("OK:"):
                 return f"ERROR: regenerated candidate {index} failed: {result}"
             _render_candidate_preview_local(interface_id, index)
+            _run_candidate_visual_check(interface_id, index)
         return "OK: regenerated and saved 3 candidates. " + " | ".join(results)
     except Exception as e:
         return f"ERROR: regenerate_candidate_set failed: {e}"

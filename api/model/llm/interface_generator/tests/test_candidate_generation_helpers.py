@@ -1,7 +1,9 @@
 import importlib
+import importlib.util
 import json
 import sys
 import types
+from pathlib import Path
 
 
 class QuerySet(list):
@@ -142,6 +144,33 @@ def test_candidate_styling_and_tokens_normalize_json_and_aliases():
     assert cg._norm_candidate_tokens("not-json") == {}
 
 
+def test_normalize_interface_schema_keeps_explicit_overrides():
+    """Verify explicit preview override data wins over stale canonical schema."""
+    module_path = Path(__file__).resolve().parents[2] / "template_renderer.py"
+    spec = importlib.util.spec_from_file_location("real_template_renderer_for_test", module_path)
+    renderer = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(renderer)
+
+    normalized = renderer.normalize_interface_schema({
+        "pages": [{"id": "override", "name": "Override", "sections": [{"value": "s2"}]}],
+        "sections": [{"id": "s2", "layout": "table", "primary_model": "Product"}],
+        "tokens": {"button.primary.bg_hex": "#d4a017"},
+        "styling": {"radius": 4},
+        "canonical_schema": {
+            "pages": [{"id": "old", "name": "Old", "sections": [{"value": "s1"}]}],
+            "sections": [{"id": "s1", "layout": "card", "primary_model": "Product"}],
+            "tokens": {"button.primary.bg_hex": "#10b981"},
+            "styling": {"radius": 12},
+        },
+    })
+
+    assert normalized["pages"][0]["id"] == "override"
+    assert normalized["sections"][0]["id"] == "s2"
+    assert normalized["tokens"]["button.primary.bg_hex"] == "#d4a017"
+    assert normalized["styling"]["radius"] == 4
+
+
 def test_validate_and_save_candidate_normalizes_and_persists(monkeypatch):
     """Verify that validate and save candidate normalizes and persists."""
     interface = make_interface({"pages": [], "sections": [], "candidates": []})
@@ -173,6 +202,131 @@ def test_validate_and_save_candidate_normalizes_and_persists(monkeypatch):
     assert candidate["styling"]["radius"] == 4
     assert candidate["pages"][0]["category"]
     assert "item_actions" not in candidate["sections"][0]
+
+
+def test_validate_and_save_candidate_patches_and_checks_prompt_compliance(monkeypatch):
+    """Verify that explicit designer requirements are patched and checked."""
+    interface = make_interface({"pages": [], "sections": [], "candidates": []})
+    cg = import_candidate_generation([interface])
+    monkeypatch.setattr(cg, "_fetch_system_context_data", lambda system_id: (_ for _ in ()).throw(RuntimeError("skip")))
+
+    prompt = "Use navy header, beige cards, gold buttons, contained main layout, left sidebar navigation, smaller table text and bigger hero title."
+    result = cg.validate_and_save_candidate(
+        "iface",
+        0,
+        "Seller Table",
+        "A contained table layout with left sidebar navigation.",
+        json.dumps([{"id": "products", "name": "Products", "sections": [{"value": "nav"}, {"value": "products_grid"}], "primary_model": "Product"}]),
+        json.dumps([
+            {"id": "nav", "role": "navigation", "layout": "site-nav", "component": "NavBar", "position": "header", "style": {}},
+            {"id": "products_grid", "role": "object_collection", "layout": "card", "primary_model": "Product", "attributes": ["name", "price"], "position": "main", "style": {}},
+            {"id": "header", "role": "header", "layout": "app-header", "component": "HeaderTemplate", "position": "header", "style": {}},
+        ]),
+        tokens="{}",
+        styling="{}",
+        prompt=prompt,
+    )
+
+    candidate = interface.data["candidates"][0]
+    nav = next(section for section in candidate["sections"] if section["id"] == "nav")
+    products = next(section for section in candidate["sections"] if section["id"] == "products_grid")
+    header = next(section for section in candidate["sections"] if section["id"] == "header")
+
+    assert result.startswith("OK: candidate 0")
+    assert candidate["compliance"]["passed"] is True
+    assert candidate["pages"][0]["layout"]["main_width"] == "contained"
+    assert nav["position"] == "sidebar"
+    assert nav["style"]["sidebar_side"] == "left"
+    assert products["layout"] == "table"
+    assert products["component"] == "DataTable"
+    assert products["style"]["density"] == "compact"
+    assert header["layout"] == "hero-header"
+    assert candidate["tokens"]["region.header.bg_hex"] == "#061756"
+    assert candidate["tokens"]["component.card.bg_hex"] == "#f4ead7"
+    assert candidate["tokens"]["button.primary.bg_hex"] == "#d4a017"
+    assert candidate["tokens"]["button.secondary.bg_hex"] == "#d4a017"
+    assert candidate["tokens"]["typography.hero.size"] == "72px"
+
+
+def test_candidate_compliance_report_flags_description_mismatch():
+    """Verify that description claims are checked against generated metadata."""
+    cg = import_candidate_generation()
+
+    report = cg._candidate_compliance_report(
+        pages=[{"id": "p", "layout": {"main_width": "wide"}}],
+        sections=[{"id": "s", "layout": "card", "component": "ObjectCardGrid", "position": "main", "primary_model": "Product"}],
+        tokens={},
+        description="Table layout with left sidebar navigation and gold buttons.",
+    )
+
+    assert report["passed"] is False
+    assert "table_layout" in {req["key"] for req in report["requirements"] if not req["passed"]}
+    assert "left_sidebar_navigation" in {req["key"] for req in report["requirements"] if not req["passed"]}
+    assert "gold_buttons" in {req["key"] for req in report["requirements"] if not req["passed"]}
+
+
+def test_visual_report_from_metrics_flags_rendered_mismatch():
+    """Verify that rendered screenshot metrics are checked against intent."""
+    cg = import_candidate_generation()
+
+    report = cg._visual_report_from_metrics(
+        {
+            "viewport": {"width": 1440},
+            "document": {"bodyTextLength": 20, "scrollWidth": 1440},
+            "cssVars": {
+                "regionHeaderBg": "rgb(255, 255, 255)",
+                "navBg": "rgb(255, 255, 255)",
+                "cardBg": "rgb(255, 255, 255)",
+                "buttonPrimaryBg": "rgb(70, 70, 70)",
+                "buttonSecondaryBg": "rgb(70, 70, 70)",
+                "heroSize": "40px",
+                "bodySize": "16px",
+                "labelSize": "15px",
+            },
+            "main": {"width": 1430},
+            "sidebarCount": 0,
+            "tableCount": 0,
+            "heroCount": 0,
+        },
+        {
+            "sidebar": True,
+            "table": True,
+            "small_table_text": True,
+            "contained": True,
+            "navy_header": True,
+            "beige_cards": True,
+            "gold_buttons": True,
+            "large_hero_title": True,
+        },
+        "seller_products",
+    )
+
+    assert report["passed"] is False
+    assert any("sidebar" in issue for issue in report["issues"])
+    assert any("table" in issue for issue in report["issues"])
+    assert any("gold" in issue for issue in report["issues"])
+
+
+def test_visual_report_only_requires_table_on_data_pages():
+    """Verify that table requirements do not fail non-data workflow pages."""
+    cg = import_candidate_generation()
+    metrics = {
+        "viewport": {"width": 1440},
+        "document": {"bodyTextLength": 20, "scrollWidth": 1440},
+        "cssVars": {"bodySize": "13px", "labelSize": "12px"},
+        "main": {"width": 900},
+        "sidebarCount": 1,
+        "tableCount": 0,
+        "heroCount": 1,
+    }
+    requirements = {"table": True, "small_table_text": True}
+
+    task_report = cg._visual_report_from_metrics(metrics, requirements, "seller_task")
+    product_report = cg._visual_report_from_metrics(metrics, requirements, "seller_products")
+
+    assert task_report["passed"] is True
+    assert product_report["passed"] is False
+    assert any("table" in issue for issue in product_report["issues"])
 
 
 def test_get_candidate_regeneration_context_uses_candidate_or_saved_base():
@@ -330,6 +484,7 @@ def test_generate_candidate_set_saves_three_candidates(monkeypatch):
     ])
     monkeypatch.setattr(cg, "validate_and_save_candidate", lambda **kwargs: f"OK: saved {kwargs['candidate_index']}")
     monkeypatch.setattr(cg, "_render_candidate_preview_local", lambda interface_id, index: "OK")
+    monkeypatch.setattr(cg, "_run_candidate_visual_check", lambda interface_id, index: {"passed": True})
 
     result = cg.generate_candidate_set("iface", "fresh")
 
@@ -364,6 +519,7 @@ def test_regenerate_candidate_set_saves_three_candidates(monkeypatch):
     ])
     monkeypatch.setattr(cg, "validate_and_save_candidate", lambda **kwargs: f"OK: saved {kwargs['candidate_index']}")
     monkeypatch.setattr(cg, "_render_candidate_preview_local", lambda interface_id, index: "OK")
+    monkeypatch.setattr(cg, "_run_candidate_visual_check", lambda interface_id, index: {"passed": True})
 
     result = cg.regenerate_candidate_set("iface", 0, "denser")
 

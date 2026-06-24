@@ -18,6 +18,7 @@ from ninja.errors import HttpError
 from django.http import StreamingHttpResponse
 import json
 import os
+from pathlib import Path
 import re
 import requests
 import time
@@ -510,6 +511,90 @@ def _html_signature(html: str) -> Dict[str, Any]:
     }
 
 
+def _django_route_name(value: Any) -> str:
+    return re.sub(r"\W+", "_", str(value or "")).strip("_")
+
+
+def _preview_page_key(value: Any) -> str:
+    return _django_route_name(value).lower()
+
+
+def _pixel_diff(preview_path: Path, live_path: Path) -> Dict[str, Any]:
+    """Return a simple screenshot pixel diff summary."""
+    try:
+        from PIL import Image, ImageChops
+    except Exception as exc:
+        return {"skipped": True, "reason": f"Pillow unavailable: {exc}"}
+
+    preview = Image.open(preview_path).convert("RGB")
+    live = Image.open(live_path).convert("RGB")
+    width = min(preview.width, live.width)
+    height = min(preview.height, live.height)
+    if width <= 0 or height <= 0:
+        return {"skipped": False, "changed_ratio": 1, "reason": "empty screenshot"}
+    diff = ImageChops.difference(preview.crop((0, 0, width, height)), live.crop((0, 0, width, height)))
+    changed = 0
+    if diff.getbbox():
+        pixels = diff.load()
+        for y in range(height):
+            for x in range(width):
+                if pixels[x, y] != (0, 0, 0):
+                    changed += 1
+    return {
+        "skipped": False,
+        "compared_size": [width, height],
+        "preview_size": [preview.width, preview.height],
+        "live_size": [live.width, live.height],
+        "changed_pixels": changed,
+        "changed_ratio": changed / float(width * height),
+    }
+
+
+def _screenshot_preview_live_pair(
+    preview_html: str,
+    live_url: str,
+    fetch_url: str,
+    out_dir: Path,
+    page_name: str,
+) -> Dict[str, Any]:
+    """Capture preview and live screenshots for a rendered prototype page."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception as exc:
+        return {"skipped": True, "reason": f"Playwright unavailable: {exc}"}
+
+    safe_page = re.sub(r"[^A-Za-z0-9_.-]+", "_", page_name or "page")
+    preview_path = out_dir / f"{safe_page}.preview.png"
+    live_path = out_dir / f"{safe_page}.live.png"
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            context = browser.new_context(viewport={"width": 1440, "height": 1100})
+            page = context.new_page()
+
+            page.set_content(preview_html or "", wait_until="networkidle")
+            page.screenshot(path=str(preview_path), full_page=True)
+
+            page.goto(fetch_url, wait_until="networkidle")
+            if page.url != live_url:
+                page.goto(live_url, wait_until="networkidle")
+            page.screenshot(path=str(live_path), full_page=True)
+
+            context.close()
+            browser.close()
+    except Exception as exc:
+        return {"skipped": True, "reason": f"Playwright screenshot failed: {exc}"}
+
+    diff = _pixel_diff(preview_path, live_path)
+    return {
+        "skipped": False,
+        "preview": str(preview_path),
+        "live": str(live_path),
+        "pixel_diff": diff,
+    }
+
+
 class VisualCheckPayload(Schema):
     interface_id: str
     pages: Optional[List[Any]] = None
@@ -548,23 +633,51 @@ def visual_check(request, payload: VisualCheckPayload):
     relations = [{"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data} for r in iface.system.relations.all()]
     expected_files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
 
-    proto_host = os.environ.get("RUNNING_PROTOTYPE_HOST", "prototype.ai4mde.localhost")
-    proto_proto = os.environ.get("RUNNING_PROTOTYPE_PROTO", "http://")
-    base_url = f"{proto_proto}{proto_host}"
+    public_host = os.environ.get("RUNNING_PROTOTYPE_HOST", "prototype.ai4mde.localhost")
+    public_proto = os.environ.get("RUNNING_PROTOTYPE_PROTO", "http://")
+    public_base_url = f"{public_proto}{public_host}"
+    check_proto = os.environ.get("RUNNING_PROTOTYPE_CHECK_PROTO", "http://")
+    check_host = os.environ.get("RUNNING_PROTOTYPE_CHECK_HOST")
+    if not check_host:
+        check_host = f"{PROTOTYPE_API_HOST}:{status.get('port') or os.environ.get('RUNNING_PROTOTYPE_PORT', 8020)}"
+    check_base_url = f"{check_proto}{check_host}"
     app = re.sub(r"\W+", "_", iface.name).strip("_")
+    page_route_by_key: Dict[str, Dict[str, str]] = {}
+    for page in interface_data.get("pages") or []:
+        if not isinstance(page, dict):
+            continue
+        page_type = page.get("type")
+        page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
+        page_name = page.get("name") or page.get("id")
+        route_name = _django_route_name(page_name)
+        page_info = {
+            "route_name": route_name,
+            "type": str(page_type_value or "normal").lower(),
+        }
+        for key_source in (page.get("id"), page.get("name"), route_name):
+            key = _preview_page_key(key_source)
+            if key:
+                page_route_by_key[key] = page_info
     live_session = requests.Session()
     live_user = payload.live_user or "jan_devries"
 
     checks = []
+    screenshot_root = Path(os.environ.get("PREVIEW_LIVE_SCREENSHOT_DIR", "/tmp/preview-live-visual-check"))
+    screenshot_dir = screenshot_root / str(payload.interface_id) / str(int(time.time()))
+    screenshot_dir.mkdir(parents=True, exist_ok=True)
     for file in expected_files[:8]:
         basename = os.path.basename(file["path"])
         stem = os.path.splitext(basename)[0]
         page_name = stem
         if page_name.lower().startswith(app.lower() + "_"):
             page_name = page_name[len(app) + 1:]
-        live_path = f"/{app}/" if page_name.lower() == "task" else f"/{app}/render_{app}_{page_name}"
-        live_url = f"{base_url}{live_path}"
-        fetch_url = f"{base_url}/autologin?as={live_user}&next={live_path}"
+        route_info = page_route_by_key.get(_preview_page_key(page_name), {})
+        route_name = route_info.get("route_name") or _django_route_name(page_name)
+        page_type = route_info.get("type", "")
+        live_path = f"/{app}/" if page_name.lower() == "task" or page_type == "activity" else f"/{app}/render_{app}_{route_name}"
+        live_url = f"{public_base_url}{live_path}"
+        check_live_url = f"{check_base_url}{live_path}"
+        fetch_url = f"{check_base_url}/autologin?as={live_user}&next={live_path}"
         try:
             live_resp = live_session.get(fetch_url, timeout=10, allow_redirects=True)
             live_html = live_resp.text if live_resp.ok else ""
@@ -574,25 +687,49 @@ def visual_check(request, payload: VisualCheckPayload):
             live_status = 0
         expected_sig = _html_signature(file.get("content", ""))
         live_sig = _html_signature(live_html)
-        mismatches = []
+        css_mismatches = []
+        structure_mismatches = []
+        screenshot_mismatches = []
         for key, value in expected_sig["css_vars"].items():
             if live_sig["css_vars"].get(key) != value:
-                mismatches.append(f"{key}: expected {value}, live {live_sig['css_vars'].get(key)}")
+                css_mismatches.append(f"{key}: expected {value}, live {live_sig['css_vars'].get(key)}")
         if expected_sig["button_count"] != live_sig["button_count"]:
-            mismatches.append(f"button_count: expected {expected_sig['button_count']}, live {live_sig['button_count']}")
+            structure_mismatches.append(f"button_count: expected {expected_sig['button_count']}, live {live_sig['button_count']}")
         if expected_sig["section_count"] != live_sig["section_count"]:
-            mismatches.append(f"section_count: expected {expected_sig['section_count']}, live {live_sig['section_count']}")
+            structure_mismatches.append(f"section_count: expected {expected_sig['section_count']}, live {live_sig['section_count']}")
+        screenshot = _screenshot_preview_live_pair(
+            preview_html=file.get("content", ""),
+            live_url=check_live_url,
+            fetch_url=fetch_url,
+            out_dir=screenshot_dir,
+            page_name=page_name,
+        )
+        pixel_diff = screenshot.get("pixel_diff") if isinstance(screenshot, dict) else None
+        changed_ratio = pixel_diff.get("changed_ratio") if isinstance(pixel_diff, dict) and not pixel_diff.get("skipped") else None
+        if isinstance(changed_ratio, (int, float)) and changed_ratio > 0.08:
+            screenshot_mismatches.append(f"screenshot_diff: preview/live changed ratio {changed_ratio:.3f}")
+        mismatches = css_mismatches + structure_mismatches + screenshot_mismatches
+        style_ok = live_status == 200 and not css_mismatches
+        strict_ok = live_status == 200 and not mismatches
         checks.append({
             "page": page_name,
             "live_url": live_url,
+            "check_url": check_live_url,
             "live_status": live_status,
-            "ok": live_status == 200 and not mismatches,
+            "ok": strict_ok,
+            "style_ok": style_ok,
+            "strict_pixel_ok": strict_ok,
             "mismatches": mismatches,
+            "css_mismatches": css_mismatches,
+            "structure_mismatches": structure_mismatches,
+            "screenshot_mismatches": screenshot_mismatches,
             "expected": expected_sig,
             "live": live_sig,
+            "screenshot": screenshot,
         })
     return {
         "ok": all(item["ok"] for item in checks),
+        "style_ok": all(item.get("style_ok") for item in checks),
         "checks": checks,
         "schema_version": interface_data.get("canonical_schema", {}).get("version", 1),
     }

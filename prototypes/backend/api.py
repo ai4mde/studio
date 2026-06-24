@@ -57,33 +57,75 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', os.environ.get('DJANGO_SETTINGS_
 import django
 django.setup()
 from django.apps import apps
-from django.db import connection
+from django.db.models import NOT_PROVIDED
+from django.db import OperationalError, connection
 
 if connection.vendor != 'sqlite':
     raise SystemExit(0)
 
-with connection.cursor() as cursor:
-    existing_tables = set(connection.introspection.table_names(cursor))
-
-added = []
-for model in apps.get_models():
-    if model._meta.proxy or model._meta.managed is False:
-        continue
-    table = model._meta.db_table
-    if table not in existing_tables:
-        continue
+def cleanup_sqlite_rebuild_tables():
+    dropped = []
     with connection.cursor() as cursor:
-        existing_columns = {col.name for col in connection.introspection.get_table_description(cursor, table)}
-    for field in model._meta.local_fields:
-        if field.column in existing_columns:
-            continue
-        with connection.schema_editor() as schema_editor:
-            schema_editor.add_field(model, field)
-        existing_columns.add(field.column)
-        added.append(f"{table}.{field.column}")
+        table_names = list(connection.introspection.table_names(cursor))
+        for table_name in table_names:
+            if not table_name.startswith("new__"):
+                continue
+            quoted_name = connection.ops.quote_name(table_name)
+            cursor.execute(f"DROP TABLE IF EXISTS {quoted_name}")
+            dropped.append(table_name)
+    if dropped:
+        print("Dropped stale SQLite rebuild tables: " + ", ".join(dropped))
 
-if added:
-    print("Added missing SQLite columns: " + ", ".join(added))
+def reconcile_missing_columns():
+    with connection.cursor() as cursor:
+        existing_tables = set(connection.introspection.table_names(cursor))
+
+    added = []
+    for model in apps.get_models():
+        if model._meta.proxy or model._meta.managed is False:
+            continue
+        table = model._meta.db_table
+        if table not in existing_tables:
+            continue
+        with connection.cursor() as cursor:
+            existing_columns = {col.name for col in connection.introspection.get_table_description(cursor, table)}
+            cursor.execute(f"SELECT COUNT(*) FROM {connection.ops.quote_name(table)}")
+            row_count = cursor.fetchone()[0]
+        for field in model._meta.local_fields:
+            if field.column in existing_columns:
+                continue
+            should_relax_required_field = (
+                row_count > 0
+                and not field.null
+                and not field.primary_key
+                and not field.auto_created
+                and field.default is NOT_PROVIDED
+            )
+            original_null = field.null
+            if should_relax_required_field:
+                field.null = True
+            with connection.schema_editor() as schema_editor:
+                try:
+                    schema_editor.add_field(model, field)
+                finally:
+                    field.null = original_null
+            existing_columns.add(field.column)
+            added.append(f"{table}.{field.column}")
+            if should_relax_required_field:
+                added[-1] += " (nullable for copied rows)"
+
+    if added:
+        print("Added missing SQLite columns: " + ", ".join(added))
+
+cleanup_sqlite_rebuild_tables()
+try:
+    reconcile_missing_columns()
+except OperationalError as exc:
+    message = str(exc)
+    if "new__" not in message or "already exists" not in message:
+        raise
+    cleanup_sqlite_rebuild_tables()
+    reconcile_missing_columns()
 """
     env = os.environ.copy()
     env['DJANGO_SETTINGS_MODULE'] = f'{os.path.basename(prototype_path)}.settings'

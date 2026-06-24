@@ -738,7 +738,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
         seen_chrome = set()
         for page in pages:
             for section in page.section_components:
-                if section.position in ("header", "footer") and section.id not in seen_chrome:
+                if section.position in ("header", "footer", "sidebar") and section.id not in seen_chrome:
                     seen_chrome.add(section.id)
                     chrome_sections.append(section)
         pages.insert(0, _make_task_home_page(chrome_sections))
@@ -784,7 +784,7 @@ def normalize_interface_schema(interface_data: Dict) -> Dict:
     if isinstance(canonical, dict):
         merged = dict(raw)
         for key in ("pages", "sections", "tokens", "styling", "prompt_intent"):
-            if key in canonical:
+            if key in canonical and not raw.get(key):
                 merged[key] = canonical[key]
         raw = merged
 

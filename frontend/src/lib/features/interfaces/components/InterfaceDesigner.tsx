@@ -1097,10 +1097,29 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         }
     }, [buildGeneratorPrototypePayload, designMode, previewCandidateIdx, candidates]);
 
+    const runVisualCheckForCurrentDesign = useCallback(async () => {
+        if (!interfaceId) return null;
+        const { sections: secs, pages: pgs, styling: stl, tokens: tks } = latestState.current;
+        const activeCandidate = designMode === 'explore' && previewCandidateIdx !== null ? candidates[previewCandidateIdx] : null;
+        const effectiveStyling = activeCandidate?.styling || stl;
+        const effectiveTokens = normalizeDesignTokens(activeCandidate?.tokens || tks, effectiveStyling);
+        const { data } = await authAxios.post('/v1/generator/prototypes/visual_check/', {
+            interface_id: interfaceId,
+            live_user: liveUser,
+            sections: activeCandidate?.sections || secs,
+            pages: activeCandidate?.pages || pgs,
+            ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
+            ...(effectiveTokens && Object.keys(effectiveTokens).length ? { tokens: effectiveTokens } : {}),
+        });
+        return data;
+    }, [interfaceId, designMode, previewCandidateIdx, candidates, liveUser]);
+
     const handleSyncLivePrototype = useCallback(async () => {
         if (!interfaceId || !systemId || isSyncingLive) return;
         setIsSyncingLive(true);
         setSyncStatus('idle');
+        setVisualCheckStatus('idle');
+        setVisualCheckSummary('');
         try {
             // In explore mode, use the selected candidate's layout data directly
             // so the live prototype matches what the preview shows.
@@ -1132,14 +1151,25 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
             setPreviewMode('live');
             setLiveUser(resolveLiveUser());
             setLiveKey((k: number) => k + 1);
-            setSyncStatus('ok');
+            try {
+                setIsVisualChecking(true);
+                const checkData = await runVisualCheckForCurrentDesign();
+                const failed = (checkData?.checks || []).filter((item: any) => !item.ok);
+                setVisualCheckStatus(failed.length ? 'error' : 'ok');
+                setVisualCheckSummary(failed.length
+                    ? `${failed.length}/${(checkData?.checks || []).length} preview/live pages differ`
+                    : `${(checkData?.checks || []).length} preview/live pages match`);
+                setSyncStatus(failed.length ? 'error' : 'ok');
+            } finally {
+                setIsVisualChecking(false);
+            }
         } catch (error) {
             setSyncStatus('error');
         } finally {
             setIsSyncingLive(false);
             setTimeout(() => setSyncStatus('idle'), 3000);
         }
-    }, [interfaceId, systemId, isSyncingLive, buildGeneratorPrototypePayload, designMode, previewCandidateIdx, candidates, resolveLiveUser]);
+    }, [interfaceId, systemId, isSyncingLive, buildGeneratorPrototypePayload, designMode, previewCandidateIdx, candidates, resolveLiveUser, runVisualCheckForCurrentDesign]);
 
     const handleVisualCheck = useCallback(async () => {
         if (!interfaceId || isVisualChecking) return;
@@ -1147,23 +1177,12 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         setVisualCheckStatus('idle');
         setVisualCheckSummary('');
         try {
-            const { sections: secs, pages: pgs, styling: stl, tokens: tks } = latestState.current;
-            const activeCandidate = designMode === 'explore' && previewCandidateIdx !== null ? candidates[previewCandidateIdx] : null;
-            const effectiveStyling = activeCandidate?.styling || stl;
-            const effectiveTokens = normalizeDesignTokens(activeCandidate?.tokens || tks, effectiveStyling);
-            const { data } = await authAxios.post('/v1/generator/prototypes/visual_check/', {
-                interface_id: interfaceId,
-                live_user: liveUser,
-                sections: activeCandidate?.sections || secs,
-                pages: activeCandidate?.pages || pgs,
-                ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
-                ...(effectiveTokens && Object.keys(effectiveTokens).length ? { tokens: effectiveTokens } : {}),
-            });
+            const data = await runVisualCheckForCurrentDesign();
             const failed = (data?.checks || []).filter((item: any) => !item.ok);
             setVisualCheckStatus(failed.length ? 'error' : 'ok');
             setVisualCheckSummary(failed.length
-                ? `${failed.length}/${(data?.checks || []).length} pages differ`
-                : `${(data?.checks || []).length} pages match`);
+                ? `${failed.length}/${(data?.checks || []).length} preview/live pages differ`
+                : `${(data?.checks || []).length} preview/live pages match`);
         } catch (error: any) {
             setVisualCheckStatus('error');
             setVisualCheckSummary(error?.response?.data?.detail || error?.message || 'Visual check failed');
@@ -1171,7 +1190,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
             setIsVisualChecking(false);
             setTimeout(() => setVisualCheckStatus('idle'), 5000);
         }
-    }, [interfaceId, isVisualChecking, designMode, previewCandidateIdx, candidates, liveUser]);
+    }, [interfaceId, isVisualChecking, runVisualCheckForCurrentDesign]);
 
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;
@@ -2036,6 +2055,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             )}
                             {candidates.map((candidate: any, idx: number) => {
                                 const isExpanded = previewCandidateIdx === idx;
+                                const compliance = candidate.compliance || null;
+                                const complianceIssues = Array.isArray(compliance?.issues) ? compliance.issues : [];
+                                const hasCompliance = compliance && typeof compliance.passed === 'boolean';
+                                const visualCheck = candidate.visual_check || null;
+                                const visualPages = Array.isArray(visualCheck?.pages) ? visualCheck.pages : [];
+                                const visualIssues = visualPages.flatMap((page: any) => Array.isArray(page?.issues) ? page.issues : []);
+                                const hasVisualCheck = visualCheck && (typeof visualCheck.passed === 'boolean' || visualCheck.skipped);
                                 return (
                                     <div key={idx} style={{
                                         border: `1px solid ${isExpanded ? '#2563eb' : '#e5e7eb'}`,
@@ -2057,6 +2083,46 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             </div>
                                             {candidate.description && (
                                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 8px', lineHeight: 1.4 }}>{candidate.description}</p>
+                                            )}
+                                            {hasCompliance && (
+                                                <div
+                                                    title={complianceIssues.join('\n')}
+                                                    style={{
+                                                        fontSize: 10,
+                                                        lineHeight: 1.35,
+                                                        margin: '0 0 8px',
+                                                        padding: '4px 6px',
+                                                        borderRadius: 5,
+                                                        background: compliance.passed ? '#ecfdf5' : '#fff7ed',
+                                                        border: `1px solid ${compliance.passed ? '#bbf7d0' : '#fed7aa'}`,
+                                                        color: compliance.passed ? '#166534' : '#9a3412',
+                                                    }}
+                                                >
+                                                    {compliance.passed
+                                                        ? `Compliance OK (${compliance.checked || 0} checks)`
+                                                        : `Compliance warnings: ${complianceIssues.length}${complianceIssues.length ? ` - ${complianceIssues.slice(0, 2).join(' ')}` : ''}`}
+                                                </div>
+                                            )}
+                                            {hasVisualCheck && (
+                                                <div
+                                                    title={visualCheck.skipped ? visualCheck.reason : visualIssues.join('\n')}
+                                                    style={{
+                                                        fontSize: 10,
+                                                        lineHeight: 1.35,
+                                                        margin: '0 0 8px',
+                                                        padding: '4px 6px',
+                                                        borderRadius: 5,
+                                                        background: visualCheck.skipped ? '#f8fafc' : visualCheck.passed ? '#ecfdf5' : '#fef2f2',
+                                                        border: `1px solid ${visualCheck.skipped ? '#e2e8f0' : visualCheck.passed ? '#bbf7d0' : '#fecaca'}`,
+                                                        color: visualCheck.skipped ? '#475569' : visualCheck.passed ? '#166534' : '#b91c1c',
+                                                    }}
+                                                >
+                                                    {visualCheck.skipped
+                                                        ? `Screenshot check skipped: ${visualCheck.reason || 'unavailable'}`
+                                                        : visualCheck.passed
+                                                            ? `Screenshot OK (${visualPages.length} page${visualPages.length === 1 ? '' : 's'})`
+                                                            : `Screenshot warnings: ${visualIssues.length}${visualIssues.length ? ` - ${visualIssues.slice(0, 2).join(' ')}` : ''}`}
+                                                </div>
                                             )}
 
                                             {/* mini preview */}
