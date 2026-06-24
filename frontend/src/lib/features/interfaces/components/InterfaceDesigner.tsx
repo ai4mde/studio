@@ -282,8 +282,26 @@ const previewFileMatchesPage = (file: any, page: any, interfaceName?: string) =>
     return previewPathPageKey(file?.path, interfaceName) === pageKey;
 };
 
+const slugifyPathSegment = (value: string | undefined) => {
+    let result = '';
+    for (const char of String(value || '').trim().toLowerCase()) {
+        result += /[a-z0-9_]/.test(char) ? char : '_';
+    }
+    let start = 0;
+    let end = result.length;
+    while (start < end && result[start] === '_') start += 1;
+    while (end > start && result[end - 1] === '_') end -= 1;
+    return result.slice(start, end);
+};
+
 const djangoName = (value: string | undefined) =>
-    String(value || '').trim().replace(/\W+/g, '_').replace(/^_+/, '').replace(/_+$/, '');
+    slugifyPathSegment(value);
+
+const trimTrailingSlashes = (value: string) => {
+    let end = value.length;
+    while (end > 0 && value[end - 1] === '/') end -= 1;
+    return value.slice(0, end);
+};
 
 const livePathForPage = (interfaceName: string | undefined, page: any) => {
     const app = djangoName(interfaceName);
@@ -618,12 +636,12 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
 
     const toggleBrowserFullScreen = () => {
         if (containerRef.current == null) return;
-        if (!document.fullscreenElement) {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
             containerRef.current.requestFullscreen().catch(err => {
                 console.error(`Error attempting to enable full-screen mode: ${err.message}`);
             });
-        } else {
-            document.exitFullscreen();
         }
     };
     const [liveKey, setLiveKey] = useState(0);
@@ -729,7 +747,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         if (actorName.includes('system')) return 'system';
         if (actorName.includes('applicant')) return 'demo-applicant';
         if (actorName.includes('loan') && actorName.includes('officer')) return 'demo-loan-officer';
-        return actorName.replace(/[^a-z0-9]+/g, '_').replace(/^_+/, '').replace(/_+$/, '') || 'jan_devries';
+        return slugifyPathSegment(actorName) || 'jan_devries';
     }, [currentInterface, systemClassifiers]);
 
     useEffect(() => {
@@ -1035,71 +1053,73 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
     }, [systemId, checkAndSwitchLive, resolveLiveUser]);
 
     const buildGeneratorPrototypePayload = useCallback(async (overrideSections?: any[], overridePages?: any[], overrideStyling?: any, overrideTokens?: any) => {
-        if (!interfaceId || !systemId) throw new Error('Missing interface or system id.');
+        if (!interfaceId || !systemId) {
+            throw new Error('Missing interface or system id.');
+        }
 
-            const [{ data: iface }, { data: diagrams }, { data: allInterfaces }] = await Promise.all([
-                authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`),
-                authAxios.get(`/v1/diagram/system/${systemId}/`),
-                authAxios.get(`/v1/metadata/interfaces/`, { params: { system: systemId } }),
-            ]);
-            const { sections: secs, pages: pgs, styling: stl, tokens: tks } = latestState.current;
-            const effectiveSections = overrideSections ?? secs;
-            const effectivePages = overridePages ?? pgs;
-            const effectiveStyling = overrideStyling ?? stl;
-            const effectiveTokens = normalizeDesignTokens(overrideTokens ?? tks ?? (iface as any).data?.tokens, effectiveStyling);
-            const hasPreviewOverride = Boolean(
-                overrideSections || overridePages || overrideStyling || overrideTokens
-            );
-            const syncedInterface = {
-                ...iface,
-                data: {
-                    ...(iface as any).data,
-                    sections: effectiveSections,
-                    pages: effectivePages,
-                    ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
-                    ...(effectiveTokens && Object.keys(effectiveTokens).length ? { tokens: effectiveTokens } : {}),
-                },
-            };
-            const prototypeName = `sync${Date.now()}`;
-            let databasePrototypeName = '';
-            let previousPrototypeId = '';
-            try {
-                const { data: activePrototype } = await authAxios.get('/v1/generator/prototypes/active_prototype/');
-                if (activePrototype?.running && activePrototype?.system === systemId && activePrototype?.name) {
-                    databasePrototypeName = activePrototype.name;
-                    previousPrototypeId = activePrototype.prototype_id || '';
-                }
-            } catch {
-                databasePrototypeName = '';
-                previousPrototypeId = '';
+        const [{ data: iface }, { data: diagrams }, { data: allInterfaces }] = await Promise.all([
+            authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`),
+            authAxios.get(`/v1/diagram/system/${systemId}/`),
+            authAxios.get(`/v1/metadata/interfaces/`, { params: { system: systemId } }),
+        ]);
+        const { sections: secs, pages: pgs, styling: stl, tokens: tks } = latestState.current;
+        const effectiveSections = overrideSections ?? secs;
+        const effectivePages = overridePages ?? pgs;
+        const effectiveStyling = overrideStyling ?? stl;
+        const effectiveTokens = normalizeDesignTokens(overrideTokens ?? tks ?? (iface as any).data?.tokens, effectiveStyling);
+        const hasPreviewOverride = Boolean(
+            overrideSections || overridePages || overrideStyling || overrideTokens
+        );
+        const syncedInterface = {
+            ...iface,
+            data: {
+                ...(iface as any).data,
+                sections: effectiveSections,
+                pages: effectivePages,
+                ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
+                ...(effectiveTokens && Object.keys(effectiveTokens).length ? { tokens: effectiveTokens } : {}),
+            },
+        };
+        const prototypeName = `sync${Date.now()}`;
+        let databasePrototypeName = '';
+        let previousPrototypeId = '';
+        try {
+            const { data: activePrototype } = await authAxios.get('/v1/generator/prototypes/active_prototype/');
+            if (activePrototype?.running && activePrototype?.system === systemId && activePrototype?.name) {
+                databasePrototypeName = activePrototype.name;
+                previousPrototypeId = activePrototype.prototype_id || '';
             }
+        } catch {
+            databasePrototypeName = '';
+            previousPrototypeId = '';
+        }
 
-            const body = {
-                name: prototypeName,
-                description: `Synced from ${iface?.name || 'preview'}`,
-                system_id: systemId,
-                database_hash: `sync-${systemId}-${interfaceId}`,
-                metadata: {
-                    diagrams,
-                    interfaces: (Array.isArray(allInterfaces) && allInterfaces.length ? allInterfaces : [iface]).map((itf: any) => ({
-                        label: itf.name,
-                        value: itf.id === syncedInterface.id ? syncedInterface : itf,
-                    })),
-                    useAuthentication: true,
-                    layout_config: {
-                        source: 'agent-design-sync',
-                        interface_data_source: hasPreviewOverride ? 'preview_override' : 'saved_interface',
-                        synced_at: new Date().toISOString(),
-                    },
+        const body = {
+            name: prototypeName,
+            description: `Synced from ${iface?.name || 'preview'}`,
+            system_id: systemId,
+            database_hash: `sync-${systemId}-${interfaceId}`,
+            metadata: {
+                diagrams,
+                interfaces: (Array.isArray(allInterfaces) && allInterfaces.length ? allInterfaces : [iface]).map((itf: any) => ({
+                    label: itf.name,
+                    value: itf.id === syncedInterface.id ? syncedInterface : itf,
+                })),
+                useAuthentication: true,
+                layout_config: {
+                    source: 'agent-design-sync',
+                    interface_data_source: hasPreviewOverride ? 'preview_override' : 'saved_interface',
+                    synced_at: new Date().toISOString(),
                 },
-            };
+            },
+        };
 
-            return {
-                endpoint: 'POST /v1/generator/prototypes/',
-                query: { database_prototype_name: databasePrototypeName },
-                previous_prototype_id: previousPrototypeId,
-                body,
-            };
+        return {
+            endpoint: 'POST /v1/generator/prototypes/',
+            query: { database_prototype_name: databasePrototypeName },
+            previous_prototype_id: previousPrototypeId,
+            body,
+        };
     }, [interfaceId, systemId]);
 
     const handleViewGeneratorMetadata = useCallback(async () => {
@@ -1388,7 +1408,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         try {
             const bearerToken = useAuthStore.getState().bearerToken;
             const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
-            const base = (authAxios.defaults.baseURL || '').replace(/\/+$/, '');
+            const base = trimTrailingSlashes(authAxios.defaults.baseURL || '');
             const response = await fetch(`${base}/v1/generator/prototypes/generate_candidates/`, {
                 method: 'POST', credentials: 'include',
                 headers: { 'Content-Type': 'application/json', ...(authHeader ? { Authorization: authHeader } : {}) },
@@ -1444,7 +1464,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         try {
             const bearerToken = useAuthStore.getState().bearerToken;
             const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
-            const base = (authAxios.defaults.baseURL || '').replace(/\/+$/, '');
+            const base = trimTrailingSlashes(authAxios.defaults.baseURL || '');
             const response = await fetch(`${base}/v1/generator/prototypes/regenerate_candidates/`, {
                 method: 'POST', credentials: 'include',
                 headers: { 'Content-Type': 'application/json', ...(authHeader ? { Authorization: authHeader } : {}) },
@@ -1543,7 +1563,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         try {
             const bearerToken = useAuthStore.getState().bearerToken;
             const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
-            const base = (authAxios.defaults.baseURL || '').replace(/\/+$/, '');
+            const base = trimTrailingSlashes(authAxios.defaults.baseURL || '');
             const response = await fetch(`${base}/v1/metadata/interfaces/${interfaceId}/generate/`, {
                 method: 'POST',
                 credentials: 'include',

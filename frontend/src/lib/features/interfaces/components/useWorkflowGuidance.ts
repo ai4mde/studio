@@ -36,7 +36,15 @@ export function resolveActorUsername(actorName: string): string {
     if (n.includes('loan') && n.includes('officer')) return 'demo-loan-officer';
     if (n.includes('officer') || n.includes('admin') || n.includes('staff') || n.includes('manager')) return 'demo-loan-officer';
     if (n.includes('system') || n.includes('automated')) return 'system';
-    return n.replace(/[^a-z0-9]+/g, '_').replace(/^_+/, '').replace(/_+$/, '') || 'jan_devries';
+    let result = '';
+    for (const char of n) {
+        result += /[a-z0-9_]/.test(char) ? char : '_';
+    }
+    let start = 0;
+    let end = result.length;
+    while (start < end && result[start] === '_') start += 1;
+    while (end > start && result[end - 1] === '_') end -= 1;
+    return result.slice(start, end) || 'jan_devries';
 }
 
 // ─── content builders ─────────────────────────────────────────────────────────
