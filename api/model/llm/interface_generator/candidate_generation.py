@@ -54,6 +54,45 @@ from .uml_mapping.mapping_sections import (
 
 BUTTON_PRIMARY_BG_HEX = "button.primary.bg_hex"
 BUTTON_PRIMARY_TEXT_HEX = "button.primary.text_hex"
+REGION_HEADER_BG_HEX = "region.header.bg_hex"
+REGION_HEADER_TEXT_HEX = "region.header.text_hex"
+REGION_MAIN_BG_HEX = "region.main.bg_hex"
+REGION_SIDEBAR_BG_HEX = "region.sidebar.bg_hex"
+COMPONENT_CARD_BG_HEX = "component.card.bg_hex"
+COMPONENT_CARD_BORDER_HEX = "component.card.border_hex"
+BUTTON_SECONDARY_BG_HEX = "button.secondary.bg_hex"
+NAV_BG_HEX = "nav.bg_hex"
+NAV_TEXT_HEX = "nav.text_hex"
+TEXT_MUTED_HEX = "text.muted.hex"
+TYPOGRAPHY_BODY_SIZE = "typography.body.size"
+TYPOGRAPHY_LABEL_SIZE = "typography.label.size"
+TYPOGRAPHY_CAPTION_SIZE = "typography.caption.size"
+TYPOGRAPHY_HERO_SIZE = "typography.hero.size"
+TYPOGRAPHY_DISPLAY_SIZE = "typography.display.size"
+TYPOGRAPHY_TITLE_MD_SIZE = "typography.title-md.size"
+TYPOGRAPHY_LEAD_SIZE = "typography.lead.size"
+
+RE_CONTAINED = r"\bcontained\b"
+RE_MAX_WIDTH = r"\bmax[- ]?width\b"
+RE_CENTERED = r"\bcentered\b"
+RE_LEFT_NAV = r"\bleft\s+nav"
+RE_LEFT_SIDEBAR_NAV = r"\bleft\s+sidebar\s+nav"
+RE_SIDEBAR_NAVIGATION = r"\bsidebar\s+navigation\b"
+RE_SIDEBAR_NAV = r"\bsidebar\s+nav"
+RE_TABLE = r"\btable\b"
+RE_DATA_TABLE = r"\bdata\s*table\b"
+RE_TABULAR = r"\btabular\b"
+RE_SMALL_TABLE_TEXT = r"\bsmall(er)?\s+table\s+text\b"
+RE_COMPACT_TABLE = r"\bcompact\s+table\b"
+RE_NAVY_HEADER = r"\bnavy\s+header\b"
+RE_DARK_BLUE_HEADER = r"\bdark\s+blue\s+header\b"
+RE_BEIGE_CARDS = r"\bbeige\s+cards?\b"
+RE_CREAM_CARDS = r"\bcream\s+cards?\b"
+RE_GOLD_BUTTONS = r"\bgold(en)?\s+buttons?\b"
+RE_YELLOW_BUTTONS = r"\byellow\s+buttons?\b"
+RE_BIG_HERO_TITLE = r"\bbig(ger)?\s+hero\s+title\b"
+RE_LARGE_HERO = r"\blarge\s+hero\b"
+RE_HERO_TITLE = r"\bhero\s+title\b"
 
 
 def _render_candidate_preview_local(interface_id: str, candidate_index: int) -> str:
@@ -138,17 +177,17 @@ def _norm_candidate_styling(styling) -> dict:
 
 
 _STYLING_TOKEN_KEYS = frozenset({
-    "region.header.bg_hex", "region.header.text_hex",
+    REGION_HEADER_BG_HEX, REGION_HEADER_TEXT_HEX,
     "region.footer.bg_hex", "region.footer.text_hex",
-    "region.main.bg_hex", "region.sidebar.bg_hex", "region.border_hex",
-    "component.card.bg_hex", "component.card.border_hex",
+    REGION_MAIN_BG_HEX, REGION_SIDEBAR_BG_HEX, "region.border_hex",
+    COMPONENT_CARD_BG_HEX, COMPONENT_CARD_BORDER_HEX,
     BUTTON_PRIMARY_BG_HEX, BUTTON_PRIMARY_TEXT_HEX,
-    "button.secondary.bg_hex", "button.secondary.text_hex",
+    BUTTON_SECONDARY_BG_HEX, "button.secondary.text_hex",
     "button.ghost.text_hex", "button.danger.bg_hex", "button.link.text_hex",
     "input.bg_hex", "input.border_hex", "input.border_focus_hex", "input.text_hex",
-    "nav.bg_hex", "nav.text_hex",
+    NAV_BG_HEX, NAV_TEXT_HEX,
     "table.header.bg_hex", "table.header.text_hex",
-    "badge.info.bg_hex", "text.muted.hex",
+    "badge.info.bg_hex", TEXT_MUTED_HEX,
 })
 
 def _norm_candidate_tokens(tokens, styling: dict | None = None) -> dict:
@@ -240,16 +279,16 @@ def _apply_design_intent_patch(
     patched_tokens = dict(tokens or {})
     patched_styling = dict(styling or {})
 
-    wants_contained = _mentions(text, r"\bcontained\b", r"\bmax[- ]?width\b", r"\bcentered\b")
-    wants_left_sidebar_nav = _mentions(text, r"\bleft\s+sidebar\s+nav", r"\bsidebar\s+navigation\b", r"\bleft\s+nav")
-    wants_sidebar_nav = wants_left_sidebar_nav or _mentions(text, r"\bside\s*bar\s+nav", r"\bsidebar\s+nav")
+    wants_contained = _mentions(text, RE_CONTAINED, RE_MAX_WIDTH, RE_CENTERED)
+    wants_left_sidebar_nav = _mentions(text, RE_LEFT_SIDEBAR_NAV, RE_SIDEBAR_NAVIGATION, RE_LEFT_NAV)
+    wants_sidebar_nav = wants_left_sidebar_nav or _mentions(text, r"\bside\s*bar\s+nav", RE_SIDEBAR_NAV)
     wants_top_nav = _mentions(text, r"\btop\s+(horizontal\s+)?nav", r"\bhorizontal\s+navigation\b")
-    wants_navy_header = _mentions(text, r"\bnavy\s+header\b", r"\bdark\s+blue\s+header\b")
-    wants_beige_cards = _mentions(text, r"\bbeige\s+cards?\b", r"\bcream\s+cards?\b")
-    wants_gold_buttons = _mentions(text, r"\bgold(en)?\s+buttons?\b", r"\byellow\s+buttons?\b")
-    wants_table = _mentions(text, r"\btable\b", r"\bdata\s*table\b", r"\btabular\b")
-    wants_small_table_text = wants_table and _mentions(text, r"\bsmall(er)?\s+table\s+text\b", r"\bcompact\s+table\b")
-    wants_big_hero = _mentions(text, r"\bbig(ger)?\s+hero\s+title\b", r"\blarge\s+hero\b", r"\bhero\s+title\b")
+    wants_navy_header = _mentions(text, RE_NAVY_HEADER, RE_DARK_BLUE_HEADER)
+    wants_beige_cards = _mentions(text, RE_BEIGE_CARDS, RE_CREAM_CARDS)
+    wants_gold_buttons = _mentions(text, RE_GOLD_BUTTONS, RE_YELLOW_BUTTONS)
+    wants_table = _mentions(text, RE_TABLE, RE_DATA_TABLE, RE_TABULAR)
+    wants_small_table_text = wants_table and _mentions(text, RE_SMALL_TABLE_TEXT, RE_COMPACT_TABLE)
+    wants_big_hero = _mentions(text, RE_BIG_HERO_TITLE, RE_LARGE_HERO, RE_HERO_TITLE)
 
     if wants_contained:
         for page in patched_pages:
@@ -285,20 +324,20 @@ def _apply_design_intent_patch(
         patched_tokens["page.body.bg_hex"] = "#f9fafb"
         patched_tokens["page.text.hex"] = "#111827"
         patched_tokens["page.body.text_hex"] = "#111827"
-        patched_tokens["region.main.bg_hex"] = "#ffffff"
+        patched_tokens[REGION_MAIN_BG_HEX] = "#ffffff"
         patched_tokens["region.main.bg_sunken_hex"] = "#f9fafb"
         patched_tokens["color.secondary.hex"] = "#9ca3af"
-        patched_tokens["text.muted.hex"] = "#6b7280"
-        patched_tokens["region.header.bg_hex"] = "#061756"
-        patched_tokens["region.header.text_hex"] = "#ffffff"
-        patched_tokens["nav.bg_hex"] = "#061756"
-        patched_tokens["nav.text_hex"] = "#ffffff"
+        patched_tokens[TEXT_MUTED_HEX] = "#6b7280"
+        patched_tokens[REGION_HEADER_BG_HEX] = "#061756"
+        patched_tokens[REGION_HEADER_TEXT_HEX] = "#ffffff"
+        patched_tokens[NAV_BG_HEX] = "#061756"
+        patched_tokens[NAV_TEXT_HEX] = "#ffffff"
         if wants_sidebar_nav:
-            patched_tokens["region.sidebar.bg_hex"] = "#061756"
+            patched_tokens[REGION_SIDEBAR_BG_HEX] = "#061756"
 
     if wants_beige_cards:
-        patched_tokens["component.card.bg_hex"] = "#f4ead7"
-        patched_tokens["component.card.border_hex"] = "#d8c7a6"
+        patched_tokens[COMPONENT_CARD_BG_HEX] = "#f4ead7"
+        patched_tokens[COMPONENT_CARD_BORDER_HEX] = "#d8c7a6"
         patched_tokens["component.card.text_hex"] = patched_tokens.get("component.card.text_hex") or "#111827"
         patched_tokens["component.card.muted_hex"] = patched_tokens.get("component.card.muted_hex") or "#6b7280"
         for section in patched_sections:
@@ -328,13 +367,13 @@ def _apply_design_intent_patch(
                 section["style"] = style
                 section["field_layout"] = _normalize_field_layout(section)
         if wants_small_table_text:
-            patched_tokens["typography.body.size"] = "13px"
-            patched_tokens["typography.label.size"] = "12px"
-            patched_tokens["typography.caption.size"] = "11px"
+            patched_tokens[TYPOGRAPHY_BODY_SIZE] = "13px"
+            patched_tokens[TYPOGRAPHY_LABEL_SIZE] = "12px"
+            patched_tokens[TYPOGRAPHY_CAPTION_SIZE] = "11px"
 
     if wants_big_hero:
-        patched_tokens["typography.hero.size"] = "72px"
-        patched_tokens["typography.display.size"] = "52px"
+        patched_tokens[TYPOGRAPHY_HERO_SIZE] = "72px"
+        patched_tokens[TYPOGRAPHY_DISPLAY_SIZE] = "52px"
         for section in patched_sections:
             if str(section.get("role") or "").lower() == "header" or section.get("position") == "header":
                 if section.get("layout") in _HEADER_TEMPLATE_LAYOUTS or str(section.get("component") or "") == "HeaderTemplate":
@@ -416,15 +455,15 @@ def _candidate_compliance_report(
         s for s in sections or []
         if s.get("position", "main") == "main" and s.get("primary_model") and s.get("layout") in _DATA_SECTION_LAYOUTS
     ]
-    wants_sidebar = _mentions(text, r"\bsidebar\s+nav", r"\bsidebar\s+navigation\b", r"\bleft\s+nav")
-    wants_left_sidebar = _mentions(text, r"\bleft\s+sidebar\s+nav", r"\bleft\s+nav")
-    wants_table = _mentions(text, r"\btable\b", r"\bdata\s*table\b", r"\btabular\b")
-    wants_small_table = wants_table and _mentions(text, r"\bsmall(er)?\s+table\s+text\b", r"\bcompact\s+table\b")
-    wants_contained = _mentions(text, r"\bcontained\b", r"\bmax[- ]?width\b", r"\bcentered\b")
-    wants_navy_header = _mentions(text, r"\bnavy\s+header\b", r"\bdark\s+blue\s+header\b")
-    wants_beige_cards = _mentions(text, r"\bbeige\s+cards?\b", r"\bcream\s+cards?\b")
-    wants_gold_buttons = _mentions(text, r"\bgold(en)?\s+buttons?\b", r"\byellow\s+buttons?\b")
-    wants_big_hero = _mentions(text, r"\bbig(ger)?\s+hero\s+title\b", r"\blarge\s+hero\b", r"\bhero\s+title\b")
+    wants_sidebar = _mentions(text, RE_SIDEBAR_NAV, RE_SIDEBAR_NAVIGATION, RE_LEFT_NAV)
+    wants_left_sidebar = _mentions(text, RE_LEFT_SIDEBAR_NAV, RE_LEFT_NAV)
+    wants_table = _mentions(text, RE_TABLE, RE_DATA_TABLE, RE_TABULAR)
+    wants_small_table = wants_table and _mentions(text, RE_SMALL_TABLE_TEXT, RE_COMPACT_TABLE)
+    wants_contained = _mentions(text, RE_CONTAINED, RE_MAX_WIDTH, RE_CENTERED)
+    wants_navy_header = _mentions(text, RE_NAVY_HEADER, RE_DARK_BLUE_HEADER)
+    wants_beige_cards = _mentions(text, RE_BEIGE_CARDS, RE_CREAM_CARDS)
+    wants_gold_buttons = _mentions(text, RE_GOLD_BUTTONS, RE_YELLOW_BUTTONS)
+    wants_big_hero = _mentions(text, RE_BIG_HERO_TITLE, RE_LARGE_HERO, RE_HERO_TITLE)
 
     add(
         "left_sidebar_navigation" if wants_left_sidebar else "sidebar_navigation",
@@ -442,7 +481,7 @@ def _candidate_compliance_report(
         "small_table_text",
         wants_small_table,
         any((s.get("style") or {}).get("density") == "compact" for s in data_sections)
-        or (_px_number(tokens.get("typography.body.size")) or 99) <= 14,
+        or (_px_number(tokens.get(TYPOGRAPHY_BODY_SIZE)) or 99) <= 14,
         "Compact table density or small typography token is required.",
     )
     add(
@@ -454,25 +493,25 @@ def _candidate_compliance_report(
     add(
         "navy_header",
         wants_navy_header,
-        _is_dark_blue(tokens.get("region.header.bg_hex")) or _is_dark_blue(tokens.get("nav.bg_hex")),
+        _is_dark_blue(tokens.get(REGION_HEADER_BG_HEX)) or _is_dark_blue(tokens.get(NAV_BG_HEX)),
         "Header/nav background token must be a dark blue/navy hex color.",
     )
     add(
         "beige_cards",
         wants_beige_cards,
-        _is_beige(tokens.get("component.card.bg_hex")),
+        _is_beige(tokens.get(COMPONENT_CARD_BG_HEX)),
         "Card background token must be beige/cream.",
     )
     add(
         "gold_buttons",
         wants_gold_buttons,
-        _is_gold(tokens.get(BUTTON_PRIMARY_BG_HEX)) and _is_gold(tokens.get("button.secondary.bg_hex")),
+        _is_gold(tokens.get(BUTTON_PRIMARY_BG_HEX)) and _is_gold(tokens.get(BUTTON_SECONDARY_BG_HEX)),
         "Primary and secondary button background tokens must be gold.",
     )
     add(
         "large_hero_title",
         wants_big_hero,
-        (_px_number(tokens.get("typography.hero.size")) or 0) >= 64
+        (_px_number(tokens.get(TYPOGRAPHY_HERO_SIZE)) or 0) >= 64
         or any(s.get("layout") == "hero-header" for s in sections or []),
         "Hero title must use a large hero typography token or hero-header layout.",
     )
@@ -591,16 +630,16 @@ def _visual_color_is_beige(value: str) -> bool:
 def _visual_requirements_from_intent(prompt: str, description: str = "", name: str = "") -> dict:
     """Return visual checks implied by the designer intent."""
     text = _intent_text(prompt, description, name)
-    wants_table = _mentions(text, r"\btable\b", r"\bdata\s*table\b", r"\btabular\b")
+    wants_table = _mentions(text, RE_TABLE, RE_DATA_TABLE, RE_TABULAR)
     return {
-        "sidebar": _mentions(text, r"\bsidebar\s+nav", r"\bsidebar\s+navigation\b", r"\bleft\s+nav"),
+        "sidebar": _mentions(text, RE_SIDEBAR_NAV, RE_SIDEBAR_NAVIGATION, RE_LEFT_NAV),
         "table": wants_table,
-        "small_table_text": wants_table and _mentions(text, r"\bsmall(er)?\s+table\s+text\b", r"\bcompact\s+table\b"),
-        "contained": _mentions(text, r"\bcontained\b", r"\bmax[- ]?width\b", r"\bcentered\b"),
-        "navy_header": _mentions(text, r"\bnavy\s+header\b", r"\bdark\s+blue\s+header\b"),
-        "beige_cards": _mentions(text, r"\bbeige\s+cards?\b", r"\bcream\s+cards?\b"),
-        "gold_buttons": _mentions(text, r"\bgold(en)?\s+buttons?\b", r"\byellow\s+buttons?\b"),
-        "large_hero_title": _mentions(text, r"\bbig(ger)?\s+hero\s+title\b", r"\blarge\s+hero\b", r"\bhero\s+title\b"),
+        "small_table_text": wants_table and _mentions(text, RE_SMALL_TABLE_TEXT, RE_COMPACT_TABLE),
+        "contained": _mentions(text, RE_CONTAINED, RE_MAX_WIDTH, RE_CENTERED),
+        "navy_header": _mentions(text, RE_NAVY_HEADER, RE_DARK_BLUE_HEADER),
+        "beige_cards": _mentions(text, RE_BEIGE_CARDS, RE_CREAM_CARDS),
+        "gold_buttons": _mentions(text, RE_GOLD_BUTTONS, RE_YELLOW_BUTTONS),
+        "large_hero_title": _mentions(text, RE_BIG_HERO_TITLE, RE_LARGE_HERO, RE_HERO_TITLE),
     }
 
 
@@ -1322,11 +1361,11 @@ def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: d
 
 
 _TEXT_SIZE_TOKENS = {
-    "xs": {"typography.hero.size": "44px", "typography.display.size": "32px", "typography.title-md.size": "17px", "typography.lead.size": "15px", "typography.body.size": "13px", "typography.caption.size": "10px", "typography.label.size": "12px"},
-    "sm": {"typography.hero.size": "48px", "typography.display.size": "34px", "typography.title-md.size": "18px", "typography.lead.size": "16px", "typography.body.size": "14px", "typography.caption.size": "11px", "typography.label.size": "13px"},
-    "md": {"typography.hero.size": "56px", "typography.display.size": "40px", "typography.title-md.size": "20px", "typography.lead.size": "18px", "typography.body.size": "16px", "typography.caption.size": "12px", "typography.label.size": "14px"},
-    "lg": {"typography.hero.size": "64px", "typography.display.size": "46px", "typography.title-md.size": "24px", "typography.lead.size": "20px", "typography.body.size": "18px", "typography.caption.size": "13px", "typography.label.size": "15px"},
-    "xl": {"typography.hero.size": "72px", "typography.display.size": "52px", "typography.title-md.size": "28px", "typography.lead.size": "22px", "typography.body.size": "20px", "typography.caption.size": "14px", "typography.label.size": "16px"},
+    "xs": {TYPOGRAPHY_HERO_SIZE: "44px", TYPOGRAPHY_DISPLAY_SIZE: "32px", TYPOGRAPHY_TITLE_MD_SIZE: "17px", TYPOGRAPHY_LEAD_SIZE: "15px", TYPOGRAPHY_BODY_SIZE: "13px", TYPOGRAPHY_CAPTION_SIZE: "10px", TYPOGRAPHY_LABEL_SIZE: "12px"},
+    "sm": {TYPOGRAPHY_HERO_SIZE: "48px", TYPOGRAPHY_DISPLAY_SIZE: "34px", TYPOGRAPHY_TITLE_MD_SIZE: "18px", TYPOGRAPHY_LEAD_SIZE: "16px", TYPOGRAPHY_BODY_SIZE: "14px", TYPOGRAPHY_CAPTION_SIZE: "11px", TYPOGRAPHY_LABEL_SIZE: "13px"},
+    "md": {TYPOGRAPHY_HERO_SIZE: "56px", TYPOGRAPHY_DISPLAY_SIZE: "40px", TYPOGRAPHY_TITLE_MD_SIZE: "20px", TYPOGRAPHY_LEAD_SIZE: "18px", TYPOGRAPHY_BODY_SIZE: "16px", TYPOGRAPHY_CAPTION_SIZE: "12px", TYPOGRAPHY_LABEL_SIZE: "14px"},
+    "lg": {TYPOGRAPHY_HERO_SIZE: "64px", TYPOGRAPHY_DISPLAY_SIZE: "46px", TYPOGRAPHY_TITLE_MD_SIZE: "24px", TYPOGRAPHY_LEAD_SIZE: "20px", TYPOGRAPHY_BODY_SIZE: "18px", TYPOGRAPHY_CAPTION_SIZE: "13px", TYPOGRAPHY_LABEL_SIZE: "15px"},
+    "xl": {TYPOGRAPHY_HERO_SIZE: "72px", TYPOGRAPHY_DISPLAY_SIZE: "52px", TYPOGRAPHY_TITLE_MD_SIZE: "28px", TYPOGRAPHY_LEAD_SIZE: "22px", TYPOGRAPHY_BODY_SIZE: "20px", TYPOGRAPHY_CAPTION_SIZE: "14px", TYPOGRAPHY_LABEL_SIZE: "16px"},
 }
 
 
@@ -1348,20 +1387,20 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
         tokens["page.body.text_hex"] = text_color
         tokens["text.primary.hex"] = text_color
     # Preserve fine-grained color tokens when the LLM provides them.
-    _FINE_GRAINED_HEX = (
-        "region.header.bg_hex", "region.header.text_hex",
+    fine_grained_hex = (
+        REGION_HEADER_BG_HEX, REGION_HEADER_TEXT_HEX,
         "region.footer.bg_hex", "region.footer.text_hex",
-        "region.main.bg_hex", "region.sidebar.bg_hex", "region.border_hex",
-        "component.card.bg_hex", "component.card.border_hex",
+        REGION_MAIN_BG_HEX, REGION_SIDEBAR_BG_HEX, "region.border_hex",
+        COMPONENT_CARD_BG_HEX, COMPONENT_CARD_BORDER_HEX,
         BUTTON_PRIMARY_BG_HEX, BUTTON_PRIMARY_TEXT_HEX,
-        "button.secondary.bg_hex", "button.secondary.text_hex",
+        BUTTON_SECONDARY_BG_HEX, "button.secondary.text_hex",
         "button.ghost.text_hex", "button.danger.bg_hex", "button.link.text_hex",
         "input.bg_hex", "input.border_hex", "input.border_focus_hex", "input.text_hex",
-        "nav.bg_hex", "nav.text_hex",
+        NAV_BG_HEX, NAV_TEXT_HEX,
         "table.header.bg_hex", "table.header.text_hex",
-        "badge.info.bg_hex", "text.muted.hex",
+        "badge.info.bg_hex", TEXT_MUTED_HEX,
     )
-    for key in _FINE_GRAINED_HEX:
+    for key in fine_grained_hex:
         val = llm_styling.get(key) or ""
         if val:
             tokens[key] = val
