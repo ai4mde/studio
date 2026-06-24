@@ -18,6 +18,7 @@ from ninja.errors import HttpError
 
 
 interfaces = Router()
+INTERFACE_NOT_FOUND = "Interface not found"
 
 
 _AGENT_CONTEXT_SKIP_KEYS = {
@@ -105,7 +106,7 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
     try:
         interface = Interface.objects.get(id=id)
     except Interface.DoesNotExist:
-        return 404, {"message": "Interface not found"}
+        return 404, {"message": INTERFACE_NOT_FOUND}
 
     system = interface.system
 
@@ -264,7 +265,7 @@ def seed_test_candidate(request, id: str):
     try:
         interface = Interface.objects.get(id=id)
     except Interface.DoesNotExist:
-        return 404, {"message": "Interface not found"}
+        return 404, {"message": INTERFACE_NOT_FOUND}
     data = dict(interface.data or {})
     dummy = {
         "id": "c_test",
@@ -285,7 +286,7 @@ def list_candidates(request, id: str):
     try:
         interface = Interface.objects.get(id=id)
     except Interface.DoesNotExist:
-        return 404, {"message": "Interface not found"}
+        return 404, {"message": INTERFACE_NOT_FOUND}
     candidates = (interface.data or {}).get("candidates", [])
     return [
         {
@@ -306,7 +307,7 @@ def regenerate_candidates_from_selected(request, id: str, candidate_index: int, 
     try:
         interface = Interface.objects.get(id=id)
     except Interface.DoesNotExist:
-        return 404, {"message": "Interface not found"}
+        return 404, {"message": INTERFACE_NOT_FOUND}
 
     candidates = (interface.data or {}).get("candidates", [])
     if candidate_index < 0 or candidate_index >= len(candidates) or not candidates[candidate_index]:
@@ -320,8 +321,6 @@ def regenerate_candidates_from_selected(request, id: str, candidate_index: int, 
     ).strip()
     if not designer_requirements:
         raise HttpError(400, "designer_requirements is required")
-
-    system = interface.system
 
     def stream_generator():
         yield json.dumps({"status": "Connecting to agent..."}) + "\n"
@@ -367,7 +366,7 @@ def render_candidate(request, id: str, candidate_index: int):
     try:
         interface = Interface.objects.get(id=id)
     except Interface.DoesNotExist:
-        return 404, {"message": "Interface not found"}
+        return 404, {"message": INTERFACE_NOT_FOUND}
 
     candidates = (interface.data or {}).get("candidates", [])
     if candidate_index < 0 or candidate_index >= len(candidates):
@@ -477,7 +476,7 @@ def preview_candidate(request, id: str, candidate_index: int):
     try:
         interface = Interface.objects.get(id=id)
     except Interface.DoesNotExist:
-        return HttpResponse("Interface not found", status=404)
+        return HttpResponse(INTERFACE_NOT_FOUND, status=404)
 
     candidates = (interface.data or {}).get("candidates", [])
     if candidate_index < 0 or candidate_index >= len(candidates):
@@ -496,7 +495,7 @@ def apply_candidate(request, id: str, candidate_index: int):
     try:
         interface = Interface.objects.get(id=id)
     except Interface.DoesNotExist:
-        return 404, {"message": "Interface not found"}
+        return 404, {"message": INTERFACE_NOT_FOUND}
 
     candidates = (interface.data or {}).get("candidates", [])
     if candidate_index < 0 or candidate_index >= len(candidates):

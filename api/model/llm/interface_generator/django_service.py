@@ -30,6 +30,7 @@ from .uml_mapping.usecase_workflow import _build_activity_diagrams, _build_useca
 from .workflow_application import _apply_builtin_workflow_logic
 
 logger = logging.getLogger(__name__)
+DEFAULT_SEMANTIC_MODEL = "gemini-2.0-flash-lite"
 
 
 def _strip_json_fence(value: str) -> str:
@@ -344,13 +345,13 @@ def resolve_interface_semantics_with_llm(
         return {}
     model_name = os.getenv("SEMANTIC_RESOLVER_MODEL") or os.getenv(
         "ADK_AGENT_MODEL",
-        "gemini-2.0-flash-lite",
+        DEFAULT_SEMANTIC_MODEL,
     )
     if "/" in model_name:
         provider, raw_name = model_name.split("/", 1)
-        model_name = raw_name if provider == "gemini" else "gemini-2.0-flash-lite"
+        model_name = raw_name if provider == "gemini" else DEFAULT_SEMANTIC_MODEL
     elif not model_name.startswith("gemini-"):
-        model_name = "gemini-2.0-flash-lite"
+        model_name = DEFAULT_SEMANTIC_MODEL
 
     allowed = {
         "model_layouts": ["table", "list", "gallery", "timeline", "map"],

@@ -7,6 +7,12 @@ from .uml_mapping.usecase_workflow import (
     _name_tokens,
 )
 
+_FUZZY_MODEL_RE = re.compile(r"[\s_-]")
+
+
+def _fuzzy_model_key(name: str) -> str:
+    return _FUZZY_MODEL_RE.sub("", str(name or "")).lower()
+
 
 def _normalize_section_operations(operations) -> dict:
     """Normalize section operations."""
@@ -412,7 +418,6 @@ def _infer_section_component(section: dict) -> str:
         return str(component)
     
     layout = _normalize_layout_alias(section.get("layout"))
-    role = str(section.get("role") or "")
     model_name = str(section.get("primary_model") or section.get("class") or "").lower()
     attrs = {str(a.get("name") if isinstance(a, dict) else a).lower() for a in section.get("attributes", [])}
     
@@ -700,13 +705,13 @@ def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: in
     """Attach missing model fields and layouts to data sections before rendering."""
     data_layouts = {"card", "list", "table", "detail", "gallery", "filter", "form"}
     model_names = set(model_attrs.keys())
-    model_names_fuzzy = {re.sub(r"[\s_-]", "", str(name or "")).lower(): name for name in model_names}
+    model_names_fuzzy = {_fuzzy_model_key(name): name for name in model_names}
 
     def canonical_model(name: str) -> str:
         """Provide a local helper for _finalize_data_section_bindings."""
         if name in model_attrs:
             return name
-        return model_names_fuzzy.get(re.sub(r"[\s_-]", "", str(name or "")).lower(), "")
+        return model_names_fuzzy.get(_fuzzy_model_key(name), "")
 
     fixed = []
     for section in sections:
@@ -759,9 +764,9 @@ def _canonical_model_name(name: str, model_graph: dict) -> str:
     """Resolve a model reference to the canonical model name in the model graph."""
     if name in model_graph:
         return name
-    needle = re.sub(r"[\s_-]", "", str(name or "")).lower()
+    needle = _fuzzy_model_key(name)
     for model in model_graph:
-        if re.sub(r"[\s_-]", "", str(model or "")).lower() == needle:
+        if _fuzzy_model_key(model) == needle:
             return model
     return ""
 
@@ -983,13 +988,13 @@ def _related_models_from_attrs(section: dict, model_attrs: dict) -> list[str]:
     """Infer related model names referenced by a section attribute list."""
     related: list[str] = []
     known = set(model_attrs.keys())
-    known_fuzzy = {re.sub(r"[\s_-]", "", name).lower(): name for name in known}
+    known_fuzzy = {_fuzzy_model_key(name): name for name in known}
     for attr in section.get("attributes") or []:
         name = attr.get("name", attr) if isinstance(attr, dict) else attr
         if "." not in str(name):
             continue
         prefix = str(name).split(".", 1)[0]
-        model = prefix if prefix in known else known_fuzzy.get(re.sub(r"[\s_-]", "", prefix).lower(), "")
+        model = prefix if prefix in known else known_fuzzy.get(_fuzzy_model_key(prefix), "")
         if model and model not in related and model != section.get("primary_model"):
             related.append(model)
     return related

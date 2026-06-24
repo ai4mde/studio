@@ -78,6 +78,8 @@ def has_ecommerce_models():
 
 
 def seed_ecommerce_models():
+    price_eur_379 = 'EUR 379'
+    price_eur_1448 = 'EUR 1448'
     Category = models_by_name['Category']
     Seller = models_by_name['Seller']
     Product = models_by_name['Product']
@@ -133,7 +135,7 @@ def seed_ecommerce_models():
     p6 = create_supported(Product,
         product_id='prod-006', name='Sony WH-1000XM5', brand='Sony', ean='4548736132412',
         description='Industry-leading noise cancelling headphones. 30-hour battery, multipoint connection.',
-        price='EUR 299', original_price='EUR 379', discount_pct=21, stock_quantity=67,
+        price='EUR 299', original_price=price_eur_379, discount_pct=21, stock_quantity=67,
         rating='4.8', review_count=892, weight_kg='0.25', is_active=True, Category=cat_audio, Seller=seller1)
     p7 = create_supported(Product,
         product_id='prod-007', name='Philips Hue Starter Kit', brand='Philips', ean='8718699703288',
@@ -210,8 +212,8 @@ def seed_ecommerce_models():
     addr2 = create_supported(Address, address_id='addr-002', customer_id='cust-002', street='Coolsingel', house_number='42', city='Rotterdam', postal_code='3011 AD', country='Netherlands', is_default=True, Customer=cust2)
     print('Created 2 addresses.')
 
-    cart1 = create_supported(Cart, cart_id='cart-001', customer_id=cust1.customer_id, total_price='EUR 1448', item_count=2, Customer=cust1)
-    cart2 = create_supported(Cart, cart_id='cart-002', customer_id=cust2.customer_id, total_price='EUR 379', item_count=1, Customer=cust2)
+    cart1 = create_supported(Cart, cart_id='cart-001', customer_id=cust1.customer_id, total_price=price_eur_1448, item_count=2, Customer=cust1)
+    cart2 = create_supported(Cart, cart_id='cart-002', customer_id=cust2.customer_id, total_price=price_eur_379, item_count=1, Customer=cust2)
     create_supported(CartItem, cart_item_id='ci-001', cart_id=cart1.cart_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Cart=cart1, Product=p1)
     create_supported(CartItem, cart_item_id='ci-002', cart_id=cart1.cart_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Cart=cart1, Product=p6)
     create_supported(CartItem, cart_item_id='ci-003', cart_id=cart2.cart_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Cart=cart2, Product=p6)
@@ -220,10 +222,10 @@ def seed_ecommerce_models():
     if 'Order' in model_field_names(Payment) and 'Payment' in model_field_names(Order):
         connection.disable_constraint_checking()
         try:
-            pay1 = create_supported(Payment, payment_id='pay-001', Order_id=0, method='ideal', amount='EUR 1448', currency='EUR', status='completed', transaction_id='txn-001')
-            pay2 = create_supported(Payment, payment_id='pay-002', Order_id=0, method='credit_card', amount='EUR 379', currency='EUR', status='completed', transaction_id='txn-002')
-            order1 = create_supported(Order, order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount='EUR 1448', shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
-            order2 = create_supported(Order, order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount='EUR 379', shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
+            pay1 = create_supported(Payment, payment_id='pay-001', Order_id=0, method='ideal', amount=price_eur_1448, currency='EUR', status='completed', transaction_id='txn-001')
+            pay2 = create_supported(Payment, payment_id='pay-002', Order_id=0, method='credit_card', amount=price_eur_379, currency='EUR', status='completed', transaction_id='txn-002')
+            order1 = create_supported(Order, order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount=price_eur_1448, shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
+            order2 = create_supported(Order, order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount=price_eur_379, shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
             pay1.Order = order1
             pay1.save(update_fields=['Order'])
             pay2.Order = order2
@@ -232,10 +234,10 @@ def seed_ecommerce_models():
             connection.enable_constraint_checking()
         connection.check_constraints()
     else:
-        pay1 = create_supported(Payment, payment_id='pay-001', order_id='ord-001', method='ideal', amount='EUR 1448', currency='EUR', status='completed', transaction_id='txn-001')
-        pay2 = create_supported(Payment, payment_id='pay-002', order_id='ord-002', method='credit_card', amount='EUR 379', currency='EUR', status='completed', transaction_id='txn-002')
-        order1 = create_supported(Order, order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount='EUR 1448', shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
-        order2 = create_supported(Order, order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount='EUR 379', shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
+        pay1 = create_supported(Payment, payment_id='pay-001', order_id='ord-001', method='ideal', amount=price_eur_1448, currency='EUR', status='completed', transaction_id='txn-001')
+        pay2 = create_supported(Payment, payment_id='pay-002', order_id='ord-002', method='credit_card', amount=price_eur_379, currency='EUR', status='completed', transaction_id='txn-002')
+        order1 = create_supported(Order, order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount=price_eur_1448, shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
+        order2 = create_supported(Order, order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount=price_eur_379, shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
     create_supported(OrderLine, line_id='line-001', order_id=order1.order_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Product=p1, Order=order1)
     create_supported(OrderLine, line_id='line-002', order_id=order1.order_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Product=p6, Order=order1)
     create_supported(OrderLine, line_id='line-003', order_id=order2.order_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Product=p6, Order=order2)
