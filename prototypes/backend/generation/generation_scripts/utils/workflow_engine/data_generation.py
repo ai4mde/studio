@@ -177,8 +177,14 @@ class ActivityDiagramParser:
         activity actorNode fields referencing either format are resolved.
         """
         result = {}
-        for usecase_diagram in filter(lambda diagram: diagram.get('type') == 'usecase', self.metadata.get('diagrams', [])):
-            for actor_node in filter(lambda node: self._node_type(node) == 'actor', usecase_diagram.get('nodes', [])):
+        for usecase_diagram in (
+            diagram for diagram in self.metadata.get('diagrams', [])
+            if diagram.get('type') == 'usecase'
+        ):
+            for actor_node in (
+                node for node in usecase_diagram.get('nodes', [])
+                if self._node_type(node) == 'actor'
+            ):
                 actor_cls = self._cls(actor_node)
                 name = app_name_sanitization(actor_cls.get('name', 'actor'))
                 result[actor_node['id']] = name
@@ -219,16 +225,14 @@ class ActivityDiagramParser:
 
     def _get_incoming_edges_count(self, edges: list[dict[str, Any]], target_id: str) -> int:
         """Get the number of incoming edges for a node"""
-        return sum(
-            1 for _ in filter(lambda edge: self._edge_target(edge) == target_id, edges)
-        )
+        return sum(1 for edge in edges if self._edge_target(edge) == target_id)
 
     def find_node(self, nodes: list[dict[str, Any]], node_id: str) -> dict[str, Any]:
         """Find a node by its uuid in a list of nodes"""
-        filtered_nodes = list(filter(lambda node: node['id'] == node_id, nodes))
-        if not filtered_nodes:
-            raise ValueError(f"Node with id {node_id} not found")
-        return filtered_nodes[0]
+        for node in nodes:
+            if node['id'] == node_id:
+                return node
+        raise ValueError(f"Node with id {node_id} not found")
 
     def find_edges(self, edges: list[dict[str, Any]], source_id: str) -> list[Edge]:
         """Find all edges that have a given source Node"""
@@ -236,7 +240,8 @@ class ActivityDiagramParser:
             Edge(
                 target_node=self._edge_target(edge),
                 condition=self._edge_condition(self._edge_data(edge)),
-            ) for edge in filter(lambda edge: self._edge_source(edge) == source_id and self._edge_target(edge), edges)
+            ) for edge in edges
+            if self._edge_source(edge) == source_id and self._edge_target(edge)
         ]
 
     def create_nodes(self, diagram: dict[str, Any], node_id: str) -> dict[str, Node] | None:
@@ -278,7 +283,10 @@ class ActivityDiagramParser:
         """Parse an activity diagram starting from the initial node"""
         self.nodes = {}
 
-        start_node = list(filter(lambda node: self._node_type(node) == 'initial', diagram.get('nodes', [])))
+        start_node = [
+            node for node in diagram.get('nodes', [])
+            if self._node_type(node) == 'initial'
+        ]
         if len(start_node) != 1:
             raise ValueError("Activity diagrams must have exactly one start node")
         start_node = start_node[0]
@@ -308,7 +316,10 @@ class ActivityDiagramParser:
     def parse_metadata(self) -> list[Diagram]:
         """Parse all activity diagrams in the metadata"""
         diagrams = []
-        for diagram in filter(lambda diagram: diagram.get('type') == 'activity', self.metadata.get('diagrams', [])):
+        for diagram in (
+            diagram for diagram in self.metadata.get('diagrams', [])
+            if diagram.get('type') == 'activity'
+        ):
             try:
                 cron_job, nodes = self.parse_activity_diagram(diagram)
             except Exception as exc:
@@ -394,12 +405,12 @@ class ActivityDiagramParser:
             next_node_obj = self.nodes.get(next_node)
             if not next_node_obj:
                 raise ValueError(f"Something went wrong in the generation process, node {next_node} not found when creating a rule for it")
-            next_value = (
-                "END" if next_node_obj.type == "final"
-                else self.action_nodes[next_node]['id']
-                if next_node_obj.type == "action"
-                else self.create_condition(next_node_obj)
-            )
+            if next_node_obj.type == "final":
+                next_value = "END"
+            elif next_node_obj.type == "action":
+                next_value = self.action_nodes[next_node]['id']
+            else:
+                next_value = self.create_condition(next_node_obj)
 
             if isinstance(next_value, list):
                 if all(
