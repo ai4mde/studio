@@ -1270,8 +1270,11 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
     }, [interfaceId, designMode, previewCandidateIdx, candidates]);
 
     const handleSwitchToLive = useCallback(async () => {
-        await handleSyncLivePrototype();
-    }, [handleSyncLivePrototype]);
+        await doHotReload();
+        await checkAndSwitchLive();
+        setLiveUser(resolveLiveUser());
+        setLiveKey((k: number) => k + 1);
+    }, [checkAndSwitchLive, doHotReload, resolveLiveUser]);
 
     // Debounce: refresh 600 ms after any sections/pages/page-index/styling change
     useEffect(() => {

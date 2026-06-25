@@ -501,6 +501,45 @@ def seed_prototype_data():
     return 'Seeded OK', 200
 
 
+@app.route('/hot_reload', methods=['POST'])
+def hot_reload_templates():
+    data = request.json or {}
+    system_id = data.get('system') or running_prototype.get('system') or ''
+    project_name = data.get('name') or running_prototype.get('name') or ''
+    files = data.get('files') or []
+    if not system_id or not project_name:
+        return 'No prototype is running', 400
+    if not isinstance(files, list):
+        return 'Invalid hot reload payload', 400
+
+    try:
+        proto_path = _prototype_path(system_id, project_name)
+    except ValueError:
+        return 'Invalid prototype path', 400
+    if not os.path.isdir(proto_path):
+        return 'Prototype directory not found', 404
+
+    updated = 0
+    for item in files:
+        if not isinstance(item, dict):
+            continue
+        rel_path = str(item.get('path') or '').replace('\\', '/').strip('/')
+        content = item.get('content')
+        if not rel_path or content is None:
+            continue
+        try:
+            dest = _safe_child_path(proto_path, *rel_path.split('/'))
+        except ValueError:
+            return 'Invalid template path', 400
+        if not os.path.exists(dest):
+            continue
+        with open(dest, 'w', encoding='utf-8') as fh:
+            fh.write(str(content))
+        updated += 1
+
+    return {'updated': updated}, 200
+
+
 
 def _patch_autologin(proto_path: str):
     AUTOLOGIN_VIEW = '''

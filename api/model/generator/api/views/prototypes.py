@@ -10,7 +10,7 @@ from llm.interface_generator.candidate_generation import (
     generate_candidate_set,
     regenerate_candidate_set,
 )
-from llm.template_renderer import render_layout, normalize_interface_schema
+from llm.template_renderer import render_base_template, render_layout, normalize_interface_schema
 from metadata.models import Interface
 from metadata.models import System
 from ninja import Router, Schema
@@ -632,15 +632,24 @@ def visual_check(request, payload: VisualCheckPayload):
     if payload.tokens is not None:
         interface_data["tokens"] = payload.tokens
     interface_data = normalize_interface_schema(interface_data)
+    if not interface_data.get("pages"):
+        return {
+            "ok": True,
+            "style_ok": True,
+            "checks": [],
+            "skipped": True,
+            "reason": "Interface has no pages to compare.",
+            "schema_version": interface_data.get("canonical_schema", {}).get("version", 1),
+        }
 
     classifiers = [{"id": str(c.id), "data": c.data} for c in iface.system.classifiers.filter(data__type='class')]
     relations = [{"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data} for r in iface.system.relations.all()]
     expected_files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
 
     public_host = os.environ.get("RUNNING_PROTOTYPE_HOST", "prototype.ai4mde.localhost")
-    public_proto = os.environ.get("RUNNING_PROTOTYPE_PROTO", DEFAULT_HTTP_PROTO)
+    public_proto = os.environ.get("RUNNING_PROTOTYPE_PROTO", f"{DEFAULT_HTTP_SCHEME}://")
     public_base_url = f"{public_proto}{public_host}"
-    check_proto = os.environ.get("RUNNING_PROTOTYPE_CHECK_PROTO", DEFAULT_HTTP_PROTO)
+    check_proto = os.environ.get("RUNNING_PROTOTYPE_CHECK_PROTO", f"{DEFAULT_HTTP_SCHEME}://")
     check_host = os.environ.get("RUNNING_PROTOTYPE_CHECK_HOST")
     if not check_host:
         check_host = f"{PROTOTYPE_API_HOST}:{status.get('port') or os.environ.get('RUNNING_PROTOTYPE_PORT', 8020)}"
@@ -757,8 +766,6 @@ def hot_reload_templates(request, payload: HotReloadPayload):
     if not proto_system or not proto_name:
         raise HttpError(500, "Active prototype missing system/name")
 
-    proto_path = f"/usr/src/prototypes/generated_prototypes/{proto_system}/{proto_name}"
-
     # Load interface
     try:
         iface = Interface.objects.get(pk=payload.interface_id)
@@ -786,8 +793,9 @@ def hot_reload_templates(request, payload: HotReloadPayload):
         for r in iface.system.relations.all()
     ]
     files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations, preview_mode=False)
+    base_file = render_base_template(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
 
-    updated = 0
+    hot_reload_files = []
     for f in files:
         # f["path"] = "templates/customer_browse_products.html"
         # Actual path: {proto_path}/Customer/templates/Customer_Browse_Products.html
@@ -798,13 +806,31 @@ def hot_reload_templates(request, payload: HotReloadPayload):
         title_parts = [p.capitalize() for p in parts]
         title_filename = "_".join(title_parts) + "." + ext  # "Customer_Browse_Products.html"
         app_dir = title_parts[0]  # "Customer"
-        dest = os.path.join(proto_path, app_dir, "templates", title_filename)
-        if os.path.exists(dest):
-            with open(dest, "w") as wf:
-                wf.write(f["content"])
-            updated += 1
+        hot_reload_files.append({
+            "path": f"{app_dir}/templates/{title_filename}",
+            "content": f["content"],
+        })
 
-    return {"updated": updated}
+    base_basename = base_file["path"].split("/")[-1]
+    base_stem, base_ext = base_basename.rsplit(".", 1)
+    base_app_dir = base_stem.rsplit("_", 1)[0]
+    hot_reload_files.append({
+        "path": f"{base_app_dir}/templates/{base_app_dir}_base.{base_ext}",
+        "content": base_file["content"],
+    })
+
+    response = requests.post(
+        f"{PROTOTYPE_API_URL}/hot_reload",
+        json={"system": proto_system, "name": proto_name, "files": hot_reload_files},
+        timeout=30,
+    )
+    if response.status_code >= 400:
+        raise HttpError(response.status_code, response.text or "Failed to hot reload prototype")
+    result = response.json()
+    return {
+        "updated": result.get("updated", 0),
+        "requested": len(hot_reload_files),
+    }
 
 
 __all__ = ["prototypes"]

@@ -12,6 +12,7 @@ from llm.interface_generator.section_utils import _normalize_select_existing_sec
 
 TEMPLATE_DIR = "/usr/src/templates"
 UNIFIED_TEMPLATE = "page_unified.html.jinja2"
+BASE_TEMPLATE = "base.html.jinja2"
 ACCENT_HEX_TOKEN = "accent.hex"
 
 DEFAULT_SECTION_STYLE = {
@@ -974,6 +975,40 @@ def render_layout(
         })
 
     return output_files
+
+
+def render_base_template(
+    interface_data: Dict,
+    classifiers: List[Dict],
+    layout_config: Optional[Dict],
+    interface_name: str = "interface",
+    relations: Optional[List[Dict]] = None,
+) -> Dict:
+    """Render the live prototype base template with the same tokens as preview pages."""
+    interface_data = normalize_interface_schema(interface_data)
+    app_name, pages = _parse_pages(interface_data, classifiers, interface_name, layout_config, relations)
+
+    tokens = dict(interface_data.get("tokens", {}))
+    styling = interface_data.get("styling", {})
+    _apply_styling_tokens(tokens, styling, app_name)
+
+    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=True)
+    template = env.get_template(BASE_TEMPLATE)
+    rendered = template.render(
+        application_name=app_name,
+        application_namespace=app_name,
+        page=pages[0] if pages else None,
+        pages=pages,
+        all_pages=pages,
+        AttributeType=AttributeType,
+        tokens=tokens,
+        styling=styling,
+    )
+    return {
+        "path": f"templates/{app_name}_base.html",
+        "content": rendered,
+        "type": "html",
+    }
 
 
 def render_preview(
