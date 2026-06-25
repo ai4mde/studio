@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ application_name | capitalize }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    {%- if tokens is not defined %}
     <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
+    {%- endif %}
     <style>
         {%- if tokens is defined %}
         {% include "helpers/unified_page_styles.css.jinja2" %}

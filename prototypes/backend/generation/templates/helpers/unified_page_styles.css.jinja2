@@ -242,6 +242,19 @@
     [data-layout="table"] tr {
       background-color: var(--component-table-bg);
     }
+    [data-layout="table"] table {
+      width: max-content;
+      min-width: 100%;
+      table-layout: auto;
+    }
+    [data-layout="table"] th,
+    [data-layout="table"] td {
+      max-width: 14rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
     [data-layout="table"] tr { border-color: var(--table-border) !important; }
     [data-layout="list"] > .flex.flex-col > div,
     [data-layout="detail"] > .space-y-3 > div,
