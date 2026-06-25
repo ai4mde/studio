@@ -1269,6 +1269,13 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         }
     }, [interfaceId, designMode, previewCandidateIdx, candidates]);
 
+    const handleSwitchToLive = useCallback(async () => {
+        await doHotReload();
+        await checkAndSwitchLive();
+        setLiveUser(resolveLiveUser());
+        setLiveKey((k: number) => k + 1);
+    }, [checkAndSwitchLive, doHotReload, resolveLiveUser]);
+
     // Debounce: refresh 600 ms after any sections/pages/page-index/styling change
     useEffect(() => {
         if (!interfaceId) return;
@@ -1300,10 +1307,12 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
             authAxios.patch(`/v1/metadata/interfaces/${interfaceId}/data/`, {
                 sections,
                 pages,
+                styling,
+                tokens: normalizeDesignTokens(tokens, styling),
             }).catch((e: any) => console.error('Failed to persist sections/pages:', e));
         }, 800);
         return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-    }, [sections, pages, interfaceId, previewMode]);
+    }, [sections, pages, styling, tokens, interfaceId, previewMode]);
 
 const updateSection = useCallback((sectionId: string, field: string, value: any) => {
         setSections((prev: any[]) => prev.map((s: any) => {
@@ -3694,7 +3703,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                     {/* Design / Live toggle */}
                     <div id="tour-design-live-toggle" style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid #d1d5db', marginRight: 4 }}>
                         {(['design', 'live'] as const).map(mode => (
-                            <button key={mode} onClick={() => mode === 'live' ? checkAndSwitchLive() : setPreviewMode(mode)}
+                            <button key={mode} onClick={() => mode === 'live' ? handleSwitchToLive() : setPreviewMode(mode)}
                                 style={{
                                     padding: '2px 10px', fontSize: 12, cursor: 'pointer', border: 'none',
                                     background: previewMode === mode ? '#1d4ed8' : '#fff',
