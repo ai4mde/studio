@@ -283,6 +283,34 @@ const previewFileMatchesPage = (file: any, page: any, interfaceName?: string) =>
     return previewPathPageKey(file?.path, interfaceName) === pageKey;
 };
 
+const summarizeVisualCheck = (data: any) => {
+    const checks = Array.isArray(data?.checks) ? data.checks : [];
+    if (data?.skipped) {
+        return {
+            status: 'ok' as AsyncStatus,
+            summary: data.reason || 'No pages to compare.',
+        };
+    }
+    const styleFailed = checks.filter((item: any) => item?.style_ok === false);
+    const strictFailed = checks.filter((item: any) => item?.ok === false);
+    if (styleFailed.length) {
+        return {
+            status: 'error' as AsyncStatus,
+            summary: `${styleFailed.length}/${checks.length} pages have style differences`,
+        };
+    }
+    if (strictFailed.length) {
+        return {
+            status: 'ok' as AsyncStatus,
+            summary: `${checks.length} pages style-match; ${strictFailed.length} differ in live data or structure`,
+        };
+    }
+    return {
+        status: 'ok' as AsyncStatus,
+        summary: `${checks.length} preview/live pages style-match`,
+    };
+};
+
 const slugifyPathSegment = (value: string | undefined) => {
     let result = '';
     for (const char of String(value || '').trim().toLowerCase()) {
@@ -1209,12 +1237,10 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
             try {
                 setIsVisualChecking(true);
                 const checkData = await runVisualCheckForCurrentDesign();
-                const failed = (checkData?.checks || []).filter((item: any) => !item.ok);
-                setVisualCheckStatus(failed.length ? 'error' : 'ok');
-                setVisualCheckSummary(failed.length
-                    ? `${failed.length}/${(checkData?.checks || []).length} preview/live pages differ`
-                    : `${(checkData?.checks || []).length} preview/live pages match`);
-                setSyncStatus(failed.length ? 'error' : 'ok');
+                const summary = summarizeVisualCheck(checkData);
+                setVisualCheckStatus(summary.status);
+                setVisualCheckSummary(summary.summary);
+                setSyncStatus(summary.status);
             } finally {
                 setIsVisualChecking(false);
             }
@@ -1235,11 +1261,9 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         setVisualCheckSummary('');
         try {
             const data = await runVisualCheckForCurrentDesign();
-            const failed = (data?.checks || []).filter((item: any) => !item.ok);
-            setVisualCheckStatus(failed.length ? 'error' : 'ok');
-            setVisualCheckSummary(failed.length
-                ? `${failed.length}/${(data?.checks || []).length} preview/live pages differ`
-                : `${(data?.checks || []).length} preview/live pages match`);
+            const summary = summarizeVisualCheck(data);
+            setVisualCheckStatus(summary.status);
+            setVisualCheckSummary(summary.summary);
         } catch (error: any) {
             setVisualCheckStatus('error');
             setVisualCheckSummary(error?.response?.data?.detail || error?.message || 'Visual check failed');
