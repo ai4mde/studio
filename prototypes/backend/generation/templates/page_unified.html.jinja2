@@ -3122,7 +3122,11 @@ href="#"
           <span class="text-sm font-medium text-gray-800"></span>
           {% raw %}{% endif %}{% endraw %}
           {%- elif _m %}
-          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '' {% raw %}}}{% endraw %}</span>
+          {% raw %}{%{% endraw %} if {{ _m }} {% raw %}%}{% endraw %}
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }}|default:'' {% raw %}}}{% endraw %}</span>
+          {% raw %}{%{% endraw %} else {% raw %}%}{% endraw %}
+          <span class="text-sm font-medium text-gray-800"></span>
+          {% raw %}{% endif %}{% endraw %}
           {%- endif %}
         </div>
         {%- endfor %}

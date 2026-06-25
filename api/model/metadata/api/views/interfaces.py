@@ -493,11 +493,11 @@ def apply_candidate(request, id: str, candidate_index: int):
     try:
         interface = Interface.objects.get(id=id)
     except Interface.DoesNotExist:
-        return 404, {"message": INTERFACE_NOT_FOUND}
+        raise HttpError(404, INTERFACE_NOT_FOUND)
 
     candidates = (interface.data or {}).get("candidates", [])
     if candidate_index < 0 or candidate_index >= len(candidates):
-        return 404, {"message": f"Candidate {candidate_index} not found"}
+        raise HttpError(404, f"Candidate {candidate_index} not found")
 
     candidate = candidates[candidate_index]
     data = dict(interface.data or {})
@@ -507,6 +507,7 @@ def apply_candidate(request, id: str, candidate_index: int):
         data["styling"] = candidate["styling"]
     if candidate.get("tokens"):
         data["tokens"] = candidate["tokens"]
+    data["candidates"] = candidates
     Interface.objects.filter(id=id).update(data=data)
 
     return {

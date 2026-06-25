@@ -373,11 +373,22 @@ def live_url_for_page_name(live_base_url: str, interface_name: str, page_name: s
     return f"{base}/render_{interface_name}_{page_name}"
 
 
+def live_url_candidates_for_page_name(live_base_url: str, interface_name: str, page_name: str, is_activity: bool) -> list[str]:
+    primary = live_url_for_page_name(live_base_url, interface_name, page_name)
+    if not is_activity:
+        return [primary]
+
+    base = live_base_url.rstrip("/")
+    lower = f"{base}/render_{interface_name.lower()}_{page_name.lower()}/1"
+    upper = f"{base}/render_{interface_name}_{page_name}/1"
+    return list(dict.fromkeys([upper, lower, primary]))
+
+
 def screenshot_api_preview_pair(
     out_dir: Path,
     page_name: str,
     preview_html: str,
-    live_url: str,
+    live_url: str | list[str],
     storage_state: str | None = None,
     live_login_url: str | None = None,
 ):
@@ -401,7 +412,14 @@ def screenshot_api_preview_pair(
 
         if live_login_url:
             browser_page.goto(live_login_url, wait_until="networkidle")
-        browser_page.goto(live_url, wait_until="networkidle")
+        live_urls = live_url if isinstance(live_url, list) else [live_url]
+        live_response = None
+        selected_live_url = live_urls[0]
+        for candidate_url in live_urls:
+            selected_live_url = candidate_url
+            live_response = browser_page.goto(candidate_url, wait_until="networkidle")
+            if live_response is None or live_response.status < 400:
+                break
         live_path = out_dir / f"{page_name}.live.url.png"
         browser_page.screenshot(path=str(live_path), full_page=True)
         shots["live"] = str(live_path)
@@ -412,7 +430,8 @@ def screenshot_api_preview_pair(
     return {
         "skipped": False,
         "mode": "api-preview-to-live-url",
-        "live_url": live_url,
+        "live_url": selected_live_url,
+        "live_status": live_response.status if live_response else None,
         "screenshots": shots,
         "pixel_diff": _pixel_diff(shots["preview"], shots["live"]),
     }
@@ -548,20 +567,26 @@ def main():
                 continue
             api_page_name = api_file_entry["page_name"]
             preview_html = api_file_entry["file"].get("content", "")
+            parsed_preview = parse_html(preview_html)
             page_report = {
                 "page": api_page_name,
                 "preview_html": str(out_dir / f"{api_page_name}.preview.api.html"),
                 "live_html": "",
                 "section_order_match": None,
-                "preview_sections": parse_html(preview_html)["sections"],
+                "preview_sections": parsed_preview["sections"],
                 "live_sections": [],
-                "preview_unsupported": parse_html(preview_html)["unsupported"],
+                "preview_unsupported": parsed_preview["unsupported"],
                 "live_unsupported": [],
                 "screenshot": screenshot_api_preview_pair(
                     out_dir=out_dir,
                     page_name=api_page_name,
                     preview_html=preview_html,
-                    live_url=live_url_for_page_name(args.live_base_url, interface_name, api_page_name),
+                    live_url=live_url_candidates_for_page_name(
+                        args.live_base_url,
+                        interface_name,
+                        api_page_name,
+                        any(section["layout"] == "activity_action" for section in parsed_preview["sections"]),
+                    ),
                     storage_state=args.storage_state or None,
                     live_login_url=live_login_url,
                 ),
@@ -573,7 +598,12 @@ def main():
 
     mismatches = [
         p for p in report["pages"]
-        if p["section_order_match"] is False or p["preview_unsupported"] or p["live_unsupported"]
+        if (
+            p["section_order_match"] is False
+            or p["preview_unsupported"]
+            or p["live_unsupported"]
+            or ((p.get("screenshot") or {}).get("live_status") or 0) >= 400
+        )
     ]
     print(json.dumps({
         "interface": interface_name,
