@@ -873,21 +873,31 @@ def normalize_interface_schema(interface_data: Dict) -> Dict:
 def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> None:
     """Merge styling dict into tokens in-place. Tokens already set take priority."""
     tokens.setdefault("brand.name", interface_name)
+    if isinstance(styling, dict):
+        for key, value in styling.items():
+            if "." in str(key) and value not in (None, ""):
+                tokens.setdefault(str(key), value)
     default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
     styling_accent = styling.get("accentColor", "")
     current_accent = tokens.get(ACCENT_HEX_TOKEN)
     if styling_accent and current_accent in default_blues:
         tokens[ACCENT_HEX_TOKEN] = styling_accent
+    if styling.get("accentSecondary"):
+        tokens.setdefault("color.secondary.hex", styling.get("accentSecondary"))
     accent = tokens.get(ACCENT_HEX_TOKEN)
     if accent and "region.header.bg" not in tokens:
         tokens["region.header.bg"] = f"bg-[{accent}]"
         tokens["page.header.text"] = "text-white"
 
     bg = styling.get("backgroundColor", "")
+    if bg:
+        tokens.setdefault("page.body.bg_hex", bg)
     if bg and "page.body.bg" not in tokens:
         tokens["page.body.bg"] = f"bg-[{bg}]"
 
     text = styling.get("textColor", "")
+    if text:
+        tokens.setdefault("page.body.text_hex", text)
     if text and "page.body.text" not in tokens:
         tokens["page.body.text"] = f"text-[{text}]"
 

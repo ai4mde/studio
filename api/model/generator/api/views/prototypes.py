@@ -806,6 +806,8 @@ def hot_reload_templates(request, payload: HotReloadPayload):
         title_parts = [p.capitalize() for p in parts]
         title_filename = "_".join(title_parts) + "." + ext  # "Customer_Browse_Products.html"
         app_dir = title_parts[0]  # "Customer"
+        if len(title_parts) == 2 and title_parts[1].lower() == "task":
+            title_filename = f"{app_dir}_home.{ext}"
         hot_reload_files.append({
             "path": f"{app_dir}/templates/{title_filename}",
             "content": f["content"],
@@ -813,7 +815,8 @@ def hot_reload_templates(request, payload: HotReloadPayload):
 
     base_basename = base_file["path"].split("/")[-1]
     base_stem, base_ext = base_basename.rsplit(".", 1)
-    base_app_dir = base_stem.rsplit("_", 1)[0]
+    base_app_name = base_stem.rsplit("_", 1)[0]
+    base_app_dir = "_".join(part.capitalize() for part in base_app_name.split("_"))
     hot_reload_files.append({
         "path": f"{base_app_dir}/templates/{base_app_dir}_base.{base_ext}",
         "content": base_file["content"],

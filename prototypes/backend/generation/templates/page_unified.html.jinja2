@@ -24,6 +24,9 @@
 {%- set _footer_width = _raw_page_layout.footer_width if _raw_page_layout.footer_width is defined and _raw_page_layout.footer_width else tokens.get('page.footer_width', 'contained') %}
 {%- set _sidebar_bg = _raw_page_layout.sidebar_bg if _raw_page_layout.sidebar_bg is defined else '' %}
 {%- set _sidebar_shadow = _raw_page_layout.sidebar_shadow if _raw_page_layout.sidebar_shadow is defined else '' %}
+{%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
+{%- set _brand_name = tokens.get('brand.name', 'App') %}
+{%- set _btn_style = tokens.get('theme.button.style', 'solid') %}
 {%- set _layout_has_sidebar = [] %}
 {%- set _layout_has_header = [] %}
 {%- for _layout_sc in page.section_components %}
@@ -559,6 +562,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 {%- set _footer_width = _raw_page_layout.footer_width if _raw_page_layout.footer_width is defined and _raw_page_layout.footer_width else tokens.get('page.footer_width', 'contained') %}
 {%- set _sidebar_bg = _raw_page_layout.sidebar_bg if _raw_page_layout.sidebar_bg is defined else '' %}
 {%- set _sidebar_shadow = _raw_page_layout.sidebar_shadow if _raw_page_layout.sidebar_shadow is defined else '' %}
+{%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
+{%- set _brand_name = tokens.get('brand.name', 'App') %}
+{%- set _btn_style = tokens.get('theme.button.style', 'solid') %}
 {%- set _layout_has_sidebar = [] %}
 {%- for _layout_sc in page.section_components %}
   {%- if _layout_sc.position == 'sidebar' %}{% set _ = _layout_has_sidebar.append(1) %}{%- endif %}

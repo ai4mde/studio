@@ -537,7 +537,16 @@ def hot_reload_templates():
             fh.write(str(content))
         updated += 1
 
-    return {'updated': updated}, 200
+    restarted = False
+    if updated and running_prototype.get('system') == system_id and running_prototype.get('name') == project_name:
+        prototype_id = running_prototype.get('id')
+        if prototype_id:
+            result, error_code = start_prototype(prototype_id, project_name, system_id)
+            if not result:
+                return f'Hot reload updated templates but prototype restart failed: {error_code}', 500
+            restarted = True
+
+    return {'updated': updated, 'restarted': restarted}, 200
 
 
 

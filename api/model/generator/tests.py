@@ -141,4 +141,4 @@ class PrototypeAPITests(APITestCase):
         self.assertEqual(rendered_interface_data["sections"][0]["type"], payload["sections"][0]["type"])
         posted_files = mock_post.call_args.kwargs["json"]["files"]
         self.assertEqual(posted_files[0]["path"], "Customer/templates/Customer_Browse_Products.html")
-        self.assertEqual(posted_files[1]["path"], "customer/templates/customer_base.html")
+        self.assertEqual(posted_files[1]["path"], "Customer/templates/Customer_base.html")

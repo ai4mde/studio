@@ -423,7 +423,7 @@
 <style>
 :root {
   --accent:        {{ tokens.get('accent.hex', _accent_hex) }};
-  --page-bg:       {{ tokens.get('page.bg.hex', tokens.get('region.main.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
+  --page-bg:       {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', tokens.get('region.main.bg_hex', '#f9fafb'))) }};
   --page-text:     {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
   --border-strong: {{ tokens.get('border.strong.hex', tokens.get('region.border_strong_hex', '#d1d5db')) }};
   --shadow-lg:     {{ tokens.get('shadow.lg', '0 10px 15px -3px rgb(0 0 0 / 0.10)') }};
