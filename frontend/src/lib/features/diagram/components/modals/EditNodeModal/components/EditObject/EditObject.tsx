@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
+import { FormControl, FormLabel, Option, Select } from "@mui/joy";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authAxios } from "$lib/features/auth/state/auth";
 import { useDiagramStore } from "$diagram/stores";

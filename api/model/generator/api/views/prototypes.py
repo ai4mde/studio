@@ -21,6 +21,7 @@ import os
 from pathlib import Path
 import re
 import requests
+from requests.exceptions import RequestException
 import time
 
 prototypes = Router()
@@ -46,29 +47,38 @@ def _metadata_with_latest_interface_data(system: System, metadata: Dict[str, Any
     if not isinstance(entries, list):
         return enriched
 
+    by_id, by_name = _interface_lookup_maps(system)
+
+    for entry in entries:
+        _refresh_interface_metadata_entry(entry, by_id, by_name)
+    return enriched
+
+
+def _interface_lookup_maps(system: System):
     interfaces = list(Interface.objects.filter(system=system))
     by_id = {str(iface.id): iface for iface in interfaces}
     by_name = {str(iface.name or "").strip().lower(): iface for iface in interfaces}
+    return by_id, by_name
 
-    for entry in entries:
-        if not isinstance(entry, dict):
-            continue
-        value = entry.get("value")
-        if not isinstance(value, dict):
-            continue
-        interface_id = str(value.get("id") or "")
-        label = str(entry.get("label") or value.get("name") or "").strip().lower()
-        iface = by_id.get(interface_id) or by_name.get(label)
-        if not iface:
-            continue
-        value["id"] = str(iface.id)
-        value["name"] = iface.name
-        value["description"] = iface.description
-        value["system"] = str(iface.system_id)
-        value["actor"] = str(iface.actor_id) if iface.actor_id else None
-        value["data"] = iface.data or {}
-        entry["label"] = iface.name
-    return enriched
+
+def _refresh_interface_metadata_entry(entry: Any, by_id: Dict[str, Interface], by_name: Dict[str, Interface]) -> None:
+    if not isinstance(entry, dict):
+        return
+    value = entry.get("value")
+    if not isinstance(value, dict):
+        return
+    interface_id = str(value.get("id") or "")
+    label = str(entry.get("label") or value.get("name") or "").strip().lower()
+    iface = by_id.get(interface_id) or by_name.get(label)
+    if not iface:
+        return
+    value["id"] = str(iface.id)
+    value["name"] = iface.name
+    value["description"] = iface.description
+    value["system"] = str(iface.system_id)
+    value["actor"] = str(iface.actor_id) if iface.actor_id else None
+    value["data"] = iface.data or {}
+    entry["label"] = iface.name
 
 
 @prototypes.get("/", response=List[ReadPrototype])
@@ -174,7 +184,7 @@ def delete_prototype(request, id):
 
     response = requests.delete(DELETION_URL, json=data)
     if response.status_code != 200:
-        raise Exception("Failed to delete prototype " + prototype.name)
+        raise RuntimeError("Failed to delete prototype " + prototype.name)
     prototype.delete()
     return True
 
@@ -184,7 +194,7 @@ def delete_system_prototypes(request, system_id):
     DELETION_URL = f"{PROTOTYPE_API_URL}/remove"
 
     prototypes = Prototype.objects.filter(system=System.objects.get(pk=system_id))
-    if not prototypes:
+    if not prototypes.exists():
         return False
     
     for prototype in prototypes:
@@ -195,21 +205,20 @@ def delete_system_prototypes(request, system_id):
         }
         response = requests.delete(DELETION_URL, json=data)
         if response.status_code != 200:
-            raise Exception("Failed to delete prototype " + prototype.name)
+            raise RuntimeError("Failed to delete prototype " + prototype.name)
         prototype.delete()
     return True
 
 
 @prototypes.put("/{uuid:id}/", response=bool)
 def update_prototype(request, id, prototype: UpdatePrototype):
-    try: 
-        Prototype.objects.filter(id=id).update(name=prototype.name,
-                                               description=prototype.description,
-                                               system=prototype.system,
-                                               running=prototype.running)
-    except Prototype.DoesNotExist:
-        return False
-    return True
+    updated = Prototype.objects.filter(id=id).update(
+        name=prototype.name,
+        description=prototype.description,
+        system=prototype.system,
+        running=prototype.running,
+    )
+    return updated > 0
 
 
 @prototypes.post("/stop_prototypes/", response=bool)
@@ -217,12 +226,10 @@ def stop_prototypes(request):
     STOP_URL = f"{PROTOTYPE_API_URL}/stop_prototypes"
     try:
         response = requests.post(STOP_URL)
-    except:
+    except RequestException:
         return False
-    
-    if response.status_code == 200:
-        return True
-    return False
+
+    return response.status_code == 200
 
 
 @prototypes.post("/run/{str:prototype_id}", response=bool)
@@ -239,12 +246,10 @@ def run_prototype(request, prototype_id):
     }
     try:
         response = requests.post(RUN_URL, json=data, allow_redirects=False)
-    except:
+    except RequestException:
         return False
-    
-    if response.status_code in [200, 307]:
-        return True
-    return False
+
+    return response.status_code in [200, 307]
 
 
 @prototypes.get("/active_prototype/")
@@ -313,7 +318,7 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
         yield json.dumps({"status": "Starting candidate generation..."}) + "\n"
         try:
             _clear_interface_candidates(payload.interface_id, "generating", payload.prompt)
-        except Exception as e:
+        except Interface.DoesNotExist as e:
             yield json.dumps({"status": "error", "message": f"Failed to reset old candidates: {e}"}) + "\n"
             return
 
@@ -327,7 +332,7 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
             iface = Interface.objects.get(pk=payload.interface_id)
             candidates = (iface.data or {}).get("candidates") or []
             candidate_count = len([candidate for candidate in candidates if candidate])
-        except Exception as e:
+        except Interface.DoesNotExist as e:
             yield json.dumps({"status": "error", "message": f"Failed to load candidates: {e}"}) + "\n"
             return
 
@@ -386,7 +391,7 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
                 payload.designer_requirements,
                 payload.selected_candidate_index,
             )
-        except Exception as e:
+        except Interface.DoesNotExist as e:
             yield json.dumps({"status": "error", "message": f"Failed to reset old candidates: {e}"}) + "\n"
             return
 
@@ -410,7 +415,7 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
                     "message": f"regenerate_candidate_set saved {candidate_count} candidates; expected 3.",
                 }) + "\n"
                 return
-        except Exception as e:
+        except Interface.DoesNotExist as e:
             yield json.dumps({"status": "error", "message": f"Failed to load regenerated candidates: {e}"}) + "\n"
             return
 
@@ -527,7 +532,7 @@ def _pixel_diff(preview_path: Path, live_path: Path) -> Dict[str, Any]:
     """Return a simple screenshot pixel diff summary."""
     try:
         from PIL import Image, ImageChops
-    except Exception as exc:
+    except ImportError as exc:
         return {"skipped": True, "reason": f"Pillow unavailable: {exc}"}
 
     preview = Image.open(preview_path).convert("RGB")
@@ -563,8 +568,8 @@ def _screenshot_preview_live_pair(
 ) -> Dict[str, Any]:
     """Capture preview and live screenshots for a rendered prototype page."""
     try:
-        from playwright.sync_api import sync_playwright
-    except Exception as exc:
+        from playwright.sync_api import Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError, sync_playwright
+    except ImportError as exc:
         return {"skipped": True, "reason": f"Playwright unavailable: {exc}"}
 
     safe_page = re.sub(r"[^A-Za-z0-9_.-]+", "_", page_name or "page")
@@ -587,7 +592,7 @@ def _screenshot_preview_live_pair(
 
             context.close()
             browser.close()
-    except Exception as exc:
+    except (OSError, PlaywrightError, PlaywrightTimeoutError) as exc:
         return {"skipped": True, "reason": f"Playwright screenshot failed: {exc}"}
 
     diff = _pixel_diff(preview_path, live_path)
@@ -608,53 +613,33 @@ class VisualCheckPayload(Schema):
     live_user: Optional[str] = None
 
 
-@prototypes.post("/visual_check/")
-def visual_check(request, payload: VisualCheckPayload):
-    try:
-        status = requests.get(f"{PROTOTYPE_API_URL}/active_prototype", timeout=10).json()
-    except Exception as e:
-        raise HttpError(502, f"Could not reach prototype API: {e}")
-    if not status.get("running"):
-        raise HttpError(404, "No prototype running")
-
-    try:
-        iface = Interface.objects.get(pk=payload.interface_id)
-    except Interface.DoesNotExist:
-        raise HttpError(404, "Interface not found")
-
+def _interface_data_with_payload_overrides(iface: Interface, payload: Any) -> Dict[str, Any]:
     interface_data = dict(iface.data or {})
-    if payload.sections is not None:
-        interface_data["sections"] = payload.sections
-    if payload.pages is not None:
-        interface_data["pages"] = payload.pages
-    if payload.styling is not None:
-        interface_data["styling"] = payload.styling
-    if payload.tokens is not None:
-        interface_data["tokens"] = payload.tokens
-    interface_data = normalize_interface_schema(interface_data)
-    if not interface_data.get("pages"):
-        return {
-            "ok": True,
-            "style_ok": True,
-            "checks": [],
-            "skipped": True,
-            "reason": "Interface has no pages to compare.",
-            "schema_version": interface_data.get("canonical_schema", {}).get("version", 1),
-        }
+    overrides = {
+        "sections": getattr(payload, "sections", None),
+        "pages": getattr(payload, "pages", None),
+        "styling": getattr(payload, "styling", None),
+        "tokens": getattr(payload, "tokens", None),
+    }
+    for key, value in overrides.items():
+        if value is not None:
+            interface_data[key] = value
+    return normalize_interface_schema(interface_data)
 
-    classifiers = [{"id": str(c.id), "data": c.data} for c in iface.system.classifiers.filter(data__type='class')]
-    relations = [{"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data} for r in iface.system.relations.all()]
-    expected_files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
 
+def _visual_check_base_urls(status: Dict[str, Any]) -> tuple[str, str]:
     public_host = os.environ.get("RUNNING_PROTOTYPE_HOST", "prototype.ai4mde.localhost")
     public_proto = os.environ.get("RUNNING_PROTOTYPE_PROTO", f"{DEFAULT_HTTP_SCHEME}://")
     public_base_url = f"{public_proto}{public_host}"
     check_proto = os.environ.get("RUNNING_PROTOTYPE_CHECK_PROTO", f"{DEFAULT_HTTP_SCHEME}://")
     check_host = os.environ.get("RUNNING_PROTOTYPE_CHECK_HOST")
     if not check_host:
-        check_host = f"{PROTOTYPE_API_HOST}:{status.get('port') or os.environ.get('RUNNING_PROTOTYPE_PORT', 8020)}"
-    check_base_url = f"{check_proto}{check_host}"
-    app = re.sub(r"\W+", "_", iface.name).strip("_")
+        port = status.get("port") or os.environ.get("RUNNING_PROTOTYPE_PORT", 8020)
+        check_host = f"{PROTOTYPE_API_HOST}:{port}"
+    return public_base_url, f"{check_proto}{check_host}"
+
+
+def _page_route_map(interface_data: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
     page_route_by_key: Dict[str, Dict[str, str]] = {}
     for page in interface_data.get("pages") or []:
         if not isinstance(page, dict):
@@ -671,6 +656,130 @@ def visual_check(request, payload: VisualCheckPayload):
             key = _preview_page_key(key_source)
             if key:
                 page_route_by_key[key] = page_info
+    return page_route_by_key
+
+
+def _visual_check_route(file: Dict[str, Any], app: str, page_route_by_key: Dict[str, Dict[str, str]]) -> tuple[str, str]:
+    basename = os.path.basename(file["path"])
+    page_name = os.path.splitext(basename)[0]
+    if page_name.lower().startswith(app.lower() + "_"):
+        page_name = page_name[len(app) + 1:]
+    route_info = page_route_by_key.get(_preview_page_key(page_name), {})
+    route_name = route_info.get("route_name") or _django_route_name(page_name)
+    page_type = route_info.get("type", "")
+    live_path = f"/{app}/" if page_name.lower() == "task" or page_type == "activity" else f"/{app}/render_{app}_{route_name}"
+    return page_name, live_path
+
+
+def _fetch_live_html(session: requests.Session, fetch_url: str) -> tuple[int, str]:
+    try:
+        live_resp = session.get(fetch_url, timeout=10, allow_redirects=True)
+    except RequestException:
+        return 0, ""
+    return live_resp.status_code, live_resp.text if live_resp.ok else ""
+
+
+def _signature_mismatches(expected_sig: Dict[str, Any], live_sig: Dict[str, Any]) -> tuple[list[str], list[str]]:
+    css_mismatches = [
+        f"{key}: expected {value}, live {live_sig['css_vars'].get(key)}"
+        for key, value in expected_sig["css_vars"].items()
+        if live_sig["css_vars"].get(key) != value
+    ]
+    structure_mismatches = []
+    if expected_sig["button_count"] != live_sig["button_count"]:
+        structure_mismatches.append(f"button_count: expected {expected_sig['button_count']}, live {live_sig['button_count']}")
+    if expected_sig["section_count"] != live_sig["section_count"]:
+        structure_mismatches.append(f"section_count: expected {expected_sig['section_count']}, live {live_sig['section_count']}")
+    return css_mismatches, structure_mismatches
+
+
+def _screenshot_mismatches(screenshot: Dict[str, Any]) -> list[str]:
+    pixel_diff = screenshot.get("pixel_diff") if isinstance(screenshot, dict) else None
+    changed_ratio = pixel_diff.get("changed_ratio") if isinstance(pixel_diff, dict) and not pixel_diff.get("skipped") else None
+    if isinstance(changed_ratio, (int, float)) and changed_ratio > 0.08:
+        return [f"screenshot_diff: preview/live changed ratio {changed_ratio:.3f}"]
+    return []
+
+
+def _visual_check_page(
+    file: Dict[str, Any],
+    app: str,
+    page_route_by_key: Dict[str, Dict[str, str]],
+    public_base_url: str,
+    check_base_url: str,
+    live_user: str,
+    live_session: requests.Session,
+    screenshot_dir: Path,
+) -> Dict[str, Any]:
+    page_name, live_path = _visual_check_route(file, app, page_route_by_key)
+    live_url = f"{public_base_url}{live_path}"
+    check_live_url = f"{check_base_url}{live_path}"
+    fetch_url = f"{check_base_url}/autologin?as={live_user}&next={live_path}"
+    live_status, live_html = _fetch_live_html(live_session, fetch_url)
+    expected_sig = _html_signature(file.get("content", ""))
+    live_sig = _html_signature(live_html)
+    css_mismatches, structure_mismatches = _signature_mismatches(expected_sig, live_sig)
+    screenshot = _screenshot_preview_live_pair(
+        preview_html=file.get("content", ""),
+        live_url=check_live_url,
+        fetch_url=fetch_url,
+        out_dir=screenshot_dir,
+        page_name=page_name,
+    )
+    screenshot_mismatches = _screenshot_mismatches(screenshot)
+    mismatches = css_mismatches + structure_mismatches + screenshot_mismatches
+    style_ok = live_status == 200 and not css_mismatches
+    strict_ok = live_status == 200 and not mismatches
+    return {
+        "page": page_name,
+        "live_url": live_url,
+        "check_url": check_live_url,
+        "live_status": live_status,
+        "ok": strict_ok,
+        "style_ok": style_ok,
+        "strict_pixel_ok": strict_ok,
+        "mismatches": mismatches,
+        "css_mismatches": css_mismatches,
+        "structure_mismatches": structure_mismatches,
+        "screenshot_mismatches": screenshot_mismatches,
+        "expected": expected_sig,
+        "live": live_sig,
+        "screenshot": screenshot,
+    }
+
+
+@prototypes.post("/visual_check/")
+def visual_check(request, payload: VisualCheckPayload):
+    try:
+        status = requests.get(f"{PROTOTYPE_API_URL}/active_prototype", timeout=10).json()
+    except (RequestException, ValueError) as e:
+        raise HttpError(502, f"Could not reach prototype API: {e}")
+    if not status.get("running"):
+        raise HttpError(404, "No prototype running")
+
+    try:
+        iface = Interface.objects.get(pk=payload.interface_id)
+    except Interface.DoesNotExist:
+        raise HttpError(404, "Interface not found")
+
+    interface_data = _interface_data_with_payload_overrides(iface, payload)
+    if not interface_data.get("pages"):
+        return {
+            "ok": True,
+            "style_ok": True,
+            "checks": [],
+            "skipped": True,
+            "reason": "Interface has no pages to compare.",
+            "schema_version": interface_data.get("canonical_schema", {}).get("version", 1),
+        }
+
+    classifiers = [{"id": str(c.id), "data": c.data} for c in iface.system.classifiers.filter(data__type='class')]
+    relations = [{"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data} for r in iface.system.relations.all()]
+    expected_files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
+
+    public_base_url, check_base_url = _visual_check_base_urls(status)
+    app = re.sub(r"\W+", "_", iface.name).strip("_")
+    page_route_by_key = _page_route_map(interface_data)
     live_session = requests.Session()
     live_user = payload.live_user or "jan_devries"
 
@@ -679,67 +788,16 @@ def visual_check(request, payload: VisualCheckPayload):
     screenshot_dir = screenshot_root / str(payload.interface_id) / str(int(time.time()))
     screenshot_dir.mkdir(parents=True, exist_ok=True)
     for file in expected_files[:8]:
-        basename = os.path.basename(file["path"])
-        stem = os.path.splitext(basename)[0]
-        page_name = stem
-        if page_name.lower().startswith(app.lower() + "_"):
-            page_name = page_name[len(app) + 1:]
-        route_info = page_route_by_key.get(_preview_page_key(page_name), {})
-        route_name = route_info.get("route_name") or _django_route_name(page_name)
-        page_type = route_info.get("type", "")
-        live_path = f"/{app}/" if page_name.lower() == "task" or page_type == "activity" else f"/{app}/render_{app}_{route_name}"
-        live_url = f"{public_base_url}{live_path}"
-        check_live_url = f"{check_base_url}{live_path}"
-        fetch_url = f"{check_base_url}/autologin?as={live_user}&next={live_path}"
-        try:
-            live_resp = live_session.get(fetch_url, timeout=10, allow_redirects=True)
-            live_html = live_resp.text if live_resp.ok else ""
-            live_status = live_resp.status_code
-        except Exception:
-            live_html = ""
-            live_status = 0
-        expected_sig = _html_signature(file.get("content", ""))
-        live_sig = _html_signature(live_html)
-        css_mismatches = []
-        structure_mismatches = []
-        screenshot_mismatches = []
-        for key, value in expected_sig["css_vars"].items():
-            if live_sig["css_vars"].get(key) != value:
-                css_mismatches.append(f"{key}: expected {value}, live {live_sig['css_vars'].get(key)}")
-        if expected_sig["button_count"] != live_sig["button_count"]:
-            structure_mismatches.append(f"button_count: expected {expected_sig['button_count']}, live {live_sig['button_count']}")
-        if expected_sig["section_count"] != live_sig["section_count"]:
-            structure_mismatches.append(f"section_count: expected {expected_sig['section_count']}, live {live_sig['section_count']}")
-        screenshot = _screenshot_preview_live_pair(
-            preview_html=file.get("content", ""),
-            live_url=check_live_url,
-            fetch_url=fetch_url,
-            out_dir=screenshot_dir,
-            page_name=page_name,
-        )
-        pixel_diff = screenshot.get("pixel_diff") if isinstance(screenshot, dict) else None
-        changed_ratio = pixel_diff.get("changed_ratio") if isinstance(pixel_diff, dict) and not pixel_diff.get("skipped") else None
-        if isinstance(changed_ratio, (int, float)) and changed_ratio > 0.08:
-            screenshot_mismatches.append(f"screenshot_diff: preview/live changed ratio {changed_ratio:.3f}")
-        mismatches = css_mismatches + structure_mismatches + screenshot_mismatches
-        style_ok = live_status == 200 and not css_mismatches
-        strict_ok = live_status == 200 and not mismatches
-        checks.append({
-            "page": page_name,
-            "live_url": live_url,
-            "check_url": check_live_url,
-            "live_status": live_status,
-            "ok": strict_ok,
-            "style_ok": style_ok,
-            "strict_pixel_ok": strict_ok,
-            "mismatches": mismatches,
-            "css_mismatches": css_mismatches,
-            "structure_mismatches": structure_mismatches,
-            "screenshot_mismatches": screenshot_mismatches,
-            "expected": expected_sig,
-            "live": live_sig,
-            "screenshot": screenshot,
-        })
+        checks.append(_visual_check_page(
+            file,
+            app,
+            page_route_by_key,
+            public_base_url,
+            check_base_url,
+            live_user,
+            live_session,
+            screenshot_dir,
+        ))
     return {
         "ok": all(item["ok"] for item in checks),
         "style_ok": all(item.get("style_ok") for item in checks),
@@ -755,7 +813,7 @@ def hot_reload_templates(request, payload: HotReloadPayload):
     # Fetch active prototype info
     try:
         status = requests.get(f"{PROTOTYPE_API_URL}/active_prototype").json()
-    except Exception as e:
+    except (RequestException, ValueError) as e:
         raise HttpError(502, f"Could not reach prototype API: {e}")
 
     if not status.get("running"):
@@ -772,16 +830,7 @@ def hot_reload_templates(request, payload: HotReloadPayload):
     except Interface.DoesNotExist:
         raise HttpError(404, "Interface not found")
 
-    interface_data = dict(iface.data or {})
-    if payload.sections is not None:
-        interface_data["sections"] = payload.sections
-    if payload.pages is not None:
-        interface_data["pages"] = payload.pages
-    if payload.styling is not None:
-        interface_data["styling"] = payload.styling
-    if payload.tokens is not None:
-        interface_data["tokens"] = payload.tokens
-    interface_data = normalize_interface_schema(interface_data)
+    interface_data = _interface_data_with_payload_overrides(iface, payload)
 
     classifiers = [
         {"id": str(c.id), "data": c.data}

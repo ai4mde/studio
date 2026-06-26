@@ -1,5 +1,5 @@
 import { useAuthStore } from "$lib/features/auth/state/auth";
-import { Bot, Box, LayoutDashboard, List, LogOut, User } from "lucide-react";
+import { Bot, Box, LayoutDashboard, LogOut } from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
 

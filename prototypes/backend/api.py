@@ -512,13 +512,32 @@ def hot_reload_templates():
     if not isinstance(files, list):
         return 'Invalid hot reload payload', 400
 
+    proto_path, error = _resolve_prototype_dir(system_id, project_name)
+    if error:
+        return error
+
+    updated, error = _write_hot_reload_files(proto_path, files)
+    if error:
+        return error
+
+    restarted, error = _restart_hot_reloaded_prototype(updated, system_id, project_name)
+    if error:
+        return error
+
+    return {'updated': updated, 'restarted': restarted}, 200
+
+
+def _resolve_prototype_dir(system_id: str, project_name: str):
     try:
         proto_path = _prototype_path(system_id, project_name)
     except ValueError:
-        return 'Invalid prototype path', 400
+        return None, ('Invalid prototype path', 400)
     if not os.path.isdir(proto_path):
-        return 'Prototype directory not found', 404
+        return None, ('Prototype directory not found', 404)
+    return proto_path, None
 
+
+def _write_hot_reload_files(proto_path: str, files: list):
     updated = 0
     for item in files:
         if not isinstance(item, dict):
@@ -530,23 +549,29 @@ def hot_reload_templates():
         try:
             dest = _safe_child_path(proto_path, *rel_path.split('/'))
         except ValueError:
-            return 'Invalid template path', 400
+            return updated, ('Invalid template path', 400)
         if not os.path.exists(dest):
             continue
         with open(dest, 'w', encoding='utf-8') as fh:
             fh.write(str(content))
         updated += 1
+    return updated, None
 
+
+def _restart_hot_reloaded_prototype(updated: int, system_id: str, project_name: str):
     restarted = False
-    if updated and running_prototype.get('system') == system_id and running_prototype.get('name') == project_name:
-        prototype_id = running_prototype.get('id')
-        if prototype_id:
-            result, error_code = start_prototype(prototype_id, project_name, system_id)
-            if not result:
-                return f'Hot reload updated templates but prototype restart failed: {error_code}', 500
-            restarted = True
+    should_restart = updated and running_prototype.get('system') == system_id and running_prototype.get('name') == project_name
+    if not should_restart:
+        return restarted, None
 
-    return {'updated': updated, 'restarted': restarted}, 200
+    prototype_id = running_prototype.get('id')
+    if not prototype_id:
+        return restarted, None
+
+    result, error_code = start_prototype(prototype_id, project_name, system_id)
+    if not result:
+        return restarted, (f'Hot reload updated templates but prototype restart failed: {error_code}', 500)
+    return True, None
 
 
 
@@ -743,7 +768,7 @@ def preview_template():
     env = jinja2.Environment(autoescape=True)
     try:
         rendered = env.from_string(full_html).render(**_PREVIEW_SAMPLE)
-    except Exception:
+    except jinja2.TemplateError:
         return "Failed to render preview template", 500, {'Content-Type': 'text/plain'}
 
     return rendered, 200, {'Content-Type': 'text/html; charset=utf-8'}

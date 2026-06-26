@@ -1,4 +1,3 @@
-import { useAuthEffect } from "$auth/hooks/authEffect";
 import { useDiagram } from "$diagram/queries";
 import { useDiagramStore } from "$diagram/stores";
 import { authAxios } from "$lib/features/auth/state/auth";

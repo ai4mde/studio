@@ -13,18 +13,13 @@ releases = Router()
 
 @releases.get("/project/{uuid:project_id}/", response=List[ReadRelease])
 def list_releases(request, project_id):
-    project = Project.objects.get(id=project_id)
-    if not project:
-        return 404, "Project not found"
+    project = get_object_or_404(Project, id=project_id)
     return Release.objects.filter(project=project).order_by('created_at')
 
 
 @releases.get("/{uuid:release_id}", response=ReadRelease)
 def read_release(request, release_id):
-    release = Release.objects.get(id=release_id)
-    if not release:
-        return 404, "Release not found"
-    return release
+    return get_object_or_404(Release, id=release_id)
 
 
 @releases.post("/", response=ReadRelease)
@@ -111,11 +106,8 @@ def export_release(request, release_id):
 
 @releases.delete("/{uuid:release_id}/")
 def delete_release(request, release_id):
-    try:
-        release = Release.objects.get(id=release_id)
-        release.delete()
-    except Exception as e:
-        return 422, f"Failed to delete release: {e}"
+    release = get_object_or_404(Release, id=release_id)
+    release.delete()
     return 200, "Release deleted successfully"
     
 

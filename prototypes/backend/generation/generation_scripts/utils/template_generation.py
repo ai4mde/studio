@@ -125,9 +125,7 @@ def generate_base_page(application_component: ApplicationComponent, output_templ
         "_brand_name": application_name,
         "tokens": tokens,
     }
-    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
-        return True
-    return False
+    return generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data)
 
 
 def _make_task_home_page(application_component: ApplicationComponent) -> Page:
@@ -209,10 +207,7 @@ def generate_action_log_page(application_component: ApplicationComponent, OUTPUT
     data = {
         "application_name": application_name,
     }
-    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
-        return True
-    
-    return False
+    return generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data)
 
 
 def generate_change_user_assignment(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
@@ -224,10 +219,7 @@ def generate_change_user_assignment(application_component: ApplicationComponent,
     data = {
         "application_name": application_name,
     }
-    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
-        return True
-    
-    return False
+    return generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data)
 
 
 def generate_templates(application_component: ApplicationComponent, system_id: str, _variant_id: str = "") -> bool:
@@ -290,20 +282,20 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     
     try:
         ensure_generated_directory(OUTPUT_TEMPLATES_DIRECTORY)
-    except:
-        raise Exception("Failed to create templates directory for " + application_name + " application")
+    except OSError as exc:
+        raise RuntimeError("Failed to create templates directory for " + application_name + " application") from exc
     
     if not generate_base_page(application_component, OUTPUT_TEMPLATES_DIRECTORY, tokens):
-        raise Exception("Failed to generate base page")
+        raise RuntimeError("Failed to generate base page")
     
     if not generate_home_page(application_component, OUTPUT_TEMPLATES_DIRECTORY, tokens):
-        raise Exception("Failed to generate home page")
+        raise RuntimeError("Failed to generate home page")
     
     if application_component.settings and application_component.settings.manager_access:
         if not generate_action_log_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
-            raise Exception("Failed to generate action log page")
+            raise RuntimeError("Failed to generate action log page")
         if not generate_change_user_assignment(application_component, OUTPUT_TEMPLATES_DIRECTORY):
-            raise Exception("Failed to generate change user assignment page")
+            raise RuntimeError("Failed to generate change user assignment page")
 
     for page in pages_in_app:
         OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_" + page_name_sanitization(page.name) + ".html"

@@ -45,7 +45,7 @@ export const useConfirmDeleteClassifierModal = () => {
         open: (payload: {nodeId: string; classifierName: string; usages: DiagramUsageItem[] }) =>
             setState({ active: true, nodeId: payload.nodeId, classifierName: payload.classifierName, usages: payload.usages, }),
         close: () =>
-            setState((s) => ({ active: false, nodeId: null, classifierName: "(unknown)", usages: [], })),
+            setState({ active: false, nodeId: null, classifierName: "(unknown)", usages: [] }),
     };
 };
 
@@ -57,7 +57,7 @@ export const useConfirmDeleteRelationModal = () => {
         open: (payload: {edgeId: string; usages: DiagramUsageItem[] }) =>
             setState({ active: true, edgeId: payload.edgeId, usages: payload.usages, }),
         close: () =>
-            setState((s) => ({ active: false, edgeId: null, usages: [], })),
+            setState({ active: false, edgeId: null, usages: [] }),
     };
 };
 

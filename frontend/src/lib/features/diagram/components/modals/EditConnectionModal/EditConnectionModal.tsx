@@ -10,7 +10,8 @@ import style from "./editconnectionmodal.module.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authAxios } from "$lib/features/auth/state/auth";
 
-import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
+import ClassConnectionFields from "../ConnectionFields/ClassConnectionFields";
+import { isClassConnectionValid } from "../ConnectionFields/classConnectionValidation";
 import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
 import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
 import ComponentConnectionFields from "../ConnectionFields/ComponentConnectionFields";

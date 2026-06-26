@@ -6,36 +6,6 @@ type Props = {
     setObject: (o: any) => void;
 };
 
-// Chaeck that string is not empty
-const isNonEmpty = (v: unknown): boolean =>
-    typeof v === "string" && v.trim().length > 0;
-
-// Check property validity
-export const isClassConnectionValid = (object: any): boolean => {
-    const relType = object?.type;
-    const mult = object?.multiplicity ?? {};
-
-    if (relType === "association") {
-        // label + both multiplicities required
-        return (
-            isNonEmpty(object?.label) &&
-            isNonEmpty(mult.source) &&
-            isNonEmpty(mult.target)
-        );
-    }
-
-    if (relType === "composition") {
-        // only multiplicities required
-        return (
-            isNonEmpty(mult.source) &&
-            isNonEmpty(mult.target)
-        );
-    }
-
-    // For other types (generalization, dependency)
-    return !!relType;
-};
-
 export const ClassConnectionFields: React.FC<Props> = ({ object, setObject }) => {
     const relType = object?.type ?? null;
     const isAssociation = relType === "association";

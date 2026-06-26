@@ -126,10 +126,11 @@ def compare_structure(preview_html: str, live_html: str) -> dict:
     }
 
 
-def screenshot_with_playwright(out_dir: Path, page_name: str, preview_html: str, live_html: str):
+def _import_playwright():
     try:
         from playwright.sync_api import sync_playwright
-    except Exception as exc:
+        return sync_playwright, None
+    except ImportError as exc:
         for candidate in (
             Path("D:/Anaconda/Lib/site-packages"),
             Path(os.environ.get("CONDA_PREFIX", "")) / "Lib" / "site-packages",
@@ -138,8 +139,15 @@ def screenshot_with_playwright(out_dir: Path, page_name: str, preview_html: str,
                 sys.path.append(str(candidate))
         try:
             from playwright.sync_api import sync_playwright
-        except Exception:
-            return {"skipped": True, "reason": f"playwright unavailable: {exc}"}
+            return sync_playwright, None
+        except ImportError:
+            return None, exc
+
+
+def screenshot_with_playwright(out_dir: Path, page_name: str, preview_html: str, live_html: str):
+    sync_playwright, import_error = _import_playwright()
+    if not sync_playwright:
+        return {"skipped": True, "reason": f"playwright unavailable: {import_error}"}
 
     shots = {}
     with sync_playwright() as p:
@@ -152,33 +160,7 @@ def screenshot_with_playwright(out_dir: Path, page_name: str, preview_html: str,
             shots[kind] = str(shot_path)
         browser.close()
     result = {"skipped": False, "screenshots": shots}
-    try:
-        from PIL import Image, ImageChops
-
-        preview_img = Image.open(shots["preview"]).convert("RGB")
-        live_img = Image.open(shots["live"]).convert("RGB")
-        width = min(preview_img.width, live_img.width)
-        height = min(preview_img.height, live_img.height)
-        preview_crop = preview_img.crop((0, 0, width, height))
-        live_crop = live_img.crop((0, 0, width, height))
-        diff = ImageChops.difference(preview_crop, live_crop)
-        bbox = diff.getbbox()
-        changed = 0
-        if bbox:
-            pixels = diff.load()
-            for y in range(height):
-                for x in range(width):
-                    if pixels[x, y] != (0, 0, 0):
-                        changed += 1
-        result["pixel_diff"] = {
-            "compared_size": [width, height],
-            "preview_size": [preview_img.width, preview_img.height],
-            "live_size": [live_img.width, live_img.height],
-            "changed_pixels": changed,
-            "changed_ratio": changed / float(width * height) if width and height else 0,
-        }
-    except Exception as exc:
-        result["pixel_diff"] = {"skipped": True, "reason": str(exc)}
+    result["pixel_diff"] = _pixel_diff(shots["preview"], shots["live"])
     return result
 
 
@@ -192,24 +174,6 @@ def live_url_for_page(live_base_url: str, interface_name: str, page) -> str:
     if page_name.lower() in {"home", "task"}:
         return f"{base}/"
     return f"{base}/render_{interface_name}_{page_name}"
-
-
-def _import_playwright():
-    try:
-        from playwright.sync_api import sync_playwright
-        return sync_playwright, None
-    except Exception as exc:
-        for candidate in (
-            Path("D:/Anaconda/Lib/site-packages"),
-            Path(os.environ.get("CONDA_PREFIX", "")) / "Lib" / "site-packages",
-        ):
-            if candidate.exists() and str(candidate) not in sys.path:
-                sys.path.append(str(candidate))
-        try:
-            from playwright.sync_api import sync_playwright
-            return sync_playwright, None
-        except Exception:
-            return None, exc
 
 
 def _pixel_diff(preview_path: str, live_path: str) -> dict:
@@ -437,6 +401,184 @@ def screenshot_api_preview_pair(
     }
 
 
+def load_interface_context(metadata_path: Path, requested_interface: str):
+    metadata = metadata_path.read_text(encoding="utf-8")
+    metadata_json = json.loads(metadata)
+    interfaces = list(metadata_json.get("interfaces", []) or [])
+    systems = list(metadata_json.get("systems", []) or [])
+    for system in systems:
+        interfaces.extend(system.get("interfaces", []) or [])
+
+    selected = None
+    if requested_interface:
+        selected = next(
+            (i for i in interfaces if i.get("name") == requested_interface or i.get("label") == requested_interface),
+            None,
+        )
+    selected = selected or (interfaces[0] if interfaces else None)
+    if not selected:
+        raise SystemExit("No interface found in metadata.")
+    return metadata_json, systems, interfaces, selected
+
+
+def build_metadata_for_loader(metadata_json: dict, systems: list[dict], interfaces: list[dict], selected: dict) -> str:
+    if not systems:
+        flat_metadata = dict(metadata_json)
+        flat_metadata["interfaces"] = [normalize_interface_entry(i) for i in interfaces]
+        return json.dumps(flat_metadata)
+
+    selected_system_id = selected.get("system")
+    selected_system = next(
+        (
+            system for system in systems
+            if str(system.get("id")) == str(selected_system_id)
+            or any(str(i.get("id")) == str(selected.get("id")) for i in (system.get("interfaces") or []))
+        ),
+        systems[0],
+    )
+    flat_metadata = {
+        "diagrams": selected_system.get("diagrams", []),
+        "classifiers": selected_system.get("classifiers", []),
+        "relations": selected_system.get("relations", []),
+        "interfaces": [normalize_interface_entry(i) for i in (selected_system.get("interfaces", []) or [])],
+    }
+    return json.dumps(flat_metadata)
+
+
+def live_login_url_for_args(args, interface_name: str) -> str | None:
+    if not args.live_base_url or not args.live_login_user:
+        return None
+    root = args.live_base_url.rstrip("/")
+    if root.endswith(f"/{interface_name}"):
+        root = root[: -(len(interface_name) + 1)]
+    return f"{root}/autologin?as={args.live_login_user}"
+
+
+def prepare_api_preview_files(args, out_dir: Path, interface_name: str) -> dict:
+    api_files_by_page = {}
+    if not args.api_base or not args.interface_id:
+        return api_files_by_page
+
+    token = args.auth_token or api_token(args.api_base, args.auth_user, args.auth_password)
+    for file_obj in api_preview_files(args.api_base, args.interface_id, token):
+        api_page_name = page_name_from_preview_file(file_obj, interface_name)
+        api_files_by_page[norm_page_key(api_page_name)] = {"page_name": api_page_name, "file": file_obj}
+        api_path = out_dir / f"{api_page_name}.preview.api.html"
+        api_path.write_text(file_obj.get("content", ""), encoding="utf-8")
+    return api_files_by_page
+
+
+def screenshot_for_page(args, out_dir: Path, interface_name: str, page, page_name: str, preview_html: str, live_html: str, api_file_entry, live_login_url):
+    if not args.screenshots:
+        return None
+    if args.api_base and args.interface_id and args.live_base_url and api_file_entry:
+        return screenshot_api_preview_pair(
+            out_dir=out_dir,
+            page_name=page_name,
+            preview_html=api_file_entry["file"].get("content", ""),
+            live_url=live_url_for_page(args.live_base_url, interface_name, page),
+            storage_state=args.storage_state or None,
+            live_login_url=live_login_url,
+        )
+    if args.preview_url and args.live_base_url:
+        return screenshot_url_pair(
+            out_dir=out_dir,
+            page_name=page_name,
+            preview_url=args.preview_url,
+            live_url=live_url_for_page(args.live_base_url, interface_name, page),
+            preview_page_name=page_name,
+            storage_state=args.storage_state or None,
+            live_login_url=live_login_url,
+        )
+    return screenshot_with_playwright(out_dir, page_name, preview_html, live_html)
+
+
+def build_page_report(args, app, page, tokens, out_dir: Path, interface_name: str, api_files_by_page: dict, live_login_url: str | None) -> dict:
+    preview_html, live_html = render_pair(app, page, tokens, args.project_name)
+    page_name = str(page.name)
+    preview_path = out_dir / f"{page_name}.preview.html"
+    live_path = out_dir / f"{page_name}.live.html"
+    preview_path.write_text(preview_html, encoding="utf-8")
+    live_path.write_text(live_html, encoding="utf-8")
+
+    page_report = {
+        "page": page_name,
+        "preview_html": str(preview_path),
+        "live_html": str(live_path),
+        **compare_structure(preview_html, live_html),
+    }
+    screenshot = screenshot_for_page(
+        args,
+        out_dir,
+        interface_name,
+        page,
+        page_name,
+        preview_html,
+        live_html,
+        api_files_by_page.get(norm_page_key(page_name)),
+        live_login_url,
+    )
+    if screenshot is not None:
+        page_report["screenshot"] = screenshot
+    return page_report
+
+
+def build_api_only_page_report(args, out_dir: Path, interface_name: str, api_file_entry: dict, live_login_url: str | None) -> dict:
+    api_page_name = api_file_entry["page_name"]
+    preview_html = api_file_entry["file"].get("content", "")
+    parsed_preview = parse_html(preview_html)
+    is_activity = any(section["layout"] == "activity_action" for section in parsed_preview["sections"])
+    return {
+        "page": api_page_name,
+        "preview_html": str(out_dir / f"{api_page_name}.preview.api.html"),
+        "live_html": "",
+        "section_order_match": None,
+        "preview_sections": parsed_preview["sections"],
+        "live_sections": [],
+        "preview_unsupported": parsed_preview["unsupported"],
+        "live_unsupported": [],
+        "screenshot": screenshot_api_preview_pair(
+            out_dir=out_dir,
+            page_name=api_page_name,
+            preview_html=preview_html,
+            live_url=live_url_candidates_for_page_name(args.live_base_url, interface_name, api_page_name, is_activity),
+            storage_state=args.storage_state or None,
+            live_login_url=live_login_url,
+        ),
+    }
+
+
+def find_mismatches(report: dict) -> list[dict]:
+    return [
+        page for page in report["pages"]
+        if (
+            page["section_order_match"] is False
+            or page["preview_unsupported"]
+            or page["live_unsupported"]
+            or ((page.get("screenshot") or {}).get("live_status") or 0) >= 400
+        )
+    ]
+
+
+def print_report_summary(interface_name: str, report: dict, report_path: Path, mismatches: list[dict]) -> None:
+    print(json.dumps({
+        "interface": interface_name,
+        "pages_checked": len(report["pages"]),
+        "mismatch_count": len(mismatches),
+        "report": str(report_path),
+        "screenshot_hint": "Run with --screenshots after installing Playwright: python -m pip install playwright && python -m playwright install chromium",
+    }, indent=2))
+    if not mismatches:
+        return
+    print("MISMATCHES:")
+    for item in mismatches:
+        print(
+            f"- {item['page']}: order_match={item['section_order_match']} "
+            f"preview_unsupported={len(item['preview_unsupported'])} "
+            f"live_unsupported={len(item['live_unsupported'])}"
+        )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compare generated preview and live HTML/screenshots for every page.")
     parser.add_argument("--metadata", default=str(ROOT / "scripts" / "fixtures" / "Bol.com Shopping Platform-export.json"))
@@ -456,43 +598,9 @@ def main():
     args = parser.parse_args()
 
     metadata_path = Path(args.metadata).resolve()
-    metadata = metadata_path.read_text(encoding="utf-8")
-    metadata_json = json.loads(metadata)
-    interfaces = list(metadata_json.get("interfaces", []) or [])
-    systems = list(metadata_json.get("systems", []) or [])
-    for system in systems:
-        interfaces.extend(system.get("interfaces", []) or [])
-    selected = None
-    if args.interface:
-        selected = next((i for i in interfaces if i.get("name") == args.interface or i.get("label") == args.interface), None)
-    selected = selected or (interfaces[0] if interfaces else None)
-    if not selected:
-        raise SystemExit("No interface found in metadata.")
-
+    metadata_json, systems, interfaces, selected = load_interface_context(metadata_path, args.interface)
     interface_name = selected.get("name") or selected.get("label")
-    selected_system = None
-    if systems:
-        selected_system_id = selected.get("system")
-        selected_system = next(
-            (
-                s for s in systems
-                if str(s.get("id")) == str(selected_system_id)
-                or any(str(i.get("id")) == str(selected.get("id")) for i in (s.get("interfaces") or []))
-            ),
-            systems[0],
-        )
-        flat_metadata = {
-            "diagrams": selected_system.get("diagrams", []),
-            "classifiers": selected_system.get("classifiers", []),
-            "relations": selected_system.get("relations", []),
-            "interfaces": [normalize_interface_entry(i) for i in (selected_system.get("interfaces", []) or [])],
-        }
-        metadata_for_loader = json.dumps(flat_metadata)
-    else:
-        flat_metadata = dict(metadata_json)
-        flat_metadata["interfaces"] = [normalize_interface_entry(i) for i in interfaces]
-        metadata_for_loader = json.dumps(flat_metadata)
-
+    metadata_for_loader = build_metadata_for_loader(metadata_json, systems, interfaces, selected)
     app = get_application_component(args.project_name, interface_name, metadata_for_loader, False)
     tokens = dict(getattr(app, "tokens", {}) or {})
     out_dir = Path(args.out).resolve() / interface_name
@@ -505,117 +613,25 @@ def main():
         "out_dir": str(out_dir),
         "pages": [],
     }
-    live_login_url = None
-    if args.live_base_url and args.live_login_user:
-        root = args.live_base_url.rstrip("/")
-        if root.endswith(f"/{interface_name}"):
-            root = root[: -(len(interface_name) + 1)]
-        live_login_url = f"{root}/autologin?as={args.live_login_user}"
-
-    api_files_by_page = {}
-    if args.api_base and args.interface_id:
-        token = args.auth_token or api_token(args.api_base, args.auth_user, args.auth_password)
-        for file_obj in api_preview_files(args.api_base, args.interface_id, token):
-            api_page_name = page_name_from_preview_file(file_obj, interface_name)
-            api_files_by_page[norm_page_key(api_page_name)] = {"page_name": api_page_name, "file": file_obj}
-            api_path = out_dir / f"{api_page_name}.preview.api.html"
-            api_path.write_text(file_obj.get("content", ""), encoding="utf-8")
+    live_login_url = live_login_url_for_args(args, interface_name)
+    api_files_by_page = prepare_api_preview_files(args, out_dir, interface_name)
 
     for page in pages:
-        preview_html, live_html = render_pair(app, page, tokens, args.project_name)
-        page_name = str(page.name)
-        preview_path = out_dir / f"{page_name}.preview.html"
-        live_path = out_dir / f"{page_name}.live.html"
-        preview_path.write_text(preview_html, encoding="utf-8")
-        live_path.write_text(live_html, encoding="utf-8")
-
-        page_report = {
-            "page": page_name,
-            "preview_html": str(preview_path),
-            "live_html": str(live_path),
-            **compare_structure(preview_html, live_html),
-        }
-        if args.screenshots:
-            api_file_entry = api_files_by_page.get(norm_page_key(page_name))
-            if args.api_base and args.interface_id and args.live_base_url and api_file_entry:
-                page_report["screenshot"] = screenshot_api_preview_pair(
-                    out_dir=out_dir,
-                    page_name=page_name,
-                    preview_html=api_file_entry["file"].get("content", ""),
-                    live_url=live_url_for_page(args.live_base_url, interface_name, page),
-                    storage_state=args.storage_state or None,
-                    live_login_url=live_login_url,
-                )
-            elif args.preview_url and args.live_base_url:
-                page_report["screenshot"] = screenshot_url_pair(
-                    out_dir=out_dir,
-                    page_name=page_name,
-                    preview_url=args.preview_url,
-                    live_url=live_url_for_page(args.live_base_url, interface_name, page),
-                    preview_page_name=page_name,
-                    storage_state=args.storage_state or None,
-                    live_login_url=live_login_url,
-                )
-            else:
-                page_report["screenshot"] = screenshot_with_playwright(out_dir, page_name, preview_html, live_html)
-        report["pages"].append(page_report)
+        report["pages"].append(build_page_report(args, app, page, tokens, out_dir, interface_name, api_files_by_page, live_login_url))
 
     existing_keys = {norm_page_key(item["page"]) for item in report["pages"]}
     if args.screenshots and args.api_base and args.interface_id and args.live_base_url:
         for key, api_file_entry in api_files_by_page.items():
             if key in existing_keys:
                 continue
-            api_page_name = api_file_entry["page_name"]
-            preview_html = api_file_entry["file"].get("content", "")
-            parsed_preview = parse_html(preview_html)
-            page_report = {
-                "page": api_page_name,
-                "preview_html": str(out_dir / f"{api_page_name}.preview.api.html"),
-                "live_html": "",
-                "section_order_match": None,
-                "preview_sections": parsed_preview["sections"],
-                "live_sections": [],
-                "preview_unsupported": parsed_preview["unsupported"],
-                "live_unsupported": [],
-                "screenshot": screenshot_api_preview_pair(
-                    out_dir=out_dir,
-                    page_name=api_page_name,
-                    preview_html=preview_html,
-                    live_url=live_url_candidates_for_page_name(
-                        args.live_base_url,
-                        interface_name,
-                        api_page_name,
-                        any(section["layout"] == "activity_action" for section in parsed_preview["sections"]),
-                    ),
-                    storage_state=args.storage_state or None,
-                    live_login_url=live_login_url,
-                ),
-            }
-            report["pages"].append(page_report)
+            report["pages"].append(build_api_only_page_report(args, out_dir, interface_name, api_file_entry, live_login_url))
 
     report_path = out_dir / "report.json"
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
-    mismatches = [
-        p for p in report["pages"]
-        if (
-            p["section_order_match"] is False
-            or p["preview_unsupported"]
-            or p["live_unsupported"]
-            or ((p.get("screenshot") or {}).get("live_status") or 0) >= 400
-        )
-    ]
-    print(json.dumps({
-        "interface": interface_name,
-        "pages_checked": len(report["pages"]),
-        "mismatch_count": len(mismatches),
-        "report": str(report_path),
-        "screenshot_hint": "Run with --screenshots after installing Playwright: python -m pip install playwright && python -m playwright install chromium",
-    }, indent=2))
+    mismatches = find_mismatches(report)
+    print_report_summary(interface_name, report, report_path, mismatches)
     if mismatches:
-        print("MISMATCHES:")
-        for item in mismatches:
-            print(f"- {item['page']}: order_match={item['section_order_match']} preview_unsupported={len(item['preview_unsupported'])} live_unsupported={len(item['live_unsupported'])}")
         raise SystemExit(1)
 
 

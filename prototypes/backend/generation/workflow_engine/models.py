@@ -421,21 +421,26 @@ class ActiveProcess(models.Model):
 
         defaults = {}
         for field in model._meta.fields:
-            if field.primary_key or getattr(field, "auto_created", False):
-                continue
-            related_model = getattr(getattr(field, "remote_field", None), "model", None)
-            if related_model:
-                related_instance = User.objects.first() if related_model is User else self._get_or_create_process_instance(related_model, seen)
-                if related_instance is not None:
-                    defaults[field.name] = related_instance
-                elif getattr(field, "null", False):
-                    defaults[field.name] = None
-                continue
-            defaults[field.name] = self._fallback_value_for_field(field)
+            should_set, value = self._default_for_process_field(field, seen)
+            if should_set:
+                defaults[field.name] = value
 
         instance = model.objects.create(**defaults)
         self.add_associated_instance(instance)
         return instance
+
+    def _default_for_process_field(self, field: models.Field, seen: set[str]):
+        if field.primary_key or getattr(field, "auto_created", False):
+            return False, None
+
+        related_model = getattr(getattr(field, "remote_field", None), "model", None)
+        if not related_model:
+            return True, self._fallback_value_for_field(field)
+
+        related_instance = User.objects.first() if related_model is User else self._get_or_create_process_instance(related_model, seen)
+        if related_instance is not None:
+            return True, related_instance
+        return bool(getattr(field, "null", False)), None
 
     def add_associated_instance(self, instance: models.Model) -> None:
         AssociatedModelInstance.objects.get_or_create(

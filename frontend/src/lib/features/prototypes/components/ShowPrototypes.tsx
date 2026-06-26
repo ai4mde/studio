@@ -9,10 +9,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 
 
-type Props = {
-};
-
-export const ShowPrototypes: React.FC<Props> = () => {
+export const ShowPrototypes: React.FC = () => {
     const { systemId } = useParams();
     const [data, isSuccess] = useSystemPrototypes(systemId);
     const [prototypeStatuses, setPrototypeStatuses] = useState<{ [key: string]: string }>({});

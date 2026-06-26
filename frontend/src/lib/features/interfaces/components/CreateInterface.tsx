@@ -42,7 +42,7 @@ export const CreateInterface: React.FC<Props> = ({ system }) => {
     const [open, setOpen] = useAtom(createInterfaceAtom);
     const close = () => setOpen(false);
     const { systemId } = useParams();
-    const [actors, isSuccessActors] = useSystemActors(systemId);
+    const [actors] = useSystemActors(systemId);
     const [selectedActor, setSelectedActor] = useState("");
 
     const { mutateAsync, isPending } = useMutation<
@@ -74,7 +74,7 @@ export const CreateInterface: React.FC<Props> = ({ system }) => {
             queryClient.invalidateQueries({ queryKey: ["interfaces"] });
             close();
         });
-    };
+    }
 
     if (isPending) {
         return (
@@ -84,7 +84,7 @@ export const CreateInterface: React.FC<Props> = ({ system }) => {
                 </ModalDialog>
             </Modal>
         )
-    };
+    }
 
     return (
         <Modal open={open} onClose={() => close()}>

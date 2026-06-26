@@ -7,7 +7,7 @@ import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from 
 import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Box, Plus, X, Upload } from "lucide-react";
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import UploadFileModal from "$shared/components/Modals/FileUploadModal";
 
 type ProjectOut = {

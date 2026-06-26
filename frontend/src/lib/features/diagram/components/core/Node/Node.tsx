@@ -1,59 +1,9 @@
-import {
-    ActionNode,
-    ActorNode,
-    ClassNode,
-    DecisionNode,
-    EnumNode,
-    FinalNode,
-    ForkNode,
-    InitialNode,
-    JoinNode,
-    MergeNode,
-    PostconditionNode,
-    PreconditionNode,
-    ScenarioNode,
-    ClassifierNode,
-    TriggerNode,
-    UsecaseNode,
-    SwimlaneGroupNode,
-    SystemBoundaryNode,
-    ObjectNode,
-    EventNode,
-    ComponentNode,
-} from "$diagram/components/nodes";
 import React from "react";
-import { NodeProps, NodeTypes } from "reactflow";
+import { NodeProps } from "reactflow";
+import { nodeTypes } from "./nodeTypes";
 
 export const Node: React.FC<NodeProps> = () => {
     return <div className="p-4 bg-white">Node</div>;
-};
-
-export const nodeTypes: NodeTypes = {
-    class: ClassNode,
-    enum: EnumNode,
-    signal: ClassifierNode,
-    container: ComponentNode,
-    component: ComponentNode,
-    system: ComponentNode,
-    interface: ClassifierNode,
-    action: ActionNode,
-    initial: InitialNode,
-    decision: DecisionNode,
-    merge: MergeNode,
-    fork: ForkNode,
-    join: JoinNode,
-    final: FinalNode,
-    object: ObjectNode,
-    event: EventNode,
-    actor: ActorNode,
-    postcondition: PostconditionNode,
-    precondition: PreconditionNode,
-    scenario: ScenarioNode,
-    trigger: TriggerNode,
-    usecase: UsecaseNode,
-    default: Node,
-    swimlanegroup: SwimlaneGroupNode,
-    system_boundary: SystemBoundaryNode,
 };
 
 export const PreviewNode: React.FC<NodeProps> = (node) => {

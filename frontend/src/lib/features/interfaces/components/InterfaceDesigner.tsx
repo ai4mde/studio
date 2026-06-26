@@ -594,6 +594,246 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
     };
 };
 
+const reorderSections = (sections: any[], fromId: string, toId: string) => {
+    const nextSections = [...sections];
+    const fromIndex = nextSections.findIndex((section: any) => section.id === fromId);
+    const toIndex = nextSections.findIndex((section: any) => section.id === toId);
+    if (fromIndex === -1 || toIndex === -1) return sections;
+    nextSections.splice(toIndex, 0, nextSections.splice(fromIndex, 1)[0]);
+    return nextSections;
+};
+
+const reorderPageSectionRefs = (pages: any[], fromId: string, toId: string) => pages.map((page: any) => {
+    const rawIds: string[] = (page.sections || []).map(sectionRefId);
+    const fromIndex = rawIds.indexOf(fromId);
+    const toIndex = rawIds.indexOf(toId);
+    if (fromIndex === -1 || toIndex === -1) return page;
+    const nextRefs = [...(page.sections || [])];
+    nextRefs.splice(toIndex, 0, nextRefs.splice(fromIndex, 1)[0]);
+    return { ...page, sections: nextRefs };
+});
+
+const normalizeSectionPosition = (position: any, fallback: PositionOption = 'main') => (
+    ['header', 'hero', 'main', 'sidebar', 'footer'].includes(position) ? position : fallback
+);
+
+const moveSectionBetweenRegions = (
+    sections: any[],
+    fromId: string,
+    beforeId: string,
+    newPosition: any,
+    sidebarSide: any,
+) => {
+    const nextSections = [...sections];
+    const fromIndex = nextSections.findIndex((section: any) => section.id === fromId);
+    if (fromIndex === -1) return sections;
+    const [moving] = nextSections.splice(fromIndex, 1);
+    const normalizedPosition = normalizeSectionPosition(newPosition, moving.position || 'main');
+    const nextStyle = { ...moving.style };
+    if (normalizedPosition === 'sidebar' && ['left', 'right'].includes(sidebarSide)) {
+        nextStyle.sidebar_side = sidebarSide;
+    } else if (normalizedPosition !== 'sidebar') {
+        delete nextStyle.sidebar_side;
+    }
+    const nextMoving = { ...moving, position: normalizedPosition, style: nextStyle };
+    const toIndex = beforeId === '__end__'
+        ? nextSections.length
+        : nextSections.findIndex((section: any) => section.id === beforeId);
+    nextSections.splice(toIndex === -1 ? nextSections.length : toIndex, 0, nextMoving);
+    return nextSections;
+};
+
+const movePageSectionRefs = (pages: any[], fromId: string, beforeId: string) => pages.map((page: any) => {
+    const refs = [...(page.sections || [])];
+    const fromIndex = refs.findIndex((ref: any) => sectionRefId(ref) === fromId);
+    if (fromIndex === -1) return page;
+    const [movingRef] = refs.splice(fromIndex, 1);
+    const toIndex = beforeId === '__end__'
+        ? refs.length
+        : refs.findIndex((ref: any) => sectionRefId(ref) === beforeId);
+    refs.splice(toIndex === -1 ? refs.length : toIndex, 0, movingRef);
+    return { ...page, sections: refs };
+});
+
+const updateSectionColSpan = (sections: any[], id: string, colSpan: number) => sections.map((section: any) =>
+    section.id === id ? { ...section, col_span: colSpan } : section
+);
+
+const updateSectionSidebarWidth = (sections: any[], id: string, sidebarWidth: unknown) => {
+    const nextWidth = Number(sidebarWidth);
+    if (!Number.isFinite(nextWidth) || nextWidth < 1) return sections;
+    return sections.map((section: any) =>
+        section.id === id
+            ? { ...section, style: { ...section.style, sidebar_width: Math.round(nextWidth) } }
+            : section
+    );
+};
+
+const updateSectionMinHeight = (sections: any[], id: string, minHeight: unknown) => {
+    const nextHeight = Number(minHeight);
+    if (!Number.isFinite(nextHeight) || nextHeight < 0) return sections;
+    return sections.map((section: any) =>
+        section.id === id ? { ...section, min_height: Math.round(nextHeight) } : section
+    );
+};
+
+const duplicateSection = (sections: any[], id: string, cloneId: string) => {
+    const index = sections.findIndex((section: any) => section.id === id);
+    if (index === -1) return sections;
+    const clone = { ...sections[index], id: cloneId };
+    const nextSections = [...sections];
+    nextSections.splice(index + 1, 0, clone);
+    return nextSections;
+};
+
+const duplicatePageSectionRefs = (pages: any[], id: string, cloneId: string) => pages.map((page: any) => {
+    const refs = page.sections || [];
+    const fromIndex = refs.findIndex((ref: any) => sectionRefId(ref) === id);
+    if (fromIndex === -1) return page;
+    const cloneRef = typeof refs[fromIndex] === 'string'
+        ? cloneId
+        : { ...refs[fromIndex], value: cloneId };
+    const nextRefs = [...refs];
+    nextRefs.splice(fromIndex + 1, 0, cloneRef);
+    return { ...page, sections: nextRefs };
+});
+
+const deleteSectionById = (sections: any[], id: string) => sections.filter((section: any) => section.id !== id);
+
+const deleteSectionRefsById = (pages: any[], id: string) => pages.map((page: any) => ({
+    ...page,
+    sections: (page.sections || []).filter((ref: any) => sectionRefId(ref) !== id),
+}));
+
+const insertSectionAtPosition = (sections: any[], fromId: string, beforeId: string, newPosition: any) => {
+    const nextSections = [...sections];
+    const fromIndex = nextSections.findIndex((section: any) => section.id === fromId);
+    if (fromIndex === -1) return sections;
+    const [moved] = nextSections.splice(fromIndex, 1);
+    if (newPosition) moved.position = newPosition;
+    if (beforeId === '__end__') {
+        nextSections.push(moved);
+    } else {
+        const toIndex = nextSections.findIndex((section: any) => section.id === beforeId);
+        nextSections.splice(toIndex === -1 ? nextSections.length : toIndex, 0, moved);
+    }
+    return nextSections;
+};
+
+const insertPageSectionRef = (pages: any[], fromId: string, beforeId: string) => pages.map((page: any) => {
+    const refs = [...(page.sections || [])];
+    const fromIndex = refs.findIndex((ref: any) => sectionRefId(ref) === fromId);
+    if (fromIndex === -1) return page;
+    const [moved] = refs.splice(fromIndex, 1);
+    if (beforeId === '__end__') {
+        refs.push(moved);
+    } else {
+        const toIndex = refs.findIndex((ref: any) => sectionRefId(ref) === beforeId);
+        refs.splice(toIndex === -1 ? refs.length : toIndex, 0, moved);
+    }
+    return { ...page, sections: refs };
+});
+
+const updateLayoutField = (section: any, value: any) => {
+    const nextLayout = value as LayoutOption;
+    let nextPosition = section.position;
+    if (HEADER_LAYOUT_SET.has(nextLayout)) {
+        nextPosition = 'header';
+    } else if (FOOTER_LAYOUT_SET.has(nextLayout)) {
+        nextPosition = 'footer';
+    }
+    const options = COMPONENT_OPTIONS_BY_LAYOUT[nextLayout] || [];
+    const nextComponent = options.includes(section.component)
+        ? section.component
+        : (options[0] || section.component || '');
+    return { ...section, layout: value, position: nextPosition, component: nextComponent };
+};
+
+const updateRelatedModelField = (section: any, value: any) => ({
+    ...section,
+    related_to: value || null,
+    relationship: value ? (section.relationship ?? { mode: 'direct' }) : undefined,
+    relation_field: value ? section.relation_field : undefined,
+});
+
+const updateDataSourceFromField = (section: any, value: any) => {
+    const model = section.primary_model || value || '';
+    return {
+        ...section,
+        data_source: {
+            ...section.data_source,
+            mode: 'query',
+            from: { model },
+            joins: section.data_source?.joins || [],
+        },
+    };
+};
+
+const updateQueryLimitField = (section: any, value: any) => {
+    const parsed = Number.parseInt(String(value || ''), 10);
+    return { ...section, query: { ...section.query, limit: Number.isNaN(parsed) ? null : parsed } };
+};
+
+const updateItemClickTypeField = (section: any, value: any) => {
+    const behavior = { ...section.behavior };
+    if (!value || value === 'none') {
+        delete behavior.item_click;
+    } else {
+        behavior.item_click = { ...behavior.item_click, type: value };
+    }
+    return { ...section, behavior };
+};
+
+const updateItemClickTargetPageField = (section: any, value: any) => {
+    const behavior = section.behavior ? { ...section.behavior } : {};
+    behavior.item_click = {
+        ...behavior.item_click,
+        type: value ? 'navigate' : (behavior.item_click?.type || 'none'),
+        target_page: value || '',
+    };
+    if (!value) delete behavior.item_click.target_page;
+    return { ...section, behavior };
+};
+
+const updateSectionFieldValue = (section: any, field: string, value: any) => {
+    switch (field) {
+        case 'layout':
+            return updateLayoutField(section, value);
+        case 'col_span':
+            return { ...section, col_span: value };
+        case 'text':
+            return { ...section, text: value };
+        case 'label':
+            return { ...section, label: value, name: value || section.name };
+        case 'component':
+            return { ...section, component: value };
+        case 'field_layout':
+            return { ...section, field_layout: value };
+        case 'behavior':
+            return { ...section, behavior: value };
+        case 'related_to':
+            return updateRelatedModelField(section, value);
+        case 'relationship_mode':
+            return { ...section, relationship: { ...section.relationship, mode: value } };
+        case 'relation_field':
+            return { ...section, relation_field: value || null };
+        case 'data_source_from':
+            return updateDataSourceFromField(section, value);
+        case 'query_limit':
+            return updateQueryLimitField(section, value);
+        case 'item_click_type':
+            return updateItemClickTypeField(section, value);
+        case 'item_click_target_page':
+            return updateItemClickTargetPageField(section, value);
+        case 'workflow_action':
+            return { ...section, workflow: { ...section.workflow, action: value } };
+        case 'workflow_target_page':
+            return { ...section, workflow: { ...section.workflow, target_page: value } };
+        default:
+            return { ...section, style: { ...section.style, [field]: value } };
+    }
+};
+
 export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceId, systemId }) => {
     const storagePrefix = interfaceId || 'new-interface';
     const [sections, setSections] = useLocalStorage(`interface:${storagePrefix}:sections`, []);
@@ -829,140 +1069,34 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                 }
             } else if (e.data?.type === 'section-reorder') {
                 const { fromId, toId } = e.data;
-                setSections((prev: any[]) => {
-                    const arr = [...prev];
-                    const fi = arr.findIndex((s: any) => s.id === fromId);
-                    const ti = arr.findIndex((s: any) => s.id === toId);
-                    if (fi === -1 || ti === -1) return prev;
-                    arr.splice(ti, 0, arr.splice(fi, 1)[0]);
-                    return arr;
-                });
-                setPages((prev: any[]) => prev.map((page: any) => {
-                    const rawIds: string[] = (page.sections || []).map((ref: any) =>
-                        typeof ref === 'string' ? ref : ref?.value
-                    );
-                    const fi = rawIds.indexOf(fromId);
-                    const ti = rawIds.indexOf(toId);
-                    if (fi === -1 || ti === -1) return page;
-                    const newRefs = [...(page.sections || [])];
-                    newRefs.splice(ti, 0, newRefs.splice(fi, 1)[0]);
-                    return { ...page, sections: newRefs };
-                }));
+                setSections((prev: any[]) => reorderSections(prev, fromId, toId));
+                setPages((prev: any[]) => reorderPageSectionRefs(prev, fromId, toId));
             } else if (e.data?.type === 'section-move') {
                 const { fromId, beforeId, newPosition, sidebarSide } = e.data;
-                setSections((prev: any[]) => {
-                    const arr = [...prev];
-                    const fi = arr.findIndex((s: any) => s.id === fromId);
-                    if (fi === -1) return prev;
-                    const [moving] = arr.splice(fi, 1);
-                    const normalizedPosition = ['header', 'hero', 'main', 'sidebar', 'footer'].includes(newPosition)
-                        ? newPosition
-                        : (moving.position || 'main');
-                    const nextStyle = { ...moving.style };
-                    if (normalizedPosition === 'sidebar' && ['left', 'right'].includes(sidebarSide)) {
-                        nextStyle.sidebar_side = sidebarSide;
-                    } else if (normalizedPosition !== 'sidebar') {
-                        delete nextStyle.sidebar_side;
-                    }
-                    const nextMoving = { ...moving, position: normalizedPosition, style: nextStyle };
-                    const ti = beforeId === '__end__' ? arr.length : arr.findIndex((s: any) => s.id === beforeId);
-                    arr.splice(ti === -1 ? arr.length : ti, 0, nextMoving);
-                    return arr;
-                });
-                setPages((prev: any[]) => prev.map((page: any) => {
-                    const refs = [...(page.sections || [])];
-                    const fi = refs.findIndex((ref: any) => sectionRefId(ref) === fromId);
-                    if (fi === -1) return page;
-                    const [movingRef] = refs.splice(fi, 1);
-                    const ti = beforeId === '__end__' ? refs.length : refs.findIndex((ref: any) => sectionRefId(ref) === beforeId);
-                    refs.splice(ti === -1 ? refs.length : ti, 0, movingRef);
-                    return { ...page, sections: refs };
-                }));
+                setSections((prev: any[]) => moveSectionBetweenRegions(prev, fromId, beforeId, newPosition, sidebarSide));
+                setPages((prev: any[]) => movePageSectionRefs(prev, fromId, beforeId));
             } else if (e.data?.type === 'section-resize') {
                 const { id, col_span } = e.data;
-                setSections((prev: any[]) => prev.map((s: any) =>
-                    s.id === id ? { ...s, col_span } : s
-                ));
+                setSections((prev: any[]) => updateSectionColSpan(prev, id, col_span));
             } else if (e.data?.type === 'section-sidebar-width') {
                 const { id, sidebar_width } = e.data;
-                const nextWidth = Number(sidebar_width);
-                if (!Number.isFinite(nextWidth) || nextWidth < 1) return;
-                setSections((prev: any[]) => prev.map((s: any) =>
-                    s.id === id ? { ...s, style: { ...s.style, sidebar_width: Math.round(nextWidth) } } : s
-                ));
+                setSections((prev: any[]) => updateSectionSidebarWidth(prev, id, sidebar_width));
             } else if (e.data?.type === 'section-height') {
                 const { id, min_height } = e.data;
-                const nextHeight = Number(min_height);
-                if (!Number.isFinite(nextHeight) || nextHeight < 0) return;
-                setSections((prev: any[]) => prev.map((s: any) =>
-                    s.id === id ? { ...s, min_height: Math.round(nextHeight) } : s
-                ));
+                setSections((prev: any[]) => updateSectionMinHeight(prev, id, min_height));
             } else if (e.data?.type === 'section-duplicate') {
                 const { id } = e.data;
                 const cloneId = `${id}-copy-${Date.now()}`;
-                setSections((prev: any[]) => {
-                    const idx = prev.findIndex((s: any) => s.id === id);
-                    if (idx === -1) return prev;
-                    const clone = { ...prev[idx], id: cloneId };
-                    const next = [...prev];
-                    next.splice(idx + 1, 0, clone);
-                    return next;
-                });
-                setPages((prev: any[]) => prev.map((page: any) => {
-                    const refs = page.sections || [];
-                    const fi = refs.findIndex((ref: any) =>
-                        (typeof ref === 'string' ? ref : ref?.value) === id
-                    );
-                    if (fi === -1) return page;
-                    const cloneRef = typeof refs[fi] === 'string'
-                        ? cloneId
-                        : { ...refs[fi], value: cloneId };
-                    const next = [...refs];
-                    next.splice(fi + 1, 0, cloneRef);
-                    return { ...page, sections: next };
-                }));
+                setSections((prev: any[]) => duplicateSection(prev, id, cloneId));
+                setPages((prev: any[]) => duplicatePageSectionRefs(prev, id, cloneId));
             } else if (e.data?.type === 'section-delete') {
                 const { id } = e.data;
-                setSections((prev: any[]) => prev.filter((s: any) => s.id !== id));
-                setPages((prev: any[]) => prev.map((page: any) => ({
-                    ...page,
-                    sections: (page.sections || []).filter((ref: any) =>
-                        (typeof ref === 'string' ? ref : ref?.value) !== id
-                    ),
-                })));
+                setSections((prev: any[]) => deleteSectionById(prev, id));
+                setPages((prev: any[]) => deleteSectionRefsById(prev, id));
             } else if (e.data?.type === 'section-insert' || e.data?.type === 'section-move') {
                 const { fromId, beforeId, newPosition } = e.data;
-                setSections((prev: any[]) => {
-                    const arr = [...prev];
-                    const fi = arr.findIndex((s: any) => s.id === fromId);
-                    if (fi === -1) return prev;
-                    const [moved] = arr.splice(fi, 1);
-                    if (newPosition) moved.position = newPosition;
-                    if (beforeId === '__end__') {
-                        arr.push(moved);
-                    } else {
-                        const ti = arr.findIndex((s: any) => s.id === beforeId);
-                        arr.splice(ti === -1 ? arr.length : ti, 0, moved);
-                    }
-                    return arr;
-                });
-                setPages((prev: any[]) => prev.map((page: any) => {
-                    const refs = [...(page.sections || [])];
-                    const fi = refs.findIndex((ref: any) =>
-                        (typeof ref === 'string' ? ref : ref?.value) === fromId
-                    );
-                    if (fi === -1) return page;
-                    const [moved] = refs.splice(fi, 1);
-                    if (beforeId === '__end__') {
-                        refs.push(moved);
-                    } else {
-                        const ti = refs.findIndex((ref: any) =>
-                            (typeof ref === 'string' ? ref : ref?.value) === beforeId
-                        );
-                        refs.splice(ti === -1 ? refs.length : ti, 0, moved);
-                    }
-                    return { ...page, sections: refs };
-                }));
+                setSections((prev: any[]) => insertSectionAtPosition(prev, fromId, beforeId, newPosition));
+                setPages((prev: any[]) => insertPageSectionRef(prev, fromId, beforeId));
             }
         };
         window.addEventListener('message', handler);
@@ -1338,77 +1472,10 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
     }, [sections, pages, styling, tokens, interfaceId, previewMode]);
 
-const updateSection = useCallback((sectionId: string, field: string, value: any) => {
+    const updateSection = useCallback((sectionId: string, field: string, value: any) => {
         setSections((prev: any[]) => prev.map((s: any) => {
             if (s.id !== sectionId) return s;
-            if (field === 'layout') {
-                const nextLayout = value as LayoutOption;
-                let nextPosition = s.position;
-                if (HEADER_LAYOUT_SET.has(nextLayout)) {
-                    nextPosition = 'header';
-                } else if (FOOTER_LAYOUT_SET.has(nextLayout)) {
-                    nextPosition = 'footer';
-                }
-                const options = COMPONENT_OPTIONS_BY_LAYOUT[nextLayout] || [];
-                const nextComponent = options.includes(s.component) ? s.component : (options[0] || s.component || '');
-                return { ...s, layout: value, position: nextPosition, component: nextComponent };
-            }
-            if (field === 'col_span') return { ...s, col_span: value };
-            if (field === 'text') return { ...s, text: value };
-            if (field === 'label') return { ...s, label: value, name: value || s.name };
-            if (field === 'component') return { ...s, component: value };
-            if (field === 'field_layout') return { ...s, field_layout: value };
-            if (field === 'behavior') return { ...s, behavior: value };
-            if (field === 'related_to') {
-                return {
-                    ...s,
-                    related_to: value || null,
-                    relationship: value ? (s.relationship ?? { mode: 'direct' }) : undefined,
-                    relation_field: value ? s.relation_field : undefined,
-                };
-            }
-            if (field === 'relationship_mode') {
-                return { ...s, relationship: { ...s.relationship, mode: value } };
-            }
-            if (field === 'relation_field') return { ...s, relation_field: value || null };
-            if (field === 'data_source_from') {
-                const model = s.primary_model || value || '';
-                return {
-                    ...s,
-                    data_source: {
-                        ...s.data_source,
-                        mode: 'query',
-                        from: { model },
-                        joins: s.data_source?.joins || [],
-                    },
-                };
-            }
-            if (field === 'query_limit') {
-                const parsed = Number.parseInt(String(value || ''), 10);
-                return { ...s, query: { ...s.query, limit: Number.isNaN(parsed) ? null : parsed } };
-            }
-            if (field === 'item_click_type') {
-                const behavior = { ...s.behavior };
-                if (!value || value === 'none') {
-                    delete behavior.item_click;
-                } else {
-                    behavior.item_click = { ...behavior.item_click, type: value };
-                }
-                return { ...s, behavior };
-            }
-            if (field === 'item_click_target_page') {
-                const behavior = s.behavior ? { ...s.behavior } : {};
-                behavior.item_click = {
-                    ...behavior.item_click,
-                    type: value ? 'navigate' : (behavior.item_click?.type || 'none'),
-                    target_page: value || '',
-                };
-                if (!value) delete behavior.item_click.target_page;
-                return { ...s, behavior };
-            }
-            if (field === 'workflow_action') return { ...s, workflow: { ...s.workflow, action: value } };
-            if (field === 'workflow_target_page') return { ...s, workflow: { ...s.workflow, target_page: value } };
-            return { ...s, style: { ...s.style, [field]: value } };
+            return updateSectionFieldValue(s, field, value);
         }));
     }, [setSections]);
 
@@ -1457,9 +1524,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buf = '';
-            while (true) {
+            let streamComplete = false;
+            while (!streamComplete) {
                 const { value, done } = await reader.read();
-                if (done) break;
+                if (done) {
+                    streamComplete = true;
+                    continue;
+                }
                 buf += decoder.decode(value, { stream: true });
                 const lines = buf.split('\n');
                 buf = lines.pop() || '';
@@ -1518,9 +1589,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buf = '';
-            while (true) {
+            let streamComplete = false;
+            while (!streamComplete) {
                 const { value, done } = await reader.read();
-                if (done) break;
+                if (done) {
+                    streamComplete = true;
+                    continue;
+                }
                 buf += decoder.decode(value, { stream: true });
                 const lines = buf.split('\n');
                 buf = lines.pop() || '';
@@ -1629,9 +1704,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             const decoder = new TextDecoder();
             let buffer = '';
 
-            while (true) {
+            let streamComplete = false;
+            while (!streamComplete) {
                 const { value, done } = await reader.read();
-                if (done) break;
+                if (done) {
+                    streamComplete = true;
+                    continue;
+                }
                 
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split('\n');

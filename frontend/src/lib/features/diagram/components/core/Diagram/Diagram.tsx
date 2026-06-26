@@ -20,7 +20,7 @@ import { useDiagramStore } from "$diagram/stores";
 import { ContextMenus } from "$diagram/components/context";
 import { DiagramControls } from "$diagram/components/toolbar";
 
-import { nodeTypes } from "$diagram/components/core/Node/Node";
+import { nodeTypes } from "$diagram/components/core/Node/nodeTypes";
 import {
     FloatingConnectionLine,
     Markers,

@@ -1,5 +1,4 @@
 import { getEdgeParams } from "$diagram/components/utils";
-import { Position } from "postcss";
 import React, { useCallback } from "react";
 import { EdgeProps, getStraightPath, useStore, useReactFlow } from "reactflow";
 import { partialUpdateEdge } from "$diagram/mutations/diagram";
@@ -26,12 +25,13 @@ const FloatingEdge: React.FC<EdgeProps> = ({
     const targetNode = useStore(
         useCallback((store) => store.nodeInternals.get(target), [target]),
     );
+    const { diagram } = useDiagramStore();
+    const reactFlowInstance = useReactFlow();
+
     if (!sourceNode || !targetNode) {
         return null;
     }
 
-    const { diagram } = useDiagramStore();
-    const reactFlowInstance = useReactFlow();
     const edgeData = (data?.edge_data ?? {}) as any;
     const positionHandlers = (edgeData.position_handlers ?? []) as PositionHandler[];
     const sourceOffset = (edgeData.source_offset ?? { x: 0, y: 0 }) as PositionHandler;

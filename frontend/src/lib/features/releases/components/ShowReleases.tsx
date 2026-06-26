@@ -234,7 +234,9 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
         try {
             await authAxios.delete(`/v1/metadata/releases/${releaseId}/`);
             await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
-        } catch {}
+        } catch (error) {
+            console.error("Failed to delete release:", error);
+        }
     };
 
     const handleLoadRelease = async (releaseId: string) => {

@@ -1,5 +1,4 @@
 import { PreviewNode } from "$diagram/components/core/Node/Node";
-import type { Node as RFNode } from "reactflow";
 import { addEdge } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useNewConnectionModal } from "$diagram/stores/modals";
@@ -9,7 +8,8 @@ import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
-import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
+import ClassConnectionFields from "../ConnectionFields/ClassConnectionFields";
+import { isClassConnectionValid } from "../ConnectionFields/classConnectionValidation";
 import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
 import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
 import { ComponentConnectionFields } from "../ConnectionFields/ComponentConnectionFields";

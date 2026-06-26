@@ -106,7 +106,7 @@ const NodeContextMenu: React.FC = () => {
         close();
     };
 
-    const confirmDelete = async (confirm: boolean) => {
+    const confirmDelete = async () => {
         await onDelete(true);
         setShowDeleteModal(false);
         close();

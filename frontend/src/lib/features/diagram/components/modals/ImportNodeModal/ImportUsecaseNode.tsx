@@ -9,7 +9,7 @@ type Props = {
     setObject: (o: any) => void;
 };
 
-export const ImportUsecaseNode: React.FC<Props> = ({ object, setObject }) => {
+export const ImportUsecaseNode: React.FC<Props> = ({ setObject }) => {
     const { systemId } = useDiagramStore();
     const [classifiers, isSuccess] = useSystemUsecaseClassifiers(systemId);
     const [selectedClassifier, setSelectedClassifier] = useState(null)

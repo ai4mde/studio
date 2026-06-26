@@ -43,7 +43,7 @@ export const CreatePrototype: React.FC = () => {
     const close = () => setOpen(false);
     const { systemId } = useParams();
     const [interfaces, isSuccessInterfaces] = useSystemInterfaces(systemId);
-    const [diagrams, isSuccessDiagrams] = useSystemDiagrams(systemId);
+    const [diagrams] = useSystemDiagrams(systemId);
     const [selectedInterfaces, setSelectedInterfaces] = useState([]);
     const [error, setError] = useState<string | null>(null);
     const [generationError, setGenerationError] = useState<string | null>(null);
@@ -113,7 +113,7 @@ export const CreatePrototype: React.FC = () => {
             return data
 
         },
-        onError: (error) => {
+        onError: () => {
             setGenerationError("An error occurred while creating the prototype!");
         },
     });

@@ -1,10 +1,8 @@
 import React from "react"
 import useLocalStorage from "./useLocalStorage"
 import { Switch, Typography } from "@mui/joy"
-type Props = {
-}
 
-export const Settings: React.FC<Props> = () => {
+export const Settings: React.FC = () => {
     const [data, setData] = useLocalStorage("settings", { managerAccess: false})
 
     return (

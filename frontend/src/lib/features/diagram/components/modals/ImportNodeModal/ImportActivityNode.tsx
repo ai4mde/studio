@@ -9,7 +9,7 @@ type Props = {
     setObject: (o: any) => void;
 };
 
-export const ImportActivityNode: React.FC<Props> = ({ object, setObject }) => {
+export const ImportActivityNode: React.FC<Props> = ({ setObject }) => {
     const { systemId } = useDiagramStore();
     const [classifiers, isSuccess] = useSystemActivityClassifiers(systemId);
     const [selectedClassifier, setSelectedClassifier] = useState(null)

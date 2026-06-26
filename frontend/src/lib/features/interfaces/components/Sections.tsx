@@ -71,16 +71,6 @@ const ACTIVITY_ACTION_SIZES = [
     { value: 'lg', label: 'Large' },
 ];
 
-const SECTION_DATA_ROLE_OPTIONS = [
-    { value: 'display_records', label: 'Display records', hint: 'Show many records from a model.' },
-    { value: 'show_record', label: 'Show record', hint: 'Show one selected or contextual record.' },
-    { value: 'create_record', label: 'Create record', hint: 'Collect fields and create a new database row.' },
-    { value: 'update_record', label: 'Update record', hint: 'Edit selected fields on an existing row.' },
-    { value: 'select_existing', label: 'Select existing', hint: 'Choose an existing row for the next action or workflow step.' },
-    { value: 'decision_check', label: 'Decision check', hint: 'Show context and choose/resolve the next branch.' },
-    { value: 'notify_summary', label: 'Notify summary', hint: 'Show a notification or result summary.' },
-];
-
 const SectionEditorGroup = ({
     title,
     description,
@@ -130,20 +120,6 @@ const isCollectionSection = (section: any) => {
     const role = String(section?.role || '').toLowerCase();
     return ['card', 'list', 'table', 'gallery'].includes(layout)
         || ['object_collection', 'child_collection', 'object_summary'].includes(role);
-};
-const inferSectionDataRole = (section: any) => {
-    if (section?.data_role) return section.data_role;
-    const ops = operationFlags(section?.operations);
-    const layout = String(section?.layout || '').toLowerCase();
-    const role = String(section?.role || '').toLowerCase();
-    const intent = String(section?.style?.workflow_semantics?.intent || '').toLowerCase();
-    if (intent.includes('notify')) return 'notify_summary';
-    if (intent.includes('check') || intent.includes('decision')) return 'decision_check';
-    if (ops.select && !ops.create && !ops.update && !ops.delete) return 'select_existing';
-    if (ops.create && layout === 'form') return 'create_record';
-    if (ops.update && layout === 'form') return 'update_record';
-    if (layout === 'detail' || role.includes('detail') || role.includes('summary')) return 'show_record';
-    return 'display_records';
 };
 const sqlTableName = (name: string) => String(name || 'items')
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')

@@ -14,22 +14,21 @@ export const useSystemMetadata = (systemId: string) =>
 
 
 export const useActor = (systemId: string, classifierId: string) => {
-    if (!classifierId) {
-        return "";
-    }
+    const hasClassifier = Boolean(classifierId);
     const queryResult = useQuery({
         queryKey: ["system", "metadata", systemId, "classifiers", classifierId],
         queryFn: async () => {
             const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classifiers/${classifierId}`);
             return response.data;
         },
+        enabled: hasClassifier,
     });
 
-    const actor = queryResult.data?.data.name;
+    const actor = hasClassifier ? queryResult.data?.data.name : "";
 
     return [
         actor,
-        queryResult.isSuccess,
+        hasClassifier && queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
     ];

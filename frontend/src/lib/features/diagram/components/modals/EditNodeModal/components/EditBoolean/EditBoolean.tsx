@@ -4,7 +4,7 @@ import { Save } from "lucide-react";
 import React, { useState } from "react";
 import { Node } from "reactflow";
 import style from "./editboolean.module.css";
-import { FormHelperText, Switch } from "@mui/joy";
+import { Switch } from "@mui/joy";
 
 type Props = {
     node: Node;

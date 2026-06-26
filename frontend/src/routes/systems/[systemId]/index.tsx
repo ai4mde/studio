@@ -3,7 +3,7 @@ import SystemLayout from "$lib/features/browser/components/systems/SystemLayout"
 import { queryClient } from "$lib/shared/hooks/queryClient";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Component, Network, Plus, User, Workflow, Blocks, X, Download } from "lucide-react";
+import { Component, Network, Plus, User, Workflow, Blocks, X } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router";
 import { ShowMetadata } from "$metadata/components/ShowMetadata";

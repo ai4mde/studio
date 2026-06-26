@@ -6,7 +6,6 @@ import { useDiagramStore } from "$diagram/stores";
 import { RelatedNode } from "$diagram/types/diagramState"
 import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
 import { useSystemObjectClassifiers, useSystemSignalClassifiers } from "../ImportNodeModal/queries/importNode";
-import { useAuthEffect } from "$auth/hooks/authEffect";
 
 type Props = {
     object: any;
@@ -55,9 +54,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
         },
     };
 
-    const isControl = object.role === "control";
-    const isEvent = object.role === "event";
-
     const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
 
     const handleOpenCodeEditor = () => setIsCodeEditorOpen(true);
@@ -97,23 +93,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             return next;
         });
     }, [object.role, setObject]);
-
-    const objectClsNameById = React.useMemo(() => {
-        const m = new Map<string, string>();
-        for (const c of objectClassifiers ?? []) {
-            if (c?.id && c?.data?.name) m.set(c.id, c.data.name);
-        }
-        return m;
-    }, [objectClassifiers]);
-
-    const signalNameById = React.useMemo(() => {
-        const m = new Map<string, string>();
-        for (const s of signalClassifiers ?? []) {
-            if (s?.id && s?.data?.name) m.set(s.id, s.data.name);
-        }
-        return m;
-    }, [signalClassifiers]);
-
 
     return (
         <>

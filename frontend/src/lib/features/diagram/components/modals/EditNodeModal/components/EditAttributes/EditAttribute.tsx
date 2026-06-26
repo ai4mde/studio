@@ -59,12 +59,10 @@ const EditAttribute: React.FC<{
 
     const selectOptions = [...staticOptions, ...dynamicOptions];
 
-    const [selectedOption, setSelectedOption] = useState(null);
     const handleSelectChange = (selectedOption) => {
         console.log('Selected value:', selectedOption.value); // Access the value
-        setSelectedOption(selectedOption);
         if (selectedOption.value === "enum") {
-            let updatedAttribute = {
+            const updatedAttribute = {
                 ...attribute,
                 type: 'enum',
                 enum: selectedOption.id
@@ -72,7 +70,7 @@ const EditAttribute: React.FC<{
             update(updatedAttribute);
         }
         else {
-            let updatedAttribute = {
+            const updatedAttribute = {
                 ...attribute,
                 type: selectedOption.value,
                 enum: null

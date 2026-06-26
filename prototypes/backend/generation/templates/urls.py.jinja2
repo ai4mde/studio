@@ -7,6 +7,8 @@ app_name="{{ application_namespace }}"
 urlpatterns = [
     path("", views.HomeRenderView.as_view(), name="{{ application_name }}-homerender"),
     path("", views.HomeRenderView.as_view(), name="{{ application_name|lower }}-homerender"),
+    path("", views.HomeRenderView.as_view(), name="render_{{ application_name }}_task"),
+    path("", views.HomeRenderView.as_view(), name="render_{{ application_name|lower }}_task"),
     {% if settings.manager_access -%}
     path('action-log/', ActionLogView.as_view(template_name='{{ application_name }}_action_log.html'), name="{{ application_name }}_action_log"),
     path('action-log/', ActionLogView.as_view(template_name='{{ application_name }}_action_log.html'), name="{{ application_name|lower }}_action_log"),

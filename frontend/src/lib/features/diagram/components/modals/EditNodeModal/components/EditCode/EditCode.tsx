@@ -1,6 +1,5 @@
 import { partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
-import { Save } from "lucide-react";
 import React, { useState } from "react";
 import { Node } from "reactflow";
 import { Button } from "@mui/joy";

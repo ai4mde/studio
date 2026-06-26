@@ -761,7 +761,7 @@ href="#"
       <span class="text-sm font-bold" style="color:#e53935;">{{ price }}</span>
       {%- if discount %}<span class="text-xs text-white font-bold px-1 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
     </div>
-    <a href="{{ view_url }}" class="si-btn si-product-cta mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-center">View</a>
+    <a href="{{ view_url|safe }}" class="si-btn si-product-cta mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-center">View</a>
   </div>
 </div>
 {%- endmacro %}
@@ -774,7 +774,7 @@ href="#"
     {%- endif %}
   </div>
   <div class="flex-1 min-w-0">
-    <a href="{{ view_url }}" class="text-sm font-medium text-gray-900 hover:underline">{{ name }}</a>
+    <a href="{{ view_url|safe }}" class="text-sm font-medium text-gray-900 hover:underline">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
       <span class="text-yellow-400 text-xs">&#9733;&#9733;&#9733;&#9733;</span><span class="text-gray-200 text-xs">&#9734;</span>
     </div>
@@ -785,7 +785,7 @@ href="#"
   </div>
   <div class="text-right shrink-0 flex flex-col items-end gap-2 w-36">
     <div class="text-2xl font-bold" style="color:#e53935;">{{ price }}</div>
-    <a href="{{ view_url }}" class="si-btn si-product-cta w-full text-center py-2 rounded-lg text-xs font-bold">View</a>
+    <a href="{{ view_url|safe }}" class="si-btn si-product-cta w-full text-center py-2 rounded-lg text-xs font-bold">View</a>
   </div>
 </div>
 {%- endmacro %}
@@ -817,7 +817,7 @@ href="#"
 {%- endmacro %}
 
 {%- macro _category_tile(icon, name, view_url='#', opacity_style='') -%}
-<a href="{{ view_url }}" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col items-center gap-2 hover:shadow-md transition-shadow text-center"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
+<a href="{{ view_url|safe }}" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col items-center gap-2 hover:shadow-md transition-shadow text-center"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
   {%- if icon %}
   <span class="text-3xl">{{ icon }}</span>
   {%- endif %}
@@ -1137,7 +1137,8 @@ href="#"
 {% set has_methods = section_methods|length > 0 %}
 {% set _is_chrome_or_nav = _is_chrome_layout or section_component.position in ['header', 'footer', 'sidebar'] or section_component.role in ['header', 'footer', 'navigation', 'nav', 'brand'] %}
 {% set eff_lay = "action_panel" if (not _is_chrome_or_nav and not has_attrs and has_methods) else lay %}
-{% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else ((section_component.primary_model + '_list') if section_component.primary_model else '') %}
+{% set model_list_name = (section_component.primary_model[:1]|upper ~ section_component.primary_model[1:] ~ '_list') if section_component.primary_model else '' %}
+{% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else model_list_name %}
 {% set query_limit = section_component.query.get("limit") %}
 {% set _data_scope = _s.get("data_scope") if _s.get("data_scope") is mapping else {} %}
 {% set _actor_owned_preview = _data_scope.get("mode") == "actor_owned" %}
@@ -2336,7 +2337,7 @@ href="#"
       {%- endif %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
         {%- if section_component.item_click_target_page %}
-        <a href="{{ _gen_vurl }}" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>
+        <a href="{{ _gen_vurl|safe }}" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>
         {%- endif %}
         {{ select_record_action(section_component, d.text ~ ' ' ~ c.text ~ ' font-medium hover:underline') }}
         {%- if section_component.has_update_operation %}
@@ -2528,7 +2529,7 @@ href="#"
         <img src="{{ _gen_img }}" class="w-20 h-20 object-contain" />
       </div>
       <div class="flex-1">
-        <a href="{{ _gen_vurl }}" class="text-sm font-medium hover:underline" style="color:{{ _accent_hex }};">{{ _gen_name }}</a>
+        <a href="{{ _gen_vurl|safe }}" class="text-sm font-medium hover:underline" style="color:{{ _accent_hex }};">{{ _gen_name }}</a>
         <div class="flex items-center gap-1 mt-1">
           <span class="text-yellow-400 text-xs">&#9733;&#9733;&#9733;&#9733;</span><span class="text-gray-200 text-xs">&#9734;</span>
         </div>

@@ -9,7 +9,7 @@ type Props = {
     setObject: (o: any) => void;
 };
 
-export const ImportClassNode: React.FC<Props> = ({ object, setObject }) => {
+export const ImportClassNode: React.FC<Props> = ({ setObject }) => {
   const systemId = useDiagramStore((s) => s.systemId);
   const nodes = useDiagramStore((s) => s.nodes);
 

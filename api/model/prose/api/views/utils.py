@@ -15,7 +15,6 @@ def parse_relations(csv_table, classifiers):
             target_mult = row['target_multiplicity']
             rel = {}
             rel['id'] = uuid4().hex
-            print(rel)
             for cls in classifiers:
                 if cls['data']['name'] == source_name:
                     rel['source'] = cls['id']
@@ -23,9 +22,8 @@ def parse_relations(csv_table, classifiers):
                     rel['target'] = cls['id']
             rel['data'] = {"type": "association", "multiplicity": {"source": source_mult, "target": target_mult}, "derived": False, "label": " "}
             relations.append(rel)
-            print(rel)
-        except:
-            pass
+        except (KeyError, ValueError):
+            continue
     return relations
 
 
@@ -58,8 +56,8 @@ def parse_classifiers(csv_table):
                 'data': data,
             }
             classifiers.append(cls)
-        except:
-            pass
+        except (KeyError, ValueError):
+            continue
     return classifiers
 
 

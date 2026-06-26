@@ -9,14 +9,11 @@ import React, { useEffect } from 'react';
 import useLocalStorage from './useLocalStorage';
 
 
-type Props = {
-}
-
-export const Styling: React.FC<Props> = () => {
+export const Styling: React.FC = () => {
 
     const [data, setData, isSuccess] = useLocalStorage('styling', '');
-    const [logoFile, setLogoFile] = useLocalStorage('logoFile', null);
-    const [logoDimensions, setLogoDimensions] = useLocalStorage('logoDimensions', { width: 0, height: 0 });
+    const [logoFile] = useLocalStorage('logoFile', null);
+    const [logoDimensions] = useLocalStorage('logoDimensions', { width: 0, height: 0 });
 
     useEffect(() => {
         if (!data || Object.keys(data).length === 0) {

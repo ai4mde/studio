@@ -7,7 +7,7 @@ import { navigationPortalAtom } from "$shared/hooks/navigationPortal";
 import { Button, Tooltip } from "@mui/joy";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useAtom } from "jotai";
-import { MessageSquare, Package, Settings } from "lucide-react";
+import { MessageSquare, Package } from "lucide-react";
 import React from "react";
 import style from "./style.module.css";
 

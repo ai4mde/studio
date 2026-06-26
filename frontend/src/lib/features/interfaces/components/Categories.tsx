@@ -7,10 +7,7 @@ import { Ban, Plus, Save, Trash } from "lucide-react";
 import React, { useState } from 'react';
 import useLocalStorage from './useLocalStorage';
 
-type Props = {
-};
-
-export const Categories: React.FC<Props> = () => {
+export const Categories: React.FC = () => {
     const [data, setData, isSuccess] = useLocalStorage('categories', []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');

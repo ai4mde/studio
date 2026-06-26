@@ -1,6 +1,6 @@
 import { useSystem } from "$browser/queries";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
-import { GitGraph, Package, PaintRoller, Rocket } from "lucide-react";
+import { GitGraph, Package, PaintRoller } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router";
 
