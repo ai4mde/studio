@@ -37,6 +37,9 @@ _AGENT_CONTEXT_SKIP_KEYS = {
     "base64",
 }
 
+_ADK_ERROR_TERMS = ("error", "failed", "invalid", "exceeds", "bad request", "timeout")
+_ADK_STRING_ERROR_TERMS = ("input token count exceeds", "bad request", "agent error", "failed to")
+
 
 def _compact_agent_value(value, depth: int = 0):
     """Keep AI edit context small enough for ADK/Gemini while preserving editable schema."""
@@ -68,6 +71,11 @@ def _compact_interface_data_for_agent(data: dict) -> dict:
     return compact
 
 
+def _looks_like_adk_error(text: str, terms: tuple[str, ...] = _ADK_ERROR_TERMS) -> bool:
+    lowered = text.lower()
+    return any(term in lowered for term in terms)
+
+
 def _extract_adk_event_error(event) -> str:
     found = []
 
@@ -77,7 +85,7 @@ def _extract_adk_event_error(event) -> str:
                 key_l = str(key).lower()
                 if key_l in {"error", "error_message", "errormessage", "message", "status"} and isinstance(child, str):
                     text = child.strip()
-                    if any(term in text.lower() for term in ("error", "failed", "invalid", "exceeds", "bad request", "timeout")):
+                    if _looks_like_adk_error(text):
                         found.append(text)
                 walk(child)
         elif isinstance(value, list):
@@ -85,7 +93,7 @@ def _extract_adk_event_error(event) -> str:
                 walk(child)
         elif isinstance(value, str):
             text = value.strip()
-            if any(term in text.lower() for term in ("input token count exceeds", "bad request", "agent error", "failed to")):
+            if _looks_like_adk_error(text, _ADK_STRING_ERROR_TERMS):
                 found.append(text)
 
     walk(event)

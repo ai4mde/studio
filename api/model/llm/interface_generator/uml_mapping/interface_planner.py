@@ -72,6 +72,13 @@ def _field_category(field_name: str) -> str | None:
     return None
 
 
+def _append_unseen(result: list[str], seen: set[str], fields: list[str]) -> None:
+    for field in fields:
+        if field not in seen:
+            result.append(field)
+            seen.add(field)
+
+
 def _pick_fields_by_names(
     attr_names: list[str],
     role: str,
@@ -92,14 +99,8 @@ def _pick_fields_by_names(
     result: list[str] = []
     seen: set[str] = set()
     for cat in order:
-        for f in buckets[cat]:
-            if f not in seen:
-                result.append(f)
-                seen.add(f)
-    for f in tail:
-        if f not in seen:
-            result.append(f)
-            seen.add(f)
+        _append_unseen(result, seen, buckets[cat])
+    _append_unseen(result, seen, tail)
     return result[:limit] or (fallback or [])[:limit]
 
 
