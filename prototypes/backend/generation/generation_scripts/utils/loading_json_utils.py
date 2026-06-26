@@ -106,24 +106,34 @@ def get_enum_literals(metadata: str, class_id: str) -> List[str]:
     return []
 
 
+def _class_diagram_nodes(metadata_json: dict):
+    for diagram in metadata_json.get("diagrams", []):
+        if diagram.get("type") != "classes":
+            continue
+        yield from diagram.get("nodes", [])
+
+
+def _node_cls_data(node: dict) -> dict:
+    cls = node.get("cls", {})
+    return cls.get("data", cls)
+
+
+def _classifier_model_name(classifier: dict) -> str | None:
+    name = classifier.get("data", {}).get("name")
+    return model_name_sanitization(name) if name else None
+
+
 def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
     metadata_json = json.loads(metadata)
-    for diagram in metadata_json["diagrams"]:
-        if diagram["type"] != "classes":
-            continue
-        for node in diagram["nodes"]:
-            node_cls_ptr = node.get("cls_ptr") or node.get("id")
-            if str(node_cls_ptr) == str(class_id):
-                cls = node.get("cls", {})
-                cls_data = cls.get("data", cls)
-                name = cls_data.get("name")
-                return model_name_sanitization(name) if name else None
+    for node in _class_diagram_nodes(metadata_json):
+        node_cls_ptr = node.get("cls_ptr") or node.get("id")
+        if str(node_cls_ptr) == str(class_id):
+            return _classifier_model_name({"data": _node_cls_data(node)})
+
     # Fallback: resolve from flat classifiers list added during generation
     for classifier in metadata_json.get("classifiers", []):
         if str(classifier["id"]) == str(class_id):
-            name = classifier.get("data", {}).get("name")
-            if name:
-                return model_name_sanitization(name)
+            return _classifier_model_name(classifier)
     return None
 
 
@@ -133,14 +143,10 @@ def find_class_ptr_by_model_name(metadata: str, model_name: str) -> str | None:
         return None
     target = model_name_sanitization(str(model_name))
     metadata_json = json.loads(metadata)
-    for diagram in metadata_json.get("diagrams", []):
-        if diagram.get("type") != "classes":
-            continue
-        for node in diagram.get("nodes", []):
-            cls = node.get("cls", {})
-            cls_data = cls.get("data", cls)
-            if cls_data.get("type") == "class" and model_name_sanitization(cls_data.get("name", "")) == target:
-                return str(node.get("cls_ptr") or node.get("id") or "")
+    for node in _class_diagram_nodes(metadata_json):
+        cls_data = _node_cls_data(node)
+        if cls_data.get("type") == "class" and model_name_sanitization(cls_data.get("name", "")) == target:
+            return str(node.get("cls_ptr") or node.get("id") or "")
     for classifier in metadata_json.get("classifiers", []):
         data = classifier.get("data", {})
         if data.get("type") == "class" and model_name_sanitization(data.get("name", "")) == target:

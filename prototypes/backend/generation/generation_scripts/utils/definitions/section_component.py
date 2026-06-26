@@ -171,6 +171,7 @@ class SectionComponent():
         self.workflow_action = self.workflow.get("action", "complete")
         self.workflow_target_page = self._page_target_from_mapping(self.workflow)
         self.item_click_target_page = self._item_click_target_page()
+        self.min_height = int(min_height) if min_height else None
 
     def _page_target_from_mapping(self, mapping: dict) -> Optional[str]:
         target_page = mapping.get("target_page") or mapping.get("targetPage")
@@ -181,7 +182,6 @@ class SectionComponent():
         if not isinstance(item_click, dict) or item_click.get("type") != "navigate":
             return None
         return self._page_target_from_mapping(item_click)
-        self.min_height = int(min_height) if min_height else None
 
     def __str__(self):
         return self.name

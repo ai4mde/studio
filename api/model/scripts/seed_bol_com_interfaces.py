@@ -103,31 +103,26 @@ def sec(
     col_span,
     color,
     attributes,
-    operations=None,
-    query=None,
-    density="normal",
-    columns="3",
-    card_style="elevated",
-    radius="xl",
-    text="",
-    image_position="top",
-    image_size="md",
-    view_detail_page=None,
-    related_to=None,
-    relation_field=None,
-    methods=None,
-    cta_label=None,
-    success_page=None,
-    position=None,
+    **options,
 ):
+    operations = options.get("operations")
+    query = options.get("query")
+    text = options.get("text", "")
+    view_detail_page = options.get("view_detail_page")
+    related_to = options.get("related_to")
+    relation_field = options.get("relation_field")
+    methods = options.get("methods")
+    cta_label = options.get("cta_label")
+    success_page = options.get("success_page")
+    position = options.get("position")
     s = style(
         color,
-        density=density,
-        card_style=card_style,
-        columns=columns,
-        radius=radius,
-        image_position=image_position,
-        image_size=image_size,
+        density=options.get("density", "normal"),
+        card_style=options.get("card_style", "elevated"),
+        columns=options.get("columns", "3"),
+        radius=options.get("radius", "xl"),
+        image_position=options.get("image_position", "top"),
+        image_size=options.get("image_size", "md"),
     )
     if cta_label:
         s["cta_label"] = cta_label

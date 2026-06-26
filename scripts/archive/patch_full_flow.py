@@ -24,21 +24,27 @@ def style(color, density='normal', card_style='elevated', columns='3',
         'image_position': image_position, 'image_size': image_size,
     }
 
-def sec(name, cls, layout, col_span, color, attrs, operations,
-        density='normal', columns='3', card_style='elevated',
-        radius='xl', text='', image_position='top', image_size='md',
-        view_detail_page=None):
+def sec(name, cls, layout, col_span, color, attrs, operations, **options):
     d = {
         'id': sid(),
         'name': name,
         'class': cls,
         'layout': layout,
         'col_span': col_span,
-        'text': text,
-        'style': style(color, density, card_style, columns, radius, image_position, image_size),
+        'text': options.get('text', ''),
+        'style': style(
+            color,
+            options.get('density', 'normal'),
+            options.get('card_style', 'elevated'),
+            options.get('columns', '3'),
+            options.get('radius', 'xl'),
+            options.get('image_position', 'top'),
+            options.get('image_size', 'md'),
+        ),
         'attributes': attrs,
         'operations': operations,
     }
+    view_detail_page = options.get('view_detail_page')
     if view_detail_page:
         d['view_detail_page'] = view_detail_page
     return d

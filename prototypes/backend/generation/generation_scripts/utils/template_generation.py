@@ -32,6 +32,26 @@ MAX_WIDTH_CLASS = {
     "xl": "max-w-6xl", "2xl": "max-w-7xl", "full": "max-w-full",
 }
 
+FONT_CDN = {
+    "inter": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "roboto": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
+    "poppins": "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
+    "playfair": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
+    "mono": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
+    "geist": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap",
+}
+
+FONT_CSS_NAME = {
+    "inter": "Inter",
+    "roboto": "Roboto",
+    "poppins": "Poppins",
+    "playfair": "'Playfair Display'",
+    "mono": "'JetBrains Mono'",
+    "geist": "Geist",
+}
+
+DEFAULT_ACCENT_HEXES = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
+
 TAILWIND_HEX = {
     "white": "#ffffff", "black": "#000000",
     "slate-50": "#f8fafc", "slate-100": "#f1f5f9", "slate-200": "#e2e8f0",
@@ -75,6 +95,57 @@ def _expand_legacy_token_hex(tokens: dict) -> None:
             color = _class_to_hex(tokens.get(class_key))
             if color:
                 tokens[hex_key] = color
+
+
+def _apply_styling_token_defaults(tokens: dict, styling, application_name: str) -> None:
+    if not styling:
+        return
+
+    styling_accent = getattr(styling, 'accent_color', None)
+    if styling_accent and tokens.get(ACCENT_HEX_TOKEN) in DEFAULT_ACCENT_HEXES:
+        tokens[ACCENT_HEX_TOKEN] = styling_accent
+    accent = tokens.get(ACCENT_HEX_TOKEN)
+    if accent:
+        tokens.setdefault("region.header.bg", f"bg-[{accent}]")
+        tokens.setdefault("page.header.text", "text-white")
+        tokens.setdefault("brand.name", application_name)
+    if getattr(styling, 'background_color', None):
+        tokens.setdefault("page.body.bg", f"bg-[{styling.background_color}]")
+        tokens.setdefault("page.body.bg_hex", styling.background_color)
+    if getattr(styling, 'text_color', None):
+        tokens.setdefault("page.body.text", f"text-[{styling.text_color}]")
+        tokens.setdefault("page.body.text_hex", styling.text_color)
+
+
+def _template_tokens(application_component: ApplicationComponent, styling, application_name: str) -> dict:
+    tokens = dict(getattr(application_component, "tokens", {}) or {})
+    _expand_legacy_token_hex(tokens)
+    _apply_styling_token_defaults(tokens, styling, application_name)
+
+    font = getattr(styling, 'font_family', 'inter') if styling else 'inter'
+    tokens.setdefault("page.font.family", FONT_CSS_NAME.get(font, "Inter"))
+    tokens.setdefault("page.font.cdn", FONT_CDN.get(font, FONT_CDN["inter"]))
+    radius = getattr(styling, 'radius', 8) if styling else 8
+    tokens.setdefault("page.radius.px", str(radius))
+    max_w = getattr(styling, 'page_max_width', 'xl') if styling else 'xl'
+    tokens.setdefault("page.container.class", MAX_WIDTH_CLASS.get(max_w, "max-w-6xl"))
+    tokens.setdefault("theme.button.style", getattr(styling, 'button_style', 'solid') if styling else 'solid')
+    tokens.setdefault("theme.card.hover", getattr(styling, 'card_hover', 'lift') if styling else 'lift')
+    tokens.setdefault("theme.image.ratio", getattr(styling, 'image_ratio', '4:3') if styling else '4:3')
+    tokens.setdefault("theme.divider", getattr(styling, 'divider', 'none') if styling else 'none')
+    _apply_accent_hex_tokens(tokens)
+    return tokens
+
+
+def _apply_accent_hex_tokens(tokens: dict) -> None:
+    accent_hex = tokens.get(ACCENT_HEX_TOKEN)
+    if not accent_hex:
+        return
+    for key in ("region.header.bg_hex", "region.footer.bg_hex", "button.primary.bg_hex", "button.primary.border_hex", "input.border_focus_hex"):
+        if tokens.get(key) in DEFAULT_ACCENT_HEXES:
+            tokens[key] = accent_hex
+    tokens.setdefault("region.header.text_hex", "#ffffff")
+    tokens.setdefault("region.footer.text_hex", "#ffffff")
 
 
 def _collect_position_sections(pages, position):
@@ -229,54 +300,7 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     styling = application_component.styling
 
     # Interface metadata tokens are the canonical theme source; styling fills legacy gaps.
-    tokens = dict(getattr(application_component, "tokens", {}) or {})
-    _expand_legacy_token_hex(tokens)
-    _FONT_CDN = {
-        "inter":    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
-        "roboto":   "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
-        "poppins":  "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
-        "playfair": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
-        "mono":     "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
-        "geist":    "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap",
-    }
-    _FONT_CSS_NAME = {
-        "inter": "Inter", "roboto": "Roboto", "poppins": "Poppins",
-        "playfair": "'Playfair Display'", "mono": "'JetBrains Mono'", "geist": "Geist",
-    }
-    default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
-    if styling:
-        styling_accent = getattr(styling, 'accent_color', None)
-        if styling_accent and tokens.get(ACCENT_HEX_TOKEN) in default_blues:
-            tokens[ACCENT_HEX_TOKEN] = styling_accent
-        accent = tokens.get(ACCENT_HEX_TOKEN)
-        if accent:
-            tokens.setdefault("region.header.bg", f"bg-[{accent}]")
-            tokens.setdefault("page.header.text", "text-white")
-            tokens.setdefault("brand.name", application_name)
-        if getattr(styling, 'background_color', None):
-            tokens.setdefault("page.body.bg", f"bg-[{styling.background_color}]")
-            tokens.setdefault("page.body.bg_hex", styling.background_color)
-        if getattr(styling, 'text_color', None):
-            tokens.setdefault("page.body.text", f"text-[{styling.text_color}]")
-            tokens.setdefault("page.body.text_hex", styling.text_color)
-    font = getattr(styling, 'font_family', 'inter') if styling else 'inter'
-    tokens.setdefault("page.font.family", _FONT_CSS_NAME.get(font, "Inter"))
-    tokens.setdefault("page.font.cdn", _FONT_CDN.get(font, _FONT_CDN["inter"]))
-    radius = getattr(styling, 'radius', 8) if styling else 8
-    tokens.setdefault("page.radius.px", str(radius))
-    max_w = getattr(styling, 'page_max_width', 'xl') if styling else 'xl'
-    tokens.setdefault("page.container.class", MAX_WIDTH_CLASS.get(max_w, "max-w-6xl"))
-    tokens.setdefault("theme.button.style", getattr(styling, 'button_style', 'solid') if styling else 'solid')
-    tokens.setdefault("theme.card.hover", getattr(styling, 'card_hover', 'lift') if styling else 'lift')
-    tokens.setdefault("theme.image.ratio", getattr(styling, 'image_ratio', '4:3') if styling else '4:3')
-    tokens.setdefault("theme.divider", getattr(styling, 'divider', 'none') if styling else 'none')
-    accent_hex = tokens.get(ACCENT_HEX_TOKEN)
-    if accent_hex:
-        for key in ("region.header.bg_hex", "region.footer.bg_hex", "button.primary.bg_hex", "button.primary.border_hex", "input.border_focus_hex"):
-            if tokens.get(key) in default_blues:
-                tokens[key] = accent_hex
-        tokens.setdefault("region.header.text_hex", "#ffffff")
-        tokens.setdefault("region.footer.text_hex", "#ffffff")
+    tokens = _template_tokens(application_component, styling, application_name)
 
     OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/" + application_name + "/templates"
     
