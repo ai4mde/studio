@@ -2,7 +2,6 @@ from ninja import Router, Schema
 
 from llm.interface_generator.django_service import (
     apply_prompt_to_interface,
-    debug_uml_extract,
     map_uml_to_all_interfaces,
     map_uml_to_interface,
 )
@@ -29,11 +28,6 @@ def healthz(request):
     """Return a lightweight health check response."""
     return {"status": "ok", "service": "gemini-make-agent-django"}
 
-
-@llm_router.get("/gemini-make-agent/debug_uml_extract/{interface_id}", tags=["gemini-make-agent"])
-def debug_uml_extract_view(request, interface_id: str):
-    """Handle the debug UML extract API request."""
-    return debug_uml_extract(interface_id)
 
 
 @llm_router.post("/gemini-make-agent/map_uml_to_interface", tags=["gemini-make-agent"])

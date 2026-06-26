@@ -1,11 +1,85 @@
 import re
 from collections import defaultdict
 
-from .interface_planner import (
-    _MODEL_PERSON, _MODEL_DOCUMENT, _MODEL_CATEGORY,
-    _FORM_ADDRESS, _FORM_PAYMENT, _FORM_REVIEW,
-    _field_category, _pick_fields_by_names, _ROLE_CATEGORY_ORDER, _EXCLUDED_FORM,
+
+_FIELD_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("image",    re.compile(r"(image|photo|avatar|picture|thumbnail|banner|cover|logo|icon)(_url|_src|_path)?$", re.I)),
+    ("video",    re.compile(r"(video|clip|recording)(_url|_src)?$", re.I)),
+    ("name",     re.compile(r"^(name|title|full_name|display_name|label|heading|caption|subject)$", re.I)),
+    ("status",   re.compile(r"^(status|state|phase|stage)$", re.I)),
+    ("flag",     re.compile(r"^(is|has|can|allow|enable)_|^(active|enabled|visible|featured|verified|published|archived)$", re.I)),
+    ("code",     re.compile(r"^(sku|code|ref|barcode|serial|number|identifier)$", re.I)),
+    ("category", re.compile(r"^(category|type|kind|genre|group|class|tier|level|tag|section)$", re.I)),
+    ("metric",   re.compile(r"^(price|amount|total|subtotal|cost|fee|tax|discount|quantity|qty|count|rating|score|stock|balance|weight|size|duration)$", re.I)),
+    ("describe", re.compile(r"^(description|bio|summary|overview|notes|content|body|details|info|about|message|text|comment|remarks)$", re.I)),
+    ("contact",  re.compile(r"^(email|phone|mobile|tel|fax|website)$", re.I)),
+    ("address",  re.compile(r"^(address|street|city|state|province|postcode|postal_code|zip|country|region|district|location)$", re.I)),
+    ("temporal", re.compile(r"(_at|_date|_time|_on)$", re.I)),
+]
+
+_ROLE_CATEGORY_ORDER: dict[str, list[str]] = {
+    "object_collection": ["image", "video", "name", "status", "code", "category", "metric", "temporal", "flag"],
+    "object_detail":     ["image", "video", "name", "describe", "status", "metric", "contact", "category", "temporal"],
+    "object_form":       ["name", "describe", "category", "status", "metric", "contact", "address", "temporal"],
+    "child_collection":  ["name", "code", "metric", "status"],
+    "filter":            ["name", "status", "category", "metric", "temporal", "flag"],
+}
+
+_EXCLUDED_FORM = frozenset({
+    "id", "uuid", "slug",
+    "created_at", "updated_at", "created_on", "updated_on", "deleted_at",
+})
+
+
+def _field_category(field_name: str) -> str | None:
+    for category, pattern in _FIELD_PATTERNS:
+        if pattern.search(field_name):
+            return category
+    return None
+
+
+def _pick_fields_by_names(
+    attr_names: list[str],
+    role: str,
+    category_order: dict,
+    limit: int = 8,
+    fallback: list[str] | None = None,
+) -> list[str]:
+    order = category_order.get(role, [])
+    buckets: dict[str, list[str]] = {cat: [] for cat in order}
+    tail: list[str] = []
+    for field in attr_names:
+        cat = _field_category(field)
+        if cat and cat in buckets:
+            buckets[cat].append(field)
+        else:
+            tail.append(field)
+    result: list[str] = []
+    seen: set[str] = set()
+    for cat in order:
+        for f in buckets[cat]:
+            if f not in seen:
+                result.append(f)
+                seen.add(f)
+    for f in tail:
+        if f not in seen:
+            result.append(f)
+            seen.add(f)
+    return result[:limit] or (fallback or [])[:limit]
+
+
+_MODEL_PERSON = re.compile(
+    r"user|person|people|customer|client|patient|doctor|member|staff|employee|"
+    r"contact|vendor|seller|supplier|student|teacher|author|owner|passenger|"
+    r"operator|admin|applicant|borrower|officer|analyst|reviewer",
+    re.I,
 )
+_MODEL_DOCUMENT = re.compile(r"report|document|record|contract|invoice|receipt|statement|transcript|certificate|permit|license|policy|agreement", re.I)
+_MODEL_CATEGORY = re.compile(r"categor|genre|collection|group|class|tag|label", re.I)
+
+_FORM_ADDRESS = re.compile(r"address|shipping|delivery|mailing", re.I)
+_FORM_PAYMENT = re.compile(r"payment|checkout|billing|charge|subscription", re.I)
+_FORM_REVIEW  = re.compile(r"review|rating|feedback|assessment|evaluation|testimonial", re.I)
 
 
 DATA_SECTION_ROLES = {

@@ -1,0 +1,391 @@
+# Transformation Knowledge Base (TKB)
+# Stage 1: UML Diagrams → Interface Metadata JSON
+#
+# This file is the authoritative rule source.
+# The Transformation Engine (engine.py) reads and executes these rules.
+# Adding a new mapping requires editing only this file.
+#
+# ── Expression syntax ────────────────────────────────────────────────────────
+#   $path.to.field          resolve dot-path from the source element
+#   $path | transform       resolve then apply a named transform function
+#   @uuid                   generate a new UUID4
+#   @list                   empty list []
+#   @dict                   empty dict {}
+#   @null                   null / None
+#   "string"                string constant (plain YAML string)
+#   true / false            boolean constant
+#
+# ── Named transforms ─────────────────────────────────────────────────────────
+#   app_name                app_name_sanitization(value)
+#   page_name               page_name_sanitization(value)
+#   section_name            section_name_sanitization(value)
+#   lower                   value.lower()
+#   infer_model             rank class names by token overlap with UC name
+#   infer_role              keyword lookup → page role  (config: semantic_inference.role_keywords)
+#   infer_operation         keyword lookup → operation kind  (config: semantic_inference.operation_keywords)
+#   infer_permissions       keyword lookup → [view,create,update,delete]  (config: semantic_inference.permission_keywords)
+#
+# ── Rule fields ──────────────────────────────────────────────────────────────
+#   id          unique rule identifier
+#   from        source element specification (diagram_type + node_type OR edge_type)
+#   strategy    traversal pattern (default | per_edge_actor)
+#   to.output   target type: interface | page | section | activity_page
+#   to.interface  how to find the target interface for pages/sections
+#   registers   side-effect registry writes (for cross-rule references)
+#   mapping     field bindings using the expression syntax above
+#   attributes_from  special directive: populate section.attributes from class attributes
+#   if          guard expression (skip entry if falsy)
+
+
+# =============================================================================
+# Semantic Inference Configuration
+# =============================================================================
+# Keyword tables used by infer_role / infer_operation / infer_permissions.
+# Matched via substring search (case-insensitive) in order; first match wins.
+# Edit here to tune inference — no Python changes required.
+
+semantic_inference:
+
+  # ── UseCase name → page role ────────────────────────────────────────────────
+  role_keywords:
+    background:           ["system process", automated, notification]
+    workflow_entry:       [apply, submit, book, schedule, reserve, register, onboard]
+    collection_workspace: [select, choose, pick, browse, search, catalog, list, overview, track, history]
+    detail_workspace:     [detail, "view "]
+    object_workspace:     [account, profile, settings]
+  role_default: object_workspace
+
+  # ── UseCase name → operation kind ───────────────────────────────────────────
+  operation_keywords:
+    select_existing: [select, choose, pick, search]
+    view_collection: [browse, list, catalog, track, history]
+    view_detail:     [detail, "view "]
+    create:          [add, create, submit]
+    delete:          [delete, remove, cancel]
+  operation_default: manage_object
+
+  # ── UseCase name → CRUD permissions ─────────────────────────────────────────
+  # "view" is always granted.
+  permission_keywords:
+    create: [add, create, write, submit]
+    update: [manage, update, edit, select, enter, process, confirm, track]
+    delete: [delete, remove, cancel]
+  # "manage" implies create+delete UNLESS name contains an exclude term
+  # AND name contains at least one require term.
+  manage_implies_create_delete:
+    excludes: [account, profile, settings, password]
+    requires:  [item, items, record, records, entry, entries]
+
+
+# =============================================================================
+# Semantic Model
+# =============================================================================
+# Stage 1 — Semantic Interpretation: build an Interaction Intent list for
+# every Class and Activity Diagram before any mapping rules run.
+#
+# Intents are DOMAIN-INDEPENDENT interaction capabilities — no business vocabulary.
+# The same pipeline works for ERP, photo management, medical, IDE, etc.
+#
+# Entity profiles:   {intents: [CRUD, Search, Hierarchy, ...], name: "Order"}
+# Workflow profiles: {intents: [Workflow, Decision, StateTransition]}
+#
+# Stage 2 — Pattern Derivation (rules below) reads intents via:
+#   $node.cls_ptr | entity_ops      → section.operations dict
+#   $node.cls_ptr | entity_intents  → full intents list
+#   $diagram.id   | diagram_workflow_intents → workflow intents list
+#
+# Intent vocabulary:
+#   CRUD            full create / update / delete lifecycle
+#   Lookup          read-only reference (Country, Status, Category)
+#   Configuration   admin-only update, no free create/delete (Setting, Permission)
+#   Search          enough attributes to warrant search / filter UI
+#   Hierarchy       owns 1:N children via composition
+#   StateTransition has explicit lifecycle status attribute
+#   Workflow        activity diagram represents a multi-step process
+#   Decision        flow contains a binary branch (approve / reject)
+#   Sequential      linear ordered steps
+
+semantic_model:
+
+  # ── Interaction Intent Rules ───────────────────────────────────────────────
+  # Applied to each Class classifier. Two rule types:
+  #
+  #   primary: [...]   First matching rule sets the primary intent.
+  #                    Default (no match): CRUD
+  #   add: [...]       All matching secondary rules fire (additive).
+  #
+  # Final profile: intents = [primary, ...secondary]  (no duplicates)
+
+  intent_rules:
+
+    # ── Primary intent (first match wins) ─────────────────────────────────
+    - primary: [Lookup]
+      # Reference tables: Country, Currency, Language, Status, Category
+      # Small, stable, few attributes, no operations — selected, not mutated.
+      when:
+        max_operations: 0
+        max_attributes: 6
+
+    - primary: [Configuration]
+      # System config / access control: Setting, Permission, Role, Config
+      # Can be updated by admin but not freely created or deleted.
+      when:
+        max_operations: 0
+        name_matches: "(?i)(setting|permission|config|privilege|preference|policy)"
+
+    # ── Secondary intents (additive) ──────────────────────────────────────
+    - add: [Search]
+      # Entities with ≥4 attributes warrant a search / filter UI.
+      when:
+        primary_is: CRUD
+        min_attributes: 4
+
+    - add: [Hierarchy]
+      # Owns 1:N children via composition in the class diagram.
+      when:
+        computed: from_composition
+
+    - add: [StateTransition]
+      # Has an explicit lifecycle status attribute.
+      when:
+        attribute_name_matches: "(?i)^(status|state|phase|stage)$"
+
+
+  # ── Workflow Recognition ───────────────────────────────────────────────────
+  # Applied to each Activity Diagram. First matching pattern wins.
+  # Default (no match): [Workflow, Sequential]
+  #
+  # match AND-conditions:
+  #   requires_decision       — diagram must contain a Decision node
+  #   action_name_matches     — ALL patterns must match in combined action names
+  #
+  # Each pattern produces an intents list (same vocabulary as entity intents).
+  workflow_patterns:
+
+    - intents: [Workflow, Decision, StateTransition]
+      # Approval / review flow with a binary decision branch
+      match:
+        requires_decision: true
+        action_name_matches:
+          - "(?i)(approve|accept|confirm)"
+          - "(?i)(reject|decline|deny|refuse)"
+
+    - intents: [Workflow, Sequential]
+      # E-commerce purchase / checkout flow
+      match:
+        action_name_matches:
+          - "(?i)(cart|basket|checkout)"
+          - "(?i)(pay|payment|billing|charge)"
+
+    - intents: [Workflow, Sequential]
+      # User registration / onboarding flow
+      match:
+        action_name_matches:
+          - "(?i)(register|signup|sign.?up|onboard|enroll|create.account)"
+
+    - intents: [Workflow, Sequential]
+      # Multi-step data entry / form submission
+      match:
+        action_name_matches:
+          - "(?i)(enter|fill|provide|submit|upload)"
+
+
+rules:
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 1 — UseCase Actor → Interface
+  # ════════════════════════════════════════════════════════════════
+
+  - id: usecase_actor_to_interface
+    from:
+      diagram_type: usecase
+      node_type: actor
+    to:
+      output: interface
+    registers:
+      - registry: actor
+        key: "$node.id"
+        value: "$cls.name | app_name"
+      - registry: actor
+        key: "$node.cls_ptr"
+        value: "$cls.name | app_name"
+        if: "$node.cls_ptr"
+    mapping:
+      label: "$cls.name | app_name"
+      value.name: "$cls.name | app_name"
+      value.data.pages: "@list"
+      value.data.sections: "@list"
+      value.data.categories: "@list"
+      value.data.styling: "@dict"
+      value.data.settings: "@dict"
+
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 2 — UseCase Oval → Page
+  # ════════════════════════════════════════════════════════════════
+
+  - id: usecase_node_to_page
+    from:
+      diagram_type: usecase
+      pattern:
+        - bind: $actor
+          node_type: actor
+        - bind: $uc
+          node_type: usecase
+        - edge_type: [association, interaction]
+          from: $actor
+          to: $uc
+    to:
+      output: page
+      interface: "$actor.cls.name | app_name"   # resolved from pattern binding
+    mapping:
+      id: "@uuid"
+      name: "$uc.cls.name | page_name"
+      primary_model: "$uc.cls | infer_model"
+      role: "$uc.cls.name | infer_role"
+      operation_kind: "$uc.cls.name | infer_operation"
+      permissions: "$uc.cls.name | infer_permissions"
+      type.value: "normal"
+      layout.value: "vertical"
+      gap.value: "normal"
+      sections: "@list"
+      action: "@null"
+
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 3 — Class → Data Section
+  # ════════════════════════════════════════════════════════════════
+
+  - id: class_to_data_section
+    from:
+      diagram_type: classes
+      node_type: class
+    to:
+      output: section
+      interface: infer_from_activity  # assigned to interfaces in Group 5
+    registers:
+      - registry: class_section
+        key: "$node.cls_ptr"
+        value: "@self"              # stores the generated section dict
+    mapping:
+      id: "@uuid"
+      name: "$cls.name | section_name"
+      label: "$cls.name"
+      type: "data"
+      class: "$node.cls_ptr"
+      operations: "$node.cls_ptr | entity_ops"
+      layout: "table"
+      position: "main"
+      col_span: 12
+      style: "@dict"
+      query: "@dict"
+      behavior: "@dict"
+      workflow: "@dict"
+    attributes_from: "$cls.attributes"   # engine populates section.attributes
+
+
+  - id: association_to_related_section
+    from:
+      diagram_type: classes
+      pattern:
+        - bind: $src
+          node_type: class
+        - bind: $tgt
+          node_type: class
+        - edge_type: association
+          from: $src
+          to: $tgt
+          source_multiplicity:
+            - "*"
+            - "0..*"
+            - "1..*"
+          target_multiplicity:
+            - "1"
+            - "0..1"
+    to:
+      output: section
+      interface: follow_parent_section
+    registers:
+      - registry: class_section
+        key: "@self"    # key computed by engine: {tgt_ptr}:related:{src_ptr}
+        value: "@self"
+    mapping:
+      id: "@uuid"
+      name: "$tgt.cls.name | section_name"
+      label: "$tgt.cls.name"
+      type: "data"
+      class: "$tgt.node.cls_ptr"
+      operations.create: false
+      operations.update: false
+      operations.delete: false
+      operations.select: true
+      layout: "table"
+      position: "main"
+      col_span: 12
+      related_to: "$source_section.id"
+      relation_field: "$tgt.cls.name | lower"
+      style: "@dict"
+      query: "@dict"
+      behavior: "@dict"
+      workflow: "@dict"
+    attributes_from: "$tgt.cls.attributes"
+
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 4 — ActivityNode[action] → Activity Page + Action Section
+  # ════════════════════════════════════════════════════════════════
+
+  - id: action_node_to_activity_action_section
+    from:
+      diagram_type: activity
+      node_type: action
+    to:
+      output: section
+      interface: actorNode_ref            # resolved via actor registry
+    mapping:
+      id: "@uuid"
+      name: "activity_action"
+      label: "$cls.name"
+      type: "activity_action"
+      style.variant: "button"
+      style.size: "lg"
+      style.align: "right"
+      workflow.action: "complete"
+      position: "main"
+      col_span: 12
+
+  - id: action_node_to_activity_page
+    from:
+      diagram_type: activity
+      node_type: action
+    strategy: after_action_section        # engine links page to the section created above
+    to:
+      output: page
+      interface: actorNode_ref
+    registers:
+      - registry: activity_actor_class
+        actor: "$cls.actorNode | actor_registry_lookup"
+        class: "$cls.name | lower"
+    mapping:
+      id: "@uuid"
+      name: "$cls.name | page_name"
+      type.value: "activity"
+      layout.value: "vertical"
+      gap.value: "normal"
+      action.value: "$node.id"
+      action.label: "$cls.name"
+      sections: "@list"                   # engine appends the matching action section ref
+      workflow_intents: "$diagram.id | diagram_workflow_intents"
+
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 5 — Assign Data Sections to Interfaces (post-processing)
+  # ════════════════════════════════════════════════════════════════
+
+  - id: assign_sections_to_interfaces
+    strategy: post_assign_sections
+    note: >
+      For each section in class_section registry:
+        if class name appears in activity_actor_class registry → assign to that actor's interface.
+        else → assign to all interfaces (fallback, human can remove in Interface Designer).
+      Related sections follow their parent section's interface assignment.

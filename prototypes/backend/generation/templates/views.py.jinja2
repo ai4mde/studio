@@ -340,11 +340,12 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     {% if page.type == 'activity' and models_on_pages[page]['primary_models'] | length > 0 -%}
     {% set _pm0_scope = page.section_components[0].style.get('data_scope', {}) if page.section_components and page.section_components[0].style else {} -%}
     def get_queryset(self):
-        _associated_qs = self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
+        _active_process = self.active_process_node.active_process if self.active_process_node else None
+        _associated_qs = _active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s if _active_process is not None else None
         {% if _pm0_scope.get('mode') == 'actor_owned' -%}
-        qs = _associated_qs if _associated_qs.exists() else self._actor_owned_queryset({{ models_on_pages[page]['primary_models'][0] }}, create_missing=True)
+        qs = _associated_qs if (_associated_qs is not None and _associated_qs.exists()) else self._actor_owned_queryset({{ models_on_pages[page]['primary_models'][0] }}, create_missing=True)
         {% else -%}
-        qs = _associated_qs if _associated_qs.exists() else {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
+        qs = _associated_qs if (_associated_qs is not None and _associated_qs.exists()) else {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
         {% endif -%}
         {%- set select_related_fields = [] %}
         {%- if page.section_components %}
@@ -463,10 +464,10 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% if page.type == 'activity' -%}
         {% if models_on_pages[page]['primary_models'] | length > 1 -%}
         {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
-        _associated_{{ primary_model }}_qs = self.active_process_node.active_process.{{ primary_model.lower() }}s
+        _associated_{{ primary_model }}_qs = _active_process.{{ primary_model.lower() }}s if _active_process is not None else None
         {% set _sections_for_model = page.section_components | selectattr('primary_model', 'equalto', primary_model) | list -%}
         context['{{ primary_model }}_list'] = _apply_section_query(
-            _associated_{{ primary_model }}_qs if _associated_{{ primary_model }}_qs.exists() else {{ primary_model }}.objects.all(),
+            _associated_{{ primary_model }}_qs if (_associated_{{ primary_model }}_qs is not None and _associated_{{ primary_model }}_qs.exists()) else {{ primary_model }}.objects.all(),
             {{ _sections_for_model[0].query_literal if _sections_for_model else '{}' }},
             request=self.request,
         )

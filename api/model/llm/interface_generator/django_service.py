@@ -5,13 +5,10 @@ import logging
 import os
 import re as _re
 
-import requests as _req
 from llm.prompts.interface_edit import build_interface_edit_prompt
-from llm.prompts.semantics import build_resolve_interface_semantics_prompt
 from metadata.models import Interface, System
 
 from .interface_patch import apply_interface_patch
-from .uml_mapping.interface_planner import generate_interface_plan
 from .uml_mapping.mapping_sections import (
     _drop_unreferenced_non_global_sections,
     _ensure_mapping_chrome_sections,
@@ -26,11 +23,14 @@ from .section_utils import (
 )
 from .token_normalizer import _as_list
 from .uml_mapping.uml_extractor import _sys_as_list, extract_uml_intelligence
-from .uml_mapping.usecase_workflow import _build_activity_diagrams, _build_usecase_navigation
+from .uml_mapping.usecase_workflow import _build_usecase_navigation
 from .workflow_application import _apply_builtin_workflow_logic
 
+from .semantic_mapper.engine import TransformationEngine as _TKBEngine
+from .semantic_mapper.adapter import system_data_to_tkb_input as _to_tkb_input, extract_interface_for_actor as _extract_actor_iface
+
 logger = logging.getLogger(__name__)
-DEFAULT_SEMANTIC_MODEL = "gemini-2.0-flash-lite"
+
 
 
 def _strip_json_fence(value: str) -> str:
@@ -332,296 +332,6 @@ def _ensure_action_panel_sections(interface_id: str, system_id: str) -> None:
         _Iface.objects.filter(id=interface_id).update(data=data)
 
 
-def resolve_interface_semantics_with_llm(
-    uml_intel: dict,
-    interface_plan: dict,
-) -> dict:
-    """Ask Gemini to resolve layout/component choices; return safe overrides."""
-    decisions = uml_intel.get("semantic_decisions") or []
-    if not decisions:
-        return {}
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        return {}
-    model_name = os.getenv("SEMANTIC_RESOLVER_MODEL") or os.getenv(
-        "ADK_AGENT_MODEL",
-        DEFAULT_SEMANTIC_MODEL,
-    )
-    if "/" in model_name:
-        provider, raw_name = model_name.split("/", 1)
-        model_name = raw_name if provider == "gemini" else DEFAULT_SEMANTIC_MODEL
-    elif not model_name.startswith("gemini-"):
-        model_name = DEFAULT_SEMANTIC_MODEL
-
-    allowed = {
-        "model_layouts": ["table", "list", "gallery", "timeline", "map"],
-        "model_components": [
-            "DataTable",
-            "ObjectList",
-            "CardGrid",
-            "PersonCardGrid",
-            "CategoryTileGrid",
-            "TimelineList",
-            "MapView",
-        ],
-        "activity_layouts": ["form", "detail", "list"],
-        "activity_components": [
-            "ObjectForm",
-            "DetailPanel",
-            "SummaryPanel",
-            "ObjectList",
-        ],
-        "activity_roles": [
-            "object_form",
-            "object_detail",
-            "object_collection",
-        ],
-        "workflow_intents": [
-            "select_existing",
-            "check",
-            "create_record",
-            "update_record",
-            "notify",
-            "confirm",
-        ],
-        "condition_operators": [">", ">=", "==", "!=", "<", "<="],
-        "context_binding_modes": ["hidden", "readonly", "select"],
-        "actor_model_scopes": ["self_profile", "collection", "assigned", "hidden"],
-    }
-    prompt = build_resolve_interface_semantics_prompt(
-        allowed=allowed,
-        actor_permissions=uml_intel.get("actor_intel", {}).get("target_permissions", {}),
-        model_graph=uml_intel.get("model_graph") or {},
-        workflow_intel=uml_intel.get("workflow_intel") or {},
-        decisions=decisions,
-        interface_plan=interface_plan,
-    )
-    try:
-        resp = _req.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}",
-            json={
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0, "maxOutputTokens": 8192},
-            },
-            timeout=12,
-        )
-        resp.raise_for_status()
-        text = _strip_json_fence(resp.json()["candidates"][0]["content"]["parts"][0]["text"])
-        raw = _json.loads(text)
-    except Exception as exc:
-        logger.warning("semantic resolver fallback to rules: %s", exc)
-        return {}
-
-    valid_models = set((uml_intel.get("actor_intel") or {}).get("target_permissions") or {})
-    clean_actor_model_scopes = {}
-    for model, scope in (raw.get("actor_model_scopes") or {}).items():
-        if model in valid_models and scope in allowed["actor_model_scopes"]:
-            clean_actor_model_scopes[model] = scope
-    clean_models = {}
-    for model, cfg in (raw.get("models") or {}).items():
-        if model not in valid_models or not isinstance(cfg, dict):
-            continue
-        layout = cfg.get("layout")
-        component = cfg.get("component")
-        if layout in allowed["model_layouts"] and component in allowed["model_components"]:
-            clean_models[model] = {"layout": layout, "component": component}
-
-    valid_actions = {
-        step.get("action")
-        for wf in (uml_intel.get("workflow_intel") or {}).get("workflows", [])
-        for step in (wf.get("steps") or [])
-        if step.get("action")
-    }
-    model_graph = uml_intel.get("model_graph") or {}
-    def _valid_fields(model: str) -> set[str]:
-        """Provide a local helper for resolve_interface_semantics_with_llm."""
-        return {
-            str(attr.get("name") or "")
-            for attr in ((model_graph.get(model) or {}).get("attributes") or [])
-            if attr.get("name")
-        }
-
-    def _clean_fields(model: str, values) -> list[str]:
-        """Clean fields."""
-        valid = _valid_fields(model)
-        out = []
-        for field in values or []:
-            field = str(field)
-            if field in valid and field not in out:
-                out.append(field)
-        return out
-
-    def _fields_from_legacy_updates(model: str, values) -> list[str]:
-        """Extract editable field names from legacy workflow update semantics."""
-        valid = _valid_fields(model)
-        out = []
-        for update in values or []:
-            if not isinstance(update, dict):
-                continue
-            field = str(update.get("field") or "")
-            if field in valid and field not in out:
-                out.append(field)
-        return out
-
-    clean_steps = {}
-    for action, cfg in (raw.get("activity_steps") or {}).items():
-        if action not in valid_actions or not isinstance(cfg, dict):
-            continue
-        layout = cfg.get("layout")
-        component = cfg.get("component")
-        role = cfg.get("role")
-        if layout in allowed["activity_layouts"] and component in allowed["activity_components"]:
-            model = cfg.get("model")
-            model = model if model in valid_models else ""
-            readonly_fields = _clean_fields(model, cfg.get("readonly_fields") or [])
-            editable_fields = _clean_fields(model, cfg.get("editable_fields") or cfg.get("fields") or [])
-            clean_steps[action] = {
-                "layout": layout,
-                "component": component,
-                "role": role if role in allowed["activity_roles"] else "",
-                **({"model": model} if model else {}),
-                **({"readonly_fields": readonly_fields} if readonly_fields else {}),
-                **({"editable_fields": editable_fields} if editable_fields else {}),
-            }
-
-    clean_workflow_steps = {}
-    for action, cfg in (raw.get("workflow_steps") or {}).items():
-        if action not in valid_actions or not isinstance(cfg, dict):
-            continue
-        intent = cfg.get("intent")
-        if intent not in allowed["workflow_intents"]:
-            continue
-        step = {"intent": intent}
-        for key in ("context_model", "target_model"):
-            model = cfg.get(key)
-            if model in model_graph:
-                step[key] = model
-        for key in ("input_models", "output_models"):
-            models = [
-                str(model)
-                for model in (cfg.get(key) or [])
-                if str(model) in model_graph
-            ]
-            if models:
-                step[key] = models
-        target_model = step.get("target_model") or step.get("context_model") or ""
-        readonly_fields = _clean_fields(target_model, cfg.get("readonly_fields") or [])
-        editable_fields = _clean_fields(target_model, cfg.get("editable_fields") or [])
-        for field in _fields_from_legacy_updates(target_model, cfg.get("field_updates") or []):
-            if field not in editable_fields:
-                editable_fields.append(field)
-        if readonly_fields:
-            step["readonly_fields"] = readonly_fields
-        if editable_fields:
-            step["editable_fields"] = editable_fields
-        binding = cfg.get("context_binding")
-        if isinstance(binding, dict):
-            binding_model = binding.get("model")
-            binding_mode = binding.get("mode")
-            if binding_model in model_graph and binding_mode in allowed["context_binding_modes"]:
-                step["context_binding"] = {"model": binding_model, "mode": binding_mode}
-        condition = cfg.get("condition")
-        if isinstance(condition, dict):
-            condition_model = condition.get("model")
-            condition_field = condition.get("field")
-            operator = condition.get("operator")
-            if (
-                condition_model in model_graph
-                and condition_field in _valid_fields(condition_model)
-                and operator in allowed["condition_operators"]
-            ):
-                step["condition"] = {
-                    "model": condition_model,
-                    "field": condition_field,
-                    "operator": operator,
-                    "threshold": str(condition.get("threshold", "")),
-                }
-        for key in ("true_next", "false_next"):
-            target_action = cfg.get(key)
-            if target_action in valid_actions:
-                step[key] = target_action
-        clean_workflow_steps[action] = step
-
-    return {
-        "actor_model_scopes": clean_actor_model_scopes,
-        "models": clean_models,
-        "activity_steps": clean_steps,
-        "workflow_steps": clean_workflow_steps,
-    }
-
-
-def debug_uml_extract(interface_id: str) -> dict:
-    """Return UML extraction and planning diagnostics for an interface."""
-    try:
-        interface = Interface.objects.get(id=interface_id)
-        iface = _interface_to_agent_dict(interface)
-        system_data = _fetch_system_context_data(str(interface.system_id))
-        actor_id = str(iface.get("actor") or "")
-        actor_name = _actor_name_from_context(system_data, actor_id)
-
-        raw_rels = _sys_as_list(system_data, "relations")
-        rel_types = list(
-            {
-                (r.get("data") or {}).get("type")
-                for r in raw_rels
-                if isinstance(r, dict) and r.get("data")
-            }
-        )
-
-        intel = extract_uml_intelligence(system_data, actor_id, actor_name or "")
-        plan = generate_interface_plan(intel)
-        return {
-            "actor": actor_name,
-            "rel_types_in_data": rel_types,
-            "total_models_in_graph": len(intel["model_graph"]),
-            "models_with_compositions": {
-                m: [c["model"] for c in info["compositions_owned"]]
-                for m, info in intel["model_graph"].items()
-                if info["compositions_owned"]
-            },
-            "models_with_associations": {
-                m: [a["model"] for a in info["associations"][:3]]
-                for m, info in intel["model_graph"].items()
-                if info["associations"]
-            },
-            "actor_permissions": intel["actor_intel"]["target_permissions"],
-            "use_cases": [
-                {"name": u["name"], "model": u["primary_model"], "role": u["page_role"]}
-                for u in intel["actor_intel"]["target_use_cases"]
-            ],
-            "workflows": [
-                {
-                    "name": w["name"],
-                    "step_count": w["step_count"],
-                    "steps": [
-                        {
-                            "action": s["action"],
-                            "model": s.get("model"),
-                            "is_automatic": s.get("is_automatic"),
-                            "actor_node_name": s.get("actor_node_name"),
-                        }
-                        for s in w["steps"]
-                    ],
-                }
-                for w in intel["workflow_intel"]["workflows"]
-            ],
-            "semantic_decisions": intel["semantic_decisions"],
-            "plan_pages": [
-                {"id": p["id"], "model": p["primary_model"], "sections": p["sections"]}
-                for p in plan["pages"]
-            ],
-            "plan_sections": [
-                {"id": s["id"], "component": s["component"]}
-                for s in plan["sections"]
-            ],
-        }
-    except Interface.DoesNotExist:
-        return {"error": f"Interface {interface_id} not found."}
-    except Exception as exc:
-        import traceback
-
-        return {"error": str(exc), "tb": traceback.format_exc()}
-
 
 def map_uml_to_interface(interface_id: str) -> dict:
     """Run rules-based UML-to-interface mapping and save it via metadata API."""
@@ -637,16 +347,10 @@ def map_uml_to_interface(interface_id: str) -> dict:
 
         uml_intel = extract_uml_intelligence(system_data, actor_id, actor_name)
         _generate_missing_method_bodies(system_data, uml_intel["model_graph"], str(interface.system_id))
-        initial_plan = generate_interface_plan(uml_intel)
-        semantic_overrides = resolve_interface_semantics_with_llm(uml_intel, initial_plan)
-        plan = (
-            generate_interface_plan(uml_intel, semantic_overrides)
-            if semantic_overrides
-            else initial_plan
-        )
 
-        pages = plan["pages"]
-        sections = plan["sections"]
+        tkb_input = _to_tkb_input(system_data)
+        tkb_output = _TKBEngine().transform(tkb_input)
+        pages, sections = _extract_actor_iface(tkb_output, actor_name, system_data)
         page_model_by_id = {
             str(p.get("id") or ""): str(
                 p.get("primary_model") or p.get("model") or p.get("class") or ""
