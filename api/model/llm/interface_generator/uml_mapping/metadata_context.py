@@ -14,6 +14,41 @@ def _node_position(node) -> tuple[object, object]:
     return position.get("x", data.get("x")), position.get("y", data.get("y"))
 
 
+def _node_payload(node) -> dict:
+    x, y = _node_position(node)
+    return {
+        "id": str(node.id),
+        "diagram": str(node.diagram_id),
+        "cls": str(node.cls_id) if node.cls_id else None,
+        "data": node.data or {},
+        "x": x,
+        "y": y,
+    }
+
+
+def _edge_payload(edge) -> dict:
+    return {
+        "id": str(edge.id),
+        "diagram": str(edge.diagram_id),
+        "rel": str(edge.rel_id) if edge.rel_id else None,
+        "data": edge.data or {},
+    }
+
+
+def _diagram_payload(diagram) -> tuple[dict, list[dict]]:
+    diagram_nodes = [_node_payload(node) for node in diagram.nodes.all()]
+    diagram_edges = [_edge_payload(edge) for edge in diagram.edges.all()]
+    return {
+        "id": str(diagram.id),
+        "name": diagram.name,
+        "description": diagram.description,
+        "type": diagram.type,
+        "system": str(diagram.system_id),
+        "nodes": diagram_nodes,
+        "edges": diagram_edges,
+    }, diagram_nodes
+
+
 def _fetch_system_context_data(system_id: str) -> dict:
     """Load classifiers and relations needed for UML-aware interface generation."""
     system = System.objects.prefetch_related(
@@ -46,36 +81,9 @@ def _fetch_system_context_data(system_id: str) -> dict:
     diagrams = []
     nodes = []
     for diagram in Diagram.objects.filter(system=system).prefetch_related("nodes", "edges"):
-        diagram_nodes = []
-        diagram_edges = []
-        for node in diagram.nodes.all():
-            x, y = _node_position(node)
-            node_payload = {
-                "id": str(node.id),
-                "diagram": str(node.diagram_id),
-                "cls": str(node.cls_id) if node.cls_id else None,
-                "data": node.data or {},
-                "x": x,
-                "y": y,
-            }
-            diagram_nodes.append(node_payload)
-            nodes.append(node_payload)
-        for edge in diagram.edges.all():
-            diagram_edges.append({
-                "id": str(edge.id),
-                "diagram": str(edge.diagram_id),
-                "rel": str(edge.rel_id) if edge.rel_id else None,
-                "data": edge.data or {},
-            })
-        diagrams.append({
-            "id": str(diagram.id),
-            "name": diagram.name,
-            "description": diagram.description,
-            "type": diagram.type,
-            "system": str(diagram.system_id),
-            "nodes": diagram_nodes,
-            "edges": diagram_edges,
-        })
+        diagram_payload, diagram_nodes = _diagram_payload(diagram)
+        diagrams.append(diagram_payload)
+        nodes.extend(diagram_nodes)
     interfaces = [
         {
             "id": str(i.id),
