@@ -16,7 +16,9 @@ app = Flask(__name__)
 
 
 def _private_temp_dir() -> str:
-    path = os.environ.get('PROTOTYPE_TEMP_DIR', '/usr/src/prototypes/tmp')
+    # Use container-native /tmp to avoid Windows bind-mount sync delays
+    # that cause is_file() to return False in subprocesses.
+    path = os.environ.get('PROTOTYPE_TEMP_DIR', '/tmp/prototypes_meta')
     os.makedirs(path, mode=0o700, exist_ok=True)
     os.chmod(path, 0o700)
     return path
@@ -428,7 +430,8 @@ def generate_prototype():
         failed_path = _prototype_path(safe_system, safe_name)
         if os.path.isdir(failed_path):
             shutil.rmtree(failed_path, ignore_errors=True)
-        app.logger.exception("Generation failed with return code %s", e.returncode)
+        app.logger.error("Generation failed rc=%s\nSTDOUT:\n%s\nSTDERR:\n%s",
+                         e.returncode, e.stdout or "", e.stderr or "")
         return "Failed to generate prototype", 500
 
     # TODO: this database retrieval should be done using ids

@@ -351,6 +351,11 @@ def map_uml_to_interface(interface_id: str) -> dict:
         tkb_input = _to_tkb_input(system_data)
         tkb_output = _TKBEngine().transform(tkb_input)
         pages, sections = _extract_actor_iface(tkb_output, actor_name, system_data)
+        # Semantic profiles (CRUD/Lookup/Config/Search/StateTransition) computed by
+        # TKB intent_rules — passed downstream to build_navigation_plan so section
+        # composition uses the YAML rule results rather than Python heuristics.
+        semantic_profiles: dict = tkb_output.get("semantic_profiles") or {}
+        section_composition: dict = tkb_output.get("section_composition") or {}
         page_model_by_id = {
             str(p.get("id") or ""): str(
                 p.get("primary_model") or p.get("model") or p.get("class") or ""
@@ -436,7 +441,12 @@ def map_uml_to_interface(interface_id: str) -> dict:
             for cdata in [classifier.get("data", {})]
             if cdata.get("name")
         }
-        usecase_navigation = _build_usecase_navigation(system_data, actor_id, actor_name)
+        usecase_navigation = _build_usecase_navigation(
+            system_data, actor_id, actor_name,
+            semantic_profiles=semantic_profiles,
+            section_composition=section_composition,
+            model_graph=uml_intel.get("model_graph") or {},
+        )
         completed = _apply_builtin_workflow_logic(
             {"pages": db_pages, "sections": db_sections},
             iface.get("system"),

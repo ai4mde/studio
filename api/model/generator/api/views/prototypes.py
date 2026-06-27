@@ -128,11 +128,35 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
         ]
     
     if 'diagrams' not in enriched_metadata:
-        from diagram.api.schemas.diagram import ExportDiagram
-        enriched_metadata['diagrams'] = [
-            ExportDiagram.from_orm(d).dict()
-            for d in system.diagrams.all()
-        ]
+        enriched_metadata['diagrams'] = []
+        for d in system.diagrams.prefetch_related('nodes__cls', 'edges__rel').all():
+            nodes = [
+                {
+                    'id': str(n.id),
+                    'cls': n.cls.data if n.cls else {},
+                    'cls_ptr': str(n.cls_id) if n.cls_id else None,
+                    'data': n.data or {},
+                }
+                for n in d.nodes.all()
+            ]
+            edges = []
+            for e in d.edges.prefetch_related('rel').all():
+                src = e.source
+                tgt = e.target
+                edges.append({
+                    'id': str(e.id),
+                    'rel': e.rel.data if e.rel else {},
+                    'source_ptr': str(src.id) if src else None,
+                    'target_ptr': str(tgt.id) if tgt else None,
+                    'data': e.data or {},
+                })
+            enriched_metadata['diagrams'].append({
+                'id': str(d.id),
+                'type': d.type,
+                'name': d.name,
+                'nodes': nodes,
+                'edges': edges,
+            })
         
     if 'relations' not in enriched_metadata:
         enriched_metadata['relations'] = [

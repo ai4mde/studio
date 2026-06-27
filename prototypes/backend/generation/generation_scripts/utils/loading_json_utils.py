@@ -98,7 +98,7 @@ def get_enum_literals(metadata: str, class_id: str) -> List[str]:
             continue
         for node in diagram["nodes"]:
             cls = node.get("cls", {})
-            cls_data = cls.get("data", cls)
+            cls_data = cls.get("data", cls) if isinstance(cls, dict) else {}
             if node["cls_ptr"] == class_id and cls_data.get("type") == "enum":
                 for literal in cls_data.get("literals", []):
                     out.append(str(literal))
@@ -115,7 +115,7 @@ def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
             node_cls_ptr = node.get("cls_ptr") or node.get("id")
             if str(node_cls_ptr) == str(class_id):
                 cls = node.get("cls", {})
-                cls_data = cls.get("data", cls)
+                cls_data = cls.get("data", cls) if isinstance(cls, dict) else {}
                 name = cls_data.get("name")
                 return model_name_sanitization(name) if name else None
     # Fallback: resolve from flat classifiers list added during generation
@@ -138,7 +138,7 @@ def find_class_ptr_by_model_name(metadata: str, model_name: str) -> str | None:
             continue
         for node in diagram.get("nodes", []):
             cls = node.get("cls", {})
-            cls_data = cls.get("data", cls)
+            cls_data = cls.get("data", cls) if isinstance(cls, dict) else {}
             if cls_data.get("type") == "class" and model_name_sanitization(cls_data.get("name", "")) == target:
                 return str(node.get("cls_ptr") or node.get("id") or "")
     for classifier in metadata_json.get("classifiers", []):
@@ -154,7 +154,7 @@ def find_model_by_id(metadata: str, class_id: str) -> str | None:
             continue
         for node in diagram["nodes"]:
             cls = node.get("cls", {})
-            cls_data = cls.get("data", cls)
+            cls_data = cls.get("data", cls) if isinstance(cls, dict) else {}
             if node["id"] == class_id and cls_data.get("type") == "class":
                 return model_name_sanitization(cls_data.get("name", ""))
     return None
@@ -858,7 +858,18 @@ def get_application_component(project_name: str, application_name: str, metadata
     tokens = {}
     for application_component in json.loads(metadata)["interfaces"]:
         if app_name_sanitization(application_component["label"]) == application_name:
-            tokens = (application_component["value"].get("data") or {}).get("tokens") or {}
+            data = (application_component["value"].get("data") or {})
+            tokens = dict(data.get("tokens") or {})
+            # Pull dot-notation styling keys (e.g. "region.header.bg_hex") into tokens
+            # so prototype CSS variables match the preview render path (_apply_styling_tokens).
+            styling_raw = data.get("styling") or {}
+            if isinstance(styling_raw, dict):
+                for k, v in styling_raw.items():
+                    if "." in str(k) and v not in (None, ""):
+                        tokens.setdefault(str(k), v)
+                accent_secondary = styling_raw.get("accentSecondary")
+                if accent_secondary:
+                    tokens.setdefault("color.secondary.hex", accent_secondary)
             break
 
     return ApplicationComponent(

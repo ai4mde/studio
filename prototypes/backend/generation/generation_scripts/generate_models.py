@@ -216,6 +216,7 @@ def retrieve_models(metadata: str) -> List[Model]:
             for diagram in data.get("diagrams", [])
             if diagram.get("type") == "classes"
             for node in diagram.get("nodes", [])
+            if isinstance(node.get("cls"), dict)
             if node.get("cls", {}).get("type") == "class" and node.get("cls", {}).get("name")
         }
         model_names.update({
@@ -228,6 +229,9 @@ def retrieve_models(metadata: str) -> List[Model]:
                 if diagram["type"] != "classes":
                     continue
                 for node in diagram["nodes"]:
+                    # cls may be a UUID string (ExportNode format) — skip; handled by classifiers fallback
+                    if not isinstance(node.get("cls"), dict):
+                        continue
                     if node["cls"]["type"] != "class":
                         continue
                     custom_methods = retrieve_model_custom_methods(node) + retrieve_section_custom_methods_for_model(

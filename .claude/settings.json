@@ -10,6 +10,11 @@
           {
             "type": "command",
             "command": "bash -c 'cd \"$(git rev-parse --show-toplevel)\" && .venv/Scripts/python .claude/preview_audit.py'"
+          },
+          {
+            "type": "command",
+            "command": "bash -c '/d/anaconda/python \"$(git rev-parse --show-toplevel)/.claude/visual_sync_check.py\"'",
+            "statusMessage": "Checking preview/prototype visual sync..."
           }
         ]
       }

@@ -274,7 +274,7 @@ rules:
       type: "data"
       class: "$node.cls_ptr"
       operations: "$node.cls_ptr | entity_ops"
-      layout: "table"
+      layout: "$node.cls_ptr | entity_layout"
       position: "main"
       col_span: 12
       style: "@dict"
@@ -389,3 +389,268 @@ rules:
         if class name appears in activity_actor_class registry → assign to that actor's interface.
         else → assign to all interfaces (fallback, human can remove in Interface Designer).
       Related sections follow their parent section's interface assignment.
+
+
+# =============================================================================
+# Section Composition
+# =============================================================================
+# Declares which section roles a page should contain based on its role and the
+# entity's Interaction Intent Profile.
+#
+# This is the OOUI "UI Pattern → Section Composition" layer:
+#
+#   Interaction Profile  →  UI Pattern  →  Section Composition
+#   (from intent_rules)       (matched      (sections defined here)
+#                              by pattern)
+#
+# Evaluation order: patterns are tried top-to-bottom; first full match wins.
+# A pattern with no intents_any / intents_all clause always matches its roles.
+#
+# Condition keys:
+#   page_roles      list of page role strings (any match triggers this pattern)
+#   intents_any     at least one of these entity intents must be present
+#   intents_all     all of these entity intents must be present
+#   min_attrs       entity must have at least this many attributes
+#
+# Section keys:
+#   role            section role identifier (object_collection, filter, object_detail …)
+#   layout          layout hint passed to section; use $entity_layout to resolve from intents
+#   component       component name; use $detail_component or $collection_component for dynamic resolution
+#   for_each        expand one section per related model (only "compositions_1n" is supported)
+#   col_span        column span (default 12)
+
+section_composition:
+  # ===========================================================================
+  # Pattern Condition Keys
+  # ===========================================================================
+  #   page_roles           list of page role strings — any match triggers
+  #   intents_any          at least one entity intent (CRUD/Search/Lookup/…) must be present
+  #   intents_all          all entity intents must be present
+  #   min_attrs            entity must have at least N attributes
+  #   workflow_intents_any at least one workflow intent (from activity diagram):
+  #                          Workflow / Decision / StateTransition / Sequential
+  #   activity_terms_any   regex keywords matched against the activity action node name
+  #                          (submit, approve, select, review …)
+  #
+  # Section Entry Keys
+  # ===========================================================================
+  #   role       section role (object_collection, filter, object_detail, object_form,
+  #              object_summary, child_collection, workflow_action, workflow_history)
+  #   layout     layout hint; $entity_layout resolves from entity intents
+  #   component  component name; $detail_component / $collection_component = dynamic
+  #   for_each   expand one section per related model: "compositions_1n"
+  #   col_span   column span (default 12)
+
+  patterns:
+
+    # =========================================================================
+    # Activity Workflow Pages  (role: activity_action)
+    # =========================================================================
+    # These patterns MUST come before usecase-workspace patterns because
+    # activity pages can also carry collection_workspace / detail_workspace roles.
+    # The activity_terms_any / workflow_intents_any conditions make them specific
+    # enough to not collide with usecase patterns.
+
+    # ── Review / Approval step (Decision node present in diagram) ─────────────
+    # Example: "Assess application completeness", "Final decision"
+    # → SummaryPanel (context) + ApprovalActionPanel (Approve/Reject buttons)
+    - page_roles: [activity_action]
+      workflow_intents_any: [Decision, StateTransition]
+      activity_terms_any: [assess|review|evaluate|check|inspect|verify|decide|judge|examine|final.decision]
+      sections:
+        - role: object_summary
+          layout: detail
+          component: SummaryPanel
+          col_span: 12
+        - role: workflow_action
+          layout: action_panel
+          component: ApprovalActionPanel
+          col_span: 12
+
+    # ── Document analysis step (parallel fork branch) ─────────────────────────
+    # Example: "Perform risk analysis", "Analyze documents"
+    # → DocumentViewer + analysis form
+    - page_roles: [activity_action]
+      activity_terms_any: [analy|risk|audit|inspect|document|report|review.document]
+      sections:
+        - role: object_detail
+          layout: detail
+          component: DocumentPanel
+          col_span: 6
+        - role: object_form
+          layout: form
+          component: ObjectForm
+          col_span: 6
+
+    # ── Data entry / form submission step ─────────────────────────────────────
+    # Example: "Fill in application", "Submit extra documents", "Provide additional information"
+    # → Object form (the entity being filled in)
+    - page_roles: [activity_action]
+      activity_terms_any: [fill|enter|submit|provide|upload|input|register|create|apply|book|record|add]
+      sections:
+        - role: object_form
+          layout: form
+          component: ObjectForm
+          col_span: 12
+
+    # ── Select / browse step ──────────────────────────────────────────────────
+    # Example: "Select product", "Choose category", "Pick items"
+    # → FilterPanel + selectable DataTable
+    - page_roles: [activity_action]
+      activity_terms_any: [select|choose|pick|browse|search|find]
+      sections:
+        - role: filter
+          layout: filter
+          component: FilterPanel
+          col_span: 12
+        - role: object_collection
+          layout: $entity_layout
+          component: $collection_component
+          col_span: 12
+
+    # ── Result / notification step ────────────────────────────────────────────
+    # Example: "Share results", "Send notification", "Notify applicant"
+    # → SummaryPanel (what was decided) + status indicator
+    - page_roles: [activity_action]
+      activity_terms_any: [share.result|notify|send.result|result|outcome|status.update|confirmation]
+      sections:
+        - role: object_summary
+          layout: detail
+          component: SummaryPanel
+          col_span: 12
+        - role: workflow_history
+          layout: timeline
+          component: WorkflowTimeline
+          col_span: 12
+
+    # ── Generic activity action (fallback for unrecognised action names) ──────
+    # Shows a summary of the object + the action button
+    - page_roles: [activity_action]
+      sections:
+        - role: object_summary
+          layout: detail
+          component: SummaryPanel
+          col_span: 12
+        - role: workflow_action
+          layout: action_panel
+          component: WorkflowActionPanel
+          col_span: 12
+
+    # =========================================================================
+    # UseCase Pages
+    # =========================================================================
+
+    # ── Collection workspace ──────────────────────────────────────────────────
+
+    # Searchable collection with status lifecycle: FilterPanel + data grid
+    - page_roles: [collection_workspace]
+      intents_any: [Search, StateTransition]
+      sections:
+        - role: filter
+          layout: filter
+          component: FilterPanel
+          col_span: 12
+        - role: object_collection
+          layout: $entity_layout
+          component: $collection_component
+          col_span: 12
+
+    # Lookup / reference collection: filter + compact list
+    - page_roles: [collection_workspace]
+      intents_any: [Lookup]
+      sections:
+        - role: filter
+          layout: filter
+          component: FilterPanel
+          col_span: 12
+        - role: object_collection
+          layout: list
+          component: ObjectList
+          col_span: 12
+
+    # CRUD collection with enough attributes to merit a filter
+    - page_roles: [collection_workspace]
+      min_attrs: 3
+      sections:
+        - role: filter
+          layout: filter
+          component: FilterPanel
+          col_span: 12
+        - role: object_collection
+          layout: $entity_layout
+          component: $collection_component
+          col_span: 12
+
+    # Minimal collection (few attrs — no filter panel needed)
+    - page_roles: [collection_workspace]
+      sections:
+        - role: object_collection
+          layout: $entity_layout
+          component: $collection_component
+          col_span: 12
+
+    # Select-existing modal: always show filter + selectable collection
+    - page_roles: [select_existing]
+      sections:
+        - role: filter
+          layout: filter
+          component: FilterPanel
+          col_span: 12
+        - role: object_collection
+          layout: $entity_layout
+          component: $collection_component
+          col_span: 12
+
+    # ── Detail workspace ──────────────────────────────────────────────────────
+
+    # Detail page with owned children (Hierarchy intent)
+    # Produces: primary detail + one child_collection per 1:N composition
+    - page_roles: [detail_workspace]
+      intents_any: [Hierarchy]
+      sections:
+        - role: object_detail
+          layout: detail
+          component: $detail_component
+          col_span: 12
+        - role: child_collection
+          layout: list
+          component: RelatedObjectList
+          for_each: compositions_1n
+          col_span: 12
+
+    # Detail page without children
+    - page_roles: [detail_workspace]
+      sections:
+        - role: object_detail
+          layout: detail
+          component: $detail_component
+          col_span: 12
+
+    # ── Workflow entry ────────────────────────────────────────────────────────
+
+    # Workflow start: show the object that will be acted on; button added by engine
+    - page_roles: [workflow_entry]
+      sections:
+        - role: object_summary
+          layout: detail
+          component: SummaryPanel
+          col_span: 12
+
+    # ── Object workspace ──────────────────────────────────────────────────────
+
+    # Settings / config workspace: editable form
+    - page_roles: [object_workspace]
+      intents_any: [Configuration]
+      sections:
+        - role: object_form
+          layout: form
+          component: ObjectForm
+          col_span: 12
+
+    # Profile / account: read-only detail panel
+    - page_roles: [object_workspace]
+      sections:
+        - role: object_detail
+          layout: detail
+          component: $detail_component
+          col_span: 12

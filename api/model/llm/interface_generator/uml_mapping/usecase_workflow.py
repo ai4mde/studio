@@ -338,7 +338,14 @@ def _infer_usecase_permissions(name: str) -> list[str]:
     return [p for p in ("view", "create", "update", "delete") if p in perms]
 
 
-def _build_usecase_navigation(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> dict:
+def _build_usecase_navigation(
+    system_data: dict,
+    actor_id: str | None,
+    actor_name: str | None = None,
+    semantic_profiles: dict | None = None,
+    section_composition: dict | None = None,
+    model_graph: dict | None = None,
+) -> dict:
     """Build usecase navigation."""
     refs = _actor_refs(system_data, actor_id, actor_name)
     classifiers = {
@@ -442,16 +449,34 @@ def _build_usecase_navigation(system_data: dict, actor_id: str | None, actor_nam
         page_id = mapping.get("page_id") or uc.get("page_id")
         if not page_id or mapping.get("role") == "background":
             continue
+        inferred_model = (
+            mapping.get("page_model")
+            or uc.get("page_model")
+            or uc.get("primary_model")
+            or ""
+        )
+        # If no model could be inferred and this is an object_workspace (e.g., "Manage Account"
+        # with no explicit class link), fall back to the actor name when it's a known model.
+        if not inferred_model and mapping.get("role") == "object_workspace":
+            actor_model = actor_name or ""
+            if actor_model in model_names:
+                inferred_model = actor_model
         current = page_entries.setdefault(page_id, {
             "page_id": page_id,
             "page_name": mapping.get("page_name") or uc.get("page_name") or _page_name(page_id),
-            "primary_model": mapping.get("page_model") or uc.get("page_model") or uc.get("primary_model", ""),
+            "primary_model": inferred_model,
             "roles": [],
             "usecases": [],
+            "name_slugs": [],
         })
         if mapping.get("role") and mapping["role"] not in current["roles"]:
             current["roles"].append(mapping["role"])
         current["usecases"].append(uc.get("name"))
+        # Track usecase-name slugs so _materialize_nav_plan_sections can look up DB pages
+        # (DB pages are named by usecase name, not by the model-based page_id)
+        uc_name_slug = _section_id(uc.get("name") or "")
+        if uc_name_slug and uc_name_slug not in current["name_slugs"]:
+            current["name_slugs"].append(uc_name_slug)
     nav_pages = [
         entry["page_id"]
         for entry in page_entries.values()
@@ -492,7 +517,12 @@ def _build_usecase_navigation(system_data: dict, actor_id: str | None, actor_nam
     }
     workflow_steps = _workflow_plan(system_data, actor_id, actor_name)
     nav["workflow_steps"] = workflow_steps
-    nav["nav_plan"] = build_navigation_plan(nav, model_attrs, workflow_steps)
+    nav["nav_plan"] = build_navigation_plan(
+        nav, model_attrs, workflow_steps,
+        model_graph=model_graph or {},
+        semantic_profiles=semantic_profiles or {},
+        section_composition=section_composition or {},
+    )
     return nav
 
 

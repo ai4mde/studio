@@ -190,6 +190,28 @@ def _ops_from_profile(profile: dict) -> dict:
     return {"create": False, "update": False, "delete": False, "select": True}
 
 
+def _layout_from_intent_profile(profile: dict) -> str:
+    """Infer the most appropriate default section layout from a semantic intent profile.
+
+    Intent → layout mapping rationale:
+      Configuration  → form   (admin-only, single-record update)
+      Lookup         → list   (small reference table, read-only)
+      StateTransition or Hierarchy → table (tracked lifecycle / nested records)
+      CRUD + Search  → card   (many-attribute entity, browseable as cards)
+      CRUD only      → card   (default; candidate phase will vary this)
+    """
+    intents = set(profile.get("intents") or [])
+    if "Configuration" in intents:
+        return "form"
+    if "Lookup" in intents:
+        return "list"
+    if "StateTransition" in intents or "Hierarchy" in intents:
+        return "table"
+    if "CRUD" in intents and "Search" in intents:
+        return "card"
+    return "card"
+
+
 def _recognize_workflow(diagram: dict, patterns: list[dict], ctx: "_Context") -> list[str]:
     """
     Recognize the workflow kind of an activity diagram from its node topology.
@@ -263,6 +285,7 @@ _CTX_TRANSFORMS: dict[str, Callable] = {
     # Stage 2 — Pattern Derivation: read Interaction Intent profiles from Stage 1
     "entity_intents":          lambda ptr,    ctx: ctx.semantic_profiles.get(str(ptr or ""), {}).get("intents", ["CRUD"]),
     "entity_ops":              lambda ptr,    ctx: _ops_from_profile(ctx.semantic_profiles.get(str(ptr or ""), {})),
+    "entity_layout":           lambda ptr,    ctx: _layout_from_intent_profile(ctx.semantic_profiles.get(str(ptr or ""), {})),
     "diagram_workflow_intents": lambda diag_id, ctx: ctx.workflow_profiles.get(str(diag_id or ""), {}).get("intents", ["Workflow", "Sequential"]),
 }
 
@@ -533,7 +556,18 @@ class _Context:
         return self._section_placement.get(section_id, list(self.interfaces))
 
     def build_output(self) -> dict:
-        return {"interfaces": list(self.interfaces.values())}
+        # Build name-keyed profiles for consumers outside the engine.
+        # Keyed by class name (string) so nav-plan / section-composition code
+        # can look up intents without needing the classifier UUID.
+        profiles_by_name: dict[str, dict] = {}
+        for _ptr, profile in self.semantic_profiles.items():
+            name = profile.get("name", "")
+            if name:
+                profiles_by_name[name] = {"intents": list(profile.get("intents") or [])}
+        return {
+            "interfaces": list(self.interfaces.values()),
+            "semantic_profiles": profiles_by_name,
+        }
 
 
 # =============================================================================
@@ -547,6 +581,9 @@ class TransformationEngine:
         self._rules: list[dict] = data["rules"]
         self._si: dict  = data.get("semantic_inference") or {}
         self._sm: dict  = data.get("semantic_model") or {}
+        # Section composition patterns (YAML-driven OOUI pattern table).
+        # Exposed via transform() output under "section_composition".
+        self._sc: dict  = data.get("section_composition") or {}
 
     def transform(self, metadata: dict) -> dict:
         ctx = _Context(metadata, si=self._si)
@@ -564,7 +601,12 @@ class TransformationEngine:
         for rule in post_assign_rules:
             self._execute(rule, ctx)
         ctx.flush_permissions()
-        return ctx.build_output()
+        output = ctx.build_output()
+        # Attach the section_composition patterns so downstream consumers
+        # (navigation_planner) can drive section composition from YAML rules
+        # instead of hardcoded Python logic.
+        output["section_composition"] = self._sc
+        return output
 
     # ── Stage 1: Semantic Interpretation ─────────────────────────────────────
 
@@ -917,7 +959,9 @@ def _add_classifier_sections(ctx: _Context) -> None:
         ptr = str(classifier["id"])
         if ptr in ctx.class_section_registry:
             continue
-        ops = _ops_from_profile(ctx.semantic_profiles.get(ptr, {}))
+        profile = ctx.semantic_profiles.get(ptr, {})
+        ops = _ops_from_profile(profile)
+        layout = _layout_from_intent_profile(profile)
         ctx.class_section_registry[ptr] = {
             "id": str(uuid4()),
             "name": section_name_sanitization(cls_data["name"]),
@@ -926,7 +970,7 @@ def _add_classifier_sections(ctx: _Context) -> None:
             "class": ptr,
             "attributes": _build_attributes(cls_data.get("attributes", [])),
             "operations": ops,
-            "layout": "table",
+            "layout": layout,
             "position": "main",
             "col_span": 12,
             "style": {},

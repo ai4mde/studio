@@ -463,6 +463,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% endif -%}
         {% if page.type == 'activity' -%}
         {% if models_on_pages[page]['primary_models'] | length > 1 -%}
+        _active_process = self.active_process_node.active_process if self.active_process_node else None
         {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
         _associated_{{ primary_model }}_qs = _active_process.{{ primary_model.lower() }}s if _active_process is not None else None
         {% set _sections_for_model = page.section_components | selectattr('primary_model', 'equalto', primary_model) | list -%}

@@ -97,6 +97,51 @@ def _ensure_mapping_chrome_sections(pages: list, sections: list) -> tuple[list, 
     return pages, sections
 
 
+def _ensure_collection_detail_navigation(
+    pages: list,
+    sections: list,
+    nav_plan: dict,
+) -> tuple[list, list]:
+    """Wire on_row_click navigation from collection sections to the matching detail page.
+
+    Rule: for every object_collection section whose primary_model has a
+    corresponding detail_workspace page in the nav_plan, inject a behavior
+    block so the frontend knows where to navigate on row click.
+
+        collection section (Products)
+            behavior.on_row_click →  navigate  →  detail page (Product Detail)
+                                                   params: {id: $row.id}
+    """
+    # Build model → detail_page_id map from nav_plan pages
+    detail_page_by_model: dict[str, str] = {}
+    for p in nav_plan.get("pages") or []:
+        p_roles = set(p.get("roles") or [])
+        model = p.get("primary_model") or ""
+        if "detail_workspace" in p_roles and model:
+            detail_page_by_model[model] = str(p.get("id") or "")
+
+    if not detail_page_by_model:
+        return pages, sections
+
+    sections = [dict(s) for s in sections]
+    for section in sections:
+        if section.get("role") != "object_collection":
+            continue
+        model = section.get("primary_model") or ""
+        target_page_id = detail_page_by_model.get(model)
+        if not target_page_id:
+            continue
+        behavior = dict(section.get("behavior") or {})
+        if "on_row_click" not in behavior:
+            behavior["on_row_click"] = {
+                "action": "navigate",
+                "target_page_id": target_page_id,
+                "params": {"id": "$row.id"},
+            }
+        section["behavior"] = behavior
+    return pages, sections
+
+
 def _ensure_mapping_content_sections(
     pages: list,
     sections: list,
@@ -105,12 +150,9 @@ def _ensure_mapping_content_sections(
     model_graph: dict | None = None,
 ) -> tuple[list, list]:
     """Materialize OOUI/data support sections once during UML mapping, not during candidate generation."""
-    pages, sections = _materialize_nav_plan_sections(
-        pages,
-        sections,
-        (usecase_navigation or {}).get("nav_plan") or {},
-        model_attrs,
-    )
+    nav_plan = (usecase_navigation or {}).get("nav_plan") or {}
+    pages, sections = _materialize_nav_plan_sections(pages, sections, nav_plan, model_attrs)
+    pages, sections = _ensure_collection_detail_navigation(pages, sections, nav_plan)
     pages, sections = _ensure_workflow_entry_sections(pages, sections, usecase_navigation or {})
     pages, sections = _ensure_candidate_content_structure(
         pages,
@@ -587,18 +629,30 @@ def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, 
     pages = [dict(p) for p in pages]
     sections = [dict(s) for s in sections]
     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
+    # Index by BOTH uuid-id slug AND name slug so nav_plan page_ids (snake_case)
+    # can match TKB-generated pages whose `id` field is a UUID.
+    page_by_id: dict[str, dict] = {}
+    for p in pages:
+        if p.get("id"):
+            page_by_id[_section_id(str(p["id"]))] = p
+        if p.get("name"):
+            page_by_id[_section_id(str(p["name"]))] = p
+
+    _MODEL_FREE_ROLES = {"workflow_action", "workflow_history", "filter"}
 
     for section_plan in nav_plan.get("sections") or []:
-        if section_plan.get("role") not in DATA_SECTION_ROLES:
+        role = section_plan.get("role") or ""
+        if role not in DATA_SECTION_ROLES:
             continue
         sid = section_plan.get("id")
         page_id = _section_id(section_plan.get("page_id"))
         model = section_plan.get("primary_model") or ""
-        if not sid or not page_id or not model or sid in section_map:
+        if not sid or not page_id or sid in section_map:
             continue
-        if model not in model_attrs:
-            continue
+        # workflow_action / workflow_history / filter sections may have no primary_model
+        if role not in _MODEL_FREE_ROLES:
+            if not model or model not in model_attrs:
+                continue
         editable = set(section_plan.get("editable_fields") or [])
         operations = _normalize_section_operations(section_plan.get("operations"))
         operations["update"] = bool(operations.get("update") or editable)
@@ -628,11 +682,41 @@ def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, 
         }
         sections.append(section)
         section_map[sid] = section
-        page = page_by_id.get(page_id)
-        if page:
+        # nav_plan page_id is model-based ("customer", "products") but DB pages are
+        # named after usecase names ("manage_account", "browse_and_search_products").
+        # Collect ALL DB pages that match: first try the model-based page_id directly,
+        # then fall back to every usecase-name slug so multiple DB pages sharing the same
+        # nav_plan page (e.g. "add_product_to_cart" + "purchase_product" → "product") each
+        # get their sections.
+        matching_pages: list[dict] = []
+        direct = page_by_id.get(page_id)
+        if direct:
+            matching_pages.append(direct)
+        else:
+            for slug in section_plan.get("name_slugs") or []:
+                p = page_by_id.get(_section_id(slug))
+                if p and p not in matching_pages:
+                    matching_pages.append(p)
+        for page in matching_pages:
+            # For normal pages: clear TKB sections once so rule-driven nav_plan sections
+            # replace the raw TKB flood (e.g. 21 sections on Manage_Account) rather than
+            # stacking on top.
+            # For activity pages: keep TKB activity_action structural sections (they render
+            # the step-proceed button) and prepend the nav_plan content section in front.
+            is_activity = _page_type_value(page) == "activity"
+            if not is_activity and not page.get("_nav_plan_cleared"):
+                page["_nav_plan_cleared"] = True
+                page["sections"] = []
             refs = page.get("sections") or []
             if sid not in {_ref_id(ref) for ref in refs}:
-                page["sections"] = refs + [{"value": sid}]
+                if is_activity:
+                    # Insert content section before the activity_action structural sections
+                    # so the card appears above the proceed button.
+                    activity_refs = [r for r in refs if (section_map.get(_ref_id(r)) or {}).get("layout") == "activity_action"]
+                    other_refs = [r for r in refs if r not in activity_refs]
+                    page["sections"] = other_refs + [{"value": sid}] + activity_refs
+                else:
+                    page["sections"] = refs + [{"value": sid}]
     return pages, sections
 
 

@@ -88,6 +88,9 @@ DATA_SECTION_ROLES = {
     "object_summary",
     "child_collection",
     "object_form",
+    "filter",
+    "workflow_action",
+    "workflow_history",
 }
 
 _ACTIVITY_FORM_TERMS = re.compile(
@@ -346,7 +349,10 @@ def _child_section(page_id: str, model: str, model_attrs: dict, label: str = "",
         ),
         "operations": ["view", "update", "delete"],
         "data_source": {"mode": "query", "from": {"model": model}, "joins": []} if related_visible else {},
-        "query": {},
+        "query": _query_for_section(
+            "child_collection", model, visible_fields,
+            parent_model=(related_models or [""])[0],
+        ),
         "style": style,
         "col_span": 12,
     }
@@ -419,9 +425,472 @@ def _sections_for_activity_step(step: dict, model_attrs: dict, workflow_entries:
     return result
 
 
-def build_navigation_plan(usecase_navigation: dict, model_attrs: dict | None = None, workflow_steps: list | None = None) -> dict:
-    """Build navigation plan."""
+def _filter_section_for_model(
+    page_id: str,
+    model: str,
+    model_attrs: dict,
+) -> dict:
+    """Build a FilterPanel section for a collection page."""
+    filter_fields = _pick_fields(model_attrs, model, "filter", limit=5)
+    return {
+        "id": f"{page_id}_{_section_id(model)}_filter",
+        "page_id": page_id,
+        "role": "filter",
+        "name": f"Search {model}",
+        "layout": "filter",
+        "component": "FilterPanel",
+        "primary_model": model,
+        "visible_fields": filter_fields,
+        "editable_fields": filter_fields,
+        "related_visible_fields": [],
+        "field_layout": {},
+        "operations": {"create": False, "update": False, "delete": False, "select": False},
+        "query": _query_for_section("filter", model, filter_fields),
+        "style": {"color": "accent", "density": "compact", "shadow": "none", "border": "light", "bg": "light"},
+        "col_span": 12,
+    }
+
+
+def _collection_section_for_model(
+    page_id: str,
+    page: dict,
+    model: str,
+    model_attrs: dict,
+    actor_permissions: dict,
+    is_select: bool = False,
+    layout_override: str = "",
+    component_override: str = "",
+) -> dict:
+    """Build the primary data-collection section for a collection/browse page."""
+    layout = layout_override or _layout_for_page_role(page)
+    if layout == "detail":
+        layout = "table"
+    role = "object_collection"
+    visible_fields = _pick_fields(model_attrs, model, role)
+    component = component_override or _component_for_section(role, layout, model, page_id)
+    operations = _operations_for_page(model, actor_permissions, page)
+    style: dict = {
+        "color": "accent",
+        "density": "compact" if layout in {"list", "table"} else "normal",
+        "shadow": "sm",
+        "border": "light",
+        "bg": "white",
+    }
+    if layout in {"gallery", "card"}:
+        style.update({"display_mode": "grid", "columns": "3"})
+    if layout == "list":
+        style["list_style"] = "default"
+    return {
+        "id": f"{page_id}_{_section_id(model)}_object_collection",
+        "page_id": page_id,
+        "role": role,
+        "name": f"{page.get('name') or _page_name(page_id)} {model}",
+        "layout": layout,
+        "component": component,
+        "primary_model": model,
+        "visible_fields": visible_fields,
+        "editable_fields": _editable_fields_for_model(model_attrs, model, role, operations) if not is_select else [],
+        "related_visible_fields": [],
+        "field_layout": _field_layout_for_component(component, visible_fields),
+        "operations": {
+            "create": not is_select and "create" in operations,
+            "update": not is_select and "update" in operations,
+            "delete": not is_select and "delete" in operations,
+            "select": is_select,
+        },
+        "query": _query_for_section("object_collection", model, visible_fields),
+        "style": style,
+        "col_span": 12,
+    }
+
+
+def _detail_section_for_model(
+    page_id: str,
+    model: str,
+    model_attrs: dict,
+    actor_permissions: dict,
+    label: str = "",
+    editable: bool = True,
+) -> dict:
+    """Build an ObjectDetail section."""
+    role = "object_detail"
+    visible_fields = _pick_fields(model_attrs, model, role)
+    component = _component_for_section(role, "detail", model, page_id)
+    return {
+        "id": f"{page_id}_{_section_id(model)}_object_detail",
+        "page_id": page_id,
+        "role": role,
+        "name": label or f"{model} Details",
+        "layout": "detail",
+        "component": component,
+        "primary_model": model,
+        "visible_fields": visible_fields,
+        "editable_fields": _editable_fields_for_model(model_attrs, model, role, list(actor_permissions.get(model) or ["view", "update"])) if editable else [],
+        "related_visible_fields": [],
+        "field_layout": _field_layout_for_component(component, visible_fields),
+        "operations": {"create": False, "update": editable, "delete": editable, "select": False},
+        "query": _query_for_section("object_detail", model, visible_fields),
+        "style": {"color": "accent", "density": "normal", "shadow": "sm", "border": "none", "bg": "white"},
+        "col_span": 12,
+    }
+
+
+# ---------------------------------------------------------------------------
+# UI Pattern → Section Composition
+# ---------------------------------------------------------------------------
+# Pattern table (Interaction Profile → OOUI UI Pattern → Section list):
+#
+#   collection_workspace + Search/StateTransition   → FilterPanel + DataCollection
+#   collection_workspace (Lookup/simple)            → FilterPanel + DataList
+#   detail_workspace                                → ObjectDetail + ChildCollections
+#   workflow_entry                                  → SummaryPanel + WorkflowStart
+#   object_workspace (profile/settings)             → ObjectDetail
+#   select_existing (operation_kind)                → FilterPanel + DataCollection (select)
+#   form / create                                   → ObjectForm
+# ---------------------------------------------------------------------------
+
+def _query_for_section(
+    role: str,
+    model: str,
+    visible_fields: list[str] | None = None,
+    parent_model: str = "",
+    operation_kind: str = "",
+) -> dict:
+    """Auto-generate a query descriptor for a section based on its role.
+
+    Generates interface-metadata-compatible query objects:
+      object_collection  → list query with filter placeholder + ordering
+      object_detail      → single-object lookup by $params.id
+      object_form        → same as detail (edit form pre-populates)
+      object_summary     → same as detail (context panel)
+      child_collection   → related list filtered by parent FK
+      filter             → filter-form descriptor pointing at the collection
+      workflow_*         → empty (driven by workflow engine)
+    """
+    fields = list(visible_fields or [])
+    if role == "object_collection":
+        q: dict = {"model": model, "filter": {}, "limit": 20}
+        # Auto-detect ordering: prefer created_at, status, id
+        order_candidates = ["created_at", "updated_at", "name", "id"]
+        for f in order_candidates:
+            if f in fields:
+                q["order_by"] = [f"-{f}" if f in {"created_at", "updated_at"} else f]
+                break
+        if "search_fields" not in q and fields:
+            # Text fields for search
+            text_fields = [f for f in fields if any(t in f for t in ("name", "title", "label", "code", "description"))]
+            if text_fields:
+                q["search_fields"] = text_fields[:3]
+        return q
+    if role in {"object_detail", "object_form", "object_summary"}:
+        return {"model": model, "lookup": {"id": "$params.id"}}
+    if role == "child_collection":
+        # FK is parent_model_id on child table
+        fk = f"{parent_model.lower()}_id" if parent_model else "parent_id"
+        return {"model": model, "filter": {fk: "$params.id"}, "order_by": ["id"]}
+    if role == "filter":
+        # Describes the filter-form itself; not a data query
+        filter_fields = [f for f in fields if any(
+            t in f for t in ("status", "type", "category", "name", "date", "created")
+        )]
+        return {"type": "filter_form", "filter_fields": filter_fields or fields[:4]}
+    return {}
+
+
+def _resolve_dynamic(value: str, role: str, layout: str, model: str, page_id: str) -> str:
+    """Resolve $-prefixed dynamic values in section_composition pattern fields."""
+    if value == "$entity_layout":
+        return layout
+    if value == "$collection_component":
+        return _component_for_section(role or "object_collection", layout, model, page_id)
+    if value == "$detail_component":
+        return _component_for_section("object_detail", "detail", model, page_id)
+    return value
+
+
+def _match_composition_pattern(
+    pattern: dict,
+    page_roles: set,
+    intents: set,
+    n_attrs: int,
+    workflow_intents: set | None = None,
+    activity_node_name: str = "",
+) -> bool:
+    """Return True if a section_composition YAML pattern matches the page + entity profile.
+
+    Conditions (all must pass):
+      page_roles            — at least one role must match
+      intents_any/all       — entity intent conditions
+      min_attrs             — attribute count threshold
+      workflow_intents_any  — at least one workflow intent (Decision/StateTransition/…) from activity diagram
+      activity_terms_any    — regex alternatives matched against activity action node name
+    """
+    pattern_roles = set(pattern.get("page_roles") or [])
+    if not (pattern_roles & page_roles):
+        return False
+    intents_any = set(pattern.get("intents_any") or [])
+    if intents_any and not (intents_any & intents):
+        return False
+    intents_all = set(pattern.get("intents_all") or [])
+    if intents_all and not intents_all.issubset(intents):
+        return False
+    min_attrs = pattern.get("min_attrs")
+    if min_attrs and n_attrs < min_attrs:
+        return False
+    wi_any = set(pattern.get("workflow_intents_any") or [])
+    if wi_any and not (wi_any & (workflow_intents or set())):
+        return False
+    at_any_raw = pattern.get("activity_terms_any") or ""
+    if at_any_raw:
+        # YAML may give a single string or a list — join list items with | so they
+        # become regex alternatives; never pass a list directly to re.search().
+        if isinstance(at_any_raw, list):
+            at_any = "|".join(str(x) for x in at_any_raw)
+        else:
+            at_any = str(at_any_raw)
+        try:
+            if not re.search(at_any, activity_node_name, re.I):
+                return False
+        except re.error:
+            pass
+    return True
+
+
+def _build_section_from_pattern_entry(
+    entry: dict,
+    page: dict,
+    model: str,
+    model_attrs: dict,
+    model_graph: dict,
+    actor_permissions: dict,
+    page_id: str,
+    base_layout: str,
+    is_select: bool,
+) -> list[dict]:
+    """Build one or more section dicts from a single section_composition pattern entry."""
+    role = str(entry.get("role") or "")
+    layout_spec = str(entry.get("layout") or base_layout)
+    layout = _resolve_dynamic(layout_spec, role, base_layout, model, page_id)
+    comp_spec = str(entry.get("component") or "")
+    component = _resolve_dynamic(comp_spec, role, layout, model, page_id) or _component_for_section(role, layout, model, page_id)
+    col_span = int(entry.get("col_span") or 12)
+
+    # for_each: expand one section per 1:N child model
+    if entry.get("for_each") == "compositions_1n":
+        results = []
+        model_info = model_graph.get(model) or {}
+        seen: set[str] = set()
+        for rel_key in ("compositions_owned", "aggregations_owned", "associations"):
+            for assoc in model_info.get(rel_key) or []:
+                child = assoc.get("model") or ""
+                if child and child not in seen and child != model and child in model_attrs and assoc.get("cardinality") == "1-many":
+                    results.append(_child_section(page_id, child, model_attrs, related_models=[model]))
+                    seen.add(child)
+        return results
+
+    # Standard single section builders
+    if role == "filter":
+        return [_filter_section_for_model(page_id, model, model_attrs)]
+
+    if role == "object_collection":
+        # Pass layout/component from the YAML pattern if they are literal (not dynamic $-refs)
+        lo = layout if not layout_spec.startswith("$") else ""
+        co = component if not comp_spec.startswith("$") else ""
+        return [_collection_section_for_model(
+            page_id, page, model, model_attrs, actor_permissions,
+            is_select=is_select, layout_override=lo, component_override=co,
+        )]
+
+    if role == "object_detail":
+        return [_detail_section_for_model(page_id, model, model_attrs, actor_permissions)]
+
+    if role == "object_summary":
+        vis = _pick_fields(model_attrs, model, "object_summary")
+        return [{
+            "id": f"{page_id}_{_section_id(model)}_object_summary",
+            "page_id": page_id,
+            "role": "object_summary",
+            "name": f"{model} Summary",
+            "layout": "detail",
+            "component": component,
+            "primary_model": model,
+            "visible_fields": vis,
+            "editable_fields": [],
+            "related_visible_fields": [],
+            "field_layout": _field_layout_for_component(component, vis),
+            "operations": {"create": False, "update": False, "delete": False, "select": False},
+            "query": _query_for_section("object_summary", model, vis),
+            "style": {"color": "accent", "density": "compact", "shadow": "sm", "border": "light", "bg": "white"},
+            "col_span": col_span,
+        }]
+
+    if role == "object_form":
+        vis = _pick_fields(model_attrs, model, "object_form")
+        return [{
+            "id": f"{page_id}_{_section_id(model)}_object_form",
+            "page_id": page_id,
+            "role": "object_form",
+            "name": f"{model} Settings",
+            "layout": "form",
+            "component": component,
+            "primary_model": model,
+            "visible_fields": vis,
+            "editable_fields": vis,
+            "related_visible_fields": [],
+            "field_layout": _field_layout_for_component(component, vis),
+            "operations": {"create": False, "update": True, "delete": False, "select": False},
+            "query": _query_for_section("object_form", model, vis),
+            "style": {"color": "accent", "density": "normal", "shadow": "sm", "bg": "white", "form_style": "default"},
+            "col_span": col_span,
+        }]
+
+    if role == "workflow_action":
+        # Approve / Reject / Complete buttons panel for decision steps
+        return [{
+            "id": f"{page_id}_workflow_action",
+            "page_id": page_id,
+            "role": "workflow_action",
+            "name": "Actions",
+            "layout": layout or "action_panel",
+            "component": component or "WorkflowActionPanel",
+            "primary_model": model,
+            "visible_fields": [],
+            "editable_fields": [],
+            "related_visible_fields": [],
+            "field_layout": {},
+            "operations": {"create": False, "update": True, "delete": False, "select": False},
+            "query": {},
+            "style": {"color": "accent", "density": "normal", "shadow": "none", "bg": "white", "button_layout": "horizontal"},
+            "col_span": col_span,
+        }]
+
+    if role == "workflow_history":
+        # Timeline of previous workflow steps for result/share pages
+        return [{
+            "id": f"{page_id}_workflow_history",
+            "page_id": page_id,
+            "role": "workflow_history",
+            "name": "Workflow History",
+            "layout": layout or "timeline",
+            "component": component or "WorkflowTimeline",
+            "primary_model": model,
+            "visible_fields": [],
+            "editable_fields": [],
+            "related_visible_fields": [],
+            "field_layout": {},
+            "operations": {"create": False, "update": False, "delete": False, "select": False},
+            "query": {},
+            "style": {"color": "accent", "density": "compact", "shadow": "sm", "bg": "white"},
+            "col_span": col_span,
+        }]
+
+    return []
+
+
+def _compose_page_sections(
+    page: dict,
+    model_attrs: dict,
+    model_graph: dict,
+    actor_permissions: dict,
+    semantic_profiles: dict | None = None,
+    section_composition: dict | None = None,
+) -> list[dict]:
+    """Return the OOUI section list for a page, driven by YAML section_composition rules.
+
+    Pipeline:
+        TKB intent_rules  →  semantic_profiles  →  section_composition patterns
+        (YAML rule)           (engine output)        (YAML config, read here)
+
+    The candidate generation phase later only varies layout/component/tokens
+    within each section — it does not add or remove sections.
+    """
+    model = page.get("primary_model") or ""
+    page_id = str(page.get("id") or page.get("page_id") or "")
+    roles = set(page.get("roles") or [])
+    operation_kind = str(page.get("operation_kind") or page.get("kind") or "").lower()
+
+    if not model or not page_id:
+        return []
+
+    # ── Intents from TKB engine (YAML intent_rules), not Python heuristics ──
+    profile = (semantic_profiles or {}).get(model) or {}
+    intents: set[str] = set(profile.get("intents") or ["CRUD"])
+
+    is_select = (
+        operation_kind in {"select_existing", "select"}
+        or _ACTIVITY_SELECT_TERMS.search(f"{page_id} {page.get('name', '')}") is not None
+    )
+    if is_select:
+        roles = roles | {"select_existing"}
+
+    # ── Role augmentation: operation_kind and page-name heuristics ───────────
+    # Many UseCase names ("Products", "Manage Orders") don't trigger the YAML
+    # role_keywords, so they land on object_workspace (the default).  Upgrade
+    # the role here so the right YAML section_composition pattern is matched.
+    if "collection_workspace" not in roles and "detail_workspace" not in roles and "activity_action" not in roles:
+        if operation_kind in {"view_collection", "select_existing"}:
+            roles = roles | {"collection_workspace"}
+        elif operation_kind == "view_detail":
+            roles = roles | {"detail_workspace"}
+        elif operation_kind in {"manage_object", ""}:
+            # Plain plural model name → collection ("products", "orders", "customers")
+            pid_clean = page_id.replace("_", "").lower()
+            m_clean = model.lower()
+            if pid_clean in {m_clean, m_clean + "s", m_clean + "es",
+                              "manage" + m_clean, "manage" + m_clean + "s",
+                              "list" + m_clean + "s", "all" + m_clean + "s"}:
+                roles = roles | {"collection_workspace"}
+            # "Product Detail", "Order Detail" etc. → detail
+            elif any(kw in page_id for kw in ("_detail", "_profile", "_info", "_overview", "_view")):
+                roles = roles | {"detail_workspace"}
+
+    n_attrs = len(model_attrs.get(model) or [])
+    base_layout = _layout_for_page_role(page)
+    workflow_intents: set[str] = set(page.get("workflow_intents") or [])
+    activity_node_name: str = str(page.get("activity_node_name") or page.get("name") or "")
+
+    # ── Match first applicable YAML section_composition pattern ─────────────
+    patterns = (section_composition or {}).get("patterns") or []
+    for pattern in patterns:
+        if not _match_composition_pattern(
+            pattern, roles, intents, n_attrs,
+            workflow_intents=workflow_intents,
+            activity_node_name=activity_node_name,
+        ):
+            continue
+        if model not in model_attrs:
+            break
+        sections: list[dict] = []
+        for entry in pattern.get("sections") or []:
+            sections.extend(_build_section_from_pattern_entry(
+                entry, page, model, model_attrs, model_graph,
+                actor_permissions, page_id, base_layout, is_select,
+            ))
+        return sections
+
+    # ── Fallback: single section (old behaviour) if no pattern matched ───────
+    main = _section_for_page(page, model_attrs, actor_permissions)
+    return [main] if main else []
+
+
+def build_navigation_plan(
+    usecase_navigation: dict,
+    model_attrs: dict | None = None,
+    workflow_steps: list | None = None,
+    model_graph: dict | None = None,
+    semantic_profiles: dict | None = None,
+    section_composition: dict | None = None,
+) -> dict:
+    """Build navigation plan driven by YAML section_composition patterns.
+
+    semantic_profiles: name-keyed dict of {intents: [...]} from TKB engine
+    section_composition: the section_composition config block from the YAML rules file
+    model_graph: 1:N relation data for child_collection expansion
+    """
     model_attrs = model_attrs or {}
+    semantic_profiles = semantic_profiles or {}
+    section_composition = section_composition or {}
+    model_graph = model_graph or {}
     actor_permissions = usecase_navigation.get("actor_permissions") or {}
     pages = []
     sections = []
@@ -439,12 +908,19 @@ def build_navigation_plan(usecase_navigation: dict, model_attrs: dict | None = N
             "operation_kind": page.get("operation_kind") or page.get("kind") or "",
             "usecases": page.get("usecases") or [],
             "nav": page.get("page_id") in set(usecase_navigation.get("nav_bar_pages") or []),
+            "name_slugs": page.get("name_slugs") or [],
             "sections": [],
         }
-        main_section = _section_for_page(normalized, model_attrs, actor_permissions)
-        if main_section:
-            sections.append(main_section)
-            page_sections[normalized["id"]].append(main_section["id"])
+        composed = _compose_page_sections(
+            normalized, model_attrs, model_graph, actor_permissions,
+            semantic_profiles=semantic_profiles,
+            section_composition=section_composition,
+        )
+        name_slugs = normalized["name_slugs"]
+        for sec in composed:
+            sec["name_slugs"] = name_slugs
+            sections.append(sec)
+            page_sections[normalized["id"]].append(sec["id"])
         pages.append(normalized)
 
     for entry in usecase_navigation.get("workflow_entry_points") or []:
@@ -511,23 +987,55 @@ def build_navigation_plan(usecase_navigation: dict, model_attrs: dict | None = N
         page_id = step.get("page_id")
         if not page_id:
             continue
+        step_model = next((m for m in (step.get("classes") or []) if m in model_attrs), "")
+        # The nav_plan page_id has a "Workflow_" prefix (e.g. "workflow_view_cart") but the
+        # DB activity page is indexed by the plain activity-node name slug ("view_cart").
+        # Store that slug in name_slugs so _materialize_nav_plan_sections can find the DB page.
+        node_name_slug = _section_id(step.get("activity_node_name") or step.get("page_name") or "")
+        step_name_slugs = [node_name_slug] if node_name_slug and node_name_slug != page_id else []
         if page_id not in existing_page_ids:
+            # Build a normalized page dict so _compose_page_sections can pattern-match
+            # using the activity-diagram context (workflow_intents, activity_node_name).
             pages.append({
                 "id": page_id,
                 "name": step.get("page_name") or _page_name(page_id),
                 "role": "activity_action",
                 "roles": ["activity_action"],
-                "primary_model": next((m for m in (step.get("classes") or []) if m in model_attrs), ""),
+                "primary_model": step_model,
+                "activity_node_name": step.get("activity_node_name") or step.get("page_name") or "",
+                "workflow_intents": step.get("workflow_intents") or [],
                 "usecases": [],
                 "nav": False,
                 "sections": [],
             })
             existing_page_ids.add(page_id)
-        for sec in _sections_for_activity_step(step, model_attrs, workflow_entries):
-            if sec["id"] not in existing_section_ids:
-                sections.append(sec)
-                page_sections[page_id].append(sec["id"])
-                existing_section_ids.add(sec["id"])
+        if step_model:
+            # Use YAML-driven pattern selection instead of the old hardcoded function
+            step_page = {
+                "id": page_id,
+                "roles": ["activity_action"],
+                "primary_model": step_model,
+                "activity_node_name": step.get("activity_node_name") or step.get("page_name") or "",
+                "workflow_intents": step.get("workflow_intents") or [],
+            }
+            for sec in _compose_page_sections(
+                step_page, model_attrs, model_graph, actor_permissions,
+                semantic_profiles=semantic_profiles,
+                section_composition=section_composition,
+            ):
+                if sec["id"] not in existing_section_ids:
+                    sec["name_slugs"] = step_name_slugs
+                    sections.append(sec)
+                    page_sections[page_id].append(sec["id"])
+                    existing_section_ids.add(sec["id"])
+        else:
+            # No model known for this step — fall back to old logic
+            for sec in _sections_for_activity_step(step, model_attrs, workflow_entries):
+                if sec["id"] not in existing_section_ids:
+                    sec["name_slugs"] = step_name_slugs
+                    sections.append(sec)
+                    page_sections[page_id].append(sec["id"])
+                    existing_section_ids.add(sec["id"])
 
     for page in pages:
         page["sections"] = page_sections.get(page["id"], [])
