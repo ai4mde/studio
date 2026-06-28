@@ -1,0 +1,6 @@
+time="2026-06-28T20:47:22+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+[smoke] BookLoan pk=3 late_risk='' (expect '' - no write-back at Step 6)
+[smoke] cheap record: {'timestamp': '2026-06-28T18:47:23.216148+00:00', 'event': 'invoke_routed', 'model': 'BookLoan', 'pk': 3, 'model_profile': 'cheap', 'mode': 'real', 'provider': 'groq', 'routed_model': 'llama-3.3-70b-versatile', 'write_back': 'late_risk', 'ai_config_version': '1.0', 'response_preview': '```json\n{\n  "pk": 3,\n  "late_risk": "MEDIUM"\n}\n```'}
+[smoke] strong route: mode=real provider=openai model=gpt-4o
+[smoke] PASS: cheap->groq/llama + strong->openai/gpt-4o; mode=real; late_risk unchanged
+[DONE] Step 6 routing smoke VERIFIED.

@@ -1,2 +1,2 @@
-[INFO] 6B deferred with documented reason (step6b_deferred.md present)
+[PASS] 6B real provider run verified (cheap->groq reachable)
 [PASS] Step 6 (M06) verified: generated hook unchanged; runtime routes by model_profile; late_risk unchanged

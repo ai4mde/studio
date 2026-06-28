@@ -1,0 +1,1 @@
+{"timestamp": "2026-06-28T18:47:23.216148+00:00", "event": "invoke_routed", "model": "BookLoan", "pk": 3, "model_profile": "cheap", "mode": "real", "provider": "groq", "routed_model": "llama-3.3-70b-versatile", "write_back": "late_risk", "ai_config_version": "1.0", "response_preview": "```json\n{\n  \"pk\": 3,\n  \"late_risk\": \"MEDIUM\"\n}\n```"}
