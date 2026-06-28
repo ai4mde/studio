@@ -819,30 +819,55 @@ def hot_reload_templates(request, payload: HotReloadPayload):
     files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations, preview_mode=False)
     base_file = render_base_template(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
 
+    # Compute app_dir from interface name using the same sanitization as the full-sync
+    # generator: preserve original case, replace spaces/dashes with underscores.
+    # This handles multi-word names like "Document analyst" → "Document_analyst".
+    def _iface_app_dir(name: str) -> str:
+        n = str(name or "").replace(" ", "_").replace("-", "_")
+        n = re.sub(r"\W", "", n)
+        while "__" in n:
+            n = n.replace("__", "_")
+        return n.strip("_")
+
+    app_dir = _iface_app_dir(iface.name)          # "Document_analyst", "Customer"
+    app_part_count = len(app_dir.split("_"))       # 2 for "Document_analyst", 1 for "Customer"
+
+    # Build lowercase-page-key → properly-cased page name from raw interface data
+    # so "analyze_documents" → "Analyze_documents" (matching full-sync output).
+    page_name_map: dict[str, str] = {}
+    for p_raw in interface_data.get("pages", []):
+        raw = str(p_raw.get("name", "") or "")
+        sanitized = raw.replace(" ", "_").replace("-", "_")
+        sanitized = re.sub(r"\W", "", sanitized).strip("_")
+        page_name_map[sanitized.lower()] = sanitized  # "analyze_documents" → "Analyze_documents"
+
     hot_reload_files = []
     for f in files:
-        # f["path"] = "templates/customer_browse_products.html"
-        # Actual path: {proto_path}/Customer/templates/Customer_Browse_Products.html
-        rel = f["path"]  # e.g. "templates/customer_browse_products.html"
-        basename = rel.split("/")[-1]  # "customer_browse_products.html"
+        rel = f["path"]
+        basename = rel.split("/")[-1]
         stem, ext = basename.rsplit(".", 1)
-        parts = stem.split("_")
-        title_parts = [p.capitalize() for p in parts]
-        title_filename = "_".join(title_parts) + "." + ext  # "Customer_Browse_Products.html"
-        app_dir = title_parts[0]  # "Customer"
-        if len(title_parts) == 2 and title_parts[1].lower() == "task":
+        all_parts = stem.split("_")
+        page_parts = all_parts[app_part_count:]   # strip the app-name prefix
+        page_key = "_".join(page_parts)            # "analyze_documents", "task"
+
+        if page_key == "task":
             title_filename = f"{app_dir}_home.{ext}"
+        else:
+            proper_page = page_name_map.get(page_key)
+            if not proper_page:
+                # Fallback: capitalize just the first word (matches most cases)
+                proper_page = "_".join(
+                    p.capitalize() if i == 0 else p for i, p in enumerate(page_parts)
+                )
+            title_filename = f"{app_dir}_{proper_page}.{ext}"
+
         hot_reload_files.append({
             "path": f"{app_dir}/templates/{title_filename}",
             "content": f["content"],
         })
 
-    base_basename = base_file["path"].split("/")[-1]
-    base_stem, base_ext = base_basename.rsplit(".", 1)
-    base_app_name = base_stem.rsplit("_", 1)[0]
-    base_app_dir = "_".join(part.capitalize() for part in base_app_name.split("_"))
     hot_reload_files.append({
-        "path": f"{base_app_dir}/templates/{base_app_dir}_base.{base_ext}",
+        "path": f"{app_dir}/templates/{app_dir}_base.{base_file['path'].rsplit('.', 1)[-1]}",
         "content": base_file["content"],
     })
 
