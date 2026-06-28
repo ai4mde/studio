@@ -271,6 +271,18 @@ def _sanitize(name: str) -> str:
     return name.lower()
 
 
+def _sanitize_classname(name: str) -> str:
+    """Like _sanitize but preserves PascalCase — used for Django model class names so that
+    generated template loop variables (e.g. {% for Product in Product_list %}) match the
+    context_object_name produced by the full-sync views.py generator."""
+    name = str(name or "")
+    name = re.sub(r"[^\w\s]", "", name)
+    name = re.sub(r"\s+", "_", name.strip())
+    if name and name[0].isdigit():
+        name = "cls_" + name
+    return name
+
+
 def _id_reference_model(field_name: str, current_model: str, model_names: set[str]) -> Optional[str]:
     """Return the related model for fields like patient_id when that model exists."""
     raw = _sanitize(field_name)
@@ -590,7 +602,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             declared_primary_model = str(s_raw.get("primary_model") or s_raw.get("object") or "")
             if not cls_data and declared_primary_model:
                 cls_data = classifier_name_map.get(_sanitize(declared_primary_model), {})
-            primary_model = _sanitize(cls_data.get("name", "")) if cls_data else ""
+            primary_model = _sanitize_classname(cls_data.get("name", "")) if cls_data else ""
             parent_models = _infer_parent_models(str(s_raw.get("class", "")), classifiers, relations)
             sec_layout = _normalize_layout_alias(s_raw.get("layout", "table"))
 
