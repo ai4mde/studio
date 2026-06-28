@@ -730,8 +730,9 @@ def visual_check(request, payload: VisualCheckPayload):
         for key, value in expected_sig["css_vars"].items():
             if live_sig["css_vars"].get(key) != value:
                 css_mismatches.append(f"{key}: expected {value}, live {live_sig['css_vars'].get(key)}")
-        if expected_sig["button_count"] != live_sig["button_count"]:
-            structure_mismatches.append(f"button_count: expected {expected_sig['button_count']}, live {live_sig['button_count']}")
+        # button_count is intentionally not compared: preview uses postMessage-based
+        # navigation buttons (si-btn class) while live uses plain Django <a> links,
+        # so counts are structurally incomparable between the two rendering modes.
         if expected_sig["section_count"] != live_sig["section_count"]:
             structure_mismatches.append(f"section_count: expected {expected_sig['section_count']}, live {live_sig['section_count']}")
         screenshot = _screenshot_preview_live_pair(
