@@ -694,11 +694,12 @@ def visual_check(request, payload: VisualCheckPayload):
         for key_source in (page.get("id"), page.get("name"), route_name):
             key = _preview_page_key(key_source)
             if key:
-                # Prefer "normal" type over "activity" when the same page name appears
-                # with both types (e.g. a page defined as both a regular view and a workflow
-                # activity step). Normal wins so we test the actual page URL, not the home redirect.
+                # Prefer "activity" type over "normal" when the same page name appears
+                # with both types. The prototype only registers the activity URL (with
+                # active_process_node_id param); the bare normal URL is not in urls.py
+                # and would 404. Activity pages fall back to /{app}/ for the live check.
                 existing = page_route_by_key.get(key)
-                if not existing or existing.get("type") == "activity":
+                if not existing or existing.get("type") != "activity":
                     page_route_by_key[key] = page_info
     live_session = requests.Session()
     live_user = payload.live_user or "jan_devries"

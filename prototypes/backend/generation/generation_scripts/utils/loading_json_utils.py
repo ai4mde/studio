@@ -734,6 +734,17 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
         _log.exception("retrieve_pages error")
         raise ValueError(f"Failed to retrieve pages from metadata: parsing error - {_e}") from _e
 
+    # Deduplicate by name: activity type takes precedence over normal.
+    # This prevents a duplicate nav link when the same page appears as both
+    # normal and activity (activity URL requires active_process_node_id, so
+    # the normal variant would generate a broken {% url %} with no param).
+    seen: dict[str, Page] = {}
+    for pg in out:
+        existing = seen.get(pg.name)
+        if existing is None or pg.type == "activity":
+            seen[pg.name] = pg
+    out = list(seen.values())
+
     return out
 
 

@@ -794,13 +794,14 @@ def _compose_page_sections(
     actor_permissions: dict,
     semantic_profiles: dict | None = None,
     section_composition: dict | None = None,
-) -> list[dict]:
-    """Return the OOUI section list for a page, driven by YAML section_composition rules.
+) -> tuple[str | None, list[dict]]:
+    """Return (pattern_name, sections) for a page, driven by YAML section_composition rules.
 
     Pipeline:
         TKB intent_rules  →  semantic_profiles  →  section_composition patterns
         (YAML rule)           (engine output)        (YAML config, read here)
 
+    pattern_name: the `pattern:` field from the matched YAML entry, or None.
     The candidate generation phase later only varies layout/component/tokens
     within each section — it does not add or remove sections.
     """
@@ -860,17 +861,18 @@ def _compose_page_sections(
             continue
         if model not in model_attrs:
             break
+        pattern_name: str | None = pattern.get("pattern") or None
         sections: list[dict] = []
         for entry in pattern.get("sections") or []:
             sections.extend(_build_section_from_pattern_entry(
                 entry, page, model, model_attrs, model_graph,
                 actor_permissions, page_id, base_layout, is_select,
             ))
-        return sections
+        return pattern_name, sections
 
     # ── Fallback: single section (old behaviour) if no pattern matched ───────
     main = _section_for_page(page, model_attrs, actor_permissions)
-    return [main] if main else []
+    return None, ([main] if main else [])
 
 
 def build_navigation_plan(
@@ -911,11 +913,13 @@ def build_navigation_plan(
             "name_slugs": page.get("name_slugs") or [],
             "sections": [],
         }
-        composed = _compose_page_sections(
+        pattern_name, composed = _compose_page_sections(
             normalized, model_attrs, model_graph, actor_permissions,
             semantic_profiles=semantic_profiles,
             section_composition=section_composition,
         )
+        if pattern_name:
+            normalized["pattern"] = pattern_name
         name_slugs = normalized["name_slugs"]
         for sec in composed:
             sec["name_slugs"] = name_slugs
@@ -1018,11 +1022,17 @@ def build_navigation_plan(
                 "activity_node_name": step.get("activity_node_name") or step.get("page_name") or "",
                 "workflow_intents": step.get("workflow_intents") or [],
             }
-            for sec in _compose_page_sections(
+            step_pattern, step_composed = _compose_page_sections(
                 step_page, model_attrs, model_graph, actor_permissions,
                 semantic_profiles=semantic_profiles,
                 section_composition=section_composition,
-            ):
+            )
+            if step_pattern:
+                for p in pages:
+                    if p["id"] == page_id:
+                        p["pattern"] = step_pattern
+                        break
+            for sec in step_composed:
                 if sec["id"] not in existing_section_ids:
                     sec["name_slugs"] = step_name_slugs
                     sections.append(sec)

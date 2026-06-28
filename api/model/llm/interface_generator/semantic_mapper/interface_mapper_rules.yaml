@@ -450,11 +450,16 @@ section_composition:
     # activity pages can also carry collection_workspace / detail_workspace roles.
     # The activity_terms_any / workflow_intents_any conditions make them specific
     # enough to not collide with usecase patterns.
+    #
+    # All activity-action patterns are steps inside a Wizard-style workflow.
+    # The `pattern` field names the specific step type; consumers (LLM prompt,
+    # nav plan) can read page.pattern to understand the interaction strategy.
 
     # ── Review / Approval step (Decision node present in diagram) ─────────────
     # Example: "Assess application completeness", "Final decision"
     # → SummaryPanel (context) + ApprovalActionPanel (Approve/Reject buttons)
-    - page_roles: [activity_action]
+    - pattern: ApprovalStep
+      page_roles: [activity_action]
       workflow_intents_any: [Decision, StateTransition]
       activity_terms_any: [assess|review|evaluate|check|inspect|verify|decide|judge|examine|final.decision]
       sections:
@@ -470,7 +475,8 @@ section_composition:
     # ── Document analysis step (parallel fork branch) ─────────────────────────
     # Example: "Perform risk analysis", "Analyze documents"
     # → DocumentViewer + analysis form
-    - page_roles: [activity_action]
+    - pattern: DocumentReview
+      page_roles: [activity_action]
       activity_terms_any: [analy|risk|audit|inspect|document|report|review.document]
       sections:
         - role: object_detail
@@ -485,7 +491,8 @@ section_composition:
     # ── Data entry / form submission step ─────────────────────────────────────
     # Example: "Fill in application", "Submit extra documents", "Provide additional information"
     # → Object form (the entity being filled in)
-    - page_roles: [activity_action]
+    - pattern: DataEntryStep
+      page_roles: [activity_action]
       activity_terms_any: [fill|enter|submit|provide|upload|input|register|create|apply|book|record|add]
       sections:
         - role: object_form
@@ -496,7 +503,8 @@ section_composition:
     # ── Select / browse step ──────────────────────────────────────────────────
     # Example: "Select product", "Choose category", "Pick items"
     # → FilterPanel + selectable DataTable
-    - page_roles: [activity_action]
+    - pattern: SelectStep
+      page_roles: [activity_action]
       activity_terms_any: [select|choose|pick|browse|search|find]
       sections:
         - role: filter
@@ -511,7 +519,8 @@ section_composition:
     # ── Result / notification step ────────────────────────────────────────────
     # Example: "Share results", "Send notification", "Notify applicant"
     # → SummaryPanel (what was decided) + status indicator
-    - page_roles: [activity_action]
+    - pattern: OutcomeStep
+      page_roles: [activity_action]
       activity_terms_any: [share.result|notify|send.result|result|outcome|status.update|confirmation]
       sections:
         - role: object_summary
@@ -525,7 +534,8 @@ section_composition:
 
     # ── Generic activity action (fallback for unrecognised action names) ──────
     # Shows a summary of the object + the action button
-    - page_roles: [activity_action]
+    - pattern: WorkflowStep
+      page_roles: [activity_action]
       sections:
         - role: object_summary
           layout: detail
@@ -543,7 +553,10 @@ section_composition:
     # ── Collection workspace ──────────────────────────────────────────────────
 
     # Searchable collection with status lifecycle: FilterPanel + data grid
-    - page_roles: [collection_workspace]
+    # Triggered by: CRUD entity with Search or StateTransition intent
+    # → Master-Detail pattern: filter panel anchors the "master" side
+    - pattern: MasterDetail
+      page_roles: [collection_workspace]
       intents_any: [Search, StateTransition]
       sections:
         - role: filter
@@ -556,7 +569,9 @@ section_composition:
           col_span: 12
 
     # Lookup / reference collection: filter + compact list
-    - page_roles: [collection_workspace]
+    # Triggered by: Lookup intent (small, stable, read-only reference table)
+    - pattern: ReferenceList
+      page_roles: [collection_workspace]
       intents_any: [Lookup]
       sections:
         - role: filter
@@ -569,7 +584,9 @@ section_composition:
           col_span: 12
 
     # CRUD collection with enough attributes to merit a filter
-    - page_roles: [collection_workspace]
+    # Triggered by: CRUD entity with ≥3 attributes (filter adds value)
+    - pattern: MasterDetail
+      page_roles: [collection_workspace]
       min_attrs: 3
       sections:
         - role: filter
@@ -582,7 +599,8 @@ section_composition:
           col_span: 12
 
     # Minimal collection (few attrs — no filter panel needed)
-    - page_roles: [collection_workspace]
+    - pattern: ObjectList
+      page_roles: [collection_workspace]
       sections:
         - role: object_collection
           layout: $entity_layout
@@ -590,7 +608,8 @@ section_composition:
           col_span: 12
 
     # Select-existing modal: always show filter + selectable collection
-    - page_roles: [select_existing]
+    - pattern: SelectionDialog
+      page_roles: [select_existing]
       sections:
         - role: filter
           layout: filter
@@ -604,8 +623,10 @@ section_composition:
     # ── Detail workspace ──────────────────────────────────────────────────────
 
     # Detail page with owned children (Hierarchy intent)
+    # Triggered by: entity that owns 1:N children via composition
     # Produces: primary detail + one child_collection per 1:N composition
-    - page_roles: [detail_workspace]
+    - pattern: MasterDetail
+      page_roles: [detail_workspace]
       intents_any: [Hierarchy]
       sections:
         - role: object_detail
@@ -619,7 +640,8 @@ section_composition:
           col_span: 12
 
     # Detail page without children
-    - page_roles: [detail_workspace]
+    - pattern: DetailView
+      page_roles: [detail_workspace]
       sections:
         - role: object_detail
           layout: detail
@@ -629,7 +651,8 @@ section_composition:
     # ── Workflow entry ────────────────────────────────────────────────────────
 
     # Workflow start: show the object that will be acted on; button added by engine
-    - page_roles: [workflow_entry]
+    - pattern: WorkflowEntry
+      page_roles: [workflow_entry]
       sections:
         - role: object_summary
           layout: detail
@@ -639,7 +662,9 @@ section_composition:
     # ── Object workspace ──────────────────────────────────────────────────────
 
     # Settings / config workspace: editable form
-    - page_roles: [object_workspace]
+    # Triggered by: Configuration intent (admin-only, no free create/delete)
+    - pattern: SettingsForm
+      page_roles: [object_workspace]
       intents_any: [Configuration]
       sections:
         - role: object_form
@@ -648,7 +673,8 @@ section_composition:
           col_span: 12
 
     # Profile / account: read-only detail panel
-    - page_roles: [object_workspace]
+    - pattern: ProfileView
+      page_roles: [object_workspace]
       sections:
         - role: object_detail
           layout: detail
