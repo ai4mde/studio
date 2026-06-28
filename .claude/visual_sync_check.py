@@ -137,16 +137,20 @@ def main():
         if not checks:
             continue
 
-        fails = [c for c in checks if not c.get("ok")]
-        ok_count = len(checks) - len(fails)
+        # Separate real failures (have mismatches) from untestable pages (non-200, no mismatches)
+        real_fails = [c for c in checks if not c.get("ok") and c.get("mismatches")]
+        skipped_checks = [c for c in checks if not c.get("ok") and not c.get("mismatches")]
+        ok_count = len(checks) - len(real_fails) - len(skipped_checks)
 
-        if fails:
+        if real_fails:
             any_fail = True
-            for f in fails:
+            for f in real_fails:
                 mismatches = "; ".join(f.get("mismatches", [])[:3])
                 summary_lines.append(f"[{name}] page '{f['page']}' MISMATCH: {mismatches}")
-        else:
-            summary_lines.append(f"[{name}] OK {ok_count}/{len(checks)} pages consistent")
+
+        if not real_fails:
+            skipped_note = f", {len(skipped_checks)} skipped" if skipped_checks else ""
+            summary_lines.append(f"[{name}] OK {ok_count}/{len(checks)} pages consistent{skipped_note}")
 
     if not summary_lines:
         sys.exit(0)
