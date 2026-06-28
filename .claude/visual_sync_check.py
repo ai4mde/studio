@@ -51,12 +51,33 @@ def get_token(cfg: dict) -> str | None:
     return None
 
 
-def get_interfaces(token: str) -> list[dict]:
+def get_active_system(token: str) -> str | None:
+    """Return the system_id of the currently running prototype, or None."""
     import requests
     try:
         resp = requests.get(
+            f"{API_BASE}/generator/prototypes/active_prototype/",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
+        if resp.ok:
+            data = resp.json()
+            if data.get("running"):
+                return data.get("system")
+    except Exception:
+        pass
+    return None
+
+
+def get_interfaces(token: str, system_id: str | None = None) -> list[dict]:
+    import requests
+    try:
+        params: dict = {"limit": 50}
+        if system_id:
+            params["system"] = system_id
+        resp = requests.get(
             f"{API_BASE}/metadata/interfaces/",
-            params={"limit": 50},
+            params=params,
             headers={"Authorization": f"Bearer {token}"},
             timeout=10,
         )
@@ -93,7 +114,8 @@ def main():
     if not token:
         sys.exit(0)
 
-    interfaces = get_interfaces(token)
+    active_system = get_active_system(token)
+    interfaces = get_interfaces(token, system_id=active_system)
     if not interfaces:
         sys.exit(0)
 
