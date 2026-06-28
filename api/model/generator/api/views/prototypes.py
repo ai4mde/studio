@@ -711,7 +711,8 @@ def visual_check(request, payload: VisualCheckPayload):
         route_info = page_route_by_key.get(_preview_page_key(page_name), {})
         route_name = route_info.get("route_name") or _django_route_name(page_name)
         page_type = route_info.get("type", "")
-        live_path = f"/{app}/" if page_name.lower() == "task" or page_type == "activity" else f"/{app}/render_{app}_{route_name}"
+        is_activity = page_type == "activity"
+        live_path = f"/{app}/" if page_name.lower() == "task" or is_activity else f"/{app}/render_{app}_{route_name}"
         live_url = f"{public_base_url}{live_path}"
         check_live_url = f"{check_base_url}{live_path}"
         fetch_url = f"{check_base_url}/autologin?as={live_user}&next={live_path}"
@@ -733,7 +734,9 @@ def visual_check(request, payload: VisualCheckPayload):
         # button_count is intentionally not compared: preview uses postMessage-based
         # navigation buttons (si-btn class) while live uses plain Django <a> links,
         # so counts are structurally incomparable between the two rendering modes.
-        if expected_sig["section_count"] != live_sig["section_count"]:
+        # section_count is skipped for activity pages: they route to the app home (no active
+        # process node), so section counts of the home page vs the activity template differ by design.
+        if not is_activity and expected_sig["section_count"] != live_sig["section_count"]:
             structure_mismatches.append(f"section_count: expected {expected_sig['section_count']}, live {live_sig['section_count']}")
         screenshot = _screenshot_preview_live_pair(
             preview_html=file.get("content", ""),
