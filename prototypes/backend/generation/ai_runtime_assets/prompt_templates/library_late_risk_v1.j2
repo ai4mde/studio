@@ -1,0 +1,12 @@
+You are assessing the late-return risk of a single library book loan.
+
+Loan record:
+- Book: {{ book_title }} (author: {{ author_name }})
+- Customer: {{ customer_name }}
+- Loan date: {{ loan_date }}
+- Due date: {{ due_date }}
+- Return date: {{ return_date }}
+
+Task: classify the late-return risk as exactly one of LOW, MEDIUM, HIGH.
+Return ONLY a JSON object of exactly this form, with no markdown and no other text:
+{"late_risk": "LOW"}

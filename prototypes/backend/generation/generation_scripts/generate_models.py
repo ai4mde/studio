@@ -1,5 +1,7 @@
 from typing import List
 import sys
+import os
+import shutil
 from utils.definitions.model import Model, Attribute, AttributeType, CustomMethod, define_cardinality
 from utils.file_generation import generate_output_file
 import json
@@ -203,14 +205,24 @@ def main():
         if not generate_output_file(AI_HOOKS_TEMPLATE_PATH, AI_HOOKS_OUTPUT_PATH,
                                     {"hooks": hooks, "models_to_import": models_to_import}):
             raise Exception("Failed to generate shared_models/ai_hooks.py")
-        # --- Step 5B: wiring + runtime stub (only when hooks exist) ---
+        # --- Step 5B: apps.py wiring (unchanged) ---
         SHARED_APPS_TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/shared_models_apps.py.jinja2"
         SHARED_APPS_OUTPUT_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/shared_models/apps.py"
-        AI_RUNTIME_TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/ai_runtime_init.py.jinja2"
-        AI_RUNTIME_OUTPUT_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/ai_runtime/__init__.py"
         if not generate_output_file(SHARED_APPS_TEMPLATE_PATH, SHARED_APPS_OUTPUT_PATH, {}):
             raise Exception("Failed to generate shared_models/apps.py")
-        if not generate_output_file(AI_RUNTIME_TEMPLATE_PATH, AI_RUNTIME_OUTPUT_PATH, {}):
+
+        # --- Step 7: materialize the ai_runtime package (vendored M01/M03 + generated M02/M06/invoke) ---
+        GEN_ROOT = "/usr/src/prototypes/backend/generation"
+        ASSETS_DIR = GEN_ROOT + "/ai_runtime_assets"
+        AI_RUNTIME_DIR = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/ai_runtime"
+        if os.path.isdir(AI_RUNTIME_DIR):
+            shutil.rmtree(AI_RUNTIME_DIR)
+        shutil.copytree(ASSETS_DIR, AI_RUNTIME_DIR, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        if not generate_output_file(GEN_ROOT + "/templates/ai_runtime_routing.py.jinja2", AI_RUNTIME_DIR + "/routing.py", {}):
+            raise Exception("Failed to generate ai_runtime/routing.py")
+        if not generate_output_file(GEN_ROOT + "/templates/ai_runtime_context.py.jinja2", AI_RUNTIME_DIR + "/context.py", {}):
+            raise Exception("Failed to generate ai_runtime/context.py")
+        if not generate_output_file(GEN_ROOT + "/templates/ai_runtime_init.py.jinja2", AI_RUNTIME_DIR + "/__init__.py", {}):
             raise Exception("Failed to generate ai_runtime/__init__.py")
 
     return True
