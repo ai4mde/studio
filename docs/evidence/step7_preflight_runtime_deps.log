@@ -1,0 +1,2 @@
+time="2026-06-29T14:36:09+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+jinja2 3.1.4 pydantic 2.8.2

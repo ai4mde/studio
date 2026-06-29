@@ -1,0 +1,2 @@
+[PASS] 7B real end-to-end verified (late_risk written from a real provider)
+[PASS] Step 7 verified: M01+M02+M03+M05+M06+M07 produce late_risk end-to-end; generated hook/model unchanged vs 5C

@@ -1,0 +1,26 @@
+2a3,4
+> import os
+> import shutil
+206c208
+<         # --- Step 5B: wiring + runtime stub (only when hooks exist) ---
+---
+>         # --- Step 5B: apps.py wiring (unchanged) ---
+209,210d210
+<         AI_RUNTIME_TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/ai_runtime_init.py.jinja2"
+<         AI_RUNTIME_OUTPUT_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/ai_runtime/__init__.py"
+213c213,225
+<         if not generate_output_file(AI_RUNTIME_TEMPLATE_PATH, AI_RUNTIME_OUTPUT_PATH, {}):
+---
+> 
+>         # --- Step 7: materialize the ai_runtime package (vendored M01/M03 + generated M02/M06/invoke) ---
+>         GEN_ROOT = "/usr/src/prototypes/backend/generation"
+>         ASSETS_DIR = GEN_ROOT + "/ai_runtime_assets"
+>         AI_RUNTIME_DIR = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/ai_runtime"
+>         if os.path.isdir(AI_RUNTIME_DIR):
+>             shutil.rmtree(AI_RUNTIME_DIR)
+>         shutil.copytree(ASSETS_DIR, AI_RUNTIME_DIR, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+>         if not generate_output_file(GEN_ROOT + "/templates/ai_runtime_routing.py.jinja2", AI_RUNTIME_DIR + "/routing.py", {}):
+>             raise Exception("Failed to generate ai_runtime/routing.py")
+>         if not generate_output_file(GEN_ROOT + "/templates/ai_runtime_context.py.jinja2", AI_RUNTIME_DIR + "/context.py", {}):
+>             raise Exception("Failed to generate ai_runtime/context.py")
+>         if not generate_output_file(GEN_ROOT + "/templates/ai_runtime_init.py.jinja2", AI_RUNTIME_DIR + "/__init__.py", {}):
