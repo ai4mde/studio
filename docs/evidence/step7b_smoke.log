@@ -1,0 +1,5 @@
+time="2026-06-29T14:46:54+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+[smoke] BookLoan pk=2 late_risk='LOW'
+[smoke] record keys: ['ai_config_version', 'context', 'error', 'event', 'mode', 'model', 'model_profile', 'parsed_output', 'pk', 'provider', 'raw_output', 'routed_model', 'status', 'template', 'timestamp', 'trigger', 'write_back']
+[smoke] PASS: post_save -> M02 context -> M01 render -> M06 route -> M03 parse -> write-back late_risk='LOW' (mode=real)
+[DONE] Step 7 late_risk end-to-end VERIFIED.
