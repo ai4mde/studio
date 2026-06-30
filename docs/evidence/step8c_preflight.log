@@ -1,0 +1,4 @@
+time="2026-06-30T16:23:31+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+OPENAI_API_KEY_PRESENT= 0
+openai_importable= 1
+openai_version= 2.44.0

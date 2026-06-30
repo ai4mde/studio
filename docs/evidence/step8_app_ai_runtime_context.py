@@ -1,0 +1,22 @@
+"""M02 Retrieval / grounding - generated-app-specific context extraction.
+Realizes the declared ai_config.context for the Library model by traversing the generated
+ORM. Hand-written for this demonstrator; auto-deriving traversal from ai_config for arbitrary
+models is future generator work (thesis limitation). M02 is data-facing: the retrieval
+substrate is application-specific by design."""
+
+
+def build_context(ai_config, instance):
+    # instance is a BookLoan. Declared context fields live on the related Loan; related
+    # objects are reached via the generator's PascalCase FK names.
+    loan = getattr(instance, "Loan", None)
+    book = getattr(instance, "Book", None)
+    customer = getattr(loan, "Customer", None) if loan is not None else None
+    author = getattr(book, "Author", None) if book is not None else None
+    return {
+        "book_title": getattr(book, "title", "") or "",
+        "author_name": getattr(author, "name", "") or "",
+        "customer_name": getattr(customer, "name", "") or "",
+        "loan_date": getattr(loan, "loan_date", "") or "",
+        "due_date": getattr(loan, "due_date", "") or "",
+        "return_date": getattr(loan, "return_date", "") or "",
+    }

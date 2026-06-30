@@ -1,0 +1,6 @@
+time="2026-06-30T16:33:30+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+[smoke] M02 substrate OK: 3 borrowed books -> ['Dune', 'Foundation', 'Neuromancer']
+[smoke] reading_plan='1) Dune; 2) The Left Hand of Darkness; 3) Neuromancer'
+[smoke] event=invoke_chain status=success mode=real steps=3
+[smoke] PASS: user_action -> M04 chain (analyze_taste -> recommend -> sequence) -> reading_plan written (53 chars, mode=real)
+[DONE] Step 8 reading_plan chain end-to-end VERIFIED.

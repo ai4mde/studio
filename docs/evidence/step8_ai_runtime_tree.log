@@ -1,0 +1,12 @@
+time="2026-06-30T16:20:47+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+total 32
+drwxr-xr-x 10 root root  320 Jun 30 14:20 .
+drwxr-xr-x 11 root root  352 Jun 30 14:20 ..
+-rw-r--r--  1 root root 2805 Jun 30 14:20 __init__.py
+-rw-r--r--  1 root root 3571 Jun 30 14:17 chains.py
+-rw-r--r--  1 root root 1199 Jun 30 14:20 context.py
+-rw-r--r--  1 root root 5665 Jun 29 12:33 parsers.py
+drwxr-xr-x  6 root root  192 Jun 30 14:17 prompt_templates
+-rw-r--r--  1 root root 2181 Jun 30 14:20 reading_plan.py
+-rw-r--r--  1 root root 1655 Jun 30 14:20 routing.py
+-rw-r--r--  1 root root 2136 Jun 30 14:17 templates.py

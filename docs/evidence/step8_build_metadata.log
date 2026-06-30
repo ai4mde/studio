@@ -1,0 +1,4 @@
+time="2026-06-30T15:58:29+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+[step8-meta] system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e
+[PASS] Step 8 metadata: late_risk + reading_plan ai_config present
+[step8-meta] wrote /tmp/step8_metadata.json
