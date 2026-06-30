@@ -1,0 +1,48 @@
+# GENERATED - M07 user-action LLM invocation glue (do not edit by hand).
+# Mirrors ai_hooks.py for the post_save case; here the trigger is an explicit user action.
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+from django.conf import settings
+
+from shared_models.models import {{ models_to_import }}
+
+LOG_PATH = Path(settings.BASE_DIR) / "ai_invocations.jsonl"
+
+{% for a in actions %}
+{{ a.config_name }} = {{ a.config_literal }}
+
+
+def generate_{{ a.func_suffix }}(instance):
+    from ai_runtime.reading_plan import run_reading_plan  # chain orchestration (Step 8)
+    summary, result, mode = run_reading_plan({{ a.config_name }}, instance)
+    record = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "event": "invoke_chain",
+        "trigger": "user_action",
+        "model": instance.__class__.__name__,
+        "pk": instance.pk,
+        "model_profile": {{ a.config_name }}.get("model_profile"),
+        "mode": mode,
+        "write_back": {"field": "{{ a.write_back }}", "value": summary},
+        "status": "success" if result.success else "chain_error",
+        "failed_step": result.failed_step,
+        "step_details": result.step_details,
+        "ai_config_version": {{ a.config_name }}.get("ai_config_version"),
+    }
+    with LOG_PATH.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    if summary is not None:
+        {{ a.model }}.objects.filter(pk=instance.pk).update({{ a.write_back }}=summary)
+    return summary
+{% endfor %}
+
+
+def attach_actions():
+    # called from apps.ready(): attach each action as a plain function on the model class.
+    # Assigning a module-level function as a class attribute makes it a *bound method*, so
+    # `customer.generate_reading_plan()` calls generate_reading_plan(customer) with instance=customer.
+{% for a in actions %}
+    {{ a.model }}.generate_{{ a.func_suffix }} = generate_{{ a.func_suffix }}
+{% endfor %}

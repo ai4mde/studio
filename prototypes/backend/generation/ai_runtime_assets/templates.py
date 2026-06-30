@@ -22,6 +22,18 @@ TEMPLATE_REGISTRY = {
         prompt_name="library_late_risk_v1",
         filename="library_late_risk_v1.j2",
     ),
+    "reading_plan_analyze_taste_v1": TemplateEntry(
+        prompt_name="reading_plan_analyze_taste_v1",
+        filename="reading_plan_analyze_taste_v1.j2",
+    ),
+    "reading_plan_recommend_v1": TemplateEntry(
+        prompt_name="reading_plan_recommend_v1",
+        filename="reading_plan_recommend_v1.j2",
+    ),
+    "reading_plan_sequence_v1": TemplateEntry(
+        prompt_name="reading_plan_sequence_v1",
+        filename="reading_plan_sequence_v1.j2",
+    ),
 }
 
 

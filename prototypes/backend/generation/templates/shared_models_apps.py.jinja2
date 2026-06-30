@@ -6,4 +6,13 @@ class SharedModelsConfig(AppConfig):
     name = "shared_models"
 
     def ready(self):
+{%- if has_hooks %}
         import shared_models.ai_hooks  # noqa: F401  (registers M07 post_save receivers)
+{%- endif %}
+{%- if has_actions %}
+        from shared_models import ai_actions
+        ai_actions.attach_actions()
+{%- endif %}
+{%- if not has_hooks and not has_actions %}
+        pass
+{%- endif %}

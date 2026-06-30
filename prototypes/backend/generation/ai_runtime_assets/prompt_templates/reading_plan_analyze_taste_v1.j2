@@ -1,0 +1,5 @@
+A library member has borrowed these books:
+{% for b in borrowed_books %}- {{ b.title }} ({{ b.category }}, by {{ b.author }})
+{% endfor %}
+Identify the member's reading taste. Return ONLY JSON of the exact form:
+{"genres": ["..."], "notes": "one short sentence"}

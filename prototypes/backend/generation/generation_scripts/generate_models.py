@@ -182,10 +182,16 @@ def main():
 
     # --- Step 4: M07 hook glue generation (additive; does not touch models.py above) ---
     import pprint
+    post_save_items = [it for it in ai_managed if it["ai_config"].get("trigger", {}).get("type") == "post_save"]
+    action_items    = [it for it in ai_managed if it["ai_config"].get("trigger", {}).get("type") == "user_action"]
+
     AI_HOOKS_TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/ai_hooks.py.jinja2"
     AI_HOOKS_OUTPUT_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/shared_models/ai_hooks.py"
+    AI_ACTIONS_TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/ai_actions.py.jinja2"
+    AI_ACTIONS_OUTPUT_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/shared_models/ai_actions.py"
+
     hooks = []
-    for item in ai_managed:
+    for item in post_save_items:
         model = item["model"]
         # sanitize the SAME way the generated model field is (retrieve_model_attributes
         # uses attribute_name_sanitization at line ~80), so .update(<field>=) hits the real column.
@@ -200,15 +206,43 @@ def main():
             "write_back": write_back,
             "config_literal": pprint.pformat(item["ai_config"], sort_dicts=True),
         })
-    if hooks:
+
+    actions = []
+    for item in action_items:
+        model = item["model"]
+        func_suffix = attribute_name_sanitization(item["attribute"])
+        write_back = attribute_name_sanitization(item["ai_config"]["output"]["write_back"])
+        assert func_suffix.isidentifier(), f"invalid action function suffix: {func_suffix!r}"
+        assert write_back.isidentifier(), f"invalid write_back field: {write_back!r}"
+        actions.append({
+            "model": model,
+            "func_suffix": func_suffix,
+            "config_name": "_AI_CONFIG__" + model + "__" + func_suffix,
+            "write_back": write_back,
+            "config_literal": pprint.pformat(item["ai_config"], sort_dicts=True),
+        })
+
+    has_hooks = bool(hooks)
+    has_actions = bool(actions)
+
+    if has_hooks:
         models_to_import = ", ".join(sorted({h["model"] for h in hooks}))
         if not generate_output_file(AI_HOOKS_TEMPLATE_PATH, AI_HOOKS_OUTPUT_PATH,
                                     {"hooks": hooks, "models_to_import": models_to_import}):
             raise Exception("Failed to generate shared_models/ai_hooks.py")
+
+    if has_actions:
+        models_to_import = ", ".join(sorted({a["model"] for a in actions}))
+        if not generate_output_file(AI_ACTIONS_TEMPLATE_PATH, AI_ACTIONS_OUTPUT_PATH,
+                                    {"actions": actions, "models_to_import": models_to_import}):
+            raise Exception("Failed to generate shared_models/ai_actions.py")
+
+    if has_hooks or has_actions:
         # --- Step 5B: apps.py wiring (unchanged) ---
         SHARED_APPS_TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/shared_models_apps.py.jinja2"
         SHARED_APPS_OUTPUT_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/shared_models/apps.py"
-        if not generate_output_file(SHARED_APPS_TEMPLATE_PATH, SHARED_APPS_OUTPUT_PATH, {}):
+        if not generate_output_file(SHARED_APPS_TEMPLATE_PATH, SHARED_APPS_OUTPUT_PATH,
+                                    {"has_hooks": has_hooks, "has_actions": has_actions}):
             raise Exception("Failed to generate shared_models/apps.py")
 
         # --- Step 7: materialize the ai_runtime package (vendored M01/M03 + generated M02/M06/invoke) ---
@@ -224,6 +258,9 @@ def main():
             raise Exception("Failed to generate ai_runtime/context.py")
         if not generate_output_file(GEN_ROOT + "/templates/ai_runtime_init.py.jinja2", AI_RUNTIME_DIR + "/__init__.py", {}):
             raise Exception("Failed to generate ai_runtime/__init__.py")
+        if has_actions:
+            if not generate_output_file(GEN_ROOT + "/templates/ai_runtime_reading_plan.py.jinja2", AI_RUNTIME_DIR + "/reading_plan.py", {}):
+                raise Exception("Failed to generate ai_runtime/reading_plan.py")
 
     return True
 

@@ -8,7 +8,11 @@ MODEL_PROFILES = {
 
 
 def _fake_content(model_profile):
-    return '{"late_risk": "LOW", "reason": "fake deterministic response"}'
+    return ('{"late_risk": "LOW", "reason": "fake", '
+            '"genres": ["fiction"], "notes": "fake taste", '
+            '"books": ["Book A", "Book B", "Book C"], '
+            '"ordered": ["Book A", "Book B", "Book C"], '
+            '"summary": "1) Book A; 2) Book B; 3) Book C"}')
 
 
 def _call_groq(model, prompt):
