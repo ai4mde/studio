@@ -32,18 +32,23 @@ def _drop_deprecated_section_fields(section: dict) -> dict:
     return section
 
 
+def _norm_card_sections(ref: dict) -> dict:
+    """Normalize a card-type section ref into canonical form."""
+    card = {k: v for k, v in ref.items() if k != "sections"}
+    card["sections"] = [
+        {"value": str(s.get("value") or s)} if isinstance(s, dict) else {"value": str(s)}
+        for s in (ref.get("sections") or [])
+        if (s.get("value") if isinstance(s, dict) else s)
+    ]
+    return card
+
+
 def _norm_refs(refs: list) -> list:
     """Normalize page section references to canonical ref objects."""
     out = []
     for ref in refs or []:
         if isinstance(ref, dict) and ref.get("type") == "card":
-            card = {k: v for k, v in ref.items() if k != "sections"}
-            card["sections"] = [
-                {"value": str(s.get("value") or s)} if isinstance(s, dict) else {"value": str(s)}
-                for s in (ref.get("sections") or [])
-                if (s.get("value") if isinstance(s, dict) else s)
-            ]
-            out.append(card)
+            out.append(_norm_card_sections(ref))
         else:
             sid = ref.get("value") if isinstance(ref, dict) else ref
             if sid:

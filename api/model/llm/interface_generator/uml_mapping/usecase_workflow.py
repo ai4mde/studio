@@ -184,6 +184,25 @@ def _plural_page_id(model: str) -> str:
     return f"{base}s"
 
 
+def _inline_operation_kind(name_l: str, ranked_models: list, class_names: list, page_model: str) -> tuple:
+    """Determine operation_kind and target_model for an inline_operation use case."""
+    target_model = next((m for m in ranked_models + class_names if m and m != page_model), page_model)
+    if any(term in name_l for term in ("remove", "delete")):
+        operation_kind = "delete"
+    elif target_model and target_model != page_model and any(term in name_l for term in ("add", "write", "create", "select")):
+        operation_kind = "create_related"
+    else:
+        operation_kind = "object_operation"
+    return operation_kind, target_model
+
+
+def _select_operation_result(name_l: str, page_model: str, name: str) -> dict:
+    """Build the collection_workspace result for browse/search/catalog style use cases."""
+    page_id = _plural_page_id(page_model) if page_model else _section_id(name)
+    operation_kind = "select_existing" if "search" in name_l else "view_collection"
+    return {"role": "collection_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": operation_kind}
+
+
 def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dict:
     """Map a use case to navigation role, page role, and operation intent."""
     name = str(usecase.get("name") or "")
@@ -225,13 +244,7 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
     inline_terms = ("add", "remove", "delete", "update", "write", "review", "rate")
     if any(term in name_l for term in inline_terms) and "manage" not in name_l:
         page_model = best_model()
-        target_model = next((m for m in ranked_models + class_names if m and m != page_model), page_model)
-        if any(term in name_l for term in ("remove", "delete")):
-            operation_kind = "delete"
-        elif target_model and target_model != page_model and any(term in name_l for term in ("add", "write", "create", "select")):
-            operation_kind = "create_related"
-        else:
-            operation_kind = "object_operation"
+        operation_kind, target_model = _inline_operation_kind(name_l, ranked_models, class_names, page_model)
         return {
             "role": "inline_operation",
             "page_id": _section_id(page_model or name),
@@ -243,9 +256,7 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
 
     if any(term in name_l for term in ("browse", "search", "catalog", "list", "overview", "directory")):
         page_model = best_model()
-        page_id = _plural_page_id(page_model) if page_model else _section_id(name)
-        operation_kind = "select_existing" if "search" in name_l else "view_collection"
-        return {"role": "collection_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": operation_kind}
+        return _select_operation_result(name_l, page_model, name)
 
     if "detail" in name_l or name_l.startswith("view "):
         page_model = best_model()
@@ -285,31 +296,42 @@ def _is_initial_node(src: str, diagram: dict) -> bool:
     return (node.get("cls") or {}).get("type") == "initial"
 
 
+def _index_diagram_action_nodes(diagram: dict, by_id: dict, all_ids: set) -> set:
+    """Index all action nodes in a diagram into by_id and all_ids; return the set of action node ids."""
+    action_ids: set = set()
+    for node in diagram.get("nodes") or []:
+        cls = node.get("cls") or {}
+        if cls.get("type") == "action":
+            nid = str(node.get("id"))
+            cid = str(node.get("cls_ptr") or "")
+            action_ids.add(nid)
+            all_ids.update({nid, cid})
+            by_id[nid] = {"node_id": nid, "classifier_id": cid, "name": cls.get("name", ""), "diagram_id": diagram.get("id"), "diagram_name": diagram.get("name", "")}
+            if cid:
+                by_id[cid] = by_id[nid]
+    return action_ids
+
+
+def _collect_first_ids(action_ids: set, by_id: dict, diagram: dict, first_ids: set) -> None:
+    """Add action ids (and their classifier ids) that are workflow-entry points to first_ids."""
+    incoming, _ = _build_edge_maps(diagram)
+    for aid in action_ids:
+        source_nodes = incoming.get(aid, [])
+        if not source_nodes or any(_is_initial_node(src, diagram) for src in source_nodes):
+            first_ids.add(aid)
+            cls_id = by_id.get(aid, {}).get("classifier_id")
+            if cls_id:
+                first_ids.add(cls_id)
+
+
 def _activity_action_indexes(system_data: dict) -> tuple[dict[str, dict], set[str], set[str]]:
     """Build activity action indexes."""
     by_id = {}
     first_ids = set()
     all_ids = set()
     for diagram in system_data.get("activity_diagrams") or []:
-        action_ids = set()
-        for node in diagram.get("nodes") or []:
-            cls = node.get("cls") or {}
-            if cls.get("type") == "action":
-                nid = str(node.get("id"))
-                cid = str(node.get("cls_ptr") or "")
-                action_ids.add(nid)
-                all_ids.update({nid, cid})
-                by_id[nid] = {"node_id": nid, "classifier_id": cid, "name": cls.get("name", ""), "diagram_id": diagram.get("id"), "diagram_name": diagram.get("name", "")}
-                if cid:
-                    by_id[cid] = by_id[nid]
-        incoming, _ = _build_edge_maps(diagram)
-        for aid in action_ids:
-            source_nodes = incoming.get(aid, [])
-            if not source_nodes or any(_is_initial_node(src, diagram) for src in source_nodes):
-                first_ids.add(aid)
-                cls_id = by_id.get(aid, {}).get("classifier_id")
-                if cls_id:
-                    first_ids.add(cls_id)
+        action_ids = _index_diagram_action_nodes(diagram, by_id, all_ids)
+        _collect_first_ids(action_ids, by_id, diagram, first_ids)
     return by_id, first_ids, all_ids
 
 

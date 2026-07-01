@@ -85,6 +85,27 @@ def retrieve_foreign_models(node: str, diagram: str) -> List[Attribute]:
     return out
 
 
+def _resolve_attr_type_and_literals(attribute: dict, metadata: str) -> tuple:
+    """Return (att_type, enum_literals) for a class attribute descriptor."""
+    type_str = attribute.get("type", "")
+    if type_str == "str":
+        return AttributeType.STRING, None
+    if type_str == "bool":
+        return AttributeType.BOOLEAN, None
+    if type_str == "int":
+        return AttributeType.INTEGER, None
+    if type_str == "enum":
+        enum_ref = attribute.get("enum")
+        if not enum_ref:
+            return AttributeType.ENUM, []
+        return AttributeType.ENUM, get_enum_literals(metadata, enum_ref)
+    if type_str == "image":
+        return AttributeType.IMAGE, None
+    if type_str == "video":
+        return AttributeType.VIDEO, None
+    return AttributeType.NONE, None
+
+
 def retrieve_model_attributes(metadata: str, node: str, model_names: set[str] | None = None) -> List[Attribute]:
     """Function that parses the attributes of a class node from JSON to a Python objects"""
     out = []
@@ -104,27 +125,7 @@ def retrieve_model_attributes(metadata: str, node: str, model_names: set[str] | 
                 body=None,
             ))
             continue
-        att_type = AttributeType.NONE
-        enum_literals = None
-        if attribute["type"] == "str":
-            att_type = AttributeType.STRING
-        elif attribute["type"] == "bool":
-            att_type = AttributeType.BOOLEAN
-        elif attribute["type"] == "int":
-            att_type = AttributeType.INTEGER
-        elif attribute["type"] == "enum":
-            att_type = AttributeType.ENUM
-            if "enum" not in attribute:
-                enum_literals = []
-            elif not attribute["enum"]:
-                enum_literals = []
-            else:
-                enum_literals = get_enum_literals(metadata, attribute["enum"])
-        elif attribute["type"] == "image":
-            att_type = AttributeType.IMAGE
-        elif attribute["type"] == "video":
-            att_type = AttributeType.VIDEO
-        
+        att_type, enum_literals = _resolve_attr_type_and_literals(attribute, metadata)
         att = Attribute(
             name = attribute_name_sanitization(attribute["name"]),
             type = att_type,

@@ -264,21 +264,8 @@ def _sidebar_nav_section_for_candidate(normal_pages: list, candidate_index: int 
         },
     }
 
-def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: list, candidate_index: int = 0) -> tuple[list, list]:
-    """Ensure normal page navigation."""
-    if not normal_pages:
-        return pages, sections
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
-    for section in sections:
-        if section.get("position") == "footer" or _normalize_layout_alias(section.get("layout")) in _FOOTER_TEMPLATE_LAYOUTS:
-            existing = section.get("methods") or []
-            existing_names = {
-                str(m.get("name") if isinstance(m, dict) else m).strip().lower()
-                for m in existing
-            }
-            if nav_methods and (not existing_names or existing_names.issubset({"help", "privacy", "terms", "contact"})):
-                section["methods"] = nav_methods
+def _find_nav_section_ids(section_map: dict) -> tuple[list, list, list]:
+    """Find nav, header-nav, and sidebar-nav section ids from section_map."""
     nav_ids = [
         sid for sid, section in section_map.items()
         if (
@@ -296,6 +283,38 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
         sid for sid in nav_ids
         if (section_map.get(sid) or {}).get("position") == "sidebar"
     ]
+    return nav_ids, header_nav_ids, sidebar_nav_ids
+
+
+def _assign_nav_to_pages(normal_pages: list, keep_nav_id: str, section_map: dict) -> None:
+    """Ensure every normal page references keep_nav_id, prepending sidebar navs."""
+    for page in normal_pages:
+        refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+        ref_ids = {_ref_id(ref) for ref in refs}
+        if keep_nav_id not in ref_ids:
+            keep_nav_section = section_map.get(keep_nav_id) or {}
+            if keep_nav_section.get("position") == "sidebar":
+                page["sections"] = [{"value": keep_nav_id}] + refs
+            else:
+                page["sections"] = refs
+
+
+def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: list, candidate_index: int = 0) -> tuple[list, list]:
+    """Ensure normal page navigation."""
+    if not normal_pages:
+        return pages, sections
+    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+    nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
+    for section in sections:
+        if section.get("position") == "footer" or _normalize_layout_alias(section.get("layout")) in _FOOTER_TEMPLATE_LAYOUTS:
+            existing = section.get("methods") or []
+            existing_names = {
+                str(m.get("name") if isinstance(m, dict) else m).strip().lower()
+                for m in existing
+            }
+            if nav_methods and (not existing_names or existing_names.issubset({"help", "privacy", "terms", "contact"})):
+                section["methods"] = nav_methods
+    nav_ids, header_nav_ids, sidebar_nav_ids = _find_nav_section_ids(section_map)
     if header_nav_ids:
         keep_nav_id = header_nav_ids[0]
     elif sidebar_nav_ids:
@@ -341,15 +360,7 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
         nav_section["style"] = style
 
     if keep_nav_id:
-        for page in normal_pages:
-            refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
-            ref_ids = {_ref_id(ref) for ref in refs}
-            if keep_nav_id not in ref_ids:
-                keep_nav_section = section_map.get(keep_nav_id) or {}
-                if keep_nav_section.get("position") == "sidebar":
-                    page["sections"] = [{"value": keep_nav_id}] + refs
-                else:
-                    page["sections"] = refs
+        _assign_nav_to_pages(normal_pages, keep_nav_id, section_map)
     return pages, sections
 
 

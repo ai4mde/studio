@@ -72,6 +72,24 @@ _ATTR_SIGNALS: dict[str, frozenset] = {
 }
 
 
+def _gallery_score(hits: dict, has_image: bool) -> float:
+    """Compute gallery layout score from attribute hit counts."""
+    if has_image:
+        return 0.9
+    if hits["rating"] > 0:
+        return 0.3
+    return 0.1
+
+
+def _table_score(hits: dict, has_price: bool, has_status: bool, attr_count: int) -> float:
+    """Compute table layout score from attribute hit counts."""
+    if has_price and has_status:
+        return 0.85
+    if has_status or attr_count > 8:
+        return 0.7
+    return 0.4
+
+
 def score_layout(attr_names: set[str]) -> dict[str, float]:
     """Score how well a model fits each layout based on attribute names."""
     names_l = {n.lower() for n in attr_names}
@@ -96,21 +114,9 @@ def score_layout(attr_names: set[str]) -> dict[str, float]:
     # These scores are intentionally soft hints, not final layout choices. Later
     # mapping stages combine them with use-case role, workflow role, and LLM
     # candidate styling before deciding on concrete components.
-    gallery_score = 0.1
-    if has_image:
-        gallery_score = 0.9
-    elif hits["rating"] > 0:
-        gallery_score = 0.3
-
-    table_score = 0.4
-    if has_price and has_status:
-        table_score = 0.85
-    elif has_status or attr_count > 8:
-        table_score = 0.7
-
     return {
-        "gallery":   gallery_score,
-        "table":     table_score,
+        "gallery":   _gallery_score(hits, has_image),
+        "table":     _table_score(hits, has_price, has_status, attr_count),
         "list":      0.75 if (has_status and has_date and not has_image) else 0.35,
         "detail":    0.9 if (has_content or attr_count > 8) else 0.5,
         "form":      0.8 if (has_contact or hits["identity"] > 0) else 0.5,
@@ -519,6 +525,35 @@ def _action_component(action_name: str) -> str:
     return "ObjectForm"
 
 
+def _find_start_candidates(nodes: dict, classifiers: dict, incoming_count: dict) -> list:
+    """Find BFS start node ids for an activity diagram."""
+    start_candidates = []
+    for nid, node in nodes.items():
+        cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
+        node_cls = node.get("cls") if isinstance(node.get("cls"), dict) else {}
+        cls = {**(classifiers.get(cls_id, {}) or {}), **(node_cls or {})}
+        cls_type = cls.get("type") or node.get("type") or ""
+        if cls_type in {"initial", "start", "initial_pseudostate"}:
+            return [nid]
+        if incoming_count[nid] == 0 and cls_type == "action":
+            start_candidates.append(nid)
+    if not start_candidates:
+        start_candidates = [nid for nid in nodes if incoming_count[nid] == 0][:1]
+    return start_candidates
+
+
+def _collect_uc_ids_from_nodes(nodes: dict, classifiers: dict, uc_ids_with_workflows: set) -> None:
+    """Update uc_ids_with_workflows with classifier ids referenced by diagram action nodes."""
+    for node in nodes.values():
+        cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
+        if cls_id:
+            uc_ids_with_workflows.add(cls_id)
+            cls = classifiers.get(cls_id, {})
+            parent_uc = cls.get("usecase") or cls.get("use_case")
+            if parent_uc:
+                uc_ids_with_workflows.add(str(parent_uc))
+
+
 def extract_activity_diagrams(
     classifiers: dict,
     system_data: dict,
@@ -590,15 +625,7 @@ def extract_activity_diagrams(
         # Collect classifier IDs referenced by action nodes so use cases can be
         # marked as workflow-backed even when the use case does not directly own
         # the activity diagram.
-        for node in nodes.values():
-            cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
-            if cls_id:
-                uc_ids_with_workflows.add(cls_id)
-                # Also check parent via cls data
-                cls = classifiers.get(cls_id, {})
-                parent_uc = cls.get("usecase") or cls.get("use_case")
-                if parent_uc:
-                    uc_ids_with_workflows.add(str(parent_uc))
+        _collect_uc_ids_from_nodes(nodes, classifiers, uc_ids_with_workflows)
 
         # Build adjacency from control-flow edges. Guards are retained for future
         # branch-aware rendering even though the current planner only orders steps.
@@ -614,20 +641,7 @@ def extract_activity_diagrams(
 
         # Find the workflow start. Initial pseudostates are preferred; otherwise
         # use action nodes without incoming control-flow as pragmatic start points.
-        start_candidates = []
-        for nid, node in nodes.items():
-            cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
-            node_cls = node.get("cls") if isinstance(node.get("cls"), dict) else {}
-            cls = {**(classifiers.get(cls_id, {}) or {}), **(node_cls or {})}
-            cls_type = cls.get("type") or node.get("type") or ""
-            if cls_type in {"initial", "start", "initial_pseudostate"}:
-                start_candidates = [nid]
-                break
-            if incoming_count[nid] == 0 and cls_type == "action":
-                start_candidates.append(nid)
-
-        if not start_candidates:
-            start_candidates = [nid for nid in nodes if incoming_count[nid] == 0][:1]
+        start_candidates = _find_start_candidates(nodes, classifiers, incoming_count)
 
         # BFS traversal — extract action steps in order
         steps: list[dict] = []
@@ -791,6 +805,36 @@ def _sys_as_list(system_data: dict, key: str) -> list:
     return []
 
 
+def _expand_one_model(model: str, model_graph: dict, expanded: dict, frontier: list, visited: set, depth_map: dict, depth: int) -> None:
+    """Expand read access from a single model to its related models in the graph."""
+    info = model_graph.get(model) or {}
+    for comp in info.get("compositions_owned") or []:
+        child = comp["model"]
+        if child not in visited:
+            expanded.setdefault(child, set()).add("read")
+            frontier.append(child)
+            visited.add(child)
+            depth_map[child] = depth + 1
+    for agg in info.get("aggregations_owned") or []:
+        child = agg["model"]
+        if child not in visited:
+            expanded.setdefault(child, set()).add("read")
+            visited.add(child)
+            depth_map[child] = 2
+    parent = info.get("composition_parent")
+    if parent and parent not in visited:
+        expanded.setdefault(parent, set()).add("read")
+        visited.add(parent)
+        depth_map[parent] = depth + 1
+    for assoc in info.get("associations") or []:
+        if assoc["cardinality"] == "1-many":
+            rel = assoc["model"]
+            if rel not in visited:
+                expanded.setdefault(rel, set()).add("read")
+                visited.add(rel)
+                depth_map[rel] = depth + 1
+
+
 def _expand_actor_scope(model_graph: dict, initial_permissions: dict) -> dict:
     """
     From use-case-derived permissions, traverse class diagram relationships to find
@@ -811,41 +855,7 @@ def _expand_actor_scope(model_graph: dict, initial_permissions: dict) -> dict:
         depth = depth_map[model]
         if depth >= 2:
             continue
-        info = model_graph.get(model) or {}
-
-        # Composition children (always reachable via parent's detail page)
-        for comp in info.get("compositions_owned") or []:
-            child = comp["model"]
-            if child not in visited:
-                expanded.setdefault(child, set()).add("read")
-                frontier.append(child)
-                visited.add(child)
-                depth_map[child] = depth + 1
-
-        # Aggregation children (loosely related)
-        for agg in info.get("aggregations_owned") or []:
-            child = agg["model"]
-            if child not in visited:
-                expanded.setdefault(child, set()).add("read")
-                # Don't traverse further from aggregations
-                visited.add(child)
-                depth_map[child] = 2
-
-        # Composition parent (need context when viewing a child directly)
-        parent = info.get("composition_parent")
-        if parent and parent not in visited:
-            expanded.setdefault(parent, set()).add("read")
-            visited.add(parent)
-            depth_map[parent] = depth + 1
-
-        # 1:many associations (the "many" side is often shown as a sub-list)
-        for assoc in info.get("associations") or []:
-            if assoc["cardinality"] == "1-many":
-                rel = assoc["model"]
-                if rel not in visited:
-                    expanded.setdefault(rel, set()).add("read")
-                    visited.add(rel)
-                    depth_map[rel] = depth + 1
+        _expand_one_model(model, model_graph, expanded, frontier, visited, depth_map, depth)
 
     return {m: [p for p in ("create", "read", "update", "delete") if p in ps]
             for m, ps in expanded.items()}

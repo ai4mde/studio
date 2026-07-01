@@ -495,54 +495,65 @@ def _candidate_compliance_report(
     wants_gold_buttons = _mentions(text, RE_GOLD_BUTTONS, RE_YELLOW_BUTTONS)
     wants_big_hero = _mentions(text, RE_BIG_HERO_TITLE, RE_LARGE_HERO, RE_HERO_TITLE)
 
+    has_sidebar = any(
+        s.get("position") == "sidebar" and (not wants_left_sidebar or (s.get("style") or {}).get("sidebar_side") == "left")
+        for s in nav_sections
+    )
+    has_table_section = any(s.get("layout") == "table" or s.get("component") == "DataTable" for s in data_sections)
+    has_compact_density = any((s.get("style") or {}).get("density") == "compact" for s in data_sections)
+    has_small_font = (_px_number(tokens.get(TYPOGRAPHY_BODY_SIZE)) or 99) <= 14
+    all_pages_contained = all((p.get("layout") or {}).get("main_width") == "contained" for p in pages or [])
+    has_dark_blue_header = _is_dark_blue(tokens.get(REGION_HEADER_BG_HEX)) or _is_dark_blue(tokens.get(NAV_BG_HEX))
+    has_beige_card_bg = _is_beige(tokens.get(COMPONENT_CARD_BG_HEX))
+    has_gold_btns = _is_gold(tokens.get(BUTTON_PRIMARY_BG_HEX)) and _is_gold(tokens.get(BUTTON_SECONDARY_BG_HEX))
+    has_large_hero = (_px_number(tokens.get(TYPOGRAPHY_HERO_SIZE)) or 0) >= 64 or any(s.get("layout") == "hero-header" for s in sections or [])
+
     add(
         "left_sidebar_navigation" if wants_left_sidebar else "sidebar_navigation",
         wants_sidebar,
-        any(s.get("position") == "sidebar" and (not wants_left_sidebar or (s.get("style") or {}).get("sidebar_side") == "left") for s in nav_sections),
+        has_sidebar,
         "Navigation must be rendered as a sidebar, left-sided when requested.",
     )
     add(
         "table_layout",
         wants_table,
-        any(s.get("layout") == "table" or s.get("component") == "DataTable" for s in data_sections),
+        has_table_section,
         "At least one data section must render as DataTable/table.",
     )
     add(
         "small_table_text",
         wants_small_table,
-        any((s.get("style") or {}).get("density") == "compact" for s in data_sections)
-        or (_px_number(tokens.get(TYPOGRAPHY_BODY_SIZE)) or 99) <= 14,
+        has_compact_density or has_small_font,
         "Compact table density or small typography token is required.",
     )
     add(
         "contained_main_layout",
         wants_contained,
-        all((p.get("layout") or {}).get("main_width") == "contained" for p in pages or []),
+        all_pages_contained,
         "Every page should use layout.main_width='contained'.",
     )
     add(
         "navy_header",
         wants_navy_header,
-        _is_dark_blue(tokens.get(REGION_HEADER_BG_HEX)) or _is_dark_blue(tokens.get(NAV_BG_HEX)),
+        has_dark_blue_header,
         "Header/nav background token must be a dark blue/navy hex color.",
     )
     add(
         "beige_cards",
         wants_beige_cards,
-        _is_beige(tokens.get(COMPONENT_CARD_BG_HEX)),
+        has_beige_card_bg,
         "Card background token must be beige/cream.",
     )
     add(
         "gold_buttons",
         wants_gold_buttons,
-        _is_gold(tokens.get(BUTTON_PRIMARY_BG_HEX)) and _is_gold(tokens.get(BUTTON_SECONDARY_BG_HEX)),
+        has_gold_btns,
         "Primary and secondary button background tokens must be gold.",
     )
     add(
         "large_hero_title",
         wants_big_hero,
-        (_px_number(tokens.get(TYPOGRAPHY_HERO_SIZE)) or 0) >= 64
-        or any(s.get("layout") == "hero-header" for s in sections or []),
+        has_large_hero,
         "Hero title must use a large hero typography token or hero-header layout.",
     )
 
@@ -794,6 +805,120 @@ def _run_candidate_visual_check(interface_id: str, candidate_index: int) -> dict
     return _save_visual_report(report)
 
 
+def _normalize_candidate_sections(sections: list, model_attrs: dict, model_names_fuzzy: dict, page_ref_to_name: dict, page_names: set, candidate_index: int) -> list:
+    """Normalize each section's layout, model, attributes, workflow, and style."""
+    def _norm_model(n):
+        return re.sub(r'[\s_-]', '', str(n or '')).lower()
+
+    fixed_sections = []
+    for s in sections:
+        s = _drop_deprecated_section_fields(s)
+        s["layout"] = _normalize_layout_alias(s.get("layout"))
+        s["operations"] = _normalize_section_operations(s.get("operations"))
+        s["component"] = _infer_section_component(s)
+        pm = s.get("primary_model", "")
+        if pm and pm not in model_attrs:
+            canon = model_names_fuzzy.get(_norm_model(pm))
+            if canon: s["primary_model"] = s["class"] = pm = canon
+        if s.get("layout") not in _VALID_SECTION_LAYOUTS:
+            s["layout"] = "card" if pm else "main-header"
+            s["component"] = _infer_section_component(s)
+        if pm and pm in model_attrs:
+            new_attrs: list = []
+            for attr in s.get("attributes", []):
+                attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+                if "." not in attr_name and (not pm or attr_name in model_attrs.get(pm, set())):
+                    new_attrs.append(attr)
+            if not new_attrs and s.get("layout") in _DATA_SECTION_LAYOUTS:
+                new_attrs = list(_model_field_names(model_attrs, pm, 6))
+            s["attributes"] = new_attrs
+        workflow = dict(s.get("workflow") or {})
+        workflow_action = workflow.get("action") or s.get("workflow_action", "")
+        if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}:
+            workflow.pop("action", None)
+        workflow_target = workflow.get("target_page") or workflow.get("targetPage") or s.get("target_page") or s.get("targetPage") or ""
+        normalized_target = page_ref_to_name.get(str(workflow_target), "") or page_ref_to_name.get(str(workflow_target).lower(), "")
+        if workflow_target and normalized_target:
+            workflow["target_page"] = normalized_target
+        elif workflow_target and workflow_target not in page_names:
+            workflow.pop("target_page", None); workflow.pop("targetPage", None)
+        if workflow:
+            s["workflow"] = workflow
+        style = dict(s.get("style") or {})
+        for field, valid_vals in _VALID_SECTION_STYLE.items():
+            if style.get(field) and style[field] not in valid_vals:
+                style.pop(field, None)
+        s["style"] = style
+        s["field_layout"] = _normalize_field_layout(s)
+        fixed_sections.append(s)
+    for s in fixed_sections:
+        if s.get("layout") in _DATA_SECTION_LAYOUTS:
+            style = dict(s.get("style") or {})
+            if not style.get("color"):
+                style["color"] = "accent"; s["style"] = style
+    return fixed_sections
+
+
+def _normalize_candidate_pages(pages: list, candidate_index: int) -> list:
+    """Normalize page type, id, and category fields."""
+    fixed_pages = []
+    for i, p in enumerate(pages):
+        p = dict(p)
+        p["type"] = _canonical_page_type(_infer_page_type_value(p))
+        if not p.get("id"): p["id"] = f"page_{candidate_index}_{i}"
+        p.setdefault("category", None)
+        fixed_pages.append(p)
+    return fixed_pages
+
+
+def _normalize_section_refs_and_assign(fixed_pages: list, fixed_sections: list) -> list:
+    """Normalize section refs on each page and auto-assign sections to pages that have none."""
+    for i, p in enumerate(fixed_pages):
+        if p.get("sections") is not None:
+            fixed_pages[i] = {**p, "sections": [
+                {**r, "sections": [s if isinstance(s, dict) else {"value": s} for s in (r.get("sections") or [])]}
+                if isinstance(r, dict) and r.get("type") == "card"
+                else (r if isinstance(r, dict) else {"value": r})
+                for r in p["sections"]
+            ]}
+    assignable = [s for s in fixed_sections if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"} and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}]
+    if any(not p.get("sections") for p in fixed_pages) and assignable:
+        model_to_secs: dict = defaultdict(list)
+        for s in assignable: model_to_secs[s.get("primary_model", "")].append(s["id"])
+        rebuilt: list = []; model_assigned: dict = defaultdict(int)
+        for p in fixed_pages:
+            if p.get("sections"): rebuilt.append(p); continue
+            if _page_type_value(p) == "activity" or "workflow" in f"{p.get('id', '')} {p.get('name', '')}".lower():
+                rebuilt.append(p); continue
+            pm = p.get("primary_model", "")
+            cands = model_to_secs.get(pm, []); start = model_assigned[pm]
+            assigned = [{"value": cands[start]}] if start < len(cands) else []
+            if assigned: model_assigned[pm] += 1
+            if not assigned and model_to_secs.get("", []):
+                fb = model_to_secs[""]
+                if model_assigned[""] < len(fb):
+                    assigned = [{"value": fb[model_assigned[""]]}]; model_assigned[""] += 1
+            rebuilt.append({**p, "sections": assigned})
+        fixed_pages = rebuilt
+    return fixed_pages
+
+
+def _filter_page_section_refs(fixed_pages: list, fixed_sections: list) -> list:
+    """Remove page section refs pointing to non-existent sections."""
+    section_ids = {s["id"] for s in fixed_sections}
+    for p in fixed_pages:
+        filtered = []
+        for ref in (p.get("sections") or []):
+            if isinstance(ref, dict) and ref.get("type") == "card":
+                valid_nested = [s for s in (ref.get("sections") or []) if _ref_id(s) in section_ids]
+                if valid_nested:
+                    filtered.append({**ref, "sections": valid_nested})
+            elif _ref_id(ref) in section_ids:
+                filtered.append(ref)
+        p["sections"] = filtered
+    return fixed_pages
+
+
 def validate_and_save_candidate(
     interface_id: str,
     candidate_index: int,
@@ -877,10 +1002,7 @@ def validate_and_save_candidate(
         sections = _normalize_activity_action_sections(pages, sections)
         sections = _normalize_chrome_sections(sections)
 
-        def _norm_model(n):
-            """Normalize model names for fuzzy comparison."""
-            return re.sub(r'[\s_-]', '', str(n or '')).lower()
-        model_names_fuzzy = {_norm_model(m): m for m in known_models}
+        model_names_fuzzy = {re.sub(r'[\s_-]', '', str(m or '')).lower(): m for m in known_models}
 
         page_names = {p.get("name", "") for p in pages}
         page_ref_to_name: dict = {}
@@ -891,61 +1013,10 @@ def validate_and_save_candidate(
 
         # Normalize sections with a small guardrail layer:
         # supported layouts/styles, UML-bound attributes, and valid workflow targets.
-        fixed_sections = []
-        for s in sections:
-            s = _drop_deprecated_section_fields(s)
-            s["layout"] = _normalize_layout_alias(s.get("layout"))
-            s["operations"] = _normalize_section_operations(s.get("operations"))
-            s["component"] = _infer_section_component(s)
-            pm = s.get("primary_model", "")
-            if pm and pm not in model_attrs:
-                canon = model_names_fuzzy.get(_norm_model(pm))
-                if canon: s["primary_model"] = s["class"] = pm = canon
-            if s.get("layout") not in _VALID_SECTION_LAYOUTS:
-                s["layout"] = "card" if pm else "main-header"
-                s["component"] = _infer_section_component(s)
-            if pm and pm in model_attrs:
-                new_attrs: list = []
-                for attr in s.get("attributes", []):
-                    attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
-                    if "." not in attr_name and (not pm or attr_name in model_attrs.get(pm, set())):
-                        new_attrs.append(attr)
-                if not new_attrs and s.get("layout") in _DATA_SECTION_LAYOUTS:
-                    new_attrs = list(_model_field_names(model_attrs, pm, 6))
-                s["attributes"] = new_attrs
-            workflow = dict(s.get("workflow") or {})
-            workflow_action = workflow.get("action") or s.get("workflow_action", "")
-            if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}:
-                workflow.pop("action", None)
-            workflow_target = workflow.get("target_page") or workflow.get("targetPage") or s.get("target_page") or s.get("targetPage") or ""
-            normalized_target = page_ref_to_name.get(str(workflow_target), "") or page_ref_to_name.get(str(workflow_target).lower(), "")
-            if workflow_target and normalized_target:
-                workflow["target_page"] = normalized_target
-            elif workflow_target and workflow_target not in page_names:
-                workflow.pop("target_page", None); workflow.pop("targetPage", None)
-            if workflow:
-                s["workflow"] = workflow
-            style = dict(s.get("style") or {})
-            for field, valid_vals in _VALID_SECTION_STYLE.items():
-                if style.get(field) and style[field] not in valid_vals:
-                    style.pop(field, None)
-            s["style"] = style
-            s["field_layout"] = _normalize_field_layout(s)
-            fixed_sections.append(s)
-        for s in fixed_sections:
-            if s.get("layout") in _DATA_SECTION_LAYOUTS:
-                style = dict(s.get("style") or {})
-                if not style.get("color"):
-                    style["color"] = "accent"; s["style"] = style
+        fixed_sections = _normalize_candidate_sections(sections, model_attrs, model_names_fuzzy, page_ref_to_name, page_names, candidate_index)
 
         # Normalize pages
-        fixed_pages = []
-        for i, p in enumerate(pages):
-            p = dict(p)
-            p["type"] = _canonical_page_type(_infer_page_type_value(p))
-            if not p.get("id"): p["id"] = f"page_{candidate_index}_{i}"
-            p.setdefault("category", None)
-            fixed_pages.append(p)
+        fixed_pages = _normalize_candidate_pages(pages, candidate_index)
         for i, s in enumerate(fixed_sections):
             if not s.get("id"):
                 model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
@@ -984,45 +1055,9 @@ def validate_and_save_candidate(
             s["field_layout"] = _normalize_field_layout(s)
 
         # Normalize section refs and assign sections to pages that have none
-        for i, p in enumerate(fixed_pages):
-            if p.get("sections") is not None:
-                fixed_pages[i] = {**p, "sections": [
-                    {**r, "sections": [s if isinstance(s, dict) else {"value": s} for s in (r.get("sections") or [])]}
-                    if isinstance(r, dict) and r.get("type") == "card"
-                    else (r if isinstance(r, dict) else {"value": r})
-                    for r in p["sections"]
-                ]}
-        assignable = [s for s in fixed_sections if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"} and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}]
-        if any(not p.get("sections") for p in fixed_pages) and assignable:
-            model_to_secs: dict = defaultdict(list)
-            for s in assignable: model_to_secs[s.get("primary_model", "")].append(s["id"])
-            rebuilt: list = []; model_assigned: dict = defaultdict(int)
-            for p in fixed_pages:
-                if p.get("sections"): rebuilt.append(p); continue
-                if _page_type_value(p) == "activity" or "workflow" in f"{p.get('id', '')} {p.get('name', '')}".lower():
-                    rebuilt.append(p); continue
-                pm = p.get("primary_model", "")
-                cands = model_to_secs.get(pm, []); start = model_assigned[pm]
-                assigned = [{"value": cands[start]}] if start < len(cands) else []
-                if assigned: model_assigned[pm] += 1
-                if not assigned and model_to_secs.get("", []):
-                    fb = model_to_secs[""]
-                    if model_assigned[""] < len(fb):
-                        assigned = [{"value": fb[model_assigned[""]]}]; model_assigned[""] += 1
-                rebuilt.append({**p, "sections": assigned})
-            fixed_pages = rebuilt
+        fixed_pages = _normalize_section_refs_and_assign(fixed_pages, fixed_sections)
 
-        section_ids = {s["id"] for s in fixed_sections}
-        for p in fixed_pages:
-            filtered = []
-            for ref in (p.get("sections") or []):
-                if isinstance(ref, dict) and ref.get("type") == "card":
-                    valid_nested = [s for s in (ref.get("sections") or []) if _ref_id(s) in section_ids]
-                    if valid_nested:
-                        filtered.append({**ref, "sections": valid_nested})
-                elif _ref_id(ref) in section_ids:
-                    filtered.append(ref)
-            p["sections"] = filtered
+        fixed_pages = _filter_page_section_refs(fixed_pages, fixed_sections)
         fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
 
         label_prompt = prompt or designer_requirements
@@ -1137,6 +1172,24 @@ def _candidate_variant_name(index: int) -> str:
     return f"{prefix} {suffixes[index % len(suffixes)]}"
 
 
+def _try_decode_from(raw: str, starts: list, preferred_starts: list):
+    """Try to decode a JSON object/array from each candidate start position in raw."""
+    decoder = json.JSONDecoder()
+    fallback_obj = None
+    for start in [*preferred_starts, *starts]:
+        try:
+            obj, _end = decoder.raw_decode(raw[start:])
+            if isinstance(obj, dict) and isinstance(obj.get("candidates"), list):
+                return obj
+            if isinstance(obj, list):
+                return obj
+            if fallback_obj is None:
+                fallback_obj = obj
+        except Exception:
+            continue
+    return fallback_obj
+
+
 def _parse_llm_json(text: str):
     """Parse llm json."""
     raw = str(text or "").strip()
@@ -1152,27 +1205,15 @@ def _parse_llm_json(text: str):
     except Exception:
         pass
 
-    decoder = json.JSONDecoder()
     candidates_pattern = re.search(r'"candidates"\s*:\s*\[', raw)
     preferred_starts = []
     if candidates_pattern:
         container_start = raw.rfind("{", 0, candidates_pattern.start())
         preferred_starts.append(container_start if container_start >= 0 else 0)
     starts = [i for i, ch in enumerate(raw) if ch in "[{"]
-    fallback_obj = None
-    for start in [*preferred_starts, *starts]:
-        try:
-            obj, _end = decoder.raw_decode(raw[start:])
-            if isinstance(obj, dict) and isinstance(obj.get("candidates"), list):
-                return obj
-            if isinstance(obj, list):
-                return obj
-            if fallback_obj is None:
-                fallback_obj = obj
-        except Exception:
-            continue
-    if fallback_obj is not None:
-        return fallback_obj
+    result = _try_decode_from(raw, starts, preferred_starts)
+    if result is not None:
+        return result
 
     repaired = raw
     while repaired.endswith("}") and repaired.count("{") < repaired.count("}"):

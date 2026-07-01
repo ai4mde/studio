@@ -15,10 +15,16 @@ import shutil
 app = Flask(__name__)
 
 
+_ALLOWED_TEMP_PREFIXES = ('/tmp/', '/var/tmp/', '/run/tmp/')
+
+
 def _private_temp_dir() -> str:
     # Use container-native /tmp to avoid Windows bind-mount sync delays
     # that cause is_file() to return False in subprocesses.
-    path = os.environ.get('PROTOTYPE_TEMP_DIR', '/tmp/prototypes_meta')
+    raw = os.environ.get('PROTOTYPE_TEMP_DIR', '/tmp/prototypes_meta')
+    path = os.path.realpath(raw)
+    if not any(path.startswith(p) for p in _ALLOWED_TEMP_PREFIXES):
+        path = '/tmp/prototypes_meta'
     os.makedirs(path, mode=0o700, exist_ok=True)
     os.chmod(path, 0o700)
     return path
@@ -516,6 +522,8 @@ def hot_reload_templates():
         return 'Invalid hot reload payload', 400
 
     try:
+        system_id = _safe_path_part(system_id)
+        project_name = _safe_path_part(project_name)
         proto_path = _prototype_path(system_id, project_name)
     except ValueError:
         return 'Invalid prototype path', 400

@@ -38,14 +38,8 @@ def _field_category(field_name: str) -> str | None:
     return None
 
 
-def _pick_fields_by_names(
-    attr_names: list[str],
-    role: str,
-    category_order: dict,
-    limit: int = 8,
-    fallback: list[str] | None = None,
-) -> list[str]:
-    order = category_order.get(role, [])
+def _fill_buckets(attr_names: list[str], order: list[str]) -> tuple[dict, list]:
+    """Categorize attribute names into ordered buckets and a tail for uncategorized fields."""
     buckets: dict[str, list[str]] = {cat: [] for cat in order}
     tail: list[str] = []
     for field in attr_names:
@@ -54,6 +48,11 @@ def _pick_fields_by_names(
             buckets[cat].append(field)
         else:
             tail.append(field)
+    return buckets, tail
+
+
+def _deduplicate_fields(order: list[str], buckets: dict, tail: list[str]) -> list[str]:
+    """Merge bucket fields and tail into a deduplicated ordered list."""
     result: list[str] = []
     seen: set[str] = set()
     for cat in order:
@@ -65,6 +64,19 @@ def _pick_fields_by_names(
         if f not in seen:
             result.append(f)
             seen.add(f)
+    return result
+
+
+def _pick_fields_by_names(
+    attr_names: list[str],
+    role: str,
+    category_order: dict,
+    limit: int = 8,
+    fallback: list[str] | None = None,
+) -> list[str]:
+    order = category_order.get(role, [])
+    buckets, tail = _fill_buckets(attr_names, order)
+    result = _deduplicate_fields(order, buckets, tail)
     return result[:limit] or (fallback or [])[:limit]
 
 
@@ -549,6 +561,21 @@ def _detail_section_for_model(
 #   form / create                                   → ObjectForm
 # ---------------------------------------------------------------------------
 
+def _build_collection_query(model: str, fields: list[str]) -> dict:
+    """Build the query descriptor for object_collection role."""
+    q: dict = {"model": model, "filter": {}, "limit": 20}
+    order_candidates = ["created_at", "updated_at", "name", "id"]
+    for f in order_candidates:
+        if f in fields:
+            q["order_by"] = [f"-{f}" if f in {"created_at", "updated_at"} else f]
+            break
+    if "search_fields" not in q and fields:
+        text_fields = [f for f in fields if any(t in f for t in ("name", "title", "label", "code", "description"))]
+        if text_fields:
+            q["search_fields"] = text_fields[:3]
+    return q
+
+
 def _query_for_section(
     role: str,
     model: str,
@@ -569,19 +596,7 @@ def _query_for_section(
     """
     fields = list(visible_fields or [])
     if role == "object_collection":
-        q: dict = {"model": model, "filter": {}, "limit": 20}
-        # Auto-detect ordering: prefer created_at, status, id
-        order_candidates = ["created_at", "updated_at", "name", "id"]
-        for f in order_candidates:
-            if f in fields:
-                q["order_by"] = [f"-{f}" if f in {"created_at", "updated_at"} else f]
-                break
-        if "search_fields" not in q and fields:
-            # Text fields for search
-            text_fields = [f for f in fields if any(t in f for t in ("name", "title", "label", "code", "description"))]
-            if text_fields:
-                q["search_fields"] = text_fields[:3]
-        return q
+        return _build_collection_query(model, fields)
     if role in {"object_detail", "object_form", "object_summary"}:
         return {"model": model, "lookup": {"id": "$params.id"}}
     if role == "child_collection":

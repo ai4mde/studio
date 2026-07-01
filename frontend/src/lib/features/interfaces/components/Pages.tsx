@@ -16,6 +16,58 @@ type PageEntry = SectionRef | CardEntry;
 
 const isCard = (e: PageEntry): e is CardEntry => (e as any).type === 'card';
 
+const CardSectionItem: React.FC<{ sRef: SectionRef; onRemove: () => void }> = ({ sRef, onRemove }) => (
+    <div key={sRef.value} className="flex items-center gap-1 bg-white rounded border border-blue-100 px-2 py-1">
+        <span className="flex-1 text-xs truncate">{sRef.label}</span>
+        <button type="button" onClick={onRemove} className="shrink-0 text-gray-300 hover:text-red-400">
+            <Trash size={11} />
+        </button>
+    </div>
+);
+
+const CardEntry_: React.FC<{
+    entry: CardEntry;
+    entryIdx: number;
+    sectionOptions: any[];
+    onRemoveCard: () => void;
+    onRemoveSection: (sIdx: number) => void;
+    onAddSection: (opt: any) => void;
+    onRename: (label: string) => void;
+}> = ({ entry, entryIdx, sectionOptions, onRemoveCard, onRemoveSection, onAddSection, onRename }) => (
+    <div key={entry.id} className="rounded-lg border border-blue-200 bg-blue-50 p-2 space-y-1.5">
+        <div className="flex items-center gap-1">
+            <input
+                type="text"
+                value={entry.label}
+                onChange={(e) => onRename(e.target.value)}
+                className="flex-1 text-xs font-semibold text-blue-700 bg-transparent border-b border-blue-200 focus:outline-none focus:border-blue-400 min-w-0"
+            />
+            <button type="button" onClick={onRemoveCard} className="shrink-0 text-blue-300 hover:text-red-500">
+                <Trash size={13} />
+            </button>
+        </div>
+        {(entry.sections || []).map((sRef: SectionRef, sIdx: number) => (
+            <CardSectionItem key={sRef.value} sRef={sRef} onRemove={() => onRemoveSection(sIdx)} />
+        ))}
+        <Select
+            placeholder="Add section to card..."
+            options={sectionOptions.filter((opt: any) => !(entry.sections || []).some((s: SectionRef) => s.value === opt.value))}
+            onChange={onAddSection}
+            value={null}
+            styles={{ control: (base: any) => ({ ...base, minHeight: '28px', fontSize: '11px' }) }}
+        />
+    </div>
+);
+
+const SectionEntryRow: React.FC<{ entry: SectionRef; onRemove: () => void }> = ({ entry, onRemove }) => (
+    <div key={entry.value} className="flex items-center gap-2 bg-white rounded border border-stone-200 px-2 py-1.5">
+        <span className="flex-1 text-sm truncate">{entry.label}</span>
+        <button type="button" onClick={onRemove} className="shrink-0 text-gray-300 hover:text-red-400">
+            <Trash size={13} />
+        </button>
+    </div>
+);
+
 type Props = {
     actorName: string;
     interfaceId?: string;
@@ -389,53 +441,22 @@ export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
                                             </div>
                                             {(selectedSections || []).map((entry: any, entryIdx: number) => (
                                                 isCard(entry) ? (
-                                                    <div key={entry.id} className="rounded-lg border border-blue-200 bg-blue-50 p-2 space-y-1.5">
-                                                        <div className="flex items-center gap-1">
-                                                            <input
-                                                                type="text"
-                                                                value={entry.label}
-                                                                onChange={(e) => handleRenameCard(entryIdx, e.target.value)}
-                                                                className="flex-1 text-xs font-semibold text-blue-700 bg-transparent border-b border-blue-200 focus:outline-none focus:border-blue-400 min-w-0"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveEntry(entryIdx)}
-                                                                className="shrink-0 text-blue-300 hover:text-red-500"
-                                                            >
-                                                                <Trash size={13} />
-                                                            </button>
-                                                        </div>
-                                                        {(entry.sections || []).map((sRef: SectionRef, sIdx: number) => (
-                                                            <div key={sRef.value} className="flex items-center gap-1 bg-white rounded border border-blue-100 px-2 py-1">
-                                                                <span className="flex-1 text-xs truncate">{sRef.label}</span>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRemoveSectionFromCard(entryIdx, sIdx)}
-                                                                    className="shrink-0 text-gray-300 hover:text-red-400"
-                                                                >
-                                                                    <Trash size={11} />
-                                                                </button>
-                                                            </div>
-                                                        ))}
-                                                        <Select
-                                                            placeholder="Add section to card..."
-                                                            options={sectionOptions.filter((opt: any) => !(entry.sections || []).some((s: SectionRef) => s.value === opt.value))}
-                                                            onChange={(opt: any) => handleAddSectionToCard(entryIdx, opt)}
-                                                            value={null}
-                                                            styles={{ control: (base: any) => ({ ...base, minHeight: '28px', fontSize: '11px' }) }}
-                                                        />
-                                                    </div>
+                                                    <CardEntry_
+                                                        key={entry.id}
+                                                        entry={entry}
+                                                        entryIdx={entryIdx}
+                                                        sectionOptions={sectionOptions}
+                                                        onRemoveCard={() => handleRemoveEntry(entryIdx)}
+                                                        onRemoveSection={(sIdx) => handleRemoveSectionFromCard(entryIdx, sIdx)}
+                                                        onAddSection={(opt: any) => handleAddSectionToCard(entryIdx, opt)}
+                                                        onRename={(label) => handleRenameCard(entryIdx, label)}
+                                                    />
                                                 ) : (
-                                                    <div key={entry.value} className="flex items-center gap-2 bg-white rounded border border-stone-200 px-2 py-1.5">
-                                                        <span className="flex-1 text-sm truncate">{entry.label}</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveEntry(entryIdx)}
-                                                            className="shrink-0 text-gray-300 hover:text-red-400"
-                                                        >
-                                                            <Trash size={13} />
-                                                        </button>
-                                                    </div>
+                                                    <SectionEntryRow
+                                                        key={entry.value}
+                                                        entry={entry}
+                                                        onRemove={() => handleRemoveEntry(entryIdx)}
+                                                    />
                                                 )
                                             ))}
                                             <Select

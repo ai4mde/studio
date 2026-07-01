@@ -80,6 +80,21 @@ class _Attribute:
 ACTIVITY_ACTION_VARIANTS = {"button", "link", "fab", "row_action", "wizard_next", "auto"}
 
 
+def _derive_workflow_target_page(workflow: dict) -> str | None:
+    """Return the sanitized workflow target page name, or None if absent."""
+    raw = workflow.get("target_page") or workflow.get("targetPage")
+    return _sanitize(raw) if raw else None
+
+
+def _derive_item_click_target_page(behavior: dict) -> str | None:
+    """Return the sanitized item-click target page name when the action is navigate."""
+    item_click = behavior.get("item_click") if isinstance(behavior.get("item_click"), dict) else {}
+    if item_click.get("type") != "navigate":
+        return None
+    raw = item_click.get("target_page") or item_click.get("targetPage")
+    return _sanitize(raw) if raw else None
+
+
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, has_select_operation, text,
@@ -118,15 +133,8 @@ class _SectionComponent:
         self.success_page = (style or {}).get("success_page")
         self.workflow = workflow or {}
         self.workflow_action = self.workflow.get("action", "complete")
-        workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
-        self.workflow_target_page = _sanitize(workflow_target_page) if workflow_target_page else None
-        item_click = self.behavior.get("item_click") if isinstance(self.behavior.get("item_click"), dict) else {}
-        item_click_target_page = (
-            item_click.get("target_page") or item_click.get("targetPage")
-            if item_click.get("type") == "navigate"
-            else None
-        )
-        self.item_click_target_page = _sanitize(item_click_target_page) if item_click_target_page else None
+        self.workflow_target_page = _derive_workflow_target_page(self.workflow)
+        self.item_click_target_page = _derive_item_click_target_page(self.behavior)
         self.min_height = int(min_height) if min_height else None
 
     def __str__(self):
@@ -459,6 +467,23 @@ def _relation_endpoint(relation: Dict, key: str) -> Optional[str]:
     return str(value) if value else None
 
 
+def _parent_id_from_relation(relation: Dict, class_id: str) -> Optional[str]:
+    """Determine parent classifier id from a single association relation, or None."""
+    data = _relation_data(relation)
+    if data.get("type") != "association":
+        return None
+    source_id = _relation_endpoint(relation, "source")
+    target_id = _relation_endpoint(relation, "target")
+    multiplicity = data.get("multiplicity") or {}
+    source_mult = str(multiplicity.get("source", ""))
+    target_mult = str(multiplicity.get("target", ""))
+    if source_id == str(class_id) and (source_mult, target_mult) in SOURCE_PARENT_MULTIPLICITIES:
+        return target_id
+    if target_id == str(class_id) and (source_mult, target_mult) in TARGET_PARENT_MULTIPLICITIES:
+        return source_id
+    return None
+
+
 def _infer_parent_models(class_id: str, classifiers: List[Dict], relations: Optional[List[Dict]]) -> List[str]:
     """Infer parent models."""
     if not class_id or not relations:
@@ -471,22 +496,7 @@ def _infer_parent_models(class_id: str, classifiers: List[Dict], relations: Opti
 
     out = []
     for relation in relations:
-        data = _relation_data(relation)
-        if data.get("type") != "association":
-            continue
-
-        source_id = _relation_endpoint(relation, "source")
-        target_id = _relation_endpoint(relation, "target")
-        multiplicity = data.get("multiplicity") or {}
-        source_mult = str(multiplicity.get("source", ""))
-        target_mult = str(multiplicity.get("target", ""))
-
-        parent_id = None
-        if source_id == str(class_id) and (source_mult, target_mult) in SOURCE_PARENT_MULTIPLICITIES:
-            parent_id = target_id
-        elif target_id == str(class_id) and (source_mult, target_mult) in TARGET_PARENT_MULTIPLICITIES:
-            parent_id = source_id
-
+        parent_id = _parent_id_from_relation(relation, class_id)
         parent_name = classifier_names.get(str(parent_id)) if parent_id else None
         if parent_name and parent_name not in out:
             out.append(parent_name)

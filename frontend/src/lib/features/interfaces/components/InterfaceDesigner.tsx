@@ -683,6 +683,45 @@ const insertSectionRefInPage = (page: any, fromId: string, beforeId: string): an
     return { ...page, sections: refs };
 };
 
+const _GENERATE_CHIPS = [
+    'Green enterprise compact dashboard', 'Left sidebar with table layout',
+    'Blue header compact layout', 'Full width card gallery',
+    'Compact dashboard with dark nav', 'Teal accent right sidebar full width',
+    'Amber compact form larger font',
+];
+const _REFINE_CHIPS = [
+    'Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent',
+    'Dark background blue accent', 'Compact header', 'Body text 18px', 'Right sidebar width 4',
+];
+
+const PromptChips: React.FC<{ hasCandidates: boolean; isGenerating: boolean; onChipClick: (chip: string) => void }> = ({ hasCandidates, isGenerating, onChipClick }) => {
+    const chips = hasCandidates ? _REFINE_CHIPS : _GENERATE_CHIPS;
+    return (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+            {chips.map(chip => (
+                <button
+                    key={chip}
+                    disabled={isGenerating}
+                    onClick={() => onChipClick(chip)}
+                    style={{
+                        background: '#f0fdf4',
+                        border: '1px solid #bbf7d0',
+                        borderRadius: 12,
+                        padding: '2px 8px',
+                        fontSize: 10,
+                        color: '#15803d',
+                        cursor: isGenerating ? 'not-allowed' : 'pointer',
+                        whiteSpace: 'nowrap',
+                        opacity: isGenerating ? 0.5 : 1,
+                    }}
+                >
+                    {hasCandidates ? `+ ${chip}` : chip}
+                </button>
+            ))}
+        </div>
+    );
+};
+
 export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceId, systemId }) => {
     const storagePrefix = interfaceId || 'new-interface';
     const [sections, setSections] = useLocalStorage(`interface:${storagePrefix}:sections`, []);
@@ -897,7 +936,7 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
 
     // postMessage -> select section from iframe click / drag-reorder
     useEffect(() => {
-        const handler = (e: MessageEvent) => {
+        const handleNavigationMessages = (e: MessageEvent) => {
             if (e.data?.type === 'navigate-page') {
                 const targetPage = e.data.page;
                 const pageIndex = (latestState.current.pages as any[]).findIndex((page: any) =>
@@ -935,7 +974,10 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                 setPages((prev: any[]) => prev.map((page: any) =>
                     moveSectionRefInPage(page, fromId, beforeId)
                 ));
-            } else if (e.data?.type === 'section-resize') {
+            }
+        };
+        const handleSectionMutationMessages = (e: MessageEvent) => {
+            if (e.data?.type === 'section-resize') {
                 const { id, col_span } = e.data;
                 setSections((prev: any[]) => prev.map((s: any) =>
                     s.id === id ? { ...s, col_span } : s
@@ -984,6 +1026,10 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                     insertSectionRefInPage(page, fromId, beforeId)
                 ));
             }
+        };
+        const handler = (e: MessageEvent) => {
+            handleNavigationMessages(e);
+            handleSectionMutationMessages(e);
         };
         window.addEventListener('message', handler);
         return () => window.removeEventListener('message', handler);
@@ -1428,6 +1474,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             }
             if (field === 'workflow_action') return { ...s, workflow: { ...s.workflow, action: value } };
             if (field === 'workflow_target_page') return { ...s, workflow: { ...s.workflow, target_page: value } };
+            if (field === 'position') return { ...s, position: value };
             return { ...s, style: { ...s.style, [field]: value } };
         }));
     }, [setSections]);
@@ -1455,6 +1502,42 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         if (designMode === 'explore' && interfaceId) loadCandidates();
     }, [designMode, interfaceId, loadCandidates]);
 
+    const _readCandidateStream = async (
+        reader: ReadableStreamDefaultReader<Uint8Array>,
+        setCandidateStatus: (s: string) => void,
+        setIsGeneratingCandidates: (v: boolean) => void,
+        loadCandidates: () => Promise<void>,
+    ): Promise<boolean> => {
+        const decoder = new TextDecoder();
+        let buf = '';
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const lines = buf.split('\n');
+            buf = lines.pop() || '';
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                    const c = JSON.parse(line);
+                    if (c.status) setCandidateStatus(c.status);
+                    if (c.status === 'error') {
+                        setCandidateStatus(`Error: ${c.message || c.agent_error || 'candidate generation failed'}`);
+                        setIsGeneratingCandidates(false);
+                        return true;
+                    }
+                    if (c.status === 'done') {
+                        setCandidateStatus(`Done! Loading ${c.candidate_count ?? ''} candidate${c.candidate_count === 1 ? '' : 's'}...`);
+                        await loadCandidates();
+                        setIsGeneratingCandidates(false);
+                        return true;
+                    }
+                } catch { /* ignore */ }
+            }
+        }
+        return false;
+    };
+
     const handleGenerateCandidates = async () => {
         if (!explorePrompt.trim() || isGeneratingCandidates || !interfaceId || !systemId) return;
         const prompt = explorePrompt;
@@ -1463,7 +1546,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         trackEvent('candidates_generated', { prompt, interface_id: interfaceId, system_id: systemId });
         setCandidates([]);
         setPreviewCandidateIdx(null);
-        let lastStatus = '';
         try {
             const bearerToken = useAuthStore.getState().bearerToken;
             const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
@@ -1475,35 +1557,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             });
             if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
             const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buf = '';
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-                buf += decoder.decode(value, { stream: true });
-                const lines = buf.split('\n');
-                buf = lines.pop() || '';
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    try {
-                        const c = JSON.parse(line);
-                        if (c.status) { lastStatus = c.status; setCandidateStatus(c.status); }
-                        if (c.status === 'error') {
-                            setCandidateStatus(`Error: ${c.message || c.agent_error || 'candidate generation failed'}`);
-                            setIsGeneratingCandidates(false);
-                            return;
-                        }
-                        if (c.status === 'done') {
-                            setCandidateStatus(`Done! Loading ${c.candidate_count ?? ''} candidate${c.candidate_count === 1 ? '' : 's'}...`);
-                            await loadCandidates();
-                            setIsGeneratingCandidates(false);
-                            return;
-                        }
-                    } catch { /* ignore */ }
-                }
-            }
-            // Only show success if agent explicitly returns "done"; otherwise keep the last received status (may be an error message)
-            if (lastStatus === 'done') setCandidateStatus('Done! Loading candidates...');
+            const earlyExit = await _readCandidateStream(reader, setCandidateStatus, setIsGeneratingCandidates, loadCandidates);
+            if (earlyExit) return;
         } catch (e: any) {
             setCandidateStatus(`Error: ${e.message}`);
         } finally {
@@ -1823,6 +1878,25 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         }
         return '';
     };
+    const _applyHideField = (field: string, nextLayout: any, nextFieldStyles: any) => {
+        const currentCfg = { ...nextFieldStyles[field] };
+        currentCfg.visible = 'hidden';
+        nextFieldStyles[field] = currentCfg;
+        nextLayout.hidden = Array.from(new Set([...(Array.isArray(nextLayout.hidden) ? nextLayout.hidden : []), field]));
+    };
+    const _applyShowField = (field: string, nextSlot: string, nextLayout: any, nextFieldStyles: any) => {
+        const currentCfg = { ...nextFieldStyles[field] };
+        delete currentCfg.visible;
+        nextFieldStyles[field] = currentCfg;
+        nextLayout.hidden = (Array.isArray(nextLayout.hidden) ? nextLayout.hidden : []).filter((item: any) => item !== field);
+        if (nextSlot) {
+            if (multipleFieldSlots.has(nextSlot)) {
+                nextLayout[nextSlot] = Array.from(new Set([...(Array.isArray(nextLayout[nextSlot]) ? nextLayout[nextSlot] : []), field]));
+            } else {
+                nextLayout[nextSlot] = field;
+            }
+        }
+    };
     const updateFieldSlot = (field: string, nextSlot: string) => {
         if (!selectedSection) return;
         const nextLayout: any = { ...fieldLayout };
@@ -1835,22 +1909,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             }
         }
         const nextFieldStyles = { ...fieldLayoutFields };
-        const currentCfg = { ...nextFieldStyles[field] };
         if (nextSlot === 'hidden') {
-            currentCfg.visible = 'hidden';
-            nextFieldStyles[field] = currentCfg;
-            nextLayout.hidden = Array.from(new Set([...(Array.isArray(nextLayout.hidden) ? nextLayout.hidden : []), field]));
+            _applyHideField(field, nextLayout, nextFieldStyles);
         } else {
-            delete currentCfg.visible;
-            nextFieldStyles[field] = currentCfg;
-            nextLayout.hidden = (Array.isArray(nextLayout.hidden) ? nextLayout.hidden : []).filter((item: any) => item !== field);
-            if (nextSlot) {
-                if (multipleFieldSlots.has(nextSlot)) {
-                    nextLayout[nextSlot] = Array.from(new Set([...(Array.isArray(nextLayout[nextSlot]) ? nextLayout[nextSlot] : []), field]));
-                } else {
-                    nextLayout[nextSlot] = field;
-                }
-            }
+            _applyShowField(field, nextSlot, nextLayout, nextFieldStyles);
         }
         nextLayout.field_styles = nextFieldStyles;
         updateSection(selectedSection.id, 'field_layout', nextLayout);
@@ -2134,36 +2196,11 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 style={{ width: '100%', padding: '6px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', resize: 'none', boxSizing: 'border-box', marginBottom: 6 }}
                             />
                             {/* Prompt suggestion chips — generate style when empty, regenerate style when candidates exist */}
-                            {(() => {
-                                const hasCandidate = candidates.length > 0;
-                                const chips = hasCandidate
-                                    ? ['Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent', 'Dark background blue accent', 'Compact header', 'Body text 18px', 'Right sidebar width 4']
-                                    : ['Green enterprise compact dashboard', 'Left sidebar with table layout', 'Blue header compact layout', 'Full width card gallery', 'Compact dashboard with dark nav', 'Teal accent right sidebar full width', 'Amber compact form larger font'];
-                                return (
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
-                                        {chips.map(chip => (
-                                            <button
-                                                key={chip}
-                                                disabled={isGeneratingCandidates}
-                                                onClick={() => setExplorePrompt(p => p.trim() ? `${p.trim()}, ${chip}` : chip)}
-                                                style={{
-                                                    background: '#f0fdf4',
-                                                    border: '1px solid #bbf7d0',
-                                                    borderRadius: 12,
-                                                    padding: '2px 8px',
-                                                    fontSize: 10,
-                                                    color: '#15803d',
-                                                    cursor: isGeneratingCandidates ? 'not-allowed' : 'pointer',
-                                                    whiteSpace: 'nowrap',
-                                                    opacity: isGeneratingCandidates ? 0.5 : 1,
-                                                }}
-                                            >
-                                                {hasCandidate ? `+ ${chip}` : chip}
-                                            </button>
-                                        ))}
-                                    </div>
-                                );
-                            })()}
+                            <PromptChips
+                                hasCandidates={candidates.length > 0}
+                                isGenerating={isGeneratingCandidates}
+                                onChipClick={(chip) => setExplorePrompt(p => p.trim() ? `${p.trim()}, ${chip}` : chip)}
+                            />
                             {candidateStatus && (
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', background: '#f9fafb', padding: '4px 8px', borderRadius: 4, wordBreak: 'break-word' }}>
                                     {isGeneratingCandidates && <Loader2 size={10} style={{ display: 'inline', marginRight: 4, animation: 'spin 1s linear infinite' }} />}
@@ -3204,9 +3241,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     const isActive = curPos === opt.value;
                                     return (
                                         <button key={opt.value}
-                                            onClick={() => setSections((prev: any[]) => prev.map((s: any) =>
-                                                s.id === selectedSection.id ? { ...s, position: opt.value } : s
-                                            ))}
+                                            onClick={() => updateSection(selectedSection.id, 'position', opt.value)}
                                             style={{
                                                 ...btnBase, padding: '3px 7px', fontSize: 11,
                                                 background: isActive ? opt.bg : '#fff',

@@ -331,6 +331,18 @@ def _normalize_one_activity_action(section: dict, sid: str, activity_page_sectio
     section["workflow"] = workflow
 
 
+def _deduplicate_page_action_sections(page: dict, section_map: dict, to_remove: set) -> None:
+    """Deduplicate activity_action sections for a single activity page, mutating page and to_remove."""
+    ref_ids = [str(r.get("value") if isinstance(r, dict) else r) for r in (page.get("sections") or [])]
+    action_ids = [sid for sid in ref_ids if (section_map.get(sid) or {}).get("layout") == "activity_action"]
+    if len(action_ids) <= 1:
+        return
+    action_ids.sort(key=lambda sid: 0 if (section_map.get(sid) or {}).get("workflow", {}).get("action") in {"complete", "complete_then_page"} else 1)
+    extras = set(action_ids[1:])
+    to_remove |= extras
+    page["sections"] = [r for r in (page.get("sections") or []) if str(r.get("value") if isinstance(r, dict) else r) not in extras]
+
+
 def _deduplicate_activity_action_sections(pages: list, sections: list) -> list:
     """Per activity page, keep only one activity_action (prefer complete/complete_then_page)."""
     section_map = {str(s.get("id", "")): s for s in sections}
@@ -340,14 +352,7 @@ def _deduplicate_activity_action_sections(pages: list, sections: list) -> list:
         page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
         if page_type_value != "activity":
             continue
-        ref_ids = [str(r.get("value") if isinstance(r, dict) else r) for r in (page.get("sections") or [])]
-        action_ids = [sid for sid in ref_ids if (section_map.get(sid) or {}).get("layout") == "activity_action"]
-        if len(action_ids) <= 1:
-            continue
-        action_ids.sort(key=lambda sid: 0 if (section_map.get(sid) or {}).get("workflow", {}).get("action") in {"complete", "complete_then_page"} else 1)
-        extras = set(action_ids[1:])
-        to_remove |= extras
-        page["sections"] = [r for r in (page.get("sections") or []) if str(r.get("value") if isinstance(r, dict) else r) not in extras]
+        _deduplicate_page_action_sections(page, section_map, to_remove)
     if to_remove:
         sections = [s for s in sections if str(s.get("id", "")) not in to_remove]
     return sections
@@ -453,23 +458,8 @@ def _workflow_icon_links(usecase_navigation: dict, page_by_id: dict | None = Non
         seen.add(page_id)
     return links
 
-def _infer_section_component(section: dict) -> str:
-    """
-    Generically infers a suitable high-fidelity component name based on 
-    layout and model characteristics, avoiding app-specific hardcoding.
-    """
-    component = section.get("component")
-    if component:
-        return str(component)
-    
-    layout = _normalize_layout_alias(section.get("layout"))
-    model_name = str(section.get("primary_model") or section.get("class") or "").lower()
-    attrs = {str(a.get("name") if isinstance(a, dict) else a).lower() for a in section.get("attributes", [])}
-    
-    # Generic rules based on data traits
-    has_image = any(term in attrs for term in ("image", "img", "url", "avatar", "photo", "media"))
-    is_person = any(term in model_name for term in ("user", "customer", "employee", "doctor", "member", "actor"))
-    
+def _infer_chrome_component(layout: str) -> str | None:
+    """Return the component name for chrome layouts, or None if not a chrome layout."""
     if layout == "logo": return "Logo"
     if layout == "search-bar": return "SearchBar"
     if layout == "icon-actions": return "IconActions"
@@ -477,25 +467,48 @@ def _infer_section_component(section: dict) -> str:
     if layout in _HEADER_TEMPLATE_LAYOUTS and layout not in {"logo", "search-bar", "icon-actions", "site-nav", "nav-links"}:
         return "HeaderTemplate"
     if layout in {"site-nav", "nav-links", "nav-bar"}: return "NavBar"
-    
+    return None
+
+
+def _infer_data_component(layout: str, has_image: bool, is_person: bool, model_name: str) -> str:
+    """Return the component name for data section layouts."""
     if layout == "form":
         if any(term in model_name for term in ("address", "location")): return "AddressForm"
         if any(term in model_name for term in ("payment", "card", "billing")): return "PaymentForm"
         return "ObjectForm"
-        
-    if layout == "gallery" or layout == "card":
+    if layout in {"gallery", "card"}:
         if has_image: return "ImageCardGrid" if layout == "gallery" else "ImageCard"
         if is_person: return "PersonCardGrid"
         return "ObjectCardGrid"
-        
     if layout == "detail":
         return "ObjectDetailPanel" if not has_image else "MediaDetailPanel"
-        
     if layout == "table": return "DataTable"
     if layout == "list": return "ObjectList"
     if layout == "filter": return "FilterPanel"
-    
     return "SectionPanel"
+
+
+def _infer_section_component(section: dict) -> str:
+    """
+    Generically infers a suitable high-fidelity component name based on
+    layout and model characteristics, avoiding app-specific hardcoding.
+    """
+    component = section.get("component")
+    if component:
+        return str(component)
+
+    layout = _normalize_layout_alias(section.get("layout"))
+    model_name = str(section.get("primary_model") or section.get("class") or "").lower()
+    attrs = {str(a.get("name") if isinstance(a, dict) else a).lower() for a in section.get("attributes", [])}
+
+    # Generic rules based on data traits
+    has_image = any(term in attrs for term in ("image", "img", "url", "avatar", "photo", "media"))
+    is_person = any(term in model_name for term in ("user", "customer", "employee", "doctor", "member", "actor"))
+
+    chrome = _infer_chrome_component(layout)
+    if chrome is not None:
+        return chrome
+    return _infer_data_component(layout, has_image, is_person, model_name)
 
 
 def _is_select_existing_text(text: str) -> bool:

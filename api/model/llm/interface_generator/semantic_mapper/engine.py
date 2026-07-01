@@ -642,6 +642,31 @@ class TransformationEngine:
 
     # ── Stage 1: Semantic Interpretation ─────────────────────────────────────
 
+    def _process_classifier_for_profile(self, classifier: dict, composition_parents: set, intent_rules: list, ctx: "_Context") -> None:
+        """Build and store a semantic intent profile for a single classifier."""
+        cls_data = classifier.get("data") or {}
+        if cls_data.get("type") not in {"class", "entity", "model"}:
+            return
+        ptr = str(classifier.get("id") or "")
+        if not ptr:
+            return
+        has_children = ptr in composition_parents
+        intents = _interpret_entity_intents(cls_data, intent_rules, has_children)
+        ctx.semantic_profiles[ptr] = {
+            "intents": intents,
+            "name": cls_data.get("name", ""),
+        }
+        log.debug("Intent profile: %s → %s", cls_data.get("name", ptr), intents)
+
+    def _process_activity_diagram_for_workflow(self, diagram: dict, workflow_patterns: list, ctx: "_Context") -> None:
+        """Classify a single activity diagram by topology and store the result."""
+        diag_id = str(diagram.get("id") or "")
+        if not diag_id:
+            return
+        wf_intents = _recognize_workflow(diagram, workflow_patterns, ctx)
+        ctx.workflow_profiles[diag_id] = {"intents": wf_intents}
+        log.debug("Workflow profile: diagram %s → %s", diag_id, wf_intents)
+
     def _semantic_interpretation_pass(self, ctx: _Context) -> None:
         """
         Pre-pass: build a Semantic Profile for every Class classifier.
@@ -668,32 +693,12 @@ class TransformationEngine:
                         composition_parents.add(src_ptr)
 
         for classifier in ctx.metadata.get("classifiers", []):
-            cls_data = classifier.get("data") or {}
-            if cls_data.get("type") not in {"class", "entity", "model"}:
-                continue
-            ptr = str(classifier.get("id") or "")
-            if not ptr:
-                continue
-            has_children = ptr in composition_parents
-            intents      = _interpret_entity_intents(cls_data, intent_rules, has_children)
-            ctx.semantic_profiles[ptr] = {
-                "intents": intents,
-                "name":    cls_data.get("name", ""),
-            }
-            log.debug(
-                "Intent profile: %s → %s",
-                cls_data.get("name", ptr), intents,
-            )
+            self._process_classifier_for_profile(classifier, composition_parents, intent_rules, ctx)
 
         # Workflow Recognition: classify each activity diagram by topology
         workflow_patterns = self._sm.get("workflow_patterns") or []
         for diagram in ctx.diagrams_of_type("activity"):
-            diag_id = str(diagram.get("id") or "")
-            if not diag_id:
-                continue
-            wf_intents = _recognize_workflow(diagram, workflow_patterns, ctx)
-            ctx.workflow_profiles[diag_id] = {"intents": wf_intents}
-            log.debug("Workflow profile: diagram %s → %s", diag_id, wf_intents)
+            self._process_activity_diagram_for_workflow(diagram, workflow_patterns, ctx)
 
     # ── Top-level dispatcher ──────────────────────────────────────────────────
 
