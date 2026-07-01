@@ -299,21 +299,70 @@ def _assign_nav_to_pages(normal_pages: list, keep_nav_id: str, section_map: dict
                 page["sections"] = refs
 
 
+def _inject_footer_nav_methods(sections: list, nav_methods: list) -> None:
+    """Add navigation methods to footer sections that lack meaningful methods."""
+    if not nav_methods:
+        return
+    generic_methods = {"help", "privacy", "terms", "contact"}
+    for section in sections:
+        is_footer = (
+            section.get("position") == "footer"
+            or _normalize_layout_alias(section.get("layout")) in _FOOTER_TEMPLATE_LAYOUTS
+        )
+        if not is_footer:
+            continue
+        existing = section.get("methods") or []
+        existing_names = {str(m.get("name") if isinstance(m, dict) else m).strip().lower() for m in existing}
+        if not existing_names or existing_names.issubset(generic_methods):
+            section["methods"] = nav_methods
+
+
+def _create_or_promote_nav_section(
+    keep_nav_id: str,
+    sidebar_nav_ids: list,
+    header_nav_ids: list,
+    sections: list,
+    section_map: dict,
+    normal_pages: list,
+    candidate_index: int,
+) -> str:
+    """Create a new nav section or promote a sidebar nav to header; return the nav id to keep."""
+    if not keep_nav_id:
+        use_sidebar = int(candidate_index or 0) % 3 == 2
+        nav_section = (
+            _sidebar_nav_section_for_candidate(normal_pages, candidate_index)
+            if use_sidebar
+            else _top_nav_section_for_candidate(normal_pages, candidate_index)
+        )
+        sid = nav_section["id"]
+        suffix = 2
+        while sid in section_map:
+            sid = f"{nav_section['id']}_{suffix}"
+            suffix += 1
+        nav_section["id"] = sid
+        sections.append(nav_section)
+        section_map[sid] = nav_section
+        return sid
+    if int(candidate_index or 0) % 3 != 2 and keep_nav_id in sidebar_nav_ids and not header_nav_ids:
+        nav_section = section_map.get(keep_nav_id) or {}
+        nav_section["position"] = "header"
+        nav_section["layout"] = "nav-links"
+        nav_section["component"] = "NavBar"
+        style = dict(nav_section.get("style") or {})
+        style.pop("sidebar_side", None)
+        style.pop("sidebar_width", None)
+        style["variant"] = "page-nav"
+        nav_section["style"] = style
+    return keep_nav_id
+
+
 def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: list, candidate_index: int = 0) -> tuple[list, list]:
     """Ensure normal page navigation."""
     if not normal_pages:
         return pages, sections
     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
-    for section in sections:
-        if section.get("position") == "footer" or _normalize_layout_alias(section.get("layout")) in _FOOTER_TEMPLATE_LAYOUTS:
-            existing = section.get("methods") or []
-            existing_names = {
-                str(m.get("name") if isinstance(m, dict) else m).strip().lower()
-                for m in existing
-            }
-            if nav_methods and (not existing_names or existing_names.issubset({"help", "privacy", "terms", "contact"})):
-                section["methods"] = nav_methods
+    _inject_footer_nav_methods(sections, nav_methods)
     nav_ids, header_nav_ids, sidebar_nav_ids = _find_nav_section_ids(section_map)
     if header_nav_ids:
         keep_nav_id = header_nav_ids[0]
@@ -328,37 +377,12 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
         sections = [s for s in sections if str(s.get("id") or "") not in duplicate_nav_ids]
         section_map = {str(s.get("id")): s for s in sections if s.get("id")}
         for page in pages:
-            page["sections"] = [
-                ref for ref in (page.get("sections") or [])
-                if _ref_id(ref) not in duplicate_nav_ids
-            ]
+            page["sections"] = [ref for ref in (page.get("sections") or []) if _ref_id(ref) not in duplicate_nav_ids]
 
-    if not keep_nav_id:
-        nav_section = (
-            _sidebar_nav_section_for_candidate(normal_pages, candidate_index)
-            if int(candidate_index or 0) % 3 == 2
-            else _top_nav_section_for_candidate(normal_pages, candidate_index)
-        )
-        sid = nav_section["id"]
-        suffix = 2
-        while sid in section_map:
-            sid = f"{nav_section['id']}_{suffix}"
-            suffix += 1
-        nav_section["id"] = sid
-        sections.append(nav_section)
-        section_map[sid] = nav_section
-        keep_nav_id = sid
-    elif int(candidate_index or 0) % 3 != 2 and keep_nav_id in sidebar_nav_ids and not header_nav_ids:
-        nav_section = section_map.get(keep_nav_id) or {}
-        nav_section["position"] = "header"
-        nav_section["layout"] = "nav-links"
-        nav_section["component"] = "NavBar"
-        style = dict(nav_section.get("style") or {})
-        style.pop("sidebar_side", None)
-        style.pop("sidebar_width", None)
-        style["variant"] = "page-nav"
-        nav_section["style"] = style
-
+    keep_nav_id = _create_or_promote_nav_section(
+        keep_nav_id, sidebar_nav_ids, header_nav_ids,
+        sections, section_map, normal_pages, candidate_index,
+    )
     if keep_nav_id:
         _assign_nav_to_pages(normal_pages, keep_nav_id, section_map)
     return pages, sections

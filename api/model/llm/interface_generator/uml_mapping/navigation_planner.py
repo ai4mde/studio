@@ -914,6 +914,193 @@ def _compose_page_sections(
     return None, ([main] if main else [])
 
 
+def _nav_plan_process_pages(
+    usecase_navigation: dict,
+    model_attrs: dict,
+    model_graph: dict,
+    actor_permissions: dict,
+    semantic_profiles: dict,
+    section_composition: dict,
+    sections: list,
+    page_sections: defaultdict,
+) -> list:
+    """Normalize each usecase page and compose its sections."""
+    nav_bar_pages = set(usecase_navigation.get("nav_bar_pages") or [])
+    pages = []
+    for page in usecase_navigation.get("pages") or []:
+        normalized = {
+            "id": page.get("page_id"),
+            "name": page.get("page_name") or _page_name(page.get("page_id")),
+            "role": (page.get("roles") or ["object_workspace"])[0],
+            "roles": page.get("roles") or [],
+            "primary_model": page.get("primary_model", ""),
+            "operation_kind": page.get("operation_kind") or page.get("kind") or "",
+            "usecases": page.get("usecases") or [],
+            "nav": page.get("page_id") in nav_bar_pages,
+            "name_slugs": page.get("name_slugs") or [],
+            "sections": [],
+        }
+        pattern_name, composed = _compose_page_sections(
+            normalized, model_attrs, model_graph, actor_permissions,
+            semantic_profiles=semantic_profiles,
+            section_composition=section_composition,
+        )
+        if pattern_name:
+            normalized["pattern"] = pattern_name
+        name_slugs = normalized["name_slugs"]
+        for sec in composed:
+            sec["name_slugs"] = name_slugs
+            sections.append(sec)
+            page_sections[normalized["id"]].append(sec["id"])
+        pages.append(normalized)
+    return pages
+
+
+def _nav_plan_process_workflow_entry(
+    entry: dict,
+    model_attrs: dict,
+    sections: list,
+    page_sections: defaultdict,
+    workflows: list,
+) -> None:
+    """Process one workflow entry point: add pre-workflow collection sections and the entry button."""
+    page_id = entry.get("page_id")
+    if not page_id:
+        return
+    related_models = [m for m in entry.get("related_models") or [] if m in model_attrs]
+    existing_ids = {s["id"] for s in sections}
+    for model in entry.get("pre_workflow_collections") or []:
+        if model not in model_attrs or not _is_strict_child_collection_model(model):
+            continue
+        page_stem = re.sub(r"[^a-z0-9]", "", page_id.lower())
+        model_stem = re.sub(r"[^a-z0-9]", "", model.lower())
+        if page_stem and not model_stem.startswith(page_stem):
+            continue
+        section = _child_section(page_id, model, model_attrs, related_models=related_models)
+        if section["id"] not in existing_ids:
+            sections.append(section)
+            page_sections[page_id].append(section["id"])
+            existing_ids.add(section["id"])
+    label = entry.get("button_label") or entry.get("label") or "Start"
+    workflow_section = {
+        "id": f"{page_id}_workflow_entry",
+        "page_id": page_id,
+        "role": "workflow_entry",
+        "name": entry.get("label") or "Start Workflow",
+        "layout": "activity_start",
+        "component": "StartWorkflowButton",
+        "primary_model": "",
+        "visible_fields": [],
+        "editable_fields": [],
+        "related_visible_fields": [],
+        "field_layout": {},
+        "behavior": {"type": "start_workflow", "target_activity_node_id": entry.get("starts_activity_node_id", "")},
+        "operations": ["start_workflow"],
+        "label": label,
+        "style": {"cta_label": label},
+        "col_span": 12,
+    }
+    sections.append(workflow_section)
+    page_sections[page_id].append(workflow_section["id"])
+    workflows.append({
+        "entry_page": page_id,
+        "entry_label": workflow_section["label"],
+        "starts_activity_node_id": entry.get("starts_activity_node_id", ""),
+        "starts_activity_name": entry.get("starts_activity_name", ""),
+    })
+
+
+def _nav_plan_process_step(
+    step: dict,
+    pages: list,
+    sections: list,
+    page_sections: defaultdict,
+    existing_section_ids: set,
+    existing_page_ids: set,
+    model_attrs: dict,
+    model_graph: dict,
+    actor_permissions: dict,
+    semantic_profiles: dict,
+    section_composition: dict,
+    workflow_entries: list,
+) -> None:
+    """Process one workflow step: add its page and compose sections."""
+    page_id = step.get("page_id")
+    if not page_id:
+        return
+    step_model = next((m for m in (step.get("classes") or []) if m in model_attrs), "")
+    node_name_slug = _section_id(step.get("activity_node_name") or step.get("page_name") or "")
+    step_name_slugs = [node_name_slug] if node_name_slug and node_name_slug != page_id else []
+    if page_id not in existing_page_ids:
+        pages.append({
+            "id": page_id,
+            "name": step.get("page_name") or _page_name(page_id),
+            "role": "activity_action",
+            "roles": ["activity_action"],
+            "primary_model": step_model,
+            "activity_node_name": step.get("activity_node_name") or step.get("page_name") or "",
+            "workflow_intents": step.get("workflow_intents") or [],
+            "usecases": [],
+            "nav": False,
+            "sections": [],
+        })
+        existing_page_ids.add(page_id)
+    if step_model:
+        _nav_plan_apply_step_pattern(
+            step, step_model, page_id, step_name_slugs,
+            pages, sections, page_sections, existing_section_ids,
+            model_attrs, model_graph, actor_permissions, semantic_profiles, section_composition,
+        )
+    else:
+        for sec in _sections_for_activity_step(step, model_attrs, workflow_entries):
+            if sec["id"] not in existing_section_ids:
+                sec["name_slugs"] = step_name_slugs
+                sections.append(sec)
+                page_sections[page_id].append(sec["id"])
+                existing_section_ids.add(sec["id"])
+
+
+def _nav_plan_apply_step_pattern(
+    step: dict,
+    step_model: str,
+    page_id: str,
+    step_name_slugs: list,
+    pages: list,
+    sections: list,
+    page_sections: defaultdict,
+    existing_section_ids: set,
+    model_attrs: dict,
+    model_graph: dict,
+    actor_permissions: dict,
+    semantic_profiles: dict,
+    section_composition: dict,
+) -> None:
+    """Apply YAML-driven pattern to a workflow step page with a known model."""
+    step_page = {
+        "id": page_id,
+        "roles": ["activity_action"],
+        "primary_model": step_model,
+        "activity_node_name": step.get("activity_node_name") or step.get("page_name") or "",
+        "workflow_intents": step.get("workflow_intents") or [],
+    }
+    step_pattern, step_composed = _compose_page_sections(
+        step_page, model_attrs, model_graph, actor_permissions,
+        semantic_profiles=semantic_profiles,
+        section_composition=section_composition,
+    )
+    if step_pattern:
+        for p in pages:
+            if p["id"] == page_id:
+                p["pattern"] = step_pattern
+                break
+    for sec in step_composed:
+        if sec["id"] not in existing_section_ids:
+            sec["name_slugs"] = step_name_slugs
+            sections.append(sec)
+            page_sections[page_id].append(sec["id"])
+            existing_section_ids.add(sec["id"])
+
+
 def build_navigation_plan(
     usecase_navigation: dict,
     model_attrs: dict | None = None,
@@ -933,83 +1120,18 @@ def build_navigation_plan(
     section_composition = section_composition or {}
     model_graph = model_graph or {}
     actor_permissions = usecase_navigation.get("actor_permissions") or {}
-    pages = []
-    sections = []
-    operations = []
-    workflows = []
-    page_sections = defaultdict(list)
+    sections: list = []
+    operations: list = []
+    workflows: list = []
+    page_sections: defaultdict = defaultdict(list)
 
-    for page in usecase_navigation.get("pages") or []:
-        normalized = {
-            "id": page.get("page_id"),
-            "name": page.get("page_name") or _page_name(page.get("page_id")),
-            "role": (page.get("roles") or ["object_workspace"])[0],
-            "roles": page.get("roles") or [],
-            "primary_model": page.get("primary_model", ""),
-            "operation_kind": page.get("operation_kind") or page.get("kind") or "",
-            "usecases": page.get("usecases") or [],
-            "nav": page.get("page_id") in set(usecase_navigation.get("nav_bar_pages") or []),
-            "name_slugs": page.get("name_slugs") or [],
-            "sections": [],
-        }
-        pattern_name, composed = _compose_page_sections(
-            normalized, model_attrs, model_graph, actor_permissions,
-            semantic_profiles=semantic_profiles,
-            section_composition=section_composition,
-        )
-        if pattern_name:
-            normalized["pattern"] = pattern_name
-        name_slugs = normalized["name_slugs"]
-        for sec in composed:
-            sec["name_slugs"] = name_slugs
-            sections.append(sec)
-            page_sections[normalized["id"]].append(sec["id"])
-        pages.append(normalized)
+    pages = _nav_plan_process_pages(
+        usecase_navigation, model_attrs, model_graph, actor_permissions,
+        semantic_profiles, section_composition, sections, page_sections,
+    )
 
     for entry in usecase_navigation.get("workflow_entry_points") or []:
-        page_id = entry.get("page_id")
-        if not page_id:
-            continue
-        related_models = [m for m in entry.get("related_models") or [] if m in model_attrs]
-        for model in entry.get("pre_workflow_collections") or []:
-            if model not in model_attrs:
-                continue
-            if not _is_strict_child_collection_model(model):
-                continue
-            page_stem = re.sub(r"[^a-z0-9]", "", page_id.lower())
-            model_stem = re.sub(r"[^a-z0-9]", "", model.lower())
-            if page_stem and not model_stem.startswith(page_stem):
-                continue
-            section = _child_section(page_id, model, model_attrs, related_models=related_models)
-            if section["id"] not in {s["id"] for s in sections}:
-                sections.append(section)
-                page_sections[page_id].append(section["id"])
-        workflow_section = {
-            "id": f"{page_id}_workflow_entry",
-            "page_id": page_id,
-            "role": "workflow_entry",
-            "name": entry.get("label") or "Start Workflow",
-            "layout": "activity_start",
-            "component": "StartWorkflowButton",
-            "primary_model": "",
-            "visible_fields": [],
-            "editable_fields": [],
-            "related_visible_fields": [],
-            "field_layout": {},
-            "behavior": {"type": "start_workflow", "target_activity_node_id": entry.get("starts_activity_node_id", "")},
-            "operations": ["start_workflow"],
-            "label": entry.get("button_label") or entry.get("label") or "Start",
-            "style": {"cta_label": entry.get("button_label") or entry.get("label") or "Start"},
-            "col_span": 12,
-        }
-        sections.append(workflow_section)
-        page_sections[page_id].append(workflow_section["id"])
-        workflows.append({
-            "entry_page": page_id,
-            "entry_label": workflow_section["label"],
-            "starts_activity_node_id": entry.get("starts_activity_node_id", ""),
-            "starts_activity_name": entry.get("starts_activity_name", ""),
-        })
+        _nav_plan_process_workflow_entry(entry, model_attrs, sections, page_sections, workflows)
 
     for usecase in usecase_navigation.get("usecases") or []:
         mapping = usecase.get("ui_mapping") or {}
@@ -1022,69 +1144,15 @@ def build_navigation_plan(
                 "target_model": mapping.get("target_model", ""),
             })
 
-    # Activity pages — one page + content sections per workflow step
     workflow_entries = usecase_navigation.get("workflow_entry_points") or []
     existing_section_ids = {s["id"] for s in sections}
     existing_page_ids = {p["id"] for p in pages}
     for step in (workflow_steps or []):
-        page_id = step.get("page_id")
-        if not page_id:
-            continue
-        step_model = next((m for m in (step.get("classes") or []) if m in model_attrs), "")
-        # The nav_plan page_id has a "Workflow_" prefix (e.g. "workflow_view_cart") but the
-        # DB activity page is indexed by the plain activity-node name slug ("view_cart").
-        # Store that slug in name_slugs so _materialize_nav_plan_sections can find the DB page.
-        node_name_slug = _section_id(step.get("activity_node_name") or step.get("page_name") or "")
-        step_name_slugs = [node_name_slug] if node_name_slug and node_name_slug != page_id else []
-        if page_id not in existing_page_ids:
-            # Build a normalized page dict so _compose_page_sections can pattern-match
-            # using the activity-diagram context (workflow_intents, activity_node_name).
-            pages.append({
-                "id": page_id,
-                "name": step.get("page_name") or _page_name(page_id),
-                "role": "activity_action",
-                "roles": ["activity_action"],
-                "primary_model": step_model,
-                "activity_node_name": step.get("activity_node_name") or step.get("page_name") or "",
-                "workflow_intents": step.get("workflow_intents") or [],
-                "usecases": [],
-                "nav": False,
-                "sections": [],
-            })
-            existing_page_ids.add(page_id)
-        if step_model:
-            # Use YAML-driven pattern selection instead of the old hardcoded function
-            step_page = {
-                "id": page_id,
-                "roles": ["activity_action"],
-                "primary_model": step_model,
-                "activity_node_name": step.get("activity_node_name") or step.get("page_name") or "",
-                "workflow_intents": step.get("workflow_intents") or [],
-            }
-            step_pattern, step_composed = _compose_page_sections(
-                step_page, model_attrs, model_graph, actor_permissions,
-                semantic_profiles=semantic_profiles,
-                section_composition=section_composition,
-            )
-            if step_pattern:
-                for p in pages:
-                    if p["id"] == page_id:
-                        p["pattern"] = step_pattern
-                        break
-            for sec in step_composed:
-                if sec["id"] not in existing_section_ids:
-                    sec["name_slugs"] = step_name_slugs
-                    sections.append(sec)
-                    page_sections[page_id].append(sec["id"])
-                    existing_section_ids.add(sec["id"])
-        else:
-            # No model known for this step — fall back to old logic
-            for sec in _sections_for_activity_step(step, model_attrs, workflow_entries):
-                if sec["id"] not in existing_section_ids:
-                    sec["name_slugs"] = step_name_slugs
-                    sections.append(sec)
-                    page_sections[page_id].append(sec["id"])
-                    existing_section_ids.add(sec["id"])
+        _nav_plan_process_step(
+            step, pages, sections, page_sections, existing_section_ids, existing_page_ids,
+            model_attrs, model_graph, actor_permissions, semantic_profiles, section_composition,
+            workflow_entries,
+        )
 
     for page in pages:
         page["sections"] = page_sections.get(page["id"], [])

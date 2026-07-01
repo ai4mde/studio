@@ -127,13 +127,9 @@ def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
     return None
 
 
-def find_class_ptr_by_model_name(metadata: str, model_name: str) -> str | None:
-    """Resolve an Interface Metadata primary_model name to the underlying classifier id."""
-    if not model_name:
-        return None
-    target = model_name_sanitization(str(model_name))
-    metadata_json = json.loads(metadata)
-    for diagram in metadata_json.get("diagrams", []):
+def _find_class_ptr_in_diagrams(diagrams: list, target: str) -> str | None:
+    """Search class diagrams for a node matching the target model name."""
+    for diagram in diagrams:
         if diagram.get("type") != "classes":
             continue
         for node in diagram.get("nodes", []):
@@ -141,6 +137,18 @@ def find_class_ptr_by_model_name(metadata: str, model_name: str) -> str | None:
             cls_data = cls.get("data", cls) if isinstance(cls, dict) else {}
             if cls_data.get("type") == "class" and model_name_sanitization(cls_data.get("name", "")) == target:
                 return str(node.get("cls_ptr") or node.get("id") or "")
+    return None
+
+
+def find_class_ptr_by_model_name(metadata: str, model_name: str) -> str | None:
+    """Resolve an Interface Metadata primary_model name to the underlying classifier id."""
+    if not model_name:
+        return None
+    target = model_name_sanitization(str(model_name))
+    metadata_json = json.loads(metadata)
+    result = _find_class_ptr_in_diagrams(metadata_json.get("diagrams", []), target)
+    if result:
+        return result
     for classifier in metadata_json.get("classifiers", []):
         data = classifier.get("data", {})
         if data.get("type") == "class" and model_name_sanitization(data.get("name", "")) == target:

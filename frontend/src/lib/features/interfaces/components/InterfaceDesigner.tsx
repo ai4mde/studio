@@ -722,6 +722,239 @@ const PromptChips: React.FC<{ hasCandidates: boolean; isGenerating: boolean; onC
     );
 };
 
+function _hasActivityButtonRef(refs: any[], nextSections: any[]): boolean {
+    return refs.some((ref: any) => {
+        const sectionId = typeof ref === 'string' ? ref : ref?.value;
+        const section = nextSections.find((s: any) => s.id === sectionId);
+        return isActivityActionSection(section);
+    });
+}
+
+function _processActivityPage(page: any, nextSections: any[]): { page: any; changed: boolean } {
+    if (getPageTypeValue(page) !== 'activity') return { page, changed: false };
+    const refs = page.sections || [];
+    if (_hasActivityButtonRef(refs, nextSections)) return { page, changed: false };
+    const activityButton = makeActivityActionSection(page);
+    if (!nextSections.some((s: any) => s.id === activityButton.id)) {
+        nextSections.push(activityButton);
+    }
+    return {
+        page: { ...page, sections: [...refs, { label: activityButton.name, value: activityButton.id }] },
+        changed: true,
+    };
+}
+
+async function _processCandidateStreamLine(
+    line: string,
+    setCandidateStatus: (s: string) => void,
+    setIsGeneratingCandidates: (v: boolean) => void,
+    loadCandidates: () => Promise<void>,
+): Promise<'early-exit' | null> {
+    if (!line.trim()) return null;
+    try {
+        const c = JSON.parse(line);
+        if (c.status) setCandidateStatus(c.status);
+        if (c.status === 'error') {
+            setCandidateStatus(`Error: ${c.message || c.agent_error || 'candidate generation failed'}`);
+            setIsGeneratingCandidates(false);
+            return 'early-exit';
+        }
+        if (c.status === 'done') {
+            setCandidateStatus(`Done! Loading ${c.candidate_count ?? ''} candidate${c.candidate_count === 1 ? '' : 's'}...`);
+            await loadCandidates();
+            setIsGeneratingCandidates(false);
+            return 'early-exit';
+        }
+    } catch { /* ignore */ }
+    return null;
+}
+
+async function _readCandidateStreamLines(
+    reader: ReadableStreamDefaultReader<Uint8Array>,
+    setCandidateStatus: (s: string) => void,
+    setIsGeneratingCandidates: (v: boolean) => void,
+    loadCandidates: () => Promise<void>,
+): Promise<boolean> {
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+        for (const line of lines) {
+            const result = await _processCandidateStreamLine(line, setCandidateStatus, setIsGeneratingCandidates, loadCandidates);
+            if (result === 'early-exit') return true;
+        }
+    }
+    return false;
+}
+
+async function _processRegenerateStreamLine(
+    line: string,
+    idx: number,
+    setCandidateStatus: (s: string) => void,
+    setIsGeneratingCandidates: (v: boolean) => void,
+    loadCandidates: () => Promise<void>,
+): Promise<boolean> {
+    if (!line.trim()) return false;
+    try {
+        const c = JSON.parse(line);
+        if (c.status) setCandidateStatus(c.status);
+        if (c.status === 'error') {
+            setCandidateStatus(`Error: ${c.message || c.agent_error || 'candidate regeneration failed'}`);
+            setIsGeneratingCandidates(false);
+            return true;
+        }
+        if (c.status === 'done') {
+            setCandidateStatus(`Done! Regenerated ${c.candidate_count ?? 3} candidates from Candidate ${idx + 1}.`);
+            await loadCandidates();
+            setIsGeneratingCandidates(false);
+            return true;
+        }
+    } catch { /* ignore */ }
+    return false;
+}
+
+async function _readRegenerateStream(
+    reader: ReadableStreamDefaultReader<Uint8Array>,
+    idx: number,
+    setCandidateStatus: (s: string) => void,
+    setIsGeneratingCandidates: (v: boolean) => void,
+    loadCandidates: () => Promise<void>,
+): Promise<void> {
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+        for (const line of lines) {
+            const stop = await _processRegenerateStreamLine(line, idx, setCandidateStatus, setIsGeneratingCandidates, loadCandidates);
+            if (stop) return;
+        }
+    }
+}
+
+function _computeVisualCheckDisplay(visualCheck: any, visualPages: any[], visualIssues: string[]): {
+    background: string; border: string; color: string; message: string;
+} {
+    let background = '#fef2f2';
+    let border = '#fecaca';
+    let color = '#b91c1c';
+    if (visualCheck?.skipped) {
+        background = '#f8fafc'; border = '#e2e8f0'; color = '#475569';
+    } else if (visualCheck?.passed) {
+        background = '#ecfdf5'; border = '#bbf7d0'; color = '#166534';
+    }
+    let message = `Screenshot warnings: ${visualIssues.length}`;
+    if (visualIssues.length) message += ` - ${visualIssues.slice(0, 2).join(' ')}`;
+    if (visualCheck?.skipped) {
+        message = `Screenshot check skipped: ${visualCheck.reason || 'unavailable'}`;
+    } else if (visualCheck?.passed) {
+        message = `Screenshot OK (${visualPages.length} page${visualPages.length === 1 ? '' : 's'})`;
+    }
+    return { background, border, color, message };
+}
+
+function _computeComplianceMessage(compliance: any, complianceIssues: string[]): string {
+    if (compliance?.passed) return `Compliance OK (${compliance.checked || 0} checks)`;
+    let msg = 'Compliance warnings: ' + complianceIssues.length;
+    if (complianceIssues.length) msg += ` - ${complianceIssues.slice(0, 2).join(' ')}`;
+    return msg;
+}
+
+type SetSections = (updater: (prev: any[]) => any[]) => void;
+type SetPages = (updater: (prev: any[]) => any[]) => void;
+
+function _handleNavigationMessage(
+    e: MessageEvent,
+    getPages: () => any[],
+    setPreviewPageIndex: (i: number) => void,
+    setSelectedSectionId: (id: string | null) => void,
+    setSelectedRegion: (r: any) => void,
+    setSections: SetSections,
+    setPages: SetPages,
+): void {
+    const type = e.data?.type;
+    if (type === 'navigate-page') {
+        const targetPage = e.data.page;
+        const pageIndex = (getPages() as any[]).findIndex((page: any) => page?.name === targetPage || page?.id === targetPage);
+        if (pageIndex !== -1) {
+            setPreviewPageIndex(pageIndex);
+            setSelectedSectionId(null);
+            setSelectedRegion(null);
+        }
+    } else if (type === 'section-selected') {
+        setSelectedSectionId(e.data.id);
+        setSelectedRegion(null);
+    } else if (type === 'region-selected') {
+        if (e.data.region === 'sidebar') {
+            setSelectedSectionId(null);
+            setSelectedRegion({ region: 'sidebar', side: e.data.side || '' });
+        }
+    } else if (type === 'section-reorder') {
+        const { fromId, toId } = e.data;
+        setSections((prev: any[]) => {
+            const arr = [...prev];
+            const fi = arr.findIndex((s: any) => s.id === fromId);
+            const ti = arr.findIndex((s: any) => s.id === toId);
+            if (fi === -1 || ti === -1) return prev;
+            arr.splice(ti, 0, arr.splice(fi, 1)[0]);
+            return arr;
+        });
+        setPages((prev: any[]) => prev.map((page: any) => reorderPageSectionRefs(page, fromId, toId)));
+    } else if (type === 'section-move') {
+        const { fromId, beforeId, newPosition, sidebarSide } = e.data;
+        setSections((prev: any[]) => moveSectionInArray(prev, fromId, beforeId, newPosition, sidebarSide));
+        setPages((prev: any[]) => prev.map((page: any) => moveSectionRefInPage(page, fromId, beforeId)));
+    }
+}
+
+function _handleSectionMutationMessage(e: MessageEvent, setSections: SetSections, setPages: SetPages): void {
+    const type = e.data?.type;
+    if (type === 'section-resize') {
+        const { id, col_span } = e.data;
+        setSections((prev: any[]) => prev.map((s: any) => s.id === id ? { ...s, col_span } : s));
+    } else if (type === 'section-sidebar-width') {
+        const { id, sidebar_width } = e.data;
+        const nextWidth = Number(sidebar_width);
+        if (!Number.isFinite(nextWidth) || nextWidth < 1) return;
+        setSections((prev: any[]) => prev.map((s: any) => s.id === id ? { ...s, style: { ...s.style, sidebar_width: Math.round(nextWidth) } } : s));
+    } else if (type === 'section-height') {
+        const { id, min_height } = e.data;
+        const nextHeight = Number(min_height);
+        if (!Number.isFinite(nextHeight) || nextHeight < 0) return;
+        setSections((prev: any[]) => prev.map((s: any) => s.id === id ? { ...s, min_height: Math.round(nextHeight) } : s));
+    } else if (type === 'section-duplicate') {
+        const { id } = e.data;
+        const cloneId = `${id}-copy-${Date.now()}`;
+        setSections((prev: any[]) => {
+            const idx = prev.findIndex((s: any) => s.id === id);
+            if (idx === -1) return prev;
+            const clone = { ...prev[idx], id: cloneId };
+            const next = [...prev];
+            next.splice(idx + 1, 0, clone);
+            return next;
+        });
+        setPages((prev: any[]) => prev.map((page: any) => duplicateSectionInPageRefs(page, id, cloneId)));
+    } else if (type === 'section-delete') {
+        const { id } = e.data;
+        setSections((prev: any[]) => prev.filter((s: any) => s.id !== id));
+        setPages((prev: any[]) => prev.map((page: any) => ({
+            ...page,
+            sections: (page.sections || []).filter((ref: any) => (typeof ref === 'string' ? ref : ref?.value) !== id),
+        })));
+    } else if (type === 'section-insert') {
+        const { fromId, beforeId, newPosition } = e.data;
+        setSections((prev: any[]) => insertSectionInArray(prev, fromId, beforeId, newPosition));
+        setPages((prev: any[]) => prev.map((page: any) => insertSectionRefInPage(page, fromId, beforeId)));
+    }
+}
+
 export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceId, systemId }) => {
     const storagePrefix = interfaceId || 'new-interface';
     const [sections, setSections] = useLocalStorage(`interface:${storagePrefix}:sections`, []);
@@ -867,27 +1100,9 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         let changed = false;
         const nextSections = [...sectionList];
         const nextPages = pageList.map((page: any) => {
-            if (getPageTypeValue(page) !== 'activity') return page;
-            const refs = page.sections || [];
-            const hasActivityButton = refs.some((ref: any) => {
-                const sectionId = typeof ref === 'string' ? ref : ref?.value;
-                const section = nextSections.find((s: any) => s.id === sectionId);
-                return isActivityActionSection(section);
-            });
-            if (hasActivityButton) return page;
-
-            const activityButton = makeActivityActionSection(page);
-            if (!nextSections.some((s: any) => s.id === activityButton.id)) {
-                nextSections.push(activityButton);
-            }
-            changed = true;
-            return {
-                ...page,
-                sections: [
-                    ...refs,
-                    { label: activityButton.name, value: activityButton.id },
-                ],
-            };
+            const result = _processActivityPage(page, nextSections);
+            if (result.changed) changed = true;
+            return result.page;
         });
 
         if (changed) {
@@ -936,100 +1151,17 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
 
     // postMessage -> select section from iframe click / drag-reorder
     useEffect(() => {
-        const handleNavigationMessages = (e: MessageEvent) => {
-            if (e.data?.type === 'navigate-page') {
-                const targetPage = e.data.page;
-                const pageIndex = (latestState.current.pages as any[]).findIndex((page: any) =>
-                    page?.name === targetPage || page?.id === targetPage
-                );
-                if (pageIndex !== -1) {
-                    setPreviewPageIndex(pageIndex);
-                    setSelectedSectionId(null);
-                    setSelectedRegion(null);
-                }
-            } else if (e.data?.type === 'section-selected') {
-                setSelectedSectionId(e.data.id);
-                setSelectedRegion(null);
-            } else if (e.data?.type === 'region-selected') {
-                if (e.data.region === 'sidebar') {
-                    setSelectedSectionId(null);
-                    setSelectedRegion({ region: 'sidebar', side: e.data.side || '' });
-                }
-            } else if (e.data?.type === 'section-reorder') {
-                const { fromId, toId } = e.data;
-                setSections((prev: any[]) => {
-                    const arr = [...prev];
-                    const fi = arr.findIndex((s: any) => s.id === fromId);
-                    const ti = arr.findIndex((s: any) => s.id === toId);
-                    if (fi === -1 || ti === -1) return prev;
-                    arr.splice(ti, 0, arr.splice(fi, 1)[0]);
-                    return arr;
-                });
-                setPages((prev: any[]) => prev.map((page: any) =>
-                    reorderPageSectionRefs(page, fromId, toId)
-                ));
-            } else if (e.data?.type === 'section-move') {
-                const { fromId, beforeId, newPosition, sidebarSide } = e.data;
-                setSections((prev: any[]) => moveSectionInArray(prev, fromId, beforeId, newPosition, sidebarSide));
-                setPages((prev: any[]) => prev.map((page: any) =>
-                    moveSectionRefInPage(page, fromId, beforeId)
-                ));
-            }
-        };
-        const handleSectionMutationMessages = (e: MessageEvent) => {
-            if (e.data?.type === 'section-resize') {
-                const { id, col_span } = e.data;
-                setSections((prev: any[]) => prev.map((s: any) =>
-                    s.id === id ? { ...s, col_span } : s
-                ));
-            } else if (e.data?.type === 'section-sidebar-width') {
-                const { id, sidebar_width } = e.data;
-                const nextWidth = Number(sidebar_width);
-                if (!Number.isFinite(nextWidth) || nextWidth < 1) return;
-                setSections((prev: any[]) => prev.map((s: any) =>
-                    s.id === id ? { ...s, style: { ...s.style, sidebar_width: Math.round(nextWidth) } } : s
-                ));
-            } else if (e.data?.type === 'section-height') {
-                const { id, min_height } = e.data;
-                const nextHeight = Number(min_height);
-                if (!Number.isFinite(nextHeight) || nextHeight < 0) return;
-                setSections((prev: any[]) => prev.map((s: any) =>
-                    s.id === id ? { ...s, min_height: Math.round(nextHeight) } : s
-                ));
-            } else if (e.data?.type === 'section-duplicate') {
-                const { id } = e.data;
-                const cloneId = `${id}-copy-${Date.now()}`;
-                setSections((prev: any[]) => {
-                    const idx = prev.findIndex((s: any) => s.id === id);
-                    if (idx === -1) return prev;
-                    const clone = { ...prev[idx], id: cloneId };
-                    const next = [...prev];
-                    next.splice(idx + 1, 0, clone);
-                    return next;
-                });
-                setPages((prev: any[]) => prev.map((page: any) =>
-                    duplicateSectionInPageRefs(page, id, cloneId)
-                ));
-            } else if (e.data?.type === 'section-delete') {
-                const { id } = e.data;
-                setSections((prev: any[]) => prev.filter((s: any) => s.id !== id));
-                setPages((prev: any[]) => prev.map((page: any) => ({
-                    ...page,
-                    sections: (page.sections || []).filter((ref: any) =>
-                        (typeof ref === 'string' ? ref : ref?.value) !== id
-                    ),
-                })));
-            } else if (e.data?.type === 'section-insert') {
-                const { fromId, beforeId, newPosition } = e.data;
-                setSections((prev: any[]) => insertSectionInArray(prev, fromId, beforeId, newPosition));
-                setPages((prev: any[]) => prev.map((page: any) =>
-                    insertSectionRefInPage(page, fromId, beforeId)
-                ));
-            }
-        };
         const handler = (e: MessageEvent) => {
-            handleNavigationMessages(e);
-            handleSectionMutationMessages(e);
+            _handleNavigationMessage(
+                e,
+                () => latestState.current.pages as any[],
+                setPreviewPageIndex,
+                setSelectedSectionId,
+                setSelectedRegion,
+                setSections,
+                setPages,
+            );
+            _handleSectionMutationMessage(e, setSections, setPages);
         };
         window.addEventListener('message', handler);
         return () => window.removeEventListener('message', handler);
@@ -1504,38 +1636,11 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
     const _readCandidateStream = async (
         reader: ReadableStreamDefaultReader<Uint8Array>,
-        setCandidateStatus: (s: string) => void,
-        setIsGeneratingCandidates: (v: boolean) => void,
-        loadCandidates: () => Promise<void>,
+        setCandidateStatusFn: (s: string) => void,
+        setIsGeneratingCandidatesFn: (v: boolean) => void,
+        loadCandidatesFn: () => Promise<void>,
     ): Promise<boolean> => {
-        const decoder = new TextDecoder();
-        let buf = '';
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            buf += decoder.decode(value, { stream: true });
-            const lines = buf.split('\n');
-            buf = lines.pop() || '';
-            for (const line of lines) {
-                if (!line.trim()) continue;
-                try {
-                    const c = JSON.parse(line);
-                    if (c.status) setCandidateStatus(c.status);
-                    if (c.status === 'error') {
-                        setCandidateStatus(`Error: ${c.message || c.agent_error || 'candidate generation failed'}`);
-                        setIsGeneratingCandidates(false);
-                        return true;
-                    }
-                    if (c.status === 'done') {
-                        setCandidateStatus(`Done! Loading ${c.candidate_count ?? ''} candidate${c.candidate_count === 1 ? '' : 's'}...`);
-                        await loadCandidates();
-                        setIsGeneratingCandidates(false);
-                        return true;
-                    }
-                } catch { /* ignore */ }
-            }
-        }
-        return false;
+        return _readCandidateStreamLines(reader, setCandidateStatusFn, setIsGeneratingCandidatesFn, loadCandidatesFn);
     };
 
     const handleGenerateCandidates = async () => {
@@ -1591,33 +1696,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             });
             if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
             const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buf = '';
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-                buf += decoder.decode(value, { stream: true });
-                const lines = buf.split('\n');
-                buf = lines.pop() || '';
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    try {
-                        const c = JSON.parse(line);
-                        if (c.status) setCandidateStatus(c.status);
-                        if (c.status === 'error') {
-                            setCandidateStatus(`Error: ${c.message || c.agent_error || 'candidate regeneration failed'}`);
-                            setIsGeneratingCandidates(false);
-                            return;
-                        }
-                        if (c.status === 'done') {
-                            setCandidateStatus(`Done! Regenerated ${c.candidate_count ?? 3} candidates from Candidate ${idx + 1}.`);
-                            await loadCandidates();
-                            setIsGeneratingCandidates(false);
-                            return;
-                        }
-                    } catch { /* ignore */ }
-                }
-            }
+            await _readRegenerateStream(reader, idx, setCandidateStatus, setIsGeneratingCandidates, loadCandidates);
         } catch (e: any) {
             setCandidateStatus(`Error: ${e.message}`);
         } finally {
@@ -2234,34 +2313,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 const visualPages = Array.isArray(visualCheck?.pages) ? visualCheck.pages : [];
                                 const visualIssues = visualPages.flatMap((page: any) => Array.isArray(page?.issues) ? page.issues : []);
                                 const hasVisualCheck = visualCheck && (typeof visualCheck.passed === 'boolean' || visualCheck.skipped);
-                                let visualCheckBackground = '#fef2f2';
-                                let visualCheckBorder = '#fecaca';
-                                let visualCheckColor = '#b91c1c';
-                                if (visualCheck?.skipped) {
-                                    visualCheckBackground = '#f8fafc';
-                                    visualCheckBorder = '#e2e8f0';
-                                    visualCheckColor = '#475569';
-                                } else if (visualCheck?.passed) {
-                                    visualCheckBackground = '#ecfdf5';
-                                    visualCheckBorder = '#bbf7d0';
-                                    visualCheckColor = '#166534';
-                                }
-                                let visualCheckMessage = `Screenshot warnings: ${visualIssues.length}`;
-                                if (visualIssues.length) {
-                                    visualCheckMessage += ` - ${visualIssues.slice(0, 2).join(' ')}`;
-                                }
-                                if (visualCheck?.skipped) {
-                                    visualCheckMessage = `Screenshot check skipped: ${visualCheck.reason || 'unavailable'}`;
-                                } else if (visualCheck?.passed) {
-                                    visualCheckMessage = `Screenshot OK (${visualPages.length} page${visualPages.length === 1 ? '' : 's'})`;
-                                }
-                                let complianceMessage = 'Compliance warnings: ' + complianceIssues.length;
-                                if (complianceIssues.length) {
-                                    complianceMessage += ` - ${complianceIssues.slice(0, 2).join(' ')}`;
-                                }
-                                if (compliance?.passed) {
-                                    complianceMessage = `Compliance OK (${compliance.checked || 0} checks)`;
-                                }
+                                const { background: visualCheckBackground, border: visualCheckBorder, color: visualCheckColor, message: visualCheckMessage } = _computeVisualCheckDisplay(visualCheck, visualPages, visualIssues);
+                                const complianceMessage = _computeComplianceMessage(compliance, complianceIssues);
                                 return (
                                     <div key={candidate.id || candidate.name || `candidate-${idx + 1}`} style={{
                                         border: `1px solid ${isExpanded ? '#2563eb' : '#e5e7eb'}`,

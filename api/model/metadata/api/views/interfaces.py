@@ -21,6 +21,23 @@ interfaces = Router()
 INTERFACE_NOT_FOUND = "Interface not found"
 
 
+def _clean_tab_name(raw: str) -> str:
+    """Convert a file path or page name to a human-readable tab label."""
+    name = re.sub(r"^templates/[^/]+_", "", raw, flags=re.IGNORECASE)
+    name = re.sub(r"\.html?$", "", name, flags=re.IGNORECASE)
+    return re.sub(r"[_-]", " ", name).strip().title()
+
+
+def _make_file_rank_fn(page_rank: dict, interface_name: str):
+    """Return a sort-key function for candidate HTML files."""
+    def _file_rank(file_obj: dict) -> tuple:
+        path = file_obj.get("path", "")
+        match = re.search(rf"{re.escape(interface_name)}_(.+?)\.html$", path)
+        page_name = match.group(1) if match else ""
+        return page_rank.get(page_name, (0 if not page_name.startswith("Workflow_") else 1, 9999))
+    return _file_rank
+
+
 _AGENT_CONTEXT_SKIP_KEYS = {
     "candidates",
     "canonical_schema",
@@ -409,26 +426,14 @@ def render_candidate(request, id: str, candidate_index: int):
         page_order.append((page.get("name", ""), 1 if page_type_value == "activity" else 0))
     page_rank = {name: (kind, index) for index, (name, kind) in enumerate(page_order)}
     if page_rank:
-        def _file_rank(file_obj):
-            path = file_obj.get("path", "")
-            match = re.search(rf"{re.escape(interface.name)}_(.+?)\.html$", path)
-            page_name = match.group(1) if match else ""
-            return page_rank.get(page_name, (0 if not page_name.startswith("Workflow_") else 1, 9999))
-        files = sorted(files, key=_file_rank)
+        files = sorted(files, key=_make_file_rank_fn(page_rank, interface.name))
 
-    # Disable all link navigation in candidate preview (iframes shouldn't navigate away)
     _nav_disable = (
         "<script>document.addEventListener('click',function(e){"
         "var l=e.target.closest&&e.target.closest('a[href]');"
         "if(l){e.preventDefault();}},true);</script>"
     )
     files = [{**f, "content": f["content"].replace("</body>", _nav_disable + "</body>", 1)} for f in files]
-
-    # Build a single standalone HTML with tab-based page navigation
-    def _clean_tab_name(raw: str) -> str:
-        name = re.sub(r"^templates/[^/]+_", "", raw, flags=re.IGNORECASE)
-        name = re.sub(r"\.html?$", "", name, flags=re.IGNORECASE)
-        return re.sub(r"[_-]", " ", name).strip().title()
 
     page_names = [f.get("page", f.get("path", f"Page {i}")) for i, f in enumerate(files)]
     tab_buttons = "".join(

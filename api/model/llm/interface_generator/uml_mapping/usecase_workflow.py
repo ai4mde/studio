@@ -4,6 +4,53 @@ from .navigation_planner import build_navigation_plan
 from ..token_normalizer import _as_list, _page_name, _section_id, _workflow_page_name
 
 
+def _actor_name_for_ref(ref: object, classifiers: dict, global_node_cls: dict) -> str:
+    """Resolve an actor name from a classifier or node reference."""
+    ref = str(ref or "")
+    data = (classifiers.get(ref) or {}).get("data", {})
+    if data.get("type") == "actor":
+        return str(data.get("name") or "").strip()
+    node_cls = global_node_cls.get(ref)
+    data = (classifiers.get(node_cls) or {}).get("data", {}) if node_cls else {}
+    if data.get("type") == "actor":
+        return str(data.get("name") or "").strip()
+    return ""
+
+
+def _build_activity_diagram_nodes(raw_nodes: list, classifiers: dict, global_node_cls: dict) -> tuple[list, dict]:
+    """Build normalized node list and node-by-cls-id index for one activity diagram."""
+    nodes = []
+    node_by_cls: dict = {}
+    for node in raw_nodes:
+        cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or "")
+        classifier = classifiers.get(cls_id, {})
+        cls_data = dict(classifier.get("data", {}) or {})
+        if cls_data.get("type") == "action" and cls_data.get("actorNode") and not cls_data.get("actorNodeName"):
+            actor_name = _actor_name_for_ref(cls_data.get("actorNode"), classifiers, global_node_cls)
+            if actor_name:
+                cls_data["actorNodeName"] = actor_name
+        nodes.append({"id": str(node.get("id")), "cls_ptr": cls_id, "cls": cls_data, "data": node.get("data", {})})
+        if cls_id:
+            node_by_cls[cls_id] = str(node.get("id"))
+    return nodes, node_by_cls
+
+
+def _build_activity_diagram_edges(raw_edges: list, relations: dict, node_by_cls: dict) -> list:
+    """Build normalized edge list for one activity diagram."""
+    edges = []
+    for edge in raw_edges:
+        rel_id = str(edge.get("rel") or edge.get("rel_id") or edge.get("rel_ptr") or "")
+        relation = relations.get(rel_id, {})
+        source_cls = str(relation.get("source") or relation.get("source_id") or "")
+        target_cls = str(relation.get("target") or relation.get("target_id") or "")
+        source_ptr = node_by_cls.get(source_cls)
+        target_ptr = node_by_cls.get(target_cls)
+        if not source_ptr or not target_ptr:
+            continue
+        edges.append({"id": str(edge.get("id")), "source_ptr": source_ptr, "target_ptr": target_ptr, "rel_ptr": rel_id, "rel": relation.get("data", {}), "data": edge.get("data", {})})
+    return edges
+
+
 def _build_activity_diagrams(system_data: dict) -> list:
     """Build activity diagrams."""
     diagrams = system_data.get("diagrams") or []
@@ -15,48 +62,12 @@ def _build_activity_diagrams(system_data: dict) -> list:
         if node.get("id")
     }
 
-    def actor_name_for_ref(ref: object) -> str:
-        """Provide a local helper for _build_activity_diagrams."""
-        ref = str(ref or "")
-        data = (classifiers.get(ref) or {}).get("data", {})
-        if data.get("type") == "actor":
-            return str(data.get("name") or "").strip()
-        node_cls = global_node_cls.get(ref)
-        data = (classifiers.get(node_cls) or {}).get("data", {}) if node_cls else {}
-        if data.get("type") == "actor":
-            return str(data.get("name") or "").strip()
-        return ""
-
     out = []
     for diagram in diagrams:
         if diagram.get("type") != "activity":
             continue
-        raw_nodes = diagram.get("nodes") or []
-        raw_edges = diagram.get("edges") or []
-        nodes = []
-        node_by_cls = {}
-        for node in raw_nodes:
-            cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or "")
-            classifier = classifiers.get(cls_id, {})
-            cls_data = dict(classifier.get("data", {}) or {})
-            if cls_data.get("type") == "action" and cls_data.get("actorNode") and not cls_data.get("actorNodeName"):
-                actor_name = actor_name_for_ref(cls_data.get("actorNode"))
-                if actor_name:
-                    cls_data["actorNodeName"] = actor_name
-            nodes.append({"id": str(node.get("id")), "cls_ptr": cls_id, "cls": cls_data, "data": node.get("data", {})})
-            if cls_id:
-                node_by_cls[cls_id] = str(node.get("id"))
-        edges = []
-        for edge in raw_edges:
-            rel_id = str(edge.get("rel") or edge.get("rel_id") or edge.get("rel_ptr") or "")
-            relation = relations.get(rel_id, {})
-            source_cls = str(relation.get("source") or relation.get("source_id") or "")
-            target_cls = str(relation.get("target") or relation.get("target_id") or "")
-            source_ptr = node_by_cls.get(source_cls)
-            target_ptr = node_by_cls.get(target_cls)
-            if not source_ptr or not target_ptr:
-                continue
-            edges.append({"id": str(edge.get("id")), "source_ptr": source_ptr, "target_ptr": target_ptr, "rel_ptr": rel_id, "rel": relation.get("data", {}), "data": edge.get("data", {})})
+        nodes, node_by_cls = _build_activity_diagram_nodes(diagram.get("nodes") or [], classifiers, global_node_cls)
+        edges = _build_activity_diagram_edges(diagram.get("edges") or [], relations, node_by_cls)
         out.append({"id": str(diagram.get("id")), "name": diagram.get("name", ""), "type": "activity", "nodes": nodes, "edges": edges})
     return out
 

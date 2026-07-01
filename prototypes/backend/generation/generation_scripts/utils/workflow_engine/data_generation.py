@@ -192,35 +192,29 @@ class ActivityDiagramParser:
                     result[actor_node['cls_ptr']] = name
         return result
     
+    def _register_activity_page_urls(self, interface_map: dict, app_name: str, page: dict) -> None:
+        """Register all URL keys for one activity page into interface_map."""
+        page_name = page.get('name') or page.get('id') or ''
+        url = f"/{app_name}/render_{app_name}_{page_name_sanitization(page_name)}"
+        action = page.get('action') or {}
+        if isinstance(action, dict) and action.get('value'):
+            interface_map[str(action['value'])] = url
+        page_key = page_name_sanitization(page_name).lower()
+        interface_map[f"{app_name}:{page_key}"] = url
+        if isinstance(action, dict) and action.get('label'):
+            action_key = page_name_sanitization(action.get('label')).lower()
+            interface_map[f"{app_name}:{action_key}"] = url
+
     @cached_property
     def interface_map(self) -> dict[str, str]:
         """Map from the action node UUID or actor/page fallback key to an interface url."""
         interface_map = {}
-
         for interface in self.metadata.get('interfaces', []):
-            interface_name = interface['value']['name']
-            app_name = app_name_sanitization(interface_name)
-
+            app_name = app_name_sanitization(interface['value']['name'])
             for page in interface['value']['data'].get('pages', []):
                 page_type = page.get('type') or {}
-                if page_type.get('value') != 'activity':
-                    continue
-                
-                page_name = page.get('name') or page.get('id') or ''
-                url = (
-                    f"/{app_name}"
-                    f"/render_{app_name}_"
-                    f"{page_name_sanitization(page_name)}"
-                )
-                action = page.get('action') or {}
-                if isinstance(action, dict) and action.get('value'):
-                    interface_map[str(action['value'])] = url
-                page_key = page_name_sanitization(page_name).lower()
-                interface_map[f"{app_name}:{page_key}"] = url
-                if isinstance(action, dict) and action.get('label'):
-                    action_key = page_name_sanitization(action.get('label')).lower()
-                    interface_map[f"{app_name}:{action_key}"] = url
-
+                if page_type.get('value') == 'activity':
+                    self._register_activity_page_urls(interface_map, app_name, page)
         return interface_map
 
     def _get_incoming_edges_count(self, edges: list[dict[str, Any]], target_id: str) -> int:

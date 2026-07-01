@@ -53,43 +53,45 @@ def _resolve_filter_field(field):
         return field.replace('.', '__')
     return field
 
-def _apply_section_query(qs, query, source_obj=None, request=None):
-    query = query or {}
-    operator_map = {
-        'eq': '',
-        'neq': '',
-        'lt': '__lt',
-        'lte': '__lte',
-        'gt': '__gt',
-        'gte': '__gte',
-        'contains': '__icontains',
-        'in': '__in',
-        'isnull': '__isnull',
-    }
-    for condition in query.get('filters') or []:
-        field = _resolve_filter_field(condition.get('field'))
-        operator = condition.get('operator', 'eq')
-        if not field or operator not in operator_map:
-            continue
-        lookup = f"{field}{operator_map[operator]}"
-        value = _resolve_query_value_from(condition.get('value_from'), request=request, source_obj=source_obj)
-        if value is None and condition.get('value_from'):
-            continue
-        if value is None:
-            value = _coerce_query_value(condition.get('value'))
-        if operator == 'in' and not isinstance(value, (list, tuple)):
-            value = [v.strip() for v in str(value).split(',') if v.strip()]
-        try:
-            if operator == 'neq':
-                qs = qs.exclude(**{lookup: value})
-            else:
-                qs = qs.filter(**{lookup: value})
-        except Exception:
-            pass
-    if query.get('exclude_source') and source_obj is not None:
-        qs = qs.exclude(id=getattr(source_obj, 'id', None))
+_OPERATOR_MAP = {
+    'eq': '',
+    'neq': '',
+    'lt': '__lt',
+    'lte': '__lte',
+    'gt': '__gt',
+    'gte': '__gte',
+    'contains': '__icontains',
+    'in': '__in',
+    'isnull': '__isnull',
+}
+
+
+def _apply_filter_condition(qs, condition, request, source_obj):
+    """Apply a single filter condition to a queryset and return the updated queryset."""
+    field = _resolve_filter_field(condition.get('field'))
+    operator = condition.get('operator', 'eq')
+    if not field or operator not in _OPERATOR_MAP:
+        return qs
+    lookup = f"{field}{_OPERATOR_MAP[operator]}"
+    value = _resolve_query_value_from(condition.get('value_from'), request=request, source_obj=source_obj)
+    if value is None and condition.get('value_from'):
+        return qs
+    if value is None:
+        value = _coerce_query_value(condition.get('value'))
+    if operator == 'in' and not isinstance(value, (list, tuple)):
+        value = [v.strip() for v in str(value).split(',') if v.strip()]
+    try:
+        if operator == 'neq':
+            return qs.exclude(**{lookup: value})
+        return qs.filter(**{lookup: value})
+    except Exception:
+        return qs
+
+
+def _build_order_fields(order_by: list) -> list:
+    """Convert order_by config into Django ORM field strings."""
     order_fields = []
-    for item in query.get('order_by') or []:
+    for item in order_by or []:
         if isinstance(item, str):
             order_fields.append(item)
             continue
@@ -98,6 +100,16 @@ def _apply_section_query(qs, query, source_obj=None, request=None):
             continue
         direction = item.get('direction', 'asc')
         order_fields.append(f"-{field}" if direction == 'desc' else field)
+    return order_fields
+
+
+def _apply_section_query(qs, query, source_obj=None, request=None):
+    query = query or {}
+    for condition in query.get('filters') or []:
+        qs = _apply_filter_condition(qs, condition, request, source_obj)
+    if query.get('exclude_source') and source_obj is not None:
+        qs = qs.exclude(id=getattr(source_obj, 'id', None))
+    order_fields = _build_order_fields(query.get('order_by'))
     if order_fields:
         try:
             qs = qs.order_by(*order_fields)

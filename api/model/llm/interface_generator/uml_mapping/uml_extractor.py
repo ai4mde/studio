@@ -320,37 +320,40 @@ _DOMAIN_SYNONYMS: list[tuple[str, str]] = [
 ]
 
 
-def _best_model_for_text(text: str, model_names: list[str], model_attr_names: dict[str, set[str]] | None = None) -> str:
-    """Rank model names against use-case text and attribute hints."""
-    t = text.lower()
-    model_names_sorted = sorted(model_names, key=len, reverse=True)
-
-    # Direct model mentions are the strongest signal and should not be
-    # overridden by looser attribute or synonym matches.
-    # Pass 1: model name directly in action text
+def _best_model_by_attr(t: str, model_names_sorted: list[str], model_attr_names: dict[str, set[str]]) -> str:
+    """Return the first model whose attribute names overlap with long words in t."""
+    action_words = set(re.findall(r'\b\w{5,}\b', t))
     for m in model_names_sorted:
-        if m.lower() in t:
+        if action_words & (model_attr_names.get(m) or set()):
             return m
+    return ""
 
-    # Attribute names help when use cases mention domain fields rather than
-    # model names; short words are skipped to avoid false positives.
-    # Pass 2: action words match model attribute names (len >= 5 to avoid generic words)
-    if model_attr_names:
-        action_words = set(re.findall(r'\b\w{5,}\b', t))
-        for m in model_names_sorted:
-            if action_words & (model_attr_names.get(m) or set()):
-                return m
 
-    # Pass 3: domain synonym mapping (keyword in action → partial model name)
-    # Domain synonyms cover vocabulary mismatches such as basket versus cart,
-    # billing versus payment, and stock versus product.
+def _best_model_by_synonym(t: str, model_names_sorted: list[str]) -> str:
+    """Return the first model matched via domain synonym mapping."""
     for keyword, model_signal in _DOMAIN_SYNONYMS:
         if keyword in t:
             for m in model_names_sorted:
                 if model_signal in m.lower():
                     return m
-
     return ""
+
+
+def _best_model_for_text(text: str, model_names: list[str], model_attr_names: dict[str, set[str]] | None = None) -> str:
+    """Rank model names against use-case text and attribute hints."""
+    t = text.lower()
+    model_names_sorted = sorted(model_names, key=len, reverse=True)
+
+    for m in model_names_sorted:
+        if m.lower() in t:
+            return m
+
+    if model_attr_names:
+        result = _best_model_by_attr(t, model_names_sorted, model_attr_names)
+        if result:
+            return result
+
+    return _best_model_by_synonym(t, model_names_sorted)
 
 
 def _model_name_explicit_in_text(text: str, model: str) -> bool:

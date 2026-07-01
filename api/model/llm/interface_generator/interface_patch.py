@@ -147,33 +147,44 @@ def _validate_section_attrs(patch_sections: list, system_id: str) -> str | None:
     return None
 
 
+def _apply_patch_fields(data: dict, patch: dict) -> dict:
+    """Apply sections, pages, styling, and token fields from patch into data."""
+    if "sections" in patch:
+        data = _apply_sections_patch(data, patch["sections"])
+    if "pages" in patch:
+        data = _apply_pages_patch(data, patch["pages"])
+    if "styling" in patch:
+        data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
+    if "tokens" in patch:
+        data["tokens"] = {**(data.get("tokens") or {}), **patch["tokens"]}
+    return data
+
+
+def _apply_workflow_and_normalize(data: dict, system_id: str, actor_id: str) -> dict:
+    """Run workflow logic and normalize sections; fall back gracefully on failure."""
+    try:
+        data = _apply_builtin_workflow_logic(data, system_id, actor_id)
+    except Exception:
+        data["sections"] = _normalize_activity_action_sections(
+            data.get("pages") or [], data.get("sections") or []
+        )
+    data["sections"] = _normalize_select_existing_sections(
+        data.get("pages") or [], data.get("sections") or []
+    )
+    return data
+
+
 def apply_interface_patch(interface_id: str, patch: dict) -> str:
     """Apply interface patch."""
     try:
         interface = Interface.objects.get(id=interface_id)
-        data = dict(interface.data or {})
-
-        if "sections" in patch:
-            data = _apply_sections_patch(data, patch["sections"])
-        if "pages" in patch:
-            data = _apply_pages_patch(data, patch["pages"])
-        if "styling" in patch:
-            data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
-        if "tokens" in patch:
-            data["tokens"] = {**(data.get("tokens") or {}), **patch["tokens"]}
+        data = _apply_patch_fields(dict(interface.data or {}), patch)
         if "sections" in patch:
             warning = _validate_section_attrs(patch["sections"], str(interface.system_id))
             if warning:
                 return warning
-        try:
-            data = _apply_builtin_workflow_logic(
-                data,
-                str(interface.system_id),
-                str(interface.actor_id) if interface.actor_id else "",
-            )
-        except Exception:
-            data["sections"] = _normalize_activity_action_sections(data.get("pages") or [], data.get("sections") or [])
-        data["sections"] = _normalize_select_existing_sections(data.get("pages") or [], data.get("sections") or [])
+        actor_id = str(interface.actor_id) if interface.actor_id else ""
+        data = _apply_workflow_and_normalize(data, str(interface.system_id), actor_id)
         Interface.objects.filter(id=interface_id).update(data=data)
         return f"Patched interface {interface_id} successfully."
     except Interface.DoesNotExist:

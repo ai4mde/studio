@@ -470,21 +470,38 @@ def _infer_chrome_component(layout: str) -> str | None:
     return None
 
 
+def _form_component(model_name: str) -> str:
+    """Return the form component name based on model name keywords."""
+    if any(term in model_name for term in ("address", "location")):
+        return "AddressForm"
+    if any(term in model_name for term in ("payment", "card", "billing")):
+        return "PaymentForm"
+    return "ObjectForm"
+
+
+def _card_component(layout: str, has_image: bool, is_person: bool) -> str:
+    """Return the card/gallery component name."""
+    if has_image:
+        return "ImageCardGrid" if layout == "gallery" else "ImageCard"
+    if is_person:
+        return "PersonCardGrid"
+    return "ObjectCardGrid"
+
+
 def _infer_data_component(layout: str, has_image: bool, is_person: bool, model_name: str) -> str:
     """Return the component name for data section layouts."""
     if layout == "form":
-        if any(term in model_name for term in ("address", "location")): return "AddressForm"
-        if any(term in model_name for term in ("payment", "card", "billing")): return "PaymentForm"
-        return "ObjectForm"
+        return _form_component(model_name)
     if layout in {"gallery", "card"}:
-        if has_image: return "ImageCardGrid" if layout == "gallery" else "ImageCard"
-        if is_person: return "PersonCardGrid"
-        return "ObjectCardGrid"
+        return _card_component(layout, has_image, is_person)
     if layout == "detail":
-        return "ObjectDetailPanel" if not has_image else "MediaDetailPanel"
-    if layout == "table": return "DataTable"
-    if layout == "list": return "ObjectList"
-    if layout == "filter": return "FilterPanel"
+        return "MediaDetailPanel" if has_image else "ObjectDetailPanel"
+    if layout == "table":
+        return "DataTable"
+    if layout == "list":
+        return "ObjectList"
+    if layout == "filter":
+        return "FilterPanel"
     return "SectionPanel"
 
 
@@ -640,6 +657,50 @@ def _field_list(value) -> list[str]:
             result.append(item)
     return result
 
+def _clean_field_style(cfg: dict) -> dict:
+    """Return a cleaned copy of one field style config dict."""
+    clean: dict = {}
+    if isinstance(cfg.get("order"), int) or str(cfg.get("order", "")).isdigit():
+        clean["order"] = int(cfg.get("order"))
+    if str(cfg.get("col_span", "")) in {"3", "4", "6", "8", "12"}:
+        clean["col_span"] = int(cfg.get("col_span"))
+    if cfg.get("height") in {"sm", "md", "lg", "xl"}:
+        clean["height"] = cfg.get("height")
+    if cfg.get("text_size") in {"xs", "sm", "md", "lg", "xl"}:
+        clean["text_size"] = cfg.get("text_size")
+    if cfg.get("align") in {"left", "center", "right"}:
+        clean["align"] = cfg.get("align")
+    if cfg.get("label") in {"show", "hidden"}:
+        clean["label"] = cfg.get("label")
+    if cfg.get("visible") in {"show", "hidden"}:
+        clean["visible"] = cfg.get("visible")
+    return clean
+
+
+def _assign_media_slot(out: dict, supported: set, media: str, attrs: list) -> None:
+    """Write the media/image/video slot into the output dict."""
+    if "image" in supported and media:
+        media_attr = next((a for a in attrs if _attr_name(a) == media), None)
+        if _attr_type(media_attr) == "video":
+            if "video" in supported:
+                out["video"] = media
+            elif "media" in supported:
+                out["media"] = media
+        else:
+            out["image"] = media
+    elif "media" in supported and media:
+        out["media"] = media
+
+
+def _first_existing_in_raw(raw: dict, keys: list, visible_names: list) -> str:
+    """Return the first raw field value that names a visible attribute."""
+    for key in keys:
+        value = raw.get(key)
+        if isinstance(value, str) and value in visible_names:
+            return value
+    return ""
+
+
 def _normalize_field_layout(section: dict) -> dict:
     """Normalize field layout."""
     attrs = section.get("attributes") or []
@@ -657,21 +718,7 @@ def _normalize_field_layout(section: dict) -> dict:
     for fname, cfg in existing_styles.items():
         if fname not in attr_set or not isinstance(cfg, dict):
             continue
-        clean = {}
-        if isinstance(cfg.get("order"), int) or str(cfg.get("order", "")).isdigit():
-            clean["order"] = int(cfg.get("order"))
-        if str(cfg.get("col_span", "")) in {"3", "4", "6", "8", "12"}:
-            clean["col_span"] = int(cfg.get("col_span"))
-        if cfg.get("height") in {"sm", "md", "lg", "xl"}:
-            clean["height"] = cfg.get("height")
-        if cfg.get("text_size") in {"xs", "sm", "md", "lg", "xl"}:
-            clean["text_size"] = cfg.get("text_size")
-        if cfg.get("align") in {"left", "center", "right"}:
-            clean["align"] = cfg.get("align")
-        if cfg.get("label") in {"show", "hidden"}:
-            clean["label"] = cfg.get("label")
-        if cfg.get("visible") in {"show", "hidden"}:
-            clean["visible"] = cfg.get("visible")
+        clean = _clean_field_style(cfg)
         if clean:
             cleaned_styles[fname] = clean
 
@@ -685,18 +732,10 @@ def _normalize_field_layout(section: dict) -> dict:
             hidden.append(name)
     visible_names = [name for name in attr_names if name not in set(hidden)]
 
-    def first_existing(keys: list[str]) -> str:
-        """Provide a local helper for _normalize_field_layout."""
-        for key in keys:
-            value = raw.get(key)
-            if isinstance(value, str) and value in visible_names:
-                return value
-        return ""
-
-    media = first_existing(["media", "image", "video", "avatar"])
-    title = first_existing(["title"])
-    subtitle = first_existing(["subtitle"])
-    primary = first_existing(["primary", "price", "count"])
+    media = _first_existing_in_raw(raw, ["media", "image", "video", "avatar"], visible_names)
+    title = _first_existing_in_raw(raw, ["title"], visible_names)
+    subtitle = _first_existing_in_raw(raw, ["subtitle"], visible_names)
+    primary = _first_existing_in_raw(raw, ["primary", "price", "count"], visible_names)
     secondary = [f for f in (_field_list(raw.get("secondary")) + _field_list(raw.get("meta")) + _field_list(raw.get("facts"))) if f in visible_names]
     fields = [f for f in (_field_list(raw.get("fields")) + _field_list(raw.get("columns"))) if f in visible_names]
     hero = [f for f in _field_list(raw.get("hero")) if f in visible_names]
@@ -715,18 +754,8 @@ def _normalize_field_layout(section: dict) -> dict:
     if not hero:
         hero = [n for n in visible_names if n in {title, primary} or by_kind.get(n) == "body"][:4]
 
-    out = {}
-    if "image" in supported and media:
-        media_attr = next((a for a in attrs if _attr_name(a) == media), None)
-        if _attr_type(media_attr) == "video":
-            if "video" in supported:
-                out["video"] = media
-            elif "media" in supported:
-                out["media"] = media
-        else:
-            out["image"] = media
-    elif "media" in supported and media:
-        out["media"] = media
+    out: dict = {}
+    _assign_media_slot(out, supported, media, attrs)
     if "title" in supported and title:
         out["title"] = title
     if "subtitle" in supported and subtitle:
@@ -759,14 +788,45 @@ def _model_field_names(model_attrs: dict, model: str, limit: int = 6) -> list[st
     selected.extend([name for name in attrs if name and name not in selected and name.lower() != "id"])
     return selected[:limit] or attrs[:limit]
 
+def _normalize_section_layout_component(section: dict) -> tuple[str, str]:
+    """Normalize layout/component aliases and return updated (layout, component)."""
+    layout = section.get("layout", "")
+    component = str(section.get("component") or "")
+    if component == "NavBar" and layout in {"", "nav", "navigation", "navbar"}:
+        section["layout"] = "nav-links"
+        return "nav-links", component
+    if component == "CalendarView":
+        section["component"] = "ObjectList"
+        section["layout"] = "list"
+        return "list", "ObjectList"
+    return layout, component
+
+
+def _normalize_section_attrs(section: dict, pm: str, model_attrs: dict, data_layouts: set, limit: int) -> None:
+    """Filter section attributes to only those known for the primary model."""
+    layout = section.get("layout", "")
+    if not pm or layout not in data_layouts:
+        return
+    valid_attrs = set(model_attrs.get(pm) or [])
+    normalized_attrs = []
+    for attr in section.get("attributes") or []:
+        attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+        attr_name = str(attr_name or "")
+        if not attr_name or "." in attr_name:
+            continue
+        if attr_name in valid_attrs:
+            normalized_attrs.append(attr)
+    if not normalized_attrs:
+        normalized_attrs = _model_field_names(model_attrs, pm, limit)
+    section["attributes"] = normalized_attrs
+
+
 def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: int = 8) -> list:
     """Attach missing model fields and layouts to data sections before rendering."""
     data_layouts = {"card", "list", "table", "detail", "gallery", "filter", "form"}
-    model_names = set(model_attrs.keys())
-    model_names_fuzzy = {_fuzzy_model_key(name): name for name in model_names}
+    model_names_fuzzy = {_fuzzy_model_key(name): name for name in model_attrs}
 
     def canonical_model(name: str) -> str:
-        """Provide a local helper for _finalize_data_section_bindings."""
         if name in model_attrs:
             return name
         return model_names_fuzzy.get(_fuzzy_model_key(name), "")
@@ -775,36 +835,14 @@ def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: in
     for section in sections:
         section = dict(section)
         section["layout"] = _normalize_layout_alias(section.get("layout"))
-        layout = section.get("layout", "")
-        component = str(section.get("component") or "")
-        if component == "NavBar" and layout in {"", "nav", "navigation", "navbar"}:
-            section["layout"] = "nav-links"
-            layout = "nav-links"
-        elif component == "CalendarView":
-            section["component"] = "ObjectList"
-            section["layout"] = "list"
-            layout = "list"
+        _normalize_section_layout_component(section)
 
         pm = canonical_model(str(section.get("primary_model") or section.get("class") or ""))
         if pm:
             section["primary_model"] = pm
             section["class"] = pm
 
-        if pm and layout in data_layouts:
-            valid_attrs = set(model_attrs.get(pm) or [])
-            normalized_attrs = []
-            for attr in section.get("attributes") or []:
-                attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
-                attr_name = str(attr_name or "")
-                if not attr_name:
-                    continue
-                if "." in attr_name:
-                    continue
-                if attr_name in valid_attrs:
-                    normalized_attrs.append(attr)
-            if not normalized_attrs:
-                normalized_attrs = _model_field_names(model_attrs, pm, limit)
-            section["attributes"] = normalized_attrs
+        _normalize_section_attrs(section, pm, model_attrs, data_layouts, limit)
         section["component"] = _infer_section_component(section)
         section["field_layout"] = _normalize_field_layout(section)
         fixed.append(section)

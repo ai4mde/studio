@@ -1,4 +1,4 @@
-"""Candidate generation and regeneration logic for interface variants."""
+﻿"""Candidate generation and regeneration logic for interface variants."""
 
 import copy
 import json
@@ -724,31 +724,64 @@ def _visual_report_from_metrics(metrics: dict, requirements: dict, page_name: st
     return {"passed": not issues, "issues": issues}
 
 
+def _save_candidate_visual_report(interface_id: str, candidate_index: int, report: dict) -> dict:
+    """Persist a visual check report onto the candidate in the database."""
+    try:
+        interface_obj = Interface.objects.get(id=interface_id)
+        data = dict(interface_obj.data or {})
+        updated_candidates = list(data.get("candidates", []))
+        if 0 <= candidate_index < len(updated_candidates) and updated_candidates[candidate_index]:
+            updated_candidates[candidate_index] = dict(updated_candidates[candidate_index])
+            updated_candidates[candidate_index]["visual_check"] = report
+            data["candidates"] = updated_candidates
+            Interface.objects.filter(id=interface_id).update(data=data)
+    except Exception:
+        pass
+    return report
+
+
+def _screenshot_page_file(pw_page: object, file_obj: dict, page_idx: int, out_dir: "Path", requirements: dict) -> dict:
+    """Screenshot one HTML file and return its page report dict."""
+    path_name = Path(str(file_obj.get("path") or f"page_{page_idx}.html")).stem
+    shot_path = out_dir / f"{page_idx:02d}_{re.sub(r'[^A-Za-z0-9_.-]+', '_', path_name)}.png"
+    try:
+        pw_page.set_content(str(file_obj.get("content") or ""), wait_until="networkidle")
+        pw_page.screenshot(path=str(shot_path), full_page=True)
+        metrics = pw_page.evaluate(_VISUAL_METRICS_SCRIPT)
+        visual = _visual_report_from_metrics(metrics, requirements, path_name)
+        return {"page": path_name, "screenshot": str(shot_path), "passed": visual["passed"], "issues": visual["issues"], "metrics": metrics}
+    except Exception as exc:
+        return {"page": path_name, "screenshot": str(shot_path), "passed": False, "issues": [f"screenshot check failed: {exc}"], "metrics": {}}
+
+
+def _run_playwright_screenshots(sync_playwright: object, files: list, out_dir: "Path", requirements: dict) -> list:
+    """Run Playwright and collect page reports for all HTML files."""
+    page_reports: list = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        context = browser.new_context(viewport={"width": 1440, "height": 1100})
+        pw_page = context.new_page()
+        for page_idx, file_obj in enumerate(files[:8]):
+            page_reports.append(_screenshot_page_file(pw_page, file_obj, page_idx, out_dir, requirements))
+        context.close()
+        browser.close()
+    return page_reports
+
+
 def _run_candidate_visual_check(interface_id: str, candidate_index: int) -> dict:
     """Screenshot rendered candidate previews and verify visual consistency."""
-    def _save_visual_report(report: dict) -> dict:
-        try:
-            interface_obj = Interface.objects.get(id=interface_id)
-            data = dict(interface_obj.data or {})
-            updated_candidates = list(data.get("candidates", []))
-            if 0 <= candidate_index < len(updated_candidates) and updated_candidates[candidate_index]:
-                updated_candidates[candidate_index] = dict(updated_candidates[candidate_index])
-                updated_candidates[candidate_index]["visual_check"] = report
-                data["candidates"] = updated_candidates
-                Interface.objects.filter(id=interface_id).update(data=data)
-        except Exception:
-            pass
-        return report
+    def _save(report: dict) -> dict:
+        return _save_candidate_visual_report(interface_id, candidate_index, report)
 
     try:
         from playwright.sync_api import sync_playwright
     except Exception as exc:
-        return _save_visual_report({"passed": None, "skipped": True, "reason": f"playwright unavailable: {exc}", "pages": []})
+        return _save({"passed": None, "skipped": True, "reason": f"playwright unavailable: {exc}", "pages": []})
 
     interface = Interface.objects.get(id=interface_id)
     candidates = (interface.data or {}).get("candidates", [])
     if candidate_index < 0 or candidate_index >= len(candidates) or not candidates[candidate_index]:
-        return _save_visual_report({"passed": False, "skipped": False, "reason": "candidate not found", "pages": []})
+        return _save({"passed": False, "skipped": False, "reason": "candidate not found", "pages": []})
 
     candidate = candidates[candidate_index]
     files = [f for f in candidate.get("preview_files") or [] if str(f.get("path") or "").endswith(".html")]
@@ -761,48 +794,18 @@ def _run_candidate_visual_check(interface_id: str, candidate_index: int) -> dict
     out_dir = out_root / str(interface_id) / f"candidate_{candidate_index}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    page_reports: list[dict] = []
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch()
-            context = browser.new_context(viewport={"width": 1440, "height": 1100})
-            page = context.new_page()
-            for page_idx, file_obj in enumerate(files[:8]):
-                html = str(file_obj.get("content") or "")
-                path_name = Path(str(file_obj.get("path") or f"page_{page_idx}.html")).stem
-                shot_path = out_dir / f"{page_idx:02d}_{re.sub(r'[^A-Za-z0-9_.-]+', '_', path_name)}.png"
-                try:
-                    page.set_content(html, wait_until="networkidle")
-                    page.screenshot(path=str(shot_path), full_page=True)
-                    metrics = page.evaluate(_VISUAL_METRICS_SCRIPT)
-                    visual = _visual_report_from_metrics(metrics, requirements, path_name)
-                    page_reports.append({
-                        "page": path_name,
-                        "screenshot": str(shot_path),
-                        "passed": visual["passed"],
-                        "issues": visual["issues"],
-                        "metrics": metrics,
-                    })
-                except Exception as exc:
-                    page_reports.append({
-                        "page": path_name,
-                        "screenshot": str(shot_path),
-                        "passed": False,
-                        "issues": [f"screenshot check failed: {exc}"],
-                        "metrics": {},
-                    })
-            context.close()
-            browser.close()
+        page_reports = _run_playwright_screenshots(sync_playwright, files, out_dir, requirements)
     except Exception as exc:
-        return _save_visual_report({"passed": None, "skipped": True, "reason": f"playwright failed: {exc}", "pages": []})
+        return _save({"passed": None, "skipped": True, "reason": f"playwright failed: {exc}", "pages": []})
 
     report = {
-        "passed": all(page_report.get("passed") for page_report in page_reports) if page_reports else False,
+        "passed": all(r.get("passed") for r in page_reports) if page_reports else False,
         "skipped": False,
         "requirements": requirements,
         "pages": page_reports,
     }
-    return _save_visual_report(report)
+    return _save(report)
 
 
 def _normalize_candidate_sections(sections: list, model_attrs: dict, model_names_fuzzy: dict, page_ref_to_name: dict, page_names: set, candidate_index: int) -> list:
@@ -871,35 +874,59 @@ def _normalize_candidate_pages(pages: list, candidate_index: int) -> list:
     return fixed_pages
 
 
+def _normalize_page_section_refs(p: dict) -> dict:
+    """Normalize section references for a single page (expand card-type refs)."""
+    if p.get("sections") is None:
+        return p
+    normalized = []
+    for r in p["sections"]:
+        if isinstance(r, dict) and r.get("type") == "card":
+            nested = [s if isinstance(s, dict) else {"value": s} for s in (r.get("sections") or [])]
+            normalized.append({**r, "sections": nested})
+        else:
+            normalized.append(r if isinstance(r, dict) else {"value": r})
+    return {**p, "sections": normalized}
+
+
+def _assign_sections_to_unassigned_pages(fixed_pages: list, assignable: list) -> list:
+    """Auto-assign sections to pages that currently have none."""
+    model_to_secs: dict = defaultdict(list)
+    for s in assignable:
+        model_to_secs[s.get("primary_model", "")].append(s["id"])
+    rebuilt: list = []
+    model_assigned: dict = defaultdict(int)
+    for p in fixed_pages:
+        if p.get("sections"):
+            rebuilt.append(p)
+            continue
+        if _page_type_value(p) == "activity" or "workflow" in f"{p.get('id', '')} {p.get('name', '')}".lower():
+            rebuilt.append(p)
+            continue
+        pm = p.get("primary_model", "")
+        cands = model_to_secs.get(pm, [])
+        start = model_assigned[pm]
+        assigned = [{"value": cands[start]}] if start < len(cands) else []
+        if assigned:
+            model_assigned[pm] += 1
+        if not assigned and model_to_secs.get("", []):
+            fb = model_to_secs[""]
+            if model_assigned[""] < len(fb):
+                assigned = [{"value": fb[model_assigned[""]]}]
+                model_assigned[""] += 1
+        rebuilt.append({**p, "sections": assigned})
+    return rebuilt
+
+
 def _normalize_section_refs_and_assign(fixed_pages: list, fixed_sections: list) -> list:
     """Normalize section refs on each page and auto-assign sections to pages that have none."""
-    for i, p in enumerate(fixed_pages):
-        if p.get("sections") is not None:
-            fixed_pages[i] = {**p, "sections": [
-                {**r, "sections": [s if isinstance(s, dict) else {"value": s} for s in (r.get("sections") or [])]}
-                if isinstance(r, dict) and r.get("type") == "card"
-                else (r if isinstance(r, dict) else {"value": r})
-                for r in p["sections"]
-            ]}
-    assignable = [s for s in fixed_sections if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"} and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}]
+    fixed_pages = [_normalize_page_section_refs(p) for p in fixed_pages]
+    assignable = [
+        s for s in fixed_sections
+        if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"}
+        and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}
+    ]
     if any(not p.get("sections") for p in fixed_pages) and assignable:
-        model_to_secs: dict = defaultdict(list)
-        for s in assignable: model_to_secs[s.get("primary_model", "")].append(s["id"])
-        rebuilt: list = []; model_assigned: dict = defaultdict(int)
-        for p in fixed_pages:
-            if p.get("sections"): rebuilt.append(p); continue
-            if _page_type_value(p) == "activity" or "workflow" in f"{p.get('id', '')} {p.get('name', '')}".lower():
-                rebuilt.append(p); continue
-            pm = p.get("primary_model", "")
-            cands = model_to_secs.get(pm, []); start = model_assigned[pm]
-            assigned = [{"value": cands[start]}] if start < len(cands) else []
-            if assigned: model_assigned[pm] += 1
-            if not assigned and model_to_secs.get("", []):
-                fb = model_to_secs[""]
-                if model_assigned[""] < len(fb):
-                    assigned = [{"value": fb[model_assigned[""]]}]; model_assigned[""] += 1
-            rebuilt.append({**p, "sections": assigned})
-        fixed_pages = rebuilt
+        fixed_pages = _assign_sections_to_unassigned_pages(fixed_pages, assignable)
     return fixed_pages
 
 
@@ -917,6 +944,105 @@ def _filter_page_section_refs(fixed_pages: list, fixed_sections: list) -> list:
                 filtered.append(ref)
         p["sections"] = filtered
     return fixed_pages
+
+
+def _load_candidate_context(interface, system_id, actor_id, pages):
+    """Load UML model context needed for candidate normalization."""
+    usecase_navigation = {}
+    model_graph = {}
+    try:
+        system_context = _fetch_system_context_data(system_id)
+        actor_name = _actor_name_from_context(system_context, actor_id)
+        model_graph = extract_uml_intelligence(
+            system_context, str(actor_id or ""), actor_name or "",
+        ).get("model_graph") or {}
+        usecase_navigation = _build_usecase_navigation(system_context, str(actor_id or ""), actor_name)
+        pages = _ensure_usecase_pages(pages, usecase_navigation)
+    except Exception:
+        usecase_navigation = {}
+        model_graph = {}
+    return usecase_navigation, model_graph, pages
+
+
+def _build_model_attrs_from_classifiers(interface):
+    """Extract model_attrs and model_id_by_name dicts from the interface system classifiers."""
+    model_attrs = {}
+    model_id_by_name = {}
+    raw_classifiers = [{"id": str(c.id), "data": c.data or {}} for c in interface.system.classifiers.all()]
+    for c in raw_classifiers:
+        cdata = c.get("data", {})
+        cname = cdata.get("name", "")
+        attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
+        if cname:
+            model_attrs[cname] = attrs
+            model_id_by_name[cname] = str(c.get("id") or cdata.get("id") or cname)
+    return model_attrs, model_id_by_name
+
+
+def _build_page_ref_map(pages):
+    """Build page_names set and page_ref_to_name lookup from the pages list."""
+    page_names = {p.get("name", "") for p in pages}
+    page_ref_to_name = {}
+    for p in pages:
+        pname, pid = p.get("name", ""), p.get("id", "")
+        if pname:
+            page_ref_to_name[pname] = pname
+            page_ref_to_name[pname.lower()] = pname
+        if pid:
+            page_ref_to_name[pid] = pname
+            page_ref_to_name[pid.lower()] = pname
+    return page_names, page_ref_to_name
+
+
+def _normalize_candidate_data(
+    pages, sections, candidate_index, model_attrs, model_id_by_name,
+    usecase_navigation, model_graph, input_section_ids,
+):
+    """Run all normalization passes on pages and sections for a candidate."""
+    sections = _normalize_activity_action_sections(pages, sections)
+    sections = _normalize_chrome_sections(sections)
+    model_names_fuzzy = {re.sub(r'[\s_-]', '', str(m or '')).lower(): m for m in model_attrs}
+    page_names, page_ref_to_name = _build_page_ref_map(pages)
+    fixed_sections = _normalize_candidate_sections(
+        sections, model_attrs, model_names_fuzzy, page_ref_to_name, page_names, candidate_index,
+    )
+    fixed_pages = _normalize_candidate_pages(pages, candidate_index)
+    for i, s in enumerate(fixed_sections):
+        if not s.get("id"):
+            model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
+            fixed_sections[i] = {**s, "id": f"{model}_{s.get('layout', 'section')}_{candidate_index}_{i}"}
+        if not fixed_sections[i].get("name"):
+            fixed_sections[i]["name"] = fixed_sections[i]["id"]
+    fixed_pages = _ensure_usecase_pages(fixed_pages, usecase_navigation)
+    fixed_sections = _normalize_select_existing_sections(fixed_pages, fixed_sections)
+    for s in fixed_sections:
+        s["operations"] = _normalize_section_operations(s.get("operations"))
+        s["component"] = _infer_section_component(s)
+        s["field_layout"] = _normalize_field_layout(s)
+    fixed_sections = _normalize_chrome_sections(fixed_sections)
+    fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
+    fixed_pages, fixed_sections = _dedupe_agent_header_shells(fixed_pages, fixed_sections)
+    fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
+    for s in fixed_sections:
+        s["component"] = _infer_section_component(s)
+    auto_allowed_layouts = (
+        _HEADER_TEMPLATE_LAYOUTS | _FOOTER_TEMPLATE_LAYOUTS | _HEADER_NAV_LAYOUTS
+        | {"site-nav", "nav-links", "nav-bar", "activity_action", "activity_start", "activity_tasks"}
+    )
+    fixed_sections = [
+        s for s in fixed_sections
+        if str(s.get("id") or "") in input_section_ids
+        or _normalize_layout_alias(s.get("layout")) in auto_allowed_layouts
+        or s.get("position") in {"header", "footer"}
+    ]
+    fixed_pages, fixed_sections = _ensure_logical_related_sections(fixed_pages, fixed_sections, model_graph)
+    for s in fixed_sections:
+        s["component"] = _infer_section_component(s)
+        s["field_layout"] = _normalize_field_layout(s)
+    fixed_pages = _normalize_section_refs_and_assign(fixed_pages, fixed_sections)
+    fixed_pages = _filter_page_section_refs(fixed_pages, fixed_sections)
+    fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
+    return fixed_pages, fixed_sections
 
 
 def validate_and_save_candidate(
@@ -938,24 +1064,22 @@ def validate_and_save_candidate(
     Args:
         interface_id: The interface UUID (from the message).
         candidate_index: 0, 1, or 2.
-        name: Short display name for this design direction (e.g. "Card-forward Commerce").
+        name: Short display name for this design direction.
         description: One sentence describing this candidate's visual approach.
-        pages: JSON string containing a list of page objects. Each page: {id, name, type, sections: [{value: section_id}, ...]}.
-               type is required and must be {"value":"normal","label":"Normal"} or {"value":"activity","label":"Activity"}.
-               Pages do NOT contain section data ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â they only reference section IDs.
-        sections: JSON string containing a list of ALL section definition objects. Each section must have:
-                  id, name, layout, position, col_span, primary_model, attributes, operations, style.
-                  This is SEPARATE from pages. Both pages[] and sections[] are required.
+        pages: JSON string containing a list of page objects.
+        sections: JSON string containing a list of ALL section definition objects.
         tokens: Optional JSON string with design tokens.
         styling: Optional JSON string with global styling overrides.
         prompt: Original user design prompt (optional, for logging).
-        derived_from: Optional source candidate index/id when regenerating from a selected candidate.
-        designer_requirements: Optional human-in-the-loop requirements used for regeneration.
-        variation_strategy: Optional short label for how this candidate differs from the source.
+        derived_from: Optional source candidate index/id when regenerating.
+        designer_requirements: Optional human-in-the-loop requirements.
+        variation_strategy: Optional short label for how this candidate differs.
     """
     try:
-        if isinstance(pages, str): pages = json.loads(pages)
-        if isinstance(sections, str): sections = json.loads(sections)
+        if isinstance(pages, str):
+            pages = json.loads(pages)
+        if isinstance(sections, str):
+            sections = json.loads(sections)
         input_section_ids = {str(s.get("id")) for s in (sections or []) if isinstance(s, dict) and s.get("id")}
         styling_dict = _norm_candidate_styling(styling)
 
@@ -970,115 +1094,25 @@ def validate_and_save_candidate(
         }
         system_id = iface.get("system")
         tokens_d: dict = _norm_candidate_tokens(tokens, styling_dict)
-
-        raw_classifiers = [
-            {"id": str(c.id), "data": c.data or {}}
-            for c in interface.system.classifiers.all()
-        ]
-        model_attrs: dict = {}; model_id_by_name: dict = {}
-        for c in raw_classifiers:
-            cdata = c.get("data", {}); cname = cdata.get("name", "")
-            attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
-            if cname:
-                model_attrs[cname] = attrs
-                model_id_by_name[cname] = str(c.get("id") or cdata.get("id") or cname)
-        known_models = set(model_attrs.keys())
-
-        usecase_navigation: dict = {}
-        model_graph: dict = {}
-        try:
-            system_context = _fetch_system_context_data(system_id)
-            actor_name = _actor_name_from_context(system_context, iface.get("actor"))
-            model_graph = extract_uml_intelligence(
-                system_context,
-                str(iface.get("actor") or ""),
-                actor_name or "",
-            ).get("model_graph") or {}
-            usecase_navigation = _build_usecase_navigation(system_context, str(iface.get("actor") or ""), actor_name)
-            pages = _ensure_usecase_pages(pages, usecase_navigation)
-        except Exception:
-            usecase_navigation = {}
-            model_graph = {}
-        sections = _normalize_activity_action_sections(pages, sections)
-        sections = _normalize_chrome_sections(sections)
-
-        model_names_fuzzy = {re.sub(r'[\s_-]', '', str(m or '')).lower(): m for m in known_models}
-
-        page_names = {p.get("name", "") for p in pages}
-        page_ref_to_name: dict = {}
-        for p in pages:
-            pname, pid = p.get("name", ""), p.get("id", "")
-            if pname: page_ref_to_name[pname] = pname; page_ref_to_name[pname.lower()] = pname
-            if pid: page_ref_to_name[pid] = pname; page_ref_to_name[pid.lower()] = pname
-
-        # Normalize sections with a small guardrail layer:
-        # supported layouts/styles, UML-bound attributes, and valid workflow targets.
-        fixed_sections = _normalize_candidate_sections(sections, model_attrs, model_names_fuzzy, page_ref_to_name, page_names, candidate_index)
-
-        # Normalize pages
-        fixed_pages = _normalize_candidate_pages(pages, candidate_index)
-        for i, s in enumerate(fixed_sections):
-            if not s.get("id"):
-                model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
-                fixed_sections[i] = {**s, "id": f"{model}_{s.get('layout', 'section')}_{candidate_index}_{i}"}
-            if not fixed_sections[i].get("name"):
-                fixed_sections[i]["name"] = fixed_sections[i]["id"]
-
-        fixed_pages = _ensure_usecase_pages(fixed_pages, usecase_navigation)
-        fixed_sections = _normalize_select_existing_sections(fixed_pages, fixed_sections)
-        for s in fixed_sections:
-            s["operations"] = _normalize_section_operations(s.get("operations"))
-            s["component"] = _infer_section_component(s)
-            s["field_layout"] = _normalize_field_layout(s)
-        fixed_sections = _normalize_chrome_sections(fixed_sections)
-        fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
-        styling_d = styling_dict or {}
-        fixed_pages, fixed_sections = _dedupe_agent_header_shells(fixed_pages, fixed_sections)
-        fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
-        for s in fixed_sections:
-            s["component"] = _infer_section_component(s)
-        auto_allowed_layouts = (
-            _HEADER_TEMPLATE_LAYOUTS
-            | _FOOTER_TEMPLATE_LAYOUTS
-            | _HEADER_NAV_LAYOUTS
-            | {"site-nav", "nav-links", "nav-bar", "activity_action", "activity_start", "activity_tasks"}
+        model_attrs, model_id_by_name = _build_model_attrs_from_classifiers(interface)
+        usecase_navigation, model_graph, pages = _load_candidate_context(
+            interface, system_id, iface.get("actor"), pages,
         )
-        fixed_sections = [
-            s for s in fixed_sections
-            if str(s.get("id") or "") in input_section_ids
-            or _normalize_layout_alias(s.get("layout")) in auto_allowed_layouts
-            or s.get("position") in {"header", "footer"}
-        ]
-        fixed_pages, fixed_sections = _ensure_logical_related_sections(fixed_pages, fixed_sections, model_graph)
-        for s in fixed_sections:
-            s["component"] = _infer_section_component(s)
-            s["field_layout"] = _normalize_field_layout(s)
-
-        # Normalize section refs and assign sections to pages that have none
-        fixed_pages = _normalize_section_refs_and_assign(fixed_pages, fixed_sections)
-
-        fixed_pages = _filter_page_section_refs(fixed_pages, fixed_sections)
-        fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
+        fixed_pages, fixed_sections = _normalize_candidate_data(
+            pages, sections, candidate_index, model_attrs, model_id_by_name,
+            usecase_navigation, model_graph, input_section_ids,
+        )
 
         label_prompt = prompt or designer_requirements
         name = name or _candidate_variant_name(candidate_index)
         variation_strategy = variation_strategy or name
         fixed_pages, fixed_sections, tokens_d, styling_d = _apply_design_intent_patch(
-            fixed_pages,
-            fixed_sections,
-            tokens_d,
-            styling_dict or {},
-            prompt=label_prompt,
-            description=description,
-            name=name,
+            fixed_pages, fixed_sections, tokens_d, styling_dict or {},
+            prompt=label_prompt, description=description, name=name,
         )
         compliance = _candidate_compliance_report(
-            fixed_pages,
-            fixed_sections,
-            tokens_d,
-            prompt=label_prompt,
-            description=description,
-            name=name,
+            fixed_pages, fixed_sections, tokens_d,
+            prompt=label_prompt, description=description, name=name,
         )
 
         data = dict(iface.get("data") or {})
@@ -1092,20 +1126,24 @@ def validate_and_save_candidate(
             **({"tokens": tokens_d} if tokens_d else {}),
             **({"styling": styling_d} if styling_d else {}),
         }
-        if derived_from != "": candidate["derived_from"] = derived_from
-        if designer_requirements: candidate["designer_requirements"] = designer_requirements
-        if variation_strategy: candidate["variation_strategy"] = variation_strategy
-        while len(candidates) <= candidate_index: candidates.append(None)
+        if derived_from != "":
+            candidate["derived_from"] = derived_from
+        if designer_requirements:
+            candidate["designer_requirements"] = designer_requirements
+        if variation_strategy:
+            candidate["variation_strategy"] = variation_strategy
+        while len(candidates) <= candidate_index:
+            candidates.append(None)
         candidates[candidate_index] = candidate
         data["candidates"] = candidates
         Interface.objects.filter(id=interface_id).update(data=data)
-        warning_suffix = "" if compliance.get("passed") else f" with {len(compliance.get('issues') or [])} compliance warning(s)"
+        issue_count = len(compliance.get('issues') or [])
+        warning_suffix = "" if compliance.get("passed") else f" with {issue_count} compliance warning(s)"
         return f"OK: candidate {candidate_index} '{name}' saved successfully{warning_suffix}."
     except Interface.DoesNotExist:
         return f"Error saving candidate: Interface {interface_id} not found."
     except Exception as e:
         return f"Error saving candidate: {e}"
-
 def get_candidate_regeneration_context(interface_id: str, candidate_index: int, designer_requirements: str = "") -> str:
     """Return the selected candidate as the baseline for human-guided regeneration."""
     try:

@@ -173,6 +173,725 @@ const sqlValue = (filter: any) => {
     return filter.value ? `'${filter.value}'` : ':value';
 };
 
+interface SectionItemProps {
+    section: any;
+    index: number;
+    data: any[];
+    pages: any[];
+    editIndex: number;
+    pencelClick: boolean;
+    pencelClickText: boolean;
+    pencelClickImageUrl: boolean;
+    newName: string;
+    newText: string;
+    newImageUrl: string;
+    newImageAlt: string;
+    selectedOperations: any;
+    selectedAttributes: any[];
+    selectedCustomMethods: any[];
+    selectedClassObject: any;
+    classAttributes: any[];
+    classCustomMethods: any[];
+    classes: any[];
+    isSuccessClasses: boolean;
+    classNameOptions: string[];
+    queryFieldOptions: string[];
+    handlePencilClick: () => void;
+    handleNameChange: (index: number) => void;
+    handleNameCancel: () => void;
+    handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handlePencilClickText: () => void;
+    handleTextChange: (index: number) => void;
+    handleTextCancel: () => void;
+    handleInputChangeText: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    handlePencilClickImageUrl: () => void;
+    handleImageUrlChange: (index: number) => void;
+    handleImageUrlCancel: () => void;
+    handleInputChangeImageUrl: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleInputChangeImageAlt: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleActivityActionChange: (index: number, patch: Record<string, any>) => void;
+    handleDelete: (index: number) => void;
+    handleMinus: () => void;
+    handleEdit: (index: number) => void;
+    toggleClass: (sectionIndex: number, cls: any) => void;
+    toggleOperation: (sectionIndex: number, operation: 'create' | 'update' | 'delete' | 'select') => void;
+    handleAttributeSelect: (selectedList: any, selectedItem: any, sectionIndex: number) => void;
+    handleAttributeRemove: (selectedList: any, selectedItem: any, sectionIndex: number) => void;
+    handleCustomMethodSelect: (selectedList: any, selectedItem: any, sectionIndex: number) => void;
+    handleCustomMethodRemove: (selectedList: any, selectedItem: any, sectionIndex: number) => void;
+    handleMethodLabelChange: (sectionIndex: number, methodIndex: number, label: string) => void;
+    handleMethodsTextChange: (index: number, value: string) => void;
+    handleAddJoin: (index: number) => void;
+    handleJoinChange: (index: number, joinIndex: number, key: 'type' | 'model' | 'on', value: string) => void;
+    handleRemoveJoin: (index: number, joinIndex: number) => void;
+    handleAddSelectField: (index: number) => void;
+    handleSelectFieldChange: (index: number, fieldIndex: number, value: string) => void;
+    handleRemoveSelectField: (index: number, fieldIndex: number) => void;
+    handleAddOrderBy: (index: number) => void;
+    handleOrderByChange: (index: number, orderIndex: number, key: 'field' | 'direction', value: string) => void;
+    handleRemoveOrderBy: (index: number, orderIndex: number) => void;
+    handleAddFilter: (index: number) => void;
+    handleFilterChange: (index: number, filterIndex: number, key: 'field' | 'operator' | 'value' | 'value_from', value: string) => void;
+    handleFilterValueSourceChange: (index: number, filterIndex: number, source: 'value' | 'value_from') => void;
+    handleRemoveFilter: (index: number, filterIndex: number) => void;
+    handleQueryNumberChange: (index: number, key: 'limit' | 'offset', value: string) => void;
+    handleItemClickTypeChange: (index: number, type: string) => void;
+    handleItemClickTargetPageChange: (index: number, pageName: string) => void;
+    sectionPrimaryModel: (section: any) => string;
+    buildSqlPreview: (section: any) => string;
+}
+
+const SectionItem: React.FC<SectionItemProps> = (props) => {
+    const {
+        section, index, data, pages, editIndex,
+        pencelClick, pencelClickText, pencelClickImageUrl,
+        newName, newText, newImageUrl, newImageAlt,
+        selectedOperations, selectedAttributes, selectedCustomMethods, selectedClassObject,
+        classAttributes, classCustomMethods, classes, isSuccessClasses,
+        classNameOptions, queryFieldOptions,
+        handlePencilClick, handleNameChange, handleNameCancel, handleInputChange,
+        handlePencilClickText, handleTextChange, handleTextCancel, handleInputChangeText,
+        handlePencilClickImageUrl, handleImageUrlChange, handleImageUrlCancel,
+        handleInputChangeImageUrl, handleInputChangeImageAlt,
+        handleActivityActionChange, handleDelete, handleMinus, handleEdit,
+        toggleClass, toggleOperation,
+        handleAttributeSelect, handleAttributeRemove,
+        handleCustomMethodSelect, handleCustomMethodRemove, handleMethodLabelChange, handleMethodsTextChange,
+        handleAddJoin, handleJoinChange, handleRemoveJoin,
+        handleAddSelectField, handleSelectFieldChange, handleRemoveSelectField,
+        handleAddOrderBy, handleOrderByChange, handleRemoveOrderBy,
+        handleAddFilter, handleFilterChange, handleFilterValueSourceChange, handleRemoveFilter,
+        handleQueryNumberChange,
+        handleItemClickTypeChange, handleItemClickTargetPageChange,
+        sectionPrimaryModel, buildSqlPreview,
+    } = props;
+    const selectedAttributeOptions = React.useMemo(
+        () => (selectedAttributes || [])
+            .filter((attr: any) => !isReadonlyAttribute(attr))
+            .map(toAttributeOption)
+            .filter((attr: any) => attr.name),
+        [selectedAttributes],
+    );
+    return (
+        <div key={index} className="flex flex-col gap-2">
+            {editIndex === index ? (
+                <div className="w-[280px] flex flex-col gap-2 space-y-2">
+                    <div>
+                        <h3 className="text-xl font-bold">Name</h3>
+                        {!pencelClick && (
+                            <div className="flex flex-wrap gap-2">
+                                <h2 className="text-l">{section.name}</h2>
+                                <Pencil
+                                    className="cursor-pointer ml-auto"
+                                    onClick={handlePencilClick}
+                                />
+                            </div>
+                        )}
+
+                        {pencelClick && (
+                            <FormControl required className="space-y-1">
+                                <Input
+                                    type="text"
+                                    value={newName}
+                                    onChange={handleInputChange}
+                                />
+                                <div className="flex flex-wrap gap-2 ml-auto">
+                                    <button
+                                        onClick={() => handleNameChange(index)}
+                                        className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+                                    >
+                                        <Save />
+                                    </button>
+                                    <button
+                                        onClick={handleNameCancel}
+                                        className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
+                                    >
+                                        <Ban />
+                                    </button>
+                                </div>
+                            </FormControl>
+                        )}
+                    </div>
+                    {isActivityActionSection(data[index]) ? (
+                    <FormControl className="space-y-2">
+                        <h3 className="text-xl font-bold">Activity Button</h3>
+                        <p className="text-xs text-gray-500">This section completes the current workflow step. Place it on activity pages just like other sections.</p>
+                        <span className="text-xs text-gray-500">Button label</span>
+                        <input
+                            aria-label="Activity button label"
+                            type="text"
+                            value={data[index].label || data[index].name || ''}
+                            onChange={(e) => handleActivityActionChange(index, { label: e.target.value, name: e.target.value || data[index].name })}
+                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                        />
+                        <span className="text-xs text-gray-500">Variant</span>
+                        <select
+                            aria-label="Activity button variant"
+                            value={data[index].style?.variant || 'button'}
+                            onChange={(e) => handleActivityActionChange(index, { style: { variant: e.target.value } })}
+                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                        >
+                            {ACTIVITY_ACTION_VARIANTS.map(option => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                        </select>
+                        <span className="text-xs text-gray-500">Align</span>
+                        <select
+                            aria-label="Activity button alignment"
+                            value={data[index].style?.align || 'right'}
+                            onChange={(e) => handleActivityActionChange(index, { style: { align: e.target.value } })}
+                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                        >
+                            {ACTIVITY_ACTION_ALIGNS.map(option => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                        </select>
+                        <span className="text-xs text-gray-500">Size</span>
+                        <select
+                            aria-label="Activity button size"
+                            value={data[index].style?.size || 'lg'}
+                            onChange={(e) => handleActivityActionChange(index, { style: { size: e.target.value } })}
+                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                        >
+                            {ACTIVITY_ACTION_SIZES.map(option => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                        </select>
+                    </FormControl>
+                    ) : (<>
+                    <SectionEditorGroup title="Basic" description="Choose the domain class this component reads or edits.">
+                    <div className="space-y-1">
+                        <h3 className="text-sm font-semibold text-gray-700">Primary Class</h3>
+                        <div className="flex max-w-full flex-wrap gap-2">
+                            {isSuccessClasses && (
+                                classes.map((e) => (
+                                    <Chip
+                                        key={e.id}
+                                        onClick={() => toggleClass(index, e)}
+                                        color={selectedClassObject?.id === e.id ? 'primary' : 'neutral'}
+                                        sx={{ maxWidth: '100%' }}
+                                    >
+                                        {e.data.name}
+                                    </Chip>
+                                )
+                                ))}
+                        </div>
+                    </div>
+                    </SectionEditorGroup>
+                    <SectionEditorGroup title="Actions" description="Control what the user can do with records in this component.">
+                    <div className="space-y-1">
+                        <h3 className="text-sm font-semibold text-gray-700">Record operations</h3>
+                        <div className="flex gap-2">
+                            <Chip
+                                onClick={() => toggleOperation(index, 'create')}
+                                color={selectedOperations.create ? 'primary' : 'neutral'}
+                            >
+                                Create
+                            </Chip>
+                            <Chip
+                                onClick={() => toggleOperation(index, 'update')}
+                                color={selectedOperations.update ? 'primary' : 'neutral'}
+                            >
+                                Update
+                            </Chip>
+                            <Chip
+                                onClick={() => toggleOperation(index, 'delete')}
+                                color={selectedOperations.delete ? 'primary' : 'neutral'}
+                            >
+                                Delete
+                            </Chip>
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                        <h3 className="text-sm font-semibold text-gray-600">Selection behavior</h3>
+                        <div className="flex gap-2">
+                            <Tooltip
+                                title="Enables row/item selection for choose or pick workflows and bulk actions, such as delete selected. This is not read/view."
+                                variant="soft"
+                            >
+                                <Chip
+                                    onClick={() => toggleOperation(index, 'select')}
+                                    color={selectedOperations.select ? 'primary' : 'neutral'}
+                                >
+                                    Enable selection
+                                </Chip>
+                            </Tooltip>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                            Use only when users need to choose records or act on selected rows.
+                        </p>
+                    </div>
+                    </SectionEditorGroup>
+                    <SectionEditorGroup title="Fields" description="Choose display, editable, and read-only fields. Related fields are read-only context only.">
+                    <div className='space-y-1'>
+                        <h3 className="text-sm font-semibold text-gray-700">Editable / display attributes</h3>
+                        <Multiselect
+                            options={classAttributes}
+                            displayValue='name'
+                            placeholder="Select attributes..."
+                            showCheckbox={true}
+                            style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
+                            selectedValues={selectedAttributeOptions}
+                            onSelect={(selectedList, selectedItem) => handleAttributeSelect(selectedList, selectedItem, index)}
+                            onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
+                        />
+                    </div>
+                    </SectionEditorGroup>
+                    <SectionEditorGroup title="Content" description="Optional copy, media, and section-level actions shown once for this component." defaultOpen={false}>
+                    <FormControl className="space-y-1">
+                        <h3 className="text-sm font-semibold text-gray-700">
+                            {CHROME_LAYOUT_SET.has(data[index].layout) ? 'Methods (one per line)' : 'Section Actions'}
+                        </h3>
+                        {CHROME_LAYOUT_SET.has(data[index].layout) ? (
+                            <>
+                                {METHODS_HINTS[data[index].layout] && (
+                                    <p className="text-xs text-gray-400">{METHODS_HINTS[data[index].layout]}</p>
+                                )}
+                                <Textarea
+                                    minRows={4}
+                                    maxRows={6}
+                                    placeholder={"Gratis verzending vanaf €25,-\nBezorging zelfde dag*\nGratis retourneren\nSelect — Ontdek nu de 4 voordelen"}
+                                    value={(data[index].methods || []).map((m: any) =>
+                                        typeof m === 'string' ? m : (m?.name || m?.label || '')
+                                    ).join('\n')}
+                                    onChange={(e) => handleMethodsTextChange(index, e.target.value)}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <Multiselect
+                                    options={classCustomMethods}
+                                    displayValue='name'
+                                    placeholder="Select methods..."
+                                    showCheckbox={true}
+                                    style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
+                                    selectedValues={selectedCustomMethods}
+                                    onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
+                                    onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
+                                />
+                                <div className="mt-2 space-y-2">
+                                    {selectedCustomMethods.map((method, mIdx) => (
+                                        <div key={method.id || method.name} className="space-y-1 bg-stone-50 p-2 rounded-md border border-stone-200">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-bold text-gray-600">{method.name}</span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder="Label Template (e.g. Call {{ seller.phone }})"
+                                                value={method.label || ''}
+                                                onChange={(e) => handleMethodLabelChange(index, mIdx, e.target.value)}
+                                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </FormControl>
+                    <FormControl className="space-y-1">
+                        <h3 className="text-sm font-semibold text-gray-700">Text</h3>
+                        {!pencelClickText && (
+                            <div className="flex flex-wrap gap-2">
+                                <h2 className="text-l">
+                                    {section.text ? (
+                                        <span>{section.text}</span>
+                                    ) : (
+                                        <span style={{ color: 'grey' }}>No text specified...</span>
+                                    )}
+                                </h2>
+                                <Pencil
+                                    className="cursor-pointer ml-auto"
+                                    onClick={handlePencilClickText}
+                                />
+                            </div>
+                        )}
+
+                        {pencelClickText && (
+                            <>
+                                <Textarea
+                                    name="text"
+                                    placeholder="Description, explanation, welcome message, ..."
+                                    minRows={4}
+                                    maxRows={4}
+                                    value={newText}
+                                    onChange={handleInputChangeText}
+                                />
+                                <div className="flex flex-wrap gap-2 ml-auto">
+                                    <button
+                                        onClick={() => handleTextChange(index)}
+                                        className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+                                    >
+                                        <Save />
+                                    </button>
+                                    <button
+                                        onClick={handleTextCancel}
+                                        className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
+                                    >
+                                        <Ban />
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </FormControl>
+                    <FormControl className="space-y-1">
+                        <h3 className="text-sm font-semibold text-gray-700">Image URL</h3>
+                        {!pencelClickImageUrl && (
+                            <div className="flex flex-wrap gap-2">
+                                <h2 className="text-l break-all">
+                                    {section.style?.image_url ? (
+                                        <span>{section.style.image_url}</span>
+                                    ) : (
+                                        <span style={{ color: 'grey' }}>No image URL specified...</span>
+                                    )}
+                                </h2>
+                                <Pencil
+                                    className="cursor-pointer ml-auto"
+                                    onClick={handlePencilClickImageUrl}
+                                />
+                                {section.style?.image_url && (
+                                    <img
+                                        src={section.style.image_url}
+                                        alt={section.style?.image_alt || section.name || 'Section image'}
+                                        className="w-full h-24 object-cover rounded-md border border-gray-200"
+                                    />
+                                )}
+                            </div>
+                        )}
+
+                        {pencelClickImageUrl && (
+                            <>
+                                <Input
+                                    name="image_url"
+                                    placeholder="https://example.com/header.jpg"
+                                    value={newImageUrl}
+                                    onChange={handleInputChangeImageUrl}
+                                />
+                                <Input
+                                    name="image_alt"
+                                    placeholder="Alt text"
+                                    value={newImageAlt}
+                                    onChange={handleInputChangeImageAlt}
+                                />
+                                <div className="flex flex-wrap gap-2 ml-auto">
+                                    <button
+                                        onClick={() => handleImageUrlChange(index)}
+                                        className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+                                    >
+                                        <Save />
+                                    </button>
+                                    <button
+                                        onClick={handleImageUrlCancel}
+                                        className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
+                                    >
+                                        <Ban />
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </FormControl>
+                    </SectionEditorGroup>
+                    <SectionEditorGroup title="Advanced Query" description="Optional joins, select columns, sort, filters, and SQL preview." defaultOpen={false}>
+                    <FormControl className="space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-700">Data Source / Query</h3>
+                        <p className="text-xs text-gray-500">Configure how this section reads data. Display attributes are edited above; query columns are separate.</p>
+                        <div className="space-y-1">
+                            <span className="text-xs text-gray-500">From</span>
+                            <div className="border border-gray-200 rounded-md px-2 py-1.5 text-sm w-full bg-stone-50 text-gray-700">
+                                {sectionPrimaryModel(data[index]) || 'Select a primary class first'}
+                            </div>
+                            <p className="text-[11px] text-gray-400">
+                                Query returns records of this section's primary class. Join other classes only for filtering, sorting, or read-only context.
+                            </p>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs text-gray-500">Joins</span>
+                                <button
+                                    type="button"
+                                    onClick={() => handleAddJoin(index)}
+                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                            {(data[index].data_source?.joins || []).map((join, joinIndex) => (
+                                <div key={`${join.type || 'left'}-${join.model || 'model'}-${join.on || 'condition'}`} className="space-y-1 rounded-md border border-gray-200 bg-stone-50 p-2">
+                                    <div className="grid grid-cols-[74px_1fr_28px] gap-1">
+                                        <select
+                                            value={join.type || 'left'}
+                                            onChange={(e) => handleJoinChange(index, joinIndex, 'type', e.target.value)}
+                                            className="border border-gray-300 rounded-md px-1 py-1.5 text-xs"
+                                        >
+                                            <option value="left">Left</option>
+                                            <option value="inner">Inner</option>
+                                            <option value="right">Right</option>
+                                        </select>
+                                        <select
+                                            value={join.model || ''}
+                                            onChange={(e) => handleJoinChange(index, joinIndex, 'model', e.target.value)}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
+                                        >
+                                            <option value="">Model</option>
+                                            {classNameOptions.map((name: string) => (
+                                                <option key={name} value={name}>{name}</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveJoin(index, joinIndex)}
+                                            className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
+                                        >
+                                            X
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={join.on || ''}
+                                        onChange={(e) => handleJoinChange(index, joinIndex, 'on', e.target.value)}
+                                        placeholder="e.g. CartItem.product_id = Product.id"
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-full"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs text-gray-500">Select Columns</span>
+                                <button
+                                    type="button"
+                                    onClick={() => handleAddSelectField(index)}
+                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                            <p className="text-[11px] text-gray-400">Used only for SQL/query preview. It does not change rendered attributes.</p>
+                            {(data[index].query?.select || []).map((field, fieldIndex) => (
+                                <div key={field || 'select-field'} className="flex gap-1">
+                                    <input
+                                        type="text"
+                                        list={`query-field-list-${index}`}
+                                        value={field || ''}
+                                        onChange={(e) => handleSelectFieldChange(index, fieldIndex, e.target.value)}
+                                        placeholder="field or joined.field"
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0 flex-1"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveSelectField(index, fieldIndex)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
+                                    >
+                                        X
+                                    </button>
+                                </div>
+                            ))}
+                            <datalist id={`query-field-list-${index}`}>
+                                {queryFieldOptions.map((field: string) => (
+                                    <option key={field} value={field}>{field}</option>
+                                ))}
+                            </datalist>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <span className="text-xs text-gray-500">Limit</span>
+                                <input
+                                    aria-label="Query limit"
+                                    type="number"
+                                    min="1"
+                                    value={data[index].query?.limit || ''}
+                                    onChange={(e) => handleQueryNumberChange(index, 'limit', e.target.value)}
+                                    placeholder="e.g. 4"
+                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-xs text-gray-500">Offset</span>
+                                <input
+                                    aria-label="Query offset"
+                                    type="number"
+                                    min="0"
+                                    value={data[index].query?.offset || ''}
+                                    onChange={(e) => handleQueryNumberChange(index, 'offset', e.target.value)}
+                                    placeholder="0"
+                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs text-gray-500">Sort</span>
+                                <button
+                                    type="button"
+                                    onClick={() => handleAddOrderBy(index)}
+                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                            {(data[index].query?.order_by || []).map((order, orderIndex) => (
+                                <div key={`${order.field || 'field'}-${order.direction || 'asc'}`} className="flex gap-1">
+                                    <input
+                                        type="text"
+                                        list={`query-field-list-${index}`}
+                                        value={order.field || ''}
+                                        onChange={(e) => handleOrderByChange(index, orderIndex, 'field', e.target.value)}
+                                        placeholder="field"
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0 flex-1"
+                                    />
+                                    <select
+                                        value={order.direction || 'asc'}
+                                        onChange={(e) => handleOrderByChange(index, orderIndex, 'direction', e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-20"
+                                    >
+                                        <option value="asc">Asc</option>
+                                        <option value="desc">Desc</option>
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveOrderBy(index, orderIndex)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
+                                    >
+                                        X
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs text-gray-500">Filters (AND)</span>
+                                <button
+                                    type="button"
+                                    onClick={() => handleAddFilter(index)}
+                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                            {(data[index].query?.filters || []).map((filter, filterIndex) => (
+                                <div key={`${filter.field || 'field'}-${filter.operator || 'eq'}-${filter.value_from || filter.value || 'value'}`} className="grid grid-cols-[1fr_78px_90px_1fr_28px] gap-1">
+                                    <input
+                                        type="text"
+                                        list={`query-field-list-${index}`}
+                                        value={filter.field || ''}
+                                        onChange={(e) => handleFilterChange(index, filterIndex, 'field', e.target.value)}
+                                        placeholder="field"
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
+                                    />
+                                    <select
+                                        value={filter.operator || 'eq'}
+                                        onChange={(e) => handleFilterChange(index, filterIndex, 'operator', e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs"
+                                    >
+                                        <option value="eq">=</option>
+                                        <option value="neq">!=</option>
+                                        <option value="lt">&lt;</option>
+                                        <option value="lte">&lt;=</option>
+                                        <option value="gt">&gt;</option>
+                                        <option value="gte">&gt;=</option>
+                                        <option value="contains">has</option>
+                                        <option value="in">in</option>
+                                        <option value="isnull">null</option>
+                                    </select>
+                                    <select
+                                        value={filter.value_from ? 'value_from' : 'value'}
+                                        onChange={(e) => handleFilterValueSourceChange(index, filterIndex, e.target.value as 'value' | 'value_from')}
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs"
+                                        disabled={filter.operator === 'isnull'}
+                                    >
+                                        <option value="value">Literal</option>
+                                        <option value="value_from">Dynamic</option>
+                                    </select>
+                                    <input
+                                        type="text"
+                                        value={filter.value_from || filter.value || ''}
+                                        onChange={(e) => handleFilterChange(index, filterIndex, filter.value_from ? 'value_from' : 'value', e.target.value)}
+                                        placeholder={filter.value_from ? 'request.GET.instance_id_Model' : 'value'}
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
+                                        disabled={filter.operator === 'isnull'}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveFilter(index, filterIndex)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
+                                    >
+                                        X
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-xs text-gray-500">SQL Preview</span>
+                            <pre className="max-h-44 overflow-auto rounded-md border border-gray-200 bg-gray-950 p-2 text-[11px] leading-relaxed text-green-100 whitespace-pre-wrap">
+                                {buildSqlPreview(data[index])}
+                            </pre>
+                        </div>
+                    </FormControl>
+                    </SectionEditorGroup>
+                    {isCollectionSection(data[index]) && (
+                        <SectionEditorGroup title="Item Interaction" description="Component-level action when users click a card, row, or list item." defaultOpen={false}>
+                        <FormControl className="space-y-2">
+                            <h3 className="text-sm font-semibold text-gray-700">Item Click Action</h3>
+                            <p className="text-xs text-gray-500">Component-level interaction for clicking a card, list item, or table row.</p>
+                            <select
+                                aria-label="Item click action"
+                                value={data[index].behavior?.item_click?.type || 'none'}
+                                onChange={(e) => handleItemClickTypeChange(index, e.target.value)}
+                                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                            >
+                                <option value="none">None</option>
+                                <option value="navigate">Navigate to page</option>
+                                <option value="select">Select item</option>
+                            </select>
+                            {data[index].behavior?.item_click?.type === 'navigate' && (
+                                <div className="space-y-1">
+                                    <span className="text-xs text-gray-500">Target Page</span>
+                                    <select
+                                        aria-label="Item click target page"
+                                        value={data[index].behavior?.item_click?.target_page || ''}
+                                        onChange={(e) => handleItemClickTargetPageChange(index, e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                    >
+                                        <option value="">None</option>
+                                        {pages.filter((p) => !p.type || p.type?.value !== 'activity').map((p) => (
+                                            <option key={p.id} value={p.name}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </FormControl>
+                        </SectionEditorGroup>
+                    )}
+                    </>)}
+                    <Divider />
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => handleDelete(index)}
+                            className="w-[40px] h-[40px] bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
+                        >
+                            <Trash />
+                        </button>
+                        <button
+                            onClick={handleMinus}
+                            className="w-[60px] h-[40px] bg-stone-200 text-stone-900 px-2 py-1 rounded-md hover:bg-blue-600"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex justify-between items-center w-full">
+                    <h3
+                        onClick={() => handleEdit(index)}
+                        className="flex h-fit w-58 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300 cursor-pointer"
+                    >
+                        {section.name}
+                    </h3>
+                </div>
+            )}
+        </div>
+    );
+};
+
 export const Sections: React.FC<Props> = ({ interfaceId }) => {
     const { systemId } = useParams();
     const storagePrefix = interfaceId || 'new-interface';
@@ -602,6 +1321,57 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         setEditIndex(-1);
     };
 
+    const handleMethodsTextChange = (index: number, value: string) => {
+        const lines = value.split('\n').map((l: string) => ({ name: l }));
+        const newData = [...data];
+        newData[index].methods = lines;
+        setData(newData);
+    };
+
+    const handleAddSection = () => {
+        const newSection = {
+            id: globalThis.crypto.randomUUID(),
+            name: `Section Component ${data.length + 1}`,
+            class: "",
+            primary_model: "",
+            data_role: "display_records",
+            operations: { create: false, update: false, delete: false, select: false },
+            attributes: [],
+            fields: [],
+            actions: [],
+            layout: "table",
+            role: "object_collection",
+            component: "ObjectList",
+            col_span: 12,
+            style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" },
+        };
+        if (isSuccessClasses && classes[0]?.id) {
+            newSection.class = classes[0].id;
+            newSection.primary_model = classes[0].data?.name || '';
+        }
+        setData([...data, newSection]);
+    };
+
+    const handleAddActivitySection = () => {
+        const name = `Activity Button ${data.length + 1}`;
+        const newSection = {
+            id: globalThis.crypto.randomUUID(),
+            name,
+            label: 'Complete step',
+            type: 'activity_action',
+            data_role: 'workflow_action',
+            layout: 'activity_action',
+            class: "",
+            operations: { create: false, update: false, delete: false },
+            attributes: [],
+            methods: [],
+            col_span: 12,
+            position: 'main',
+            style: { variant: 'button', align: 'right', size: 'lg' },
+        };
+        setData([...data, newSection]);
+    };
+
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setNewName(event.target.value);
     };
@@ -711,663 +1481,83 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
             {isSuccess && (
                 <div className="flex flex-wrap gap-4">
                     {data.map((section, index) => (
-                        <div key={index} className="flex flex-col gap-2">
-                            {editIndex === index ? (
-                                <div className="w-[280px] flex flex-col gap-2 space-y-2">
-                                    <div>
-                                        <h3 className="text-xl font-bold">Name</h3>
-                                        {!pencelClick && (
-                                            <div className="flex flex-wrap gap-2">
-                                                <h2 className="text-l">{section.name}</h2>
-                                                <Pencil
-                                                    className="cursor-pointer ml-auto"
-                                                    onClick={handlePencilClick}
-                                                />
-                                            </div>
-                                        )}
-
-                                        {pencelClick && (
-                                            <FormControl required className="space-y-1">
-                                                <Input
-                                                    type="text"
-                                                    value={newName}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <div className="flex flex-wrap gap-2 ml-auto">
-                                                    <button
-                                                        onClick={() => handleNameChange(index)}
-                                                        className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
-                                                    >
-                                                        <Save />
-                                                    </button>
-                                                    <button
-                                                        onClick={handleNameCancel}
-                                                        className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
-                                                    >
-                                                        <Ban />
-                                                    </button>
-                                                </div>
-                                            </FormControl>
-                                        )}
-                                    </div>
-                                    {isActivityActionSection(data[index]) ? (
-                                    <FormControl className="space-y-2">
-                                        <h3 className="text-xl font-bold">Activity Button</h3>
-                                        <p className="text-xs text-gray-500">This section completes the current workflow step. Place it on activity pages just like other sections.</p>
-                                        <span className="text-xs text-gray-500">Button label</span>
-                                        <input
-                                            aria-label="Activity button label"
-                                            type="text"
-                                            value={data[index].label || data[index].name || ''}
-                                            onChange={(e) => handleActivityActionChange(index, { label: e.target.value, name: e.target.value || data[index].name })}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        />
-                                        <span className="text-xs text-gray-500">Variant</span>
-                                        <select
-                                            aria-label="Activity button variant"
-                                            value={data[index].style?.variant || 'button'}
-                                            onChange={(e) => handleActivityActionChange(index, { style: { variant: e.target.value } })}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        >
-                                            {ACTIVITY_ACTION_VARIANTS.map(option => (
-                                                <option key={option.value} value={option.value}>{option.label}</option>
-                                            ))}
-                                        </select>
-                                        <span className="text-xs text-gray-500">Align</span>
-                                        <select
-                                            aria-label="Activity button alignment"
-                                            value={data[index].style?.align || 'right'}
-                                            onChange={(e) => handleActivityActionChange(index, { style: { align: e.target.value } })}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        >
-                                            {ACTIVITY_ACTION_ALIGNS.map(option => (
-                                                <option key={option.value} value={option.value}>{option.label}</option>
-                                            ))}
-                                        </select>
-                                        <span className="text-xs text-gray-500">Size</span>
-                                        <select
-                                            aria-label="Activity button size"
-                                            value={data[index].style?.size || 'lg'}
-                                            onChange={(e) => handleActivityActionChange(index, { style: { size: e.target.value } })}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        >
-                                            {ACTIVITY_ACTION_SIZES.map(option => (
-                                                <option key={option.value} value={option.value}>{option.label}</option>
-                                            ))}
-                                        </select>
-                                    </FormControl>
-                                    ) : (<>
-                                    <SectionEditorGroup title="Basic" description="Choose the domain class this component reads or edits.">
-                                    <div className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-700">Primary Class</h3>
-                                        <div className="flex max-w-full flex-wrap gap-2">
-                                            {isSuccessClasses && (
-                                                classes.map((e) => (
-                                                    <Chip
-                                                        key={e.id}
-                                                        onClick={() => toggleClass(index, e)}
-                                                        color={selectedClassObject?.id === e.id ? 'primary' : 'neutral'}
-                                                        sx={{ maxWidth: '100%' }}
-                                                    >
-                                                        {e.data.name}
-                                                    </Chip>
-                                                )
-                                                ))}
-                                        </div>
-                                    </div>
-                                    </SectionEditorGroup>
-                                    <SectionEditorGroup title="Actions" description="Control what the user can do with records in this component.">
-                                    <div className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-700">Record operations</h3>
-                                        <div className="flex gap-2">
-                                            <Chip
-                                                onClick={() => toggleOperation(index, 'create')}
-                                                color={selectedOperations.create ? 'primary' : 'neutral'}
-                                            >
-                                                Create
-                                            </Chip>
-                                            <Chip
-                                                onClick={() => toggleOperation(index, 'update')}
-                                                color={selectedOperations.update ? 'primary' : 'neutral'}
-                                            >
-                                                Update
-                                            </Chip>
-                                            <Chip
-                                                onClick={() => toggleOperation(index, 'delete')}
-                                                color={selectedOperations.delete ? 'primary' : 'neutral'}
-                                            >
-                                                Delete
-                                            </Chip>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-600">Selection behavior</h3>
-                                        <div className="flex gap-2">
-                                            <Tooltip
-                                                title="Enables row/item selection for choose or pick workflows and bulk actions, such as delete selected. This is not read/view."
-                                                variant="soft"
-                                            >
-                                                <Chip
-                                                    onClick={() => toggleOperation(index, 'select')}
-                                                    color={selectedOperations.select ? 'primary' : 'neutral'}
-                                                >
-                                                    Enable selection
-                                                </Chip>
-                                            </Tooltip>
-                                        </div>
-                                        <p className="text-xs text-gray-500">
-                                            Use only when users need to choose records or act on selected rows.
-                                        </p>
-                                    </div>
-                                    </SectionEditorGroup>
-                                    <SectionEditorGroup title="Fields" description="Choose display, editable, and read-only fields. Related fields are read-only context only.">
-                                    <div className='space-y-1'>
-                                        <h3 className="text-sm font-semibold text-gray-700">Editable / display attributes</h3>
-                                        <Multiselect
-                                            options={classAttributes}
-                                            displayValue='name'
-                                            placeholder="Select attributes..."
-                                            showCheckbox={true}
-                                            style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
-                                            selectedValues={selectedAttributeOptions}
-                                            onSelect={(selectedList, selectedItem) => handleAttributeSelect(selectedList, selectedItem, index)}
-                                            onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
-                                        />
-                                    </div>
-                                    </SectionEditorGroup>
-                                    <SectionEditorGroup title="Content" description="Optional copy, media, and section-level actions shown once for this component." defaultOpen={false}>
-                                    <FormControl className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-700">
-                                            {CHROME_LAYOUT_SET.has(data[index].layout) ? 'Methods (one per line)' : 'Section Actions'}
-                                        </h3>
-                                        {CHROME_LAYOUT_SET.has(data[index].layout) ? (
-                                            <>
-                                                {METHODS_HINTS[data[index].layout] && (
-                                                    <p className="text-xs text-gray-400">{METHODS_HINTS[data[index].layout]}</p>
-                                                )}
-                                                <Textarea
-                                                    minRows={4}
-                                                    maxRows={6}
-                                                    placeholder={"Gratis verzending vanaf €25,-\nBezorging zelfde dag*\nGratis retourneren\nSelect — Ontdek nu de 4 voordelen"}
-                                                    value={(data[index].methods || []).map((m: any) =>
-                                                        typeof m === 'string' ? m : (m?.name || m?.label || '')
-                                                    ).join('\n')}
-                                                    onChange={(e) => {
-                                                        const lines = e.target.value.split('\n').map((l: string) => ({ name: l }));
-                                                        const newData = [...data];
-                                                        newData[index].methods = lines;
-                                                        setData(newData);
-                                                    }}
-                                                />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Multiselect
-                                                    options={classCustomMethods}
-                                                    displayValue='name'
-                                                    placeholder="Select methods..."
-                                                    showCheckbox={true}
-                                                    style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
-                                                    selectedValues={selectedCustomMethods}
-                                                    onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
-                                                    onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
-                                                />
-                                                <div className="mt-2 space-y-2">
-                                                    {selectedCustomMethods.map((method, mIdx) => (
-                                                        <div key={method.id || method.name} className="space-y-1 bg-stone-50 p-2 rounded-md border border-stone-200">
-                                                            <div className="flex justify-between items-center">
-                                                                <span className="text-xs font-bold text-gray-600">{method.name}</span>
-                                                            </div>
-                                                            <input 
-                                                                type="text"
-                                                                placeholder="Label Template (e.g. Call {{ seller.phone }})"
-                                                                value={method.label || ''}
-                                                                onChange={(e) => handleMethodLabelChange(index, mIdx, e.target.value)}
-                                                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </>
-                                        )}
-                                    </FormControl>
-                                    <FormControl className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-700">Text</h3>
-                                        {!pencelClickText && (
-                                            <div className="flex flex-wrap gap-2">
-                                                <h2 className="text-l">
-                                                    {section.text ? (
-                                                        <span>{section.text}</span>
-                                                    ) : (
-                                                        <span style={{ color: 'grey' }}>No text specified...</span>
-                                                    )}
-                                                </h2>
-                                                <Pencil
-                                                    className="cursor-pointer ml-auto"
-                                                    onClick={handlePencilClickText}
-                                                />
-                                            </div>
-                                        )}
-
-                                        {pencelClickText && (
-                                            <>
-                                                <Textarea
-                                                    name="text"
-                                                    placeholder="Description, explanation, welcome message, ..."
-                                                    minRows={4}
-                                                    maxRows={4}
-                                                    value={newText}
-                                                    onChange={handleInputChangeText}
-                                                />
-                                                <div className="flex flex-wrap gap-2 ml-auto">
-                                                    <button
-                                                        onClick={() => handleTextChange(index)}
-                                                        className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
-                                                    >
-                                                        <Save />
-                                                    </button>
-                                                    <button
-                                                        onClick={handleTextCancel}
-                                                        className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
-                                                    >
-                                                        <Ban />
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </FormControl>
-                                    <FormControl className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-700">Image URL</h3>
-                                        {!pencelClickImageUrl && (
-                                            <div className="flex flex-wrap gap-2">
-                                                <h2 className="text-l break-all">
-                                                    {section.style?.image_url ? (
-                                                        <span>{section.style.image_url}</span>
-                                                    ) : (
-                                                        <span style={{ color: 'grey' }}>No image URL specified...</span>
-                                                    )}
-                                                </h2>
-                                                <Pencil
-                                                    className="cursor-pointer ml-auto"
-                                                    onClick={handlePencilClickImageUrl}
-                                                />
-                                                {section.style?.image_url && (
-                                                    <img
-                                                        src={section.style.image_url}
-                                                        alt={section.style?.image_alt || section.name || 'Section image'}
-                                                        className="w-full h-24 object-cover rounded-md border border-gray-200"
-                                                    />
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {pencelClickImageUrl && (
-                                            <>
-                                                <Input
-                                                    name="image_url"
-                                                    placeholder="https://example.com/header.jpg"
-                                                    value={newImageUrl}
-                                                    onChange={handleInputChangeImageUrl}
-                                                />
-                                                <Input
-                                                    name="image_alt"
-                                                    placeholder="Alt text"
-                                                    value={newImageAlt}
-                                                    onChange={handleInputChangeImageAlt}
-                                                />
-                                                <div className="flex flex-wrap gap-2 ml-auto">
-                                                    <button
-                                                        onClick={() => handleImageUrlChange(index)}
-                                                        className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
-                                                    >
-                                                        <Save />
-                                                    </button>
-                                                    <button
-                                                        onClick={handleImageUrlCancel}
-                                                        className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
-                                                    >
-                                                        <Ban />
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </FormControl>
-                                    </SectionEditorGroup>
-                                    <SectionEditorGroup title="Advanced Query" description="Optional joins, select columns, sort, filters, and SQL preview." defaultOpen={false}>
-                                    <FormControl className="space-y-2">
-                                        <h3 className="text-sm font-semibold text-gray-700">Data Source / Query</h3>
-                                        <p className="text-xs text-gray-500">Configure how this section reads data. Display attributes are edited above; query columns are separate.</p>
-                                        <div className="space-y-1">
-                                            <span className="text-xs text-gray-500">From</span>
-                                            <div className="border border-gray-200 rounded-md px-2 py-1.5 text-sm w-full bg-stone-50 text-gray-700">
-                                                {sectionPrimaryModel(data[index]) || 'Select a primary class first'}
-                                            </div>
-                                            <p className="text-[11px] text-gray-400">
-                                                Query returns records of this section's primary class. Join other classes only for filtering, sorting, or read-only context.
-                                            </p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="text-xs text-gray-500">Joins</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleAddJoin(index)}
-                                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
-                                                >
-                                                    Add
-                                                </button>
-                                            </div>
-                                            {(data[index].data_source?.joins || []).map((join, joinIndex) => (
-                                                <div key={`${join.type || 'left'}-${join.model || 'model'}-${join.on || 'condition'}`} className="space-y-1 rounded-md border border-gray-200 bg-stone-50 p-2">
-                                                    <div className="grid grid-cols-[74px_1fr_28px] gap-1">
-                                                        <select
-                                                            value={join.type || 'left'}
-                                                            onChange={(e) => handleJoinChange(index, joinIndex, 'type', e.target.value)}
-                                                            className="border border-gray-300 rounded-md px-1 py-1.5 text-xs"
-                                                        >
-                                                            <option value="left">Left</option>
-                                                            <option value="inner">Inner</option>
-                                                            <option value="right">Right</option>
-                                                        </select>
-                                                        <select
-                                                            value={join.model || ''}
-                                                            onChange={(e) => handleJoinChange(index, joinIndex, 'model', e.target.value)}
-                                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
-                                                        >
-                                                            <option value="">Model</option>
-                                                            {classNameOptions.map((name: string) => (
-                                                                <option key={name} value={name}>{name}</option>
-                                                            ))}
-                                                        </select>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveJoin(index, joinIndex)}
-                                                            className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
-                                                        >
-                                                            X
-                                                        </button>
-                                                    </div>
-                                                    <input
-                                                        type="text"
-                                                        value={join.on || ''}
-                                                        onChange={(e) => handleJoinChange(index, joinIndex, 'on', e.target.value)}
-                                                        placeholder="e.g. CartItem.product_id = Product.id"
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-full"
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="text-xs text-gray-500">Select Columns</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleAddSelectField(index)}
-                                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
-                                                >
-                                                    Add
-                                                </button>
-                                            </div>
-                                            <p className="text-[11px] text-gray-400">Used only for SQL/query preview. It does not change rendered attributes.</p>
-                                            {(data[index].query?.select || []).map((field, fieldIndex) => (
-                                                <div key={field || 'select-field'} className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        list={`query-field-list-${index}`}
-                                                        value={field || ''}
-                                                        onChange={(e) => handleSelectFieldChange(index, fieldIndex, e.target.value)}
-                                                        placeholder="field or joined.field"
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0 flex-1"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleRemoveSelectField(index, fieldIndex)}
-                                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
-                                                    >
-                                                        X
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            <datalist id={`query-field-list-${index}`}>
-                                                {queryFieldOptions.map((field: string) => (
-                                                    <option key={field} value={field}>{field}</option>
-                                                ))}
-                                            </datalist>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="space-y-1">
-                                                <span className="text-xs text-gray-500">Limit</span>
-                                                <input
-                                                    aria-label="Query limit"
-                                                    type="number"
-                                                    min="1"
-                                                    value={data[index].query?.limit || ''}
-                                                    onChange={(e) => handleQueryNumberChange(index, 'limit', e.target.value)}
-                                                    placeholder="e.g. 4"
-                                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <span className="text-xs text-gray-500">Offset</span>
-                                                <input
-                                                    aria-label="Query offset"
-                                                    type="number"
-                                                    min="0"
-                                                    value={data[index].query?.offset || ''}
-                                                    onChange={(e) => handleQueryNumberChange(index, 'offset', e.target.value)}
-                                                    placeholder="0"
-                                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="text-xs text-gray-500">Sort</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleAddOrderBy(index)}
-                                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
-                                                >
-                                                    Add
-                                                </button>
-                                            </div>
-                                            {(data[index].query?.order_by || []).map((order, orderIndex) => (
-                                                <div key={`${order.field || 'field'}-${order.direction || 'asc'}`} className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        list={`query-field-list-${index}`}
-                                                        value={order.field || ''}
-                                                        onChange={(e) => handleOrderByChange(index, orderIndex, 'field', e.target.value)}
-                                                        placeholder="field"
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0 flex-1"
-                                                    />
-                                                    <select
-                                                        value={order.direction || 'asc'}
-                                                        onChange={(e) => handleOrderByChange(index, orderIndex, 'direction', e.target.value)}
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-20"
-                                                    >
-                                                        <option value="asc">Asc</option>
-                                                        <option value="desc">Desc</option>
-                                                    </select>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleRemoveOrderBy(index, orderIndex)}
-                                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
-                                                    >
-                                                        X
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="text-xs text-gray-500">Filters (AND)</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleAddFilter(index)}
-                                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
-                                                >
-                                                    Add
-                                                </button>
-                                            </div>
-                                            {(data[index].query?.filters || []).map((filter, filterIndex) => (
-                                                <div key={`${filter.field || 'field'}-${filter.operator || 'eq'}-${filter.value_from || filter.value || 'value'}`} className="grid grid-cols-[1fr_78px_90px_1fr_28px] gap-1">
-                                                    <input
-                                                        type="text"
-                                                        list={`query-field-list-${index}`}
-                                                        value={filter.field || ''}
-                                                        onChange={(e) => handleFilterChange(index, filterIndex, 'field', e.target.value)}
-                                                        placeholder="field"
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
-                                                    />
-                                                    <select
-                                                        value={filter.operator || 'eq'}
-                                                        onChange={(e) => handleFilterChange(index, filterIndex, 'operator', e.target.value)}
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs"
-                                                    >
-                                                        <option value="eq">=</option>
-                                                        <option value="neq">!=</option>
-                                                        <option value="lt">&lt;</option>
-                                                        <option value="lte">&lt;=</option>
-                                                        <option value="gt">&gt;</option>
-                                                        <option value="gte">&gt;=</option>
-                                                        <option value="contains">has</option>
-                                                        <option value="in">in</option>
-                                                        <option value="isnull">null</option>
-                                                    </select>
-                                                    <select
-                                                        value={filter.value_from ? 'value_from' : 'value'}
-                                                        onChange={(e) => handleFilterValueSourceChange(index, filterIndex, e.target.value as 'value' | 'value_from')}
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs"
-                                                        disabled={filter.operator === 'isnull'}
-                                                    >
-                                                        <option value="value">Literal</option>
-                                                        <option value="value_from">Dynamic</option>
-                                                    </select>
-                                                    <input
-                                                        type="text"
-                                                        value={filter.value_from || filter.value || ''}
-                                                        onChange={(e) => handleFilterChange(index, filterIndex, filter.value_from ? 'value_from' : 'value', e.target.value)}
-                                                        placeholder={filter.value_from ? 'request.GET.instance_id_Model' : 'value'}
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
-                                                        disabled={filter.operator === 'isnull'}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleRemoveFilter(index, filterIndex)}
-                                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
-                                                    >
-                                                        X
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <span className="text-xs text-gray-500">SQL Preview</span>
-                                            <pre className="max-h-44 overflow-auto rounded-md border border-gray-200 bg-gray-950 p-2 text-[11px] leading-relaxed text-green-100 whitespace-pre-wrap">
-                                                {buildSqlPreview(data[index])}
-                                            </pre>
-                                        </div>
-                                    </FormControl>
-                                    </SectionEditorGroup>
-                                    {isCollectionSection(data[index]) && (
-                                        <SectionEditorGroup title="Item Interaction" description="Component-level action when users click a card, row, or list item." defaultOpen={false}>
-                                        <FormControl className="space-y-2">
-                                            <h3 className="text-sm font-semibold text-gray-700">Item Click Action</h3>
-                                            <p className="text-xs text-gray-500">Component-level interaction for clicking a card, list item, or table row.</p>
-                                            <select
-                                                aria-label="Item click action"
-                                                value={data[index].behavior?.item_click?.type || 'none'}
-                                                onChange={(e) => handleItemClickTypeChange(index, e.target.value)}
-                                                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                            >
-                                                <option value="none">None</option>
-                                                <option value="navigate">Navigate to page</option>
-                                                <option value="select">Select item</option>
-                                            </select>
-                                            {data[index].behavior?.item_click?.type === 'navigate' && (
-                                                <div className="space-y-1">
-                                                    <span className="text-xs text-gray-500">Target Page</span>
-                                                    <select
-                                                        aria-label="Item click target page"
-                                                        value={data[index].behavior?.item_click?.target_page || ''}
-                                                        onChange={(e) => handleItemClickTargetPageChange(index, e.target.value)}
-                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                                    >
-                                                        <option value="">None</option>
-                                                        {pages.filter((p) => !p.type || p.type?.value !== 'activity').map((p) => (
-                                                            <option key={p.id} value={p.name}>{p.name}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            )}
-                                        </FormControl>
-                                        </SectionEditorGroup>
-                                    )}
-                                    </>)}
-                                    <Divider />
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleDelete(index)}
-                                            className="w-[40px] h-[40px] bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
-                                        >
-                                            <Trash />
-                                        </button>
-                                        <button
-                                            onClick={handleMinus}
-                                            className="w-[60px] h-[40px] bg-stone-200 text-stone-900 px-2 py-1 rounded-md hover:bg-blue-600"
-                                        >
-                                            Close
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex justify-between items-center w-full">
-                                    <h3
-                                        onClick={() => handleEdit(index)}
-                                        className="flex h-fit w-58 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300 cursor-pointer"
-                                    >
-                                        {section.name}
-                                    </h3>
-                                </div>
-                            )}
-                        </div>
+                        <SectionItem
+                            key={index}
+                            section={section}
+                            index={index}
+                            data={data}
+                            pages={pages}
+                            editIndex={editIndex}
+                            pencelClick={pencelClick}
+                            pencelClickText={pencelClickText}
+                            pencelClickImageUrl={pencelClickImageUrl}
+                            newName={newName}
+                            newText={newText}
+                            newImageUrl={newImageUrl}
+                            newImageAlt={newImageAlt}
+                            selectedOperations={selectedOperations}
+                            selectedAttributes={selectedAttributes}
+                            selectedCustomMethods={selectedCustomMethods}
+                            selectedClassObject={selectedClassObject}
+                            classAttributes={classAttributes}
+                            classCustomMethods={classCustomMethods}
+                            classes={classes}
+                            isSuccessClasses={isSuccessClasses}
+                            classNameOptions={classNameOptions}
+                            queryFieldOptions={queryFieldOptions}
+                            handlePencilClick={handlePencilClick}
+                            handleNameChange={handleNameChange}
+                            handleNameCancel={handleNameCancel}
+                            handleInputChange={handleInputChange}
+                            handlePencilClickText={handlePencilClickText}
+                            handleTextChange={handleTextChange}
+                            handleTextCancel={handleTextCancel}
+                            handleInputChangeText={handleInputChangeText}
+                            handlePencilClickImageUrl={handlePencilClickImageUrl}
+                            handleImageUrlChange={handleImageUrlChange}
+                            handleImageUrlCancel={handleImageUrlCancel}
+                            handleInputChangeImageUrl={handleInputChangeImageUrl}
+                            handleInputChangeImageAlt={handleInputChangeImageAlt}
+                            handleActivityActionChange={handleActivityActionChange}
+                            handleDelete={handleDelete}
+                            handleMinus={handleMinus}
+                            handleEdit={handleEdit}
+                            toggleClass={toggleClass}
+                            toggleOperation={toggleOperation}
+                            handleAttributeSelect={handleAttributeSelect}
+                            handleAttributeRemove={handleAttributeRemove}
+                            handleCustomMethodSelect={handleCustomMethodSelect}
+                            handleCustomMethodRemove={handleCustomMethodRemove}
+                            handleMethodLabelChange={handleMethodLabelChange}
+                            handleMethodsTextChange={handleMethodsTextChange}
+                            handleAddJoin={handleAddJoin}
+                            handleJoinChange={handleJoinChange}
+                            handleRemoveJoin={handleRemoveJoin}
+                            handleAddSelectField={handleAddSelectField}
+                            handleSelectFieldChange={handleSelectFieldChange}
+                            handleRemoveSelectField={handleRemoveSelectField}
+                            handleAddOrderBy={handleAddOrderBy}
+                            handleOrderByChange={handleOrderByChange}
+                            handleRemoveOrderBy={handleRemoveOrderBy}
+                            handleAddFilter={handleAddFilter}
+                            handleFilterChange={handleFilterChange}
+                            handleFilterValueSourceChange={handleFilterValueSourceChange}
+                            handleRemoveFilter={handleRemoveFilter}
+                            handleQueryNumberChange={handleQueryNumberChange}
+                            handleItemClickTypeChange={handleItemClickTypeChange}
+                            handleItemClickTargetPageChange={handleItemClickTargetPageChange}
+                            sectionPrimaryModel={sectionPrimaryModel}
+                            buildSqlPreview={buildSqlPreview}
+                        />
                     ))}
                     <button
-                        onClick={() => {
-                            const newSection = { id: globalThis.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", primary_model: "", data_role: "display_records", operations: { "create": false, "update": false, "delete": false, "select": false }, attributes: [], fields: [], actions: [], layout: "table", role: "object_collection", component: "ObjectList", col_span: 12, style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
-
-                            // Automatically use first class for new section component
-                            if (isSuccessClasses && classes[0].id) {
-                                newSection.class = classes[0].id;
-                                newSection.primary_model = classes[0].data?.name || '';
-                            }
-                            setData([...data, newSection]);
-                        }}
+                        onClick={handleAddSection}
                         className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
                     >
                         <Plus />
                     </button>
                     <button
-                        onClick={() => {
-                            const name = `Activity Button ${data.length + 1}`;
-                            const newSection = {
-                                id: globalThis.crypto.randomUUID(),
-                                name,
-                                label: 'Complete step',
-                                type: 'activity_action',
-                                data_role: 'workflow_action',
-                                layout: 'activity_action',
-                                class: "",
-                                operations: { "create": false, "update": false, "delete": false },
-                                attributes: [],
-                                methods: [],
-                                col_span: 12,
-                                position: 'main',
-                                style: { variant: 'button', align: 'right', size: 'lg' },
-                            };
-                            setData([...data, newSection]);
-                        }}
+                        onClick={handleAddActivitySection}
                         className="flex h-fit min-w-28 flex-col gap-1 overflow-hidden text-ellipsis rounded-md bg-green-100 px-3 py-4 text-xs font-semibold text-green-800 hover:bg-green-200"
                     >
                         <Plus size={18} />

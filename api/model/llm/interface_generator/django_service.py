@@ -56,6 +56,29 @@ def _interface_to_agent_dict(interface: Interface) -> dict:
     }
 
 
+def _sync_method_into_section(section: dict, classifier_id: str, model_name: str, method: dict, method_name: str) -> bool:
+    """Write a method into a section's methods list if the section matches the classifier. Returns True if changed."""
+    section_class = str(section.get("class") or "")
+    if section_class != str(classifier_id) and section_class != model_name:
+        return False
+    sec_methods = section.setdefault("methods", [])
+    existing = next((m for m in sec_methods if isinstance(m, dict) and m.get("name") == method_name), None)
+    if existing:
+        if not existing.get("body"):
+            existing["body"] = method["body"]
+            return True
+        return False
+    sec_methods.append({
+        "name": method_name,
+        "call_name": method.get("call_name") or method_name,
+        "label": method.get("label") or method_name,
+        "body": method["body"],
+        "parameters": method.get("parameters") or [],
+        "description": method.get("description") or "",
+    })
+    return True
+
+
 def _sync_method_to_interface_sections(
     classifier_id: str,
     model_name: str,
@@ -76,33 +99,10 @@ def _sync_method_to_interface_sections(
     for iface in _Iface.objects.filter(system_id=system_id):
         data = iface.data or {}
         sections = data.get("sections") or []
-        changed = False
-
-        for section in sections:
-            section_class = str(section.get("class") or "")
-            # Match on classifier UUID or model name (Map sets class to model name, not UUID)
-            if section_class != str(classifier_id) and section_class != model_name:
-                continue
-            sec_methods = section.setdefault("methods", [])
-            existing = next(
-                (m for m in sec_methods if isinstance(m, dict) and m.get("name") == method_name),
-                None,
-            )
-            if existing:
-                if not existing.get("body"):
-                    existing["body"] = method["body"]
-                    changed = True
-            else:
-                sec_methods.append({
-                    "name": method_name,
-                    "call_name": method.get("call_name") or method_name,
-                    "label": method.get("label") or method_name,
-                    "body": method["body"],
-                    "parameters": method.get("parameters") or [],
-                    "description": method.get("description") or "",
-                })
-                changed = True
-
+        changed = any(
+            _sync_method_into_section(section, classifier_id, model_name, method, method_name)
+            for section in sections
+        )
         if changed:
             try:
                 _Iface.objects.filter(id=iface.id).update(data=data)

@@ -411,26 +411,44 @@ def get_active_prototype():
             }
 
 
+def _copy_and_migrate_database(
+    safe_name: str, safe_system: str, database_prototype_name: str
+) -> tuple[str, int] | None:
+    """Copy a prototype database and run migrations. Returns an error response tuple or None on success."""
+    COPY_DATABASE_PATH = "/usr/src/prototypes/backend/generation/copy_database.sh"
+    try:
+        _run_sh(COPY_DATABASE_PATH, [database_prototype_name, safe_name, safe_system], check=True)
+    except subprocess.CalledProcessError:
+        return "Failed to copy database", 500
+    prototype_path = _prototype_path(safe_system, safe_name)
+    result = subprocess.run(
+        ["python", MANAGE_PY, "migrate", "--skip-checks"],
+        cwd=prototype_path,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        return "Failed to migrate database after copy", 500
+    result = _reconcile_sqlite_schema(prototype_path)
+    if result.returncode != 0:
+        app.logger.error("Failed to reconcile copied database schema")
+        return "Failed to reconcile database schema after copy", 500
+    return None
+
+
 @app.route('/generate', methods=['POST'])
 def generate_prototype():
-    GENERATOR_PATH = "/usr/src/prototypes/backend/generation/generator.sh" # TODO: put in env
-    COPY_DATABASE_PATH = "/usr/src/prototypes/backend/generation/copy_database.sh"
+    GENERATOR_PATH = "/usr/src/prototypes/backend/generation/generator.sh"
     data = request.json or {}
-    id = data.get('id')
-    name = data.get('name')
-    system = data.get('system')
-    metadata = data.get('metadata')
-    variant_id = data.get('variant_id', '1')
     try:
-        safe_id = _safe_path_part(id)
-        safe_name = _safe_path_part(name)
-        safe_system = _safe_path_part(system)
-        safe_variant_id = _safe_path_part(variant_id)
+        safe_id = _safe_path_part(data.get('id'))
+        safe_name = _safe_path_part(data.get('name'))
+        safe_system = _safe_path_part(data.get('system'))
+        safe_variant_id = _safe_path_part(data.get('variant_id', '1'))
     except ValueError:
         return "Invalid prototype request", 400
 
     try:
-        _run_generator(GENERATOR_PATH, safe_id, safe_system, safe_name, metadata, safe_variant_id,
+        _run_generator(GENERATOR_PATH, safe_id, safe_system, safe_name, data.get('metadata'), safe_variant_id,
                        check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
         failed_path = _prototype_path(safe_system, safe_name)
@@ -440,30 +458,14 @@ def generate_prototype():
                          e.returncode, e.stdout or "", e.stderr or "")
         return "Failed to generate prototype", 500
 
-    # TODO: this database retrieval should be done using ids
     if 'database_prototype_name' in data:
         try:
             database_prototype_name = _safe_path_part(data.get('database_prototype_name'))
         except ValueError:
             return "Invalid database prototype name", 400
-        try:
-            _run_sh(COPY_DATABASE_PATH, [database_prototype_name, safe_name, safe_system], check=True)
-        except subprocess.CalledProcessError:
-            return "Failed to copy database", 500
-        # The copied database may be from an older schema version; re-run migrate
-        # so any new tables (e.g. shared_models_user) are created without losing data.
-        prototype_path = _prototype_path(safe_system, safe_name)
-        result = subprocess.run(
-            ["python", MANAGE_PY, "migrate", "--skip-checks"],
-            cwd=prototype_path,
-            capture_output=True,
-        )
-        if result.returncode != 0:
-            return "Failed to migrate database after copy", 500
-        result = _reconcile_sqlite_schema(prototype_path)
-        if result.returncode != 0:
-            app.logger.error("Failed to reconcile copied database schema")
-            return "Failed to reconcile database schema after copy", 500
+        error = _copy_and_migrate_database(safe_name, safe_system, database_prototype_name)
+        if error:
+            return error
     return "Generated prototype", 200
 
 
