@@ -10,4 +10,5 @@ from pathlib import Path
 
 ROOT_SCRIPT = Path(__file__).resolve().parents[3] / "scripts" / "restore_hospital.py"
 
-exec(compile(ROOT_SCRIPT.read_text(encoding="utf-8"), str(ROOT_SCRIPT), "exec"), globals())
+import runpy
+runpy.run_path(str(ROOT_SCRIPT), init_globals=globals(), run_name="__main__")

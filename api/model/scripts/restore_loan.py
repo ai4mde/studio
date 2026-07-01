@@ -5,7 +5,7 @@ Usage:
     python manage.py shell < scripts/restore_loan.py
 
 Or from inside manage.py shell:
-    exec(open('scripts/restore_loan.py').read())
+    import runpy; runpy.run_path('scripts/restore_loan.py')
 """
 
 import django
