@@ -15,16 +15,19 @@ import shutil
 app = Flask(__name__)
 
 
-_ALLOWED_TEMP_PREFIXES = ('/tmp/', '/var/tmp/', '/run/tmp/')
+_TEMP_ROOT = os.path.realpath(tempfile.gettempdir())
 
 
 def _private_temp_dir() -> str:
-    # Use container-native /tmp to avoid Windows bind-mount sync delays
+    # Use container-native temp dir to avoid Windows bind-mount sync delays
     # that cause is_file() to return False in subprocesses.
-    raw = os.environ.get('PROTOTYPE_TEMP_DIR', '/tmp/prototypes_meta')
-    path = os.path.realpath(raw)
-    if not any(path.startswith(p) for p in _ALLOWED_TEMP_PREFIXES):
-        path = '/tmp/prototypes_meta'
+    raw = os.environ.get('PROTOTYPE_TEMP_DIR', '')
+    if raw:
+        candidate = os.path.realpath(raw)
+        sep = os.sep
+        path = candidate if (candidate == _TEMP_ROOT or candidate.startswith(_TEMP_ROOT + sep)) else os.path.join(_TEMP_ROOT, 'prototypes_meta')
+    else:
+        path = os.path.join(_TEMP_ROOT, 'prototypes_meta')
     os.makedirs(path, mode=0o700, exist_ok=True)
     os.chmod(path, 0o700)
     return path
