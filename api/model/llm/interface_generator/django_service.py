@@ -333,6 +333,56 @@ def _ensure_action_panel_sections(interface_id: str, system_id: str) -> None:
 
 
 
+_DATA_LAYOUTS = {
+    "card", "list", "table", "detail", "gallery", "filter", "form", "timeline", "map",
+}
+
+_DATA_ROLES = {
+    "object_collection", "object_detail", "object_summary",
+    "child_collection", "object_form", "filter",
+}
+
+
+def _build_model_attrs_from_system(system_data: dict) -> dict:
+    """Build model_attrs dict from system classifier data."""
+    return {
+        cdata.get("name"): {
+            a.get("name", "")
+            for a in cdata.get("attributes", [])
+            if isinstance(a, dict) and a.get("name")
+        }
+        for classifier in _as_list(system_data.get("classifiers"), "classifiers")
+        if isinstance(classifier, dict)
+        for cdata in [classifier.get("data", {})]
+        if cdata.get("name")
+    }
+
+
+def _normalize_section_model(section: dict, page_model_by_id: dict) -> dict:
+    """Normalize primary_model/class and layout on a section dict."""
+    section = dict(section or {})
+    model = (
+        section.get("primary_model")
+        or section.get("model")
+        or section.get("class")
+        or page_model_by_id.get(str(section.get("page_id") or ""), "")
+        or ""
+    )
+    layout = _normalize_layout_alias(section.get("layout"))
+    role = str(section.get("role") or "")
+    is_data_section = (
+        layout in _DATA_LAYOUTS or role in _DATA_ROLES or bool(section.get("attributes"))
+    )
+    if is_data_section and model:
+        section["primary_model"] = str(model)
+        section["class"] = str(model)
+    else:
+        section.setdefault("primary_model", "")
+        section.setdefault("class", "")
+    section["layout"] = layout
+    return section
+
+
 def map_uml_to_interface(interface_id: str) -> dict:
     """Run rules-based UML-to-interface mapping and save it via metadata API."""
     if not interface_id:
@@ -362,49 +412,6 @@ def map_uml_to_interface(interface_id: str) -> dict:
             )
             for p in pages or []
         }
-        data_layouts = {
-            "card",
-            "list",
-            "table",
-            "detail",
-            "gallery",
-            "filter",
-            "form",
-            "timeline",
-            "map",
-        }
-        data_roles = {
-            "object_collection",
-            "object_detail",
-            "object_summary",
-            "child_collection",
-            "object_form",
-            "filter",
-        }
-
-        def normalize_section_model(section: dict) -> dict:
-            """Normalize section model."""
-            section = dict(section or {})
-            model = (
-                section.get("primary_model")
-                or section.get("model")
-                or section.get("class")
-                or page_model_by_id.get(str(section.get("page_id") or ""), "")
-                or ""
-            )
-            layout = _normalize_layout_alias(section.get("layout"))
-            role = str(section.get("role") or "")
-            is_data_section = (
-                layout in data_layouts or role in data_roles or bool(section.get("attributes"))
-            )
-            if is_data_section and model:
-                section["primary_model"] = str(model)
-                section["class"] = str(model)
-            else:
-                section.setdefault("primary_model", "")
-                section.setdefault("class", "")
-            section["layout"] = layout
-            return section
 
         db_pages = [
             {
@@ -424,23 +431,13 @@ def map_uml_to_interface(interface_id: str) -> dict:
         ]
         db_sections = [
             {
-                **normalize_section_model(s),
+                **_normalize_section_model(s, page_model_by_id),
                 "operations": _normalize_section_operations(s.get("operations")),
             }
             for s in sections
         ]
 
-        model_attrs = {
-            cdata.get("name"): {
-                a.get("name", "")
-                for a in cdata.get("attributes", [])
-                if isinstance(a, dict) and a.get("name")
-            }
-            for classifier in _as_list(system_data.get("classifiers"), "classifiers")
-            if isinstance(classifier, dict)
-            for cdata in [classifier.get("data", {})]
-            if cdata.get("name")
-        }
+        model_attrs = _build_model_attrs_from_system(system_data)
         usecase_navigation = _build_usecase_navigation(
             system_data, actor_id, actor_name,
             semantic_profiles=semantic_profiles,

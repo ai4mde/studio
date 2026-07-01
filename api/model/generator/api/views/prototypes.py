@@ -99,6 +99,58 @@ def read_prototype(request, id):
     return Prototype.objects.get(id=id)
 
 
+def _enrich_metadata_classifiers(enriched_metadata: dict, system) -> None:
+    """Add classifiers to metadata if not already present."""
+    if 'classifiers' not in enriched_metadata:
+        enriched_metadata['classifiers'] = [
+            {"id": str(c.id), "data": c.data}
+            for c in system.classifiers.all()
+        ]
+
+
+def _build_diagram_entry(d) -> dict:
+    """Build a serialisable diagram dict from an ORM diagram instance."""
+    nodes = [
+        {
+            'id': str(n.id),
+            'cls': n.cls.data if n.cls else {},
+            'cls_ptr': str(n.cls_id) if n.cls_id else None,
+            'data': n.data or {},
+        }
+        for n in d.nodes.all()
+    ]
+    edges = []
+    for e in d.edges.prefetch_related('rel').all():
+        src = e.source
+        tgt = e.target
+        edges.append({
+            'id': str(e.id),
+            'rel': e.rel.data if e.rel else {},
+            'source_ptr': str(src.id) if src else None,
+            'target_ptr': str(tgt.id) if tgt else None,
+            'data': e.data or {},
+        })
+    return {'id': str(d.id), 'type': d.type, 'name': d.name, 'nodes': nodes, 'edges': edges}
+
+
+def _enrich_metadata_diagrams(enriched_metadata: dict, system) -> None:
+    """Add diagrams to metadata if not already present."""
+    if 'diagrams' not in enriched_metadata:
+        enriched_metadata['diagrams'] = [
+            _build_diagram_entry(d)
+            for d in system.diagrams.prefetch_related('nodes__cls', 'edges__rel').all()
+        ]
+
+
+def _enrich_metadata_relations(enriched_metadata: dict, system) -> None:
+    """Add relations to metadata if not already present."""
+    if 'relations' not in enriched_metadata:
+        enriched_metadata['relations'] = [
+            {"id": str(r.id), "data": r.data, "source": str(r.source_id), "target": str(r.target_id)}
+            for r in system.relations.all()
+        ]
+
+
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str] = None):
     prototype_system_id = prototype.system or prototype.system_id
@@ -116,53 +168,10 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
     )
     GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
 
-    # Enrich metadata with system classifiers, diagrams, and relations so the
-    # generator can resolve model names and workflows even when the initial
-    # metadata payload is partial.
     enriched_metadata = dict(metadata) if isinstance(metadata, dict) else {}
-    
-    if 'classifiers' not in enriched_metadata:
-        enriched_metadata['classifiers'] = [
-            {"id": str(c.id), "data": c.data}
-            for c in system.classifiers.all()
-        ]
-    
-    if 'diagrams' not in enriched_metadata:
-        enriched_metadata['diagrams'] = []
-        for d in system.diagrams.prefetch_related('nodes__cls', 'edges__rel').all():
-            nodes = [
-                {
-                    'id': str(n.id),
-                    'cls': n.cls.data if n.cls else {},
-                    'cls_ptr': str(n.cls_id) if n.cls_id else None,
-                    'data': n.data or {},
-                }
-                for n in d.nodes.all()
-            ]
-            edges = []
-            for e in d.edges.prefetch_related('rel').all():
-                src = e.source
-                tgt = e.target
-                edges.append({
-                    'id': str(e.id),
-                    'rel': e.rel.data if e.rel else {},
-                    'source_ptr': str(src.id) if src else None,
-                    'target_ptr': str(tgt.id) if tgt else None,
-                    'data': e.data or {},
-                })
-            enriched_metadata['diagrams'].append({
-                'id': str(d.id),
-                'type': d.type,
-                'name': d.name,
-                'nodes': nodes,
-                'edges': edges,
-            })
-        
-    if 'relations' not in enriched_metadata:
-        enriched_metadata['relations'] = [
-            {"id": str(r.id), "data": r.data, "source": str(r.source_id), "target": str(r.target_id)}
-            for r in system.relations.all()
-        ]
+    _enrich_metadata_classifiers(enriched_metadata, system)
+    _enrich_metadata_diagrams(enriched_metadata, system)
+    _enrich_metadata_relations(enriched_metadata, system)
 
     data = {
         'id': str(new_prototype.id),
@@ -171,7 +180,6 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
         'metadata': json.dumps(enriched_metadata),
         'variant_id': '1',
     }
-    # TODO: database retrieval should be done using ids
     if database_prototype_name and database_prototype_name != "":
         data['database_prototype_name'] = database_prototype_name
     response = requests.post(GENERATION_URL, json=data)

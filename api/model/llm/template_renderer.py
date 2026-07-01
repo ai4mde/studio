@@ -801,69 +801,79 @@ _MAX_WIDTH_CLASS = {
     "xl": "max-w-6xl", "2xl": "max-w-7xl", "full": "max-w-full",
 }
 
+def _normalize_page_refs(page: dict) -> list:
+    """Normalize page section references to canonical ref objects."""
+    refs = []
+    for ref in page.get("sections") or []:
+        if isinstance(ref, dict) and ref.get("type") == "card":
+            card_sections = []
+            for nested in ref.get("sections") or []:
+                if isinstance(nested, dict):
+                    v = nested.get("value") or nested.get("id")
+                    if v:
+                        card_sections.append({**nested, "value": v})
+                elif isinstance(nested, str):
+                    card_sections.append({"value": nested})
+            refs.append({**ref, "sections": card_sections})
+        elif isinstance(ref, dict):
+            value = ref.get("value") or ref.get("id")
+            if value:
+                refs.append({**ref, "value": value})
+        elif isinstance(ref, str):
+            refs.append({"value": ref})
+    return refs
+
+
+def _normalize_page(page: dict) -> dict:
+    """Normalize a single page dict to canonical schema form."""
+    page = dict(page)
+    layout = page.get("layout") or {}
+    if isinstance(layout, str):
+        layout = {"value": layout}
+    elif not isinstance(layout, dict):
+        layout = {}
+    layout.setdefault("value", "vertical")
+    layout.setdefault("main_width", "contained")
+    layout.setdefault("header_width", "contained")
+    layout.setdefault("hero_width", "contained")
+    layout.setdefault("footer_width", "contained")
+    page["layout"] = layout
+    page["sections"] = _normalize_page_refs(page)
+    return page
+
+
+def _normalize_section(section: dict) -> dict:
+    """Normalize a single section dict to canonical schema form."""
+    section = dict(section)
+    section.setdefault("position", "main")
+    section.setdefault("style", {})
+    section.setdefault("operations", {"create": False, "update": False, "delete": False, "select": False})
+    if not isinstance(section.get("style"), dict):
+        section["style"] = {}
+    section["operations"] = _parse_operations(section.get("operations"))
+    if section.get("field_layout") is None:
+        section["field_layout"] = {}
+    return section
+
+
+def _merge_canonical_schema(raw: dict) -> dict:
+    """If canonical_schema is present, backfill missing top-level keys from it."""
+    canonical = raw.get("canonical_schema")
+    if not isinstance(canonical, dict):
+        return raw
+    merged = dict(raw)
+    for key in ("pages", "sections", "tokens", "styling", "prompt_intent"):
+        if key in canonical and not raw.get(key):
+            merged[key] = canonical[key]
+    return merged
+
+
 def normalize_interface_schema(interface_data: Dict) -> Dict:
     """Return the canonical schema consumed by both preview and generated live templates."""
-    raw = dict(interface_data or {})
-    canonical = raw.get("canonical_schema")
-    if isinstance(canonical, dict):
-        merged = dict(raw)
-        for key in ("pages", "sections", "tokens", "styling", "prompt_intent"):
-            if key in canonical and not raw.get(key):
-                merged[key] = canonical[key]
-        raw = merged
+    raw = _merge_canonical_schema(dict(interface_data or {}))
 
-    pages = []
-    for page in raw.get("pages") or []:
-        if not isinstance(page, dict):
-            continue
-        page = dict(page)
-        layout = page.get("layout") or {}
-        if isinstance(layout, str):
-            layout = {"value": layout}
-        elif not isinstance(layout, dict):
-            layout = {}
-        layout.setdefault("value", "vertical")
-        layout.setdefault("main_width", "contained")
-        layout.setdefault("header_width", "contained")
-        layout.setdefault("hero_width", "contained")
-        layout.setdefault("footer_width", "contained")
-        page["layout"] = layout
-
-        refs = []
-        for ref in page.get("sections") or []:
-            if isinstance(ref, dict) and ref.get("type") == "card":
-                card_sections = []
-                for nested in ref.get("sections") or []:
-                    if isinstance(nested, dict):
-                        v = nested.get("value") or nested.get("id")
-                        if v:
-                            card_sections.append({**nested, "value": v})
-                    elif isinstance(nested, str):
-                        card_sections.append({"value": nested})
-                refs.append({**ref, "sections": card_sections})
-            elif isinstance(ref, dict):
-                value = ref.get("value") or ref.get("id")
-                if value:
-                    refs.append({**ref, "value": value})
-            elif isinstance(ref, str):
-                refs.append({"value": ref})
-        page["sections"] = refs
-        pages.append(page)
-
-    sections = []
-    for section in raw.get("sections") or []:
-        if not isinstance(section, dict):
-            continue
-        section = dict(section)
-        section.setdefault("position", "main")
-        section.setdefault("style", {})
-        section.setdefault("operations", {"create": False, "update": False, "delete": False, "select": False})
-        if not isinstance(section.get("style"), dict):
-            section["style"] = {}
-        section["operations"] = _parse_operations(section.get("operations"))
-        if section.get("field_layout") is None:
-            section["field_layout"] = {}
-        sections.append(section)
+    pages = [_normalize_page(page) for page in raw.get("pages") or [] if isinstance(page, dict)]
+    sections = [_normalize_section(section) for section in raw.get("sections") or [] if isinstance(section, dict)]
 
     normalized = dict(raw)
     sections = _normalize_select_existing_sections(pages, sections)

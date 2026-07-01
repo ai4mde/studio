@@ -8,6 +8,21 @@ from .token_normalizer import _as_list
 from .uml_mapping.usecase_workflow import _build_usecase_navigation
 
 
+def _build_model_attrs(system_context: dict) -> dict:
+    """Build a model_attrs dict mapping classifier names to attribute name sets."""
+    model_attrs: dict = {}
+    for c in _as_list(system_context.get("classifiers"), "classifiers"):
+        cdata = c.get("data") or {}
+        cname = cdata.get("name")
+        if cname:
+            model_attrs[cname] = {
+                a.get("name")
+                for a in cdata.get("attributes", [])
+                if a.get("name")
+            }
+    return model_attrs
+
+
 def _apply_builtin_workflow_logic(
     interface_data: dict,
     system_id: str | None,
@@ -27,16 +42,7 @@ def _apply_builtin_workflow_logic(
             system_context = _fetch_system_context_data(system_id)
 
         if model_attrs is None:
-            model_attrs = {}
-            for c in _as_list(system_context.get("classifiers"), "classifiers"):
-                cdata = c.get("data") or {}
-                cname = cdata.get("name")
-                if cname:
-                    model_attrs[cname] = {
-                        a.get("name")
-                        for a in cdata.get("attributes", [])
-                        if a.get("name")
-                    }
+            model_attrs = _build_model_attrs(system_context)
 
         if usecase_navigation is None:
             actor_name = _actor_name_from_context(system_context, actor_id)

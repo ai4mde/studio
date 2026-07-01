@@ -26,3 +26,8 @@ config/secrets.env
 # Local Cloudflare tunnel config
 cloudflared-config.yml
 config/cloudflared-config.local.yml
+
+# Thesis files
+bachelor_thesis_draft_version_v2/
+figures/
+ppt/

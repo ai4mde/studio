@@ -273,74 +273,72 @@ def infer_attribute_type_from_name(attr_name: str) -> AttributeType | None:
     return None
 
 
+_ATTR_TYPE_MAP = {
+    "str": AttributeType.STRING,
+    "int": AttributeType.INTEGER,
+    "bool": AttributeType.BOOLEAN,
+    "image": AttributeType.IMAGE,
+    "video": AttributeType.VIDEO,
+}
+
+
+def _resolve_dict_attribute(attribute: dict, attr_name: str, metadata: str, application_name: str) -> tuple:
+    """Resolve attribute fields for a dict-type attribute entry. Returns (attribute_type, enum_literals, derived, is_link, render_as, action, readonly, source)."""
+    derived = attribute.get("derived", False)
+    source = attribute.get("source") or ("related" if "." in attr_name else "primary")
+    readonly = bool(attribute.get("readonly", False)) or source == "related"
+    is_link = attribute.get("is_link", False)
+    render_config = attribute.get("render") or {}
+    render_as = render_config.get("as") or attribute.get("render_as") or ("link" if is_link else "text")
+    is_link = is_link or render_as == "link"
+    action = normalize_field_action(
+        metadata,
+        application_name,
+        attribute.get("action") or ({"type": "navigate"} if is_link else {"type": "none"})
+    )
+    attr_type_str = attribute.get("type")
+    enum_literals = None
+    if attr_type_str == "enum":
+        attribute_type = AttributeType.ENUM
+        enum_literals = get_enum_literals(metadata, attribute.get("enum"))
+    else:
+        attribute_type = _ATTR_TYPE_MAP.get(attr_type_str) or infer_attribute_type_from_name(attr_name) or AttributeType.STRING
+    return attribute_type, enum_literals, derived, is_link, render_as, action, readonly, source
+
+
 def retrieve_section_attributes(metadata: str, section: str, application_name: str = "") -> List[SectionAttribute]:
     if not section:
         return []
     if "attributes" not in section:
         return []
-    
+
     out = []
     for attribute in section["attributes"]:
-        attribute_type = AttributeType.STRING
-        enum_literals = None
-        derived = False
-        is_link = False
-        render_as = "text"
-        action = {"type": "none"}
-        readonly = False
-        source = "primary"
-        
         if isinstance(attribute, str):
             attr_name = attribute
-            if "." in attr_name:
-                source = "related"
-                readonly = True
-            inferred_attribute_type = infer_attribute_type_from_name(attr_name)
-            if inferred_attribute_type:
-                attribute_type = inferred_attribute_type
+            source = "related" if "." in attr_name else "primary"
+            readonly = source == "related"
+            attribute_type = infer_attribute_type_from_name(attr_name) or AttributeType.STRING
+            enum_literals = None
+            derived = False
+            is_link = False
+            render_as = "text"
+            action: dict = {"type": "none"}
         else:
             attr_name = attribute["name"]
-            derived = attribute.get("derived", False)
-            source = attribute.get("source") or ("related" if "." in attr_name else "primary")
-            readonly = bool(attribute.get("readonly", False)) or source == "related"
-            is_link = attribute.get("is_link", False)
-            render_config = attribute.get("render") or {}
-            render_as = render_config.get("as") or attribute.get("render_as") or ("link" if is_link else "text")
-            is_link = is_link or render_as == "link"
-            action = normalize_field_action(
-                metadata,
-                application_name,
-                attribute.get("action") or ({"type": "navigate"} if is_link else {"type": "none"})
-            )
-            if attribute.get("type") == "str":
-                attribute_type  = AttributeType.STRING
-            elif attribute.get("type") == "int":
-                attribute_type  = AttributeType.INTEGER
-            elif attribute.get("type") == "bool":
-                attribute_type  = AttributeType.BOOLEAN
-            elif attribute.get("type") == "enum":
-                attribute_type  = AttributeType.ENUM
-                enum_literals = get_enum_literals(metadata, attribute.get("enum"))
-            elif attribute.get("type") == "image":
-                attribute_type  = AttributeType.IMAGE
-            elif attribute.get("type") == "video":
-                attribute_type  = AttributeType.VIDEO
-            else:
-                inferred_attribute_type = infer_attribute_type_from_name(attr_name)
-                if inferred_attribute_type:
-                    attribute_type = inferred_attribute_type
+            attribute_type, enum_literals, derived, is_link, render_as, action, readonly, source = _resolve_dict_attribute(attribute, attr_name, metadata, application_name)
 
         att = SectionAttribute(
-            name = attribute_name_sanitization(attr_name),
-            type = attribute_type,
-            enum_literals = enum_literals,
-            updatable = not readonly,
-            derived = derived,
-            is_link = is_link,
-            render_as = render_as,
-            action = action,
-            readonly = readonly,
-            source = source
+            name=attribute_name_sanitization(attr_name),
+            type=attribute_type,
+            enum_literals=enum_literals,
+            updatable=not readonly,
+            derived=derived,
+            is_link=is_link,
+            render_as=render_as,
+            action=action,
+            readonly=readonly,
+            source=source
         )
         out.append(att)
 
@@ -419,25 +417,34 @@ def make_activity_action_section(application_name: str, page_name: str, label: s
     )
 
 
+def _clear_invalid_item_click_target(section_component) -> None:
+    """Clear an invalid item_click target page from a section component in-place."""
+    section_component.item_click_target_page = None
+    if isinstance(section_component.behavior, dict):
+        item_click = section_component.behavior.get("item_click")
+        if isinstance(item_click, dict):
+            item_click["type"] = "none"
+            item_click.pop("target_page", None)
+            item_click.pop("targetPage", None)
+
+
+def _clear_invalid_workflow_target(section_component) -> None:
+    """Clear an invalid workflow target page from a section component in-place."""
+    section_component.workflow_target_page = None
+    if isinstance(section_component.workflow, dict):
+        section_component.workflow.pop("target_page", None)
+        section_component.workflow.pop("targetPage", None)
+
+
 def sanitize_page_targets(pages: List[Page]) -> None:
     valid_page_names = {page.name for page in pages}
 
     for page in pages:
         for section_component in page.section_components:
             if section_component.item_click_target_page and section_component.item_click_target_page not in valid_page_names:
-                section_component.item_click_target_page = None
-                if isinstance(section_component.behavior, dict):
-                    item_click = section_component.behavior.get("item_click")
-                    if isinstance(item_click, dict):
-                        item_click["type"] = "none"
-                        item_click.pop("target_page", None)
-                        item_click.pop("targetPage", None)
-
+                _clear_invalid_item_click_target(section_component)
             if section_component.workflow_target_page and section_component.workflow_target_page not in valid_page_names:
-                section_component.workflow_target_page = None
-                if isinstance(section_component.workflow, dict):
-                    section_component.workflow.pop("target_page", None)
-                    section_component.workflow.pop("targetPage", None)
+                _clear_invalid_workflow_target(section_component)
 
 
 def make_activity_start_section(application_name: str, page_name: str, section: dict | None = None) -> SectionComponent:

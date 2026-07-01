@@ -266,14 +266,31 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
     return {"role": "object_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": primary, "operation_kind": "manage_object"}
 
 
+def _build_edge_maps(diagram: dict) -> tuple[dict, dict]:
+    """Build incoming and outgoing edge maps for a diagram."""
+    incoming: dict = {}
+    outgoing: dict = {}
+    for edge in diagram.get("edges") or []:
+        source = str(edge.get("source_ptr") or "")
+        target = str(edge.get("target_ptr") or "")
+        if source and target:
+            incoming.setdefault(target, []).append(source)
+            outgoing.setdefault(source, []).append(target)
+    return incoming, outgoing
+
+
+def _is_initial_node(src: str, diagram: dict) -> bool:
+    """Return True if the node identified by src is an initial node in the diagram."""
+    node = next((n for n in diagram.get("nodes") or [] if str(n.get("id")) == src), {})
+    return (node.get("cls") or {}).get("type") == "initial"
+
+
 def _activity_action_indexes(system_data: dict) -> tuple[dict[str, dict], set[str], set[str]]:
     """Build activity action indexes."""
     by_id = {}
     first_ids = set()
     all_ids = set()
     for diagram in system_data.get("activity_diagrams") or []:
-        incoming = {}
-        outgoing = {}
         action_ids = set()
         for node in diagram.get("nodes") or []:
             cls = node.get("cls") or {}
@@ -285,15 +302,10 @@ def _activity_action_indexes(system_data: dict) -> tuple[dict[str, dict], set[st
                 by_id[nid] = {"node_id": nid, "classifier_id": cid, "name": cls.get("name", ""), "diagram_id": diagram.get("id"), "diagram_name": diagram.get("name", "")}
                 if cid:
                     by_id[cid] = by_id[nid]
-        for edge in diagram.get("edges") or []:
-            source = str(edge.get("source_ptr") or "")
-            target = str(edge.get("target_ptr") or "")
-            if source and target:
-                incoming.setdefault(target, []).append(source)
-                outgoing.setdefault(source, []).append(target)
+        incoming, _ = _build_edge_maps(diagram)
         for aid in action_ids:
             source_nodes = incoming.get(aid, [])
-            if not source_nodes or any(((next((n for n in diagram.get("nodes") or [] if str(n.get("id")) == src), {}).get("cls") or {}).get("type") == "initial") for src in source_nodes):
+            if not source_nodes or any(_is_initial_node(src, diagram) for src in source_nodes):
                 first_ids.add(aid)
                 cls_id = by_id.get(aid, {}).get("classifier_id")
                 if cls_id:

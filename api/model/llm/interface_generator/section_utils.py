@@ -289,33 +289,61 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
             page["sections"] = refs
     return pages, sections
 
-def _normalize_activity_action_sections(pages: list, sections: list) -> list:
-    """Normalize activity action sections."""
-    activity_page_section_ids = set()
+def _collect_activity_page_section_ids(pages: list) -> set:
+    """Return the set of section IDs referenced by activity pages."""
+    ids: set = set()
     for page in pages:
-        page_type = page.get("type", {}); page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
-        if page_type_value != "activity": continue
-        for ref in page.get("sections") or []: activity_page_section_ids.add(str(ref.get("value") if isinstance(ref, dict) else ref))
-    for section in sections:
-        sid = str(section.get("id", "")); is_activity_action = section.get("type") == "activity_action" or section.get("layout") == "activity_action"
-        if not is_activity_action: continue
-        operations = _normalize_section_operations(section.get("operations"))
-        section["operations"] = operations
-        has_data_shape = bool(section.get("primary_model")) or bool(section.get("attributes")) or any(operations.values())
-        if has_data_shape and sid not in activity_page_section_ids:
-            section["layout"] = "list"; section.pop("type", None); section.pop("workflow", None); section.pop("workflow_action", None); section.pop("target_page", None); section.pop("targetPage", None); style = section.get("style") or {}
-            if style.get("variant") in {"button", "link", "fab", "wizard_next", "auto"}: style.pop("variant", None)
-            section["style"] = style; continue
-        section["type"] = "activity_action"; section["layout"] = "activity_action"; section["primary_model"] = ""; section["class"] = ""; section["attributes"] = []; section["operations"] = {"create": False, "update": False, "delete": False}; section.setdefault("label", section.get("name") or "Continue"); workflow = section.get("workflow") or {}; workflow.setdefault("action", section.get("workflow_action") or "complete"); section["workflow"] = workflow
-    # Deduplicate: per activity page, keep only one activity_action (prefer complete/complete_then_page)
+        page_type = page.get("type", {})
+        page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
+        if page_type_value != "activity":
+            continue
+        for ref in page.get("sections") or []:
+            ids.add(str(ref.get("value") if isinstance(ref, dict) else ref))
+    return ids
+
+
+def _normalize_one_activity_action(section: dict, sid: str, activity_page_section_ids: set) -> None:
+    """Normalize a single activity-action section in-place."""
+    operations = _normalize_section_operations(section.get("operations"))
+    section["operations"] = operations
+    has_data_shape = bool(section.get("primary_model")) or bool(section.get("attributes")) or any(operations.values())
+    if has_data_shape and sid not in activity_page_section_ids:
+        section["layout"] = "list"
+        section.pop("type", None)
+        section.pop("workflow", None)
+        section.pop("workflow_action", None)
+        section.pop("target_page", None)
+        section.pop("targetPage", None)
+        style = section.get("style") or {}
+        if style.get("variant") in {"button", "link", "fab", "wizard_next", "auto"}:
+            style.pop("variant", None)
+        section["style"] = style
+        return
+    section["type"] = "activity_action"
+    section["layout"] = "activity_action"
+    section["primary_model"] = ""
+    section["class"] = ""
+    section["attributes"] = []
+    section["operations"] = {"create": False, "update": False, "delete": False}
+    section.setdefault("label", section.get("name") or "Continue")
+    workflow = section.get("workflow") or {}
+    workflow.setdefault("action", section.get("workflow_action") or "complete")
+    section["workflow"] = workflow
+
+
+def _deduplicate_activity_action_sections(pages: list, sections: list) -> list:
+    """Per activity page, keep only one activity_action (prefer complete/complete_then_page)."""
     section_map = {str(s.get("id", "")): s for s in sections}
     to_remove: set = set()
     for page in pages:
-        page_type = page.get("type", {}); page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
-        if page_type_value != "activity": continue
+        page_type = page.get("type", {})
+        page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
+        if page_type_value != "activity":
+            continue
         ref_ids = [str(r.get("value") if isinstance(r, dict) else r) for r in (page.get("sections") or [])]
         action_ids = [sid for sid in ref_ids if (section_map.get(sid) or {}).get("layout") == "activity_action"]
-        if len(action_ids) <= 1: continue
+        if len(action_ids) <= 1:
+            continue
         action_ids.sort(key=lambda sid: 0 if (section_map.get(sid) or {}).get("workflow", {}).get("action") in {"complete", "complete_then_page"} else 1)
         extras = set(action_ids[1:])
         to_remove |= extras
@@ -323,6 +351,37 @@ def _normalize_activity_action_sections(pages: list, sections: list) -> list:
     if to_remove:
         sections = [s for s in sections if str(s.get("id", "")) not in to_remove]
     return sections
+
+
+def _normalize_activity_action_sections(pages: list, sections: list) -> list:
+    """Normalize activity action sections."""
+    activity_page_section_ids = _collect_activity_page_section_ids(pages)
+    for section in sections:
+        sid = str(section.get("id", ""))
+        is_activity_action = section.get("type") == "activity_action" or section.get("layout") == "activity_action"
+        if not is_activity_action:
+            continue
+        _normalize_one_activity_action(section, sid, activity_page_section_ids)
+    return _deduplicate_activity_action_sections(pages, sections)
+
+def _normalize_chrome_section(section: dict) -> dict:
+    """Normalize a single chrome section in-place, clearing data fields and inferring the correct layout/component."""
+    layout = _normalize_layout_alias(section.get("layout"))
+    position = section.get("position")
+    if layout not in _CHROME_TEMPLATE_LAYOUTS:
+        layout = "site-footer" if position == "footer" else "main-header"
+    section["layout"] = layout
+    section["primary_model"] = ""
+    section["class"] = ""
+    section["attributes"] = []
+    section["operations"] = {"create": False, "update": False, "delete": False, "select": False}
+    section.pop("type", None)
+    for key in ("workflow", "workflow_action", "target_page", "targetPage"):
+        section.pop(key, None)
+    section.pop("component", None)
+    section["component"] = _infer_section_component(section)
+    return section
+
 
 def _normalize_chrome_sections(sections: list) -> list:
     """Keep header/footer/navigation chrome out of workflow/action rendering paths."""
@@ -338,21 +397,7 @@ def _normalize_chrome_sections(sections: list) -> list:
             or role in {"header", "footer", "navigation", "nav", "brand"}
         )
         if is_chrome:
-            # If the agent assigned a data/action layout to a chrome position, replace with
-            # the positional default so _infer_section_component returns the right component.
-            if layout not in _CHROME_TEMPLATE_LAYOUTS:
-                layout = "site-footer" if position == "footer" else "main-header"
-            section["layout"] = layout
-            section["primary_model"] = ""
-            section["class"] = ""
-            section["attributes"] = []
-            section["operations"] = {"create": False, "update": False, "delete": False, "select": False}
-            section.pop("type", None)
-            for key in ("workflow", "workflow_action", "target_page", "targetPage"):
-                section.pop(key, None)
-            # Clear any stale component so _infer_section_component runs fresh from layout.
-            section.pop("component", None)
-            section["component"] = _infer_section_component(section)
+            section = _normalize_chrome_section(section)
         normalized.append(section)
     return normalized
 

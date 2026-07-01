@@ -787,6 +787,63 @@ def _build_section_from_pattern_entry(
     return []
 
 
+def _augment_roles_from_operation(roles: set, operation_kind: str, page_id: str, model: str) -> set:
+    """Upgrade page roles based on operation_kind and page_id heuristics."""
+    if "collection_workspace" in roles or "detail_workspace" in roles or "activity_action" in roles:
+        return roles
+    if operation_kind in {"view_collection", "select_existing"}:
+        return roles | {"collection_workspace"}
+    if operation_kind == "view_detail":
+        return roles | {"detail_workspace"}
+    if operation_kind in {"manage_object", ""}:
+        pid_clean = page_id.replace("_", "").lower()
+        m_clean = model.lower()
+        if pid_clean in {m_clean, m_clean + "s", m_clean + "es",
+                          "manage" + m_clean, "manage" + m_clean + "s",
+                          "list" + m_clean + "s", "all" + m_clean + "s"}:
+            return roles | {"collection_workspace"}
+        if any(kw in page_id for kw in ("_detail", "_profile", "_info", "_overview", "_view")):
+            return roles | {"detail_workspace"}
+    return roles
+
+
+def _apply_composition_pattern(
+    patterns: list,
+    roles: set,
+    intents: set,
+    n_attrs: int,
+    workflow_intents: set,
+    activity_node_name: str,
+    page: dict,
+    model: str,
+    model_attrs: dict,
+    model_graph: dict,
+    actor_permissions: dict,
+    page_id: str,
+    base_layout: str,
+    is_select: bool,
+) -> tuple:
+    """Try each YAML pattern; return (pattern_name, sections) for the first match, or (None, None)."""
+    for pattern in patterns:
+        if not _match_composition_pattern(
+            pattern, roles, intents, n_attrs,
+            workflow_intents=workflow_intents,
+            activity_node_name=activity_node_name,
+        ):
+            continue
+        if model not in model_attrs:
+            break
+        pattern_name: str | None = pattern.get("pattern") or None
+        sections: list[dict] = []
+        for entry in pattern.get("sections") or []:
+            sections.extend(_build_section_from_pattern_entry(
+                entry, page, model, model_attrs, model_graph,
+                actor_permissions, page_id, base_layout, is_select,
+            ))
+        return pattern_name, sections
+    return None, None
+
+
 def _compose_page_sections(
     page: dict,
     model_attrs: dict,
@@ -813,7 +870,6 @@ def _compose_page_sections(
     if not model or not page_id:
         return []
 
-    # ── Intents from TKB engine (YAML intent_rules), not Python heuristics ──
     profile = (semantic_profiles or {}).get(model) or {}
     intents: set[str] = set(profile.get("intents") or ["CRUD"])
 
@@ -824,53 +880,21 @@ def _compose_page_sections(
     if is_select:
         roles = roles | {"select_existing"}
 
-    # ── Role augmentation: operation_kind and page-name heuristics ───────────
-    # Many UseCase names ("Products", "Manage Orders") don't trigger the YAML
-    # role_keywords, so they land on object_workspace (the default).  Upgrade
-    # the role here so the right YAML section_composition pattern is matched.
-    if "collection_workspace" not in roles and "detail_workspace" not in roles and "activity_action" not in roles:
-        if operation_kind in {"view_collection", "select_existing"}:
-            roles = roles | {"collection_workspace"}
-        elif operation_kind == "view_detail":
-            roles = roles | {"detail_workspace"}
-        elif operation_kind in {"manage_object", ""}:
-            # Plain plural model name → collection ("products", "orders", "customers")
-            pid_clean = page_id.replace("_", "").lower()
-            m_clean = model.lower()
-            if pid_clean in {m_clean, m_clean + "s", m_clean + "es",
-                              "manage" + m_clean, "manage" + m_clean + "s",
-                              "list" + m_clean + "s", "all" + m_clean + "s"}:
-                roles = roles | {"collection_workspace"}
-            # "Product Detail", "Order Detail" etc. → detail
-            elif any(kw in page_id for kw in ("_detail", "_profile", "_info", "_overview", "_view")):
-                roles = roles | {"detail_workspace"}
+    roles = _augment_roles_from_operation(roles, operation_kind, page_id, model)
 
     n_attrs = len(model_attrs.get(model) or [])
     base_layout = _layout_for_page_role(page)
     workflow_intents: set[str] = set(page.get("workflow_intents") or [])
     activity_node_name: str = str(page.get("activity_node_name") or page.get("name") or "")
 
-    # ── Match first applicable YAML section_composition pattern ─────────────
     patterns = (section_composition or {}).get("patterns") or []
-    for pattern in patterns:
-        if not _match_composition_pattern(
-            pattern, roles, intents, n_attrs,
-            workflow_intents=workflow_intents,
-            activity_node_name=activity_node_name,
-        ):
-            continue
-        if model not in model_attrs:
-            break
-        pattern_name: str | None = pattern.get("pattern") or None
-        sections: list[dict] = []
-        for entry in pattern.get("sections") or []:
-            sections.extend(_build_section_from_pattern_entry(
-                entry, page, model, model_attrs, model_graph,
-                actor_permissions, page_id, base_layout, is_select,
-            ))
+    pattern_name, sections = _apply_composition_pattern(
+        patterns, roles, intents, n_attrs, workflow_intents, activity_node_name,
+        page, model, model_attrs, model_graph, actor_permissions, page_id, base_layout, is_select,
+    )
+    if sections is not None:
         return pattern_name, sections
 
-    # ── Fallback: single section (old behaviour) if no pattern matched ───────
     main = _section_for_page(page, model_attrs, actor_permissions)
     return None, ([main] if main else [])
 

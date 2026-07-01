@@ -263,6 +263,97 @@ def _ensure_nav_section(pages: list, sections: list) -> dict:
     return nav_section
 
 
+def _patch_nav_section(nav: dict, patched_pages: list, wants_sidebar_nav: bool, wants_top_nav: bool, wants_left_sidebar_nav: bool) -> None:
+    """Update nav section in-place for sidebar or top-nav intent."""
+    nav["layout"] = "site-nav"
+    nav["component"] = "NavBar"
+    nav["role"] = "navigation"
+    style = dict(nav.get("style") or {})
+    if wants_sidebar_nav and not wants_top_nav:
+        nav["position"] = "sidebar"
+        style["variant"] = "rail"
+        style["sidebar_side"] = "left" if wants_left_sidebar_nav else style.get("sidebar_side", "left")
+        style["sidebar_width"] = style.get("sidebar_width", 3)
+        style["nav_height"] = "tall"
+        for page in patched_pages:
+            refs = list(page.get("sections") or [])
+            if nav.get("id") and nav.get("id") not in _page_ref_ids(page):
+                page["sections"] = [{"value": nav["id"]}] + refs
+    elif wants_top_nav:
+        nav["position"] = "header"
+        style.pop("sidebar_side", None)
+        style.pop("sidebar_width", None)
+        style["variant"] = "page-nav"
+    nav["style"] = style
+
+
+def _patch_navy_header_tokens(patched_tokens: dict, wants_sidebar_nav: bool) -> None:
+    """Apply navy header color tokens in-place."""
+    patched_tokens["page.bg.hex"] = "#f9fafb"
+    patched_tokens["page.body.bg_hex"] = "#f9fafb"
+    patched_tokens["page.text.hex"] = "#111827"
+    patched_tokens["page.body.text_hex"] = "#111827"
+    patched_tokens[REGION_MAIN_BG_HEX] = "#ffffff"
+    patched_tokens["region.main.bg_sunken_hex"] = "#f9fafb"
+    patched_tokens["color.secondary.hex"] = "#9ca3af"
+    patched_tokens[TEXT_MUTED_HEX] = "#6b7280"
+    patched_tokens[REGION_HEADER_BG_HEX] = "#061756"
+    patched_tokens[REGION_HEADER_TEXT_HEX] = "#ffffff"
+    patched_tokens[NAV_BG_HEX] = "#061756"
+    patched_tokens[NAV_TEXT_HEX] = "#ffffff"
+    if wants_sidebar_nav:
+        patched_tokens[REGION_SIDEBAR_BG_HEX] = "#061756"
+
+
+def _patch_table_sections(patched_sections: list, patched_tokens: dict, wants_small_table_text: bool) -> None:
+    """Convert eligible sections to table layout and apply typography tokens."""
+    for section in patched_sections:
+        if section.get("position", "main") != "main":
+            continue
+        if not section.get("primary_model"):
+            continue
+        if section.get("layout") in {"card", "gallery", "list", "table"} or section.get("role") in {"object_collection", "object_summary"}:
+            section["layout"] = "table"
+            section["component"] = "DataTable"
+            style = dict(section.get("style") or {})
+            if wants_small_table_text:
+                style["density"] = "compact"
+            section["style"] = style
+            section["field_layout"] = _normalize_field_layout(section)
+    if wants_small_table_text:
+        patched_tokens[TYPOGRAPHY_BODY_SIZE] = "13px"
+        patched_tokens[TYPOGRAPHY_LABEL_SIZE] = "12px"
+        patched_tokens[TYPOGRAPHY_CAPTION_SIZE] = "11px"
+
+
+def _patch_beige_cards(tokens: dict, sections: list) -> None:
+    """Apply beige card tokens and section styles in-place."""
+    tokens[COMPONENT_CARD_BG_HEX] = "#f4ead7"
+    tokens[COMPONENT_CARD_BORDER_HEX] = "#d8c7a6"
+    tokens["component.card.text_hex"] = tokens.get("component.card.text_hex") or "#111827"
+    tokens["component.card.muted_hex"] = tokens.get("component.card.muted_hex") or "#6b7280"
+    for section in sections:
+        if section.get("layout") in {"card", "gallery", "detail"}:
+            style = dict(section.get("style") or {})
+            style["bg"] = "beige"
+            section["style"] = style
+
+
+def _patch_big_hero(tokens: dict, sections: list) -> None:
+    """Apply large hero typography tokens and upgrade a header section in-place."""
+    tokens[TYPOGRAPHY_HERO_SIZE] = "72px"
+    tokens[TYPOGRAPHY_DISPLAY_SIZE] = "52px"
+    for section in sections:
+        if str(section.get("role") or "").lower() == "header" or section.get("position") == "header":
+            if section.get("layout") in _HEADER_TEMPLATE_LAYOUTS or str(section.get("component") or "") == "HeaderTemplate":
+                section["layout"] = "hero-header"
+                section["component"] = "HeaderTemplate"
+                style = dict(section.get("style") or {})
+                style["header_variant"] = "hero"
+                section["style"] = style
+                break
+
+
 def _apply_design_intent_patch(
     pages: list,
     sections: list,
@@ -298,53 +389,13 @@ def _apply_design_intent_patch(
 
     if wants_sidebar_nav or wants_top_nav:
         nav = _ensure_nav_section(patched_pages, patched_sections)
-        nav["layout"] = "site-nav"
-        nav["component"] = "NavBar"
-        nav["role"] = "navigation"
-        style = dict(nav.get("style") or {})
-        if wants_sidebar_nav and not wants_top_nav:
-            nav["position"] = "sidebar"
-            style["variant"] = "rail"
-            style["sidebar_side"] = "left" if wants_left_sidebar_nav else style.get("sidebar_side", "left")
-            style["sidebar_width"] = style.get("sidebar_width", 3)
-            style["nav_height"] = "tall"
-            for page in patched_pages:
-                refs = list(page.get("sections") or [])
-                if nav.get("id") and nav.get("id") not in _page_ref_ids(page):
-                    page["sections"] = [{"value": nav["id"]}] + refs
-        elif wants_top_nav:
-            nav["position"] = "header"
-            style.pop("sidebar_side", None)
-            style.pop("sidebar_width", None)
-            style["variant"] = "page-nav"
-        nav["style"] = style
+        _patch_nav_section(nav, patched_pages, wants_sidebar_nav, wants_top_nav, wants_left_sidebar_nav)
 
     if wants_navy_header:
-        patched_tokens["page.bg.hex"] = "#f9fafb"
-        patched_tokens["page.body.bg_hex"] = "#f9fafb"
-        patched_tokens["page.text.hex"] = "#111827"
-        patched_tokens["page.body.text_hex"] = "#111827"
-        patched_tokens[REGION_MAIN_BG_HEX] = "#ffffff"
-        patched_tokens["region.main.bg_sunken_hex"] = "#f9fafb"
-        patched_tokens["color.secondary.hex"] = "#9ca3af"
-        patched_tokens[TEXT_MUTED_HEX] = "#6b7280"
-        patched_tokens[REGION_HEADER_BG_HEX] = "#061756"
-        patched_tokens[REGION_HEADER_TEXT_HEX] = "#ffffff"
-        patched_tokens[NAV_BG_HEX] = "#061756"
-        patched_tokens[NAV_TEXT_HEX] = "#ffffff"
-        if wants_sidebar_nav:
-            patched_tokens[REGION_SIDEBAR_BG_HEX] = "#061756"
+        _patch_navy_header_tokens(patched_tokens, wants_sidebar_nav)
 
     if wants_beige_cards:
-        patched_tokens[COMPONENT_CARD_BG_HEX] = "#f4ead7"
-        patched_tokens[COMPONENT_CARD_BORDER_HEX] = "#d8c7a6"
-        patched_tokens["component.card.text_hex"] = patched_tokens.get("component.card.text_hex") or "#111827"
-        patched_tokens["component.card.muted_hex"] = patched_tokens.get("component.card.muted_hex") or "#6b7280"
-        for section in patched_sections:
-            if section.get("layout") in {"card", "gallery", "detail"}:
-                style = dict(section.get("style") or {})
-                style["bg"] = "beige"
-                section["style"] = style
+        _patch_beige_cards(patched_tokens, patched_sections)
 
     if wants_gold_buttons:
         for prefix in ("button.primary", "button.secondary"):
@@ -353,36 +404,10 @@ def _apply_design_intent_patch(
             patched_tokens[f"{prefix}.border_hex"] = "#b8870d"
 
     if wants_table:
-        for section in patched_sections:
-            if section.get("position", "main") != "main":
-                continue
-            if not section.get("primary_model"):
-                continue
-            if section.get("layout") in {"card", "gallery", "list", "table"} or section.get("role") in {"object_collection", "object_summary"}:
-                section["layout"] = "table"
-                section["component"] = "DataTable"
-                style = dict(section.get("style") or {})
-                if wants_small_table_text:
-                    style["density"] = "compact"
-                section["style"] = style
-                section["field_layout"] = _normalize_field_layout(section)
-        if wants_small_table_text:
-            patched_tokens[TYPOGRAPHY_BODY_SIZE] = "13px"
-            patched_tokens[TYPOGRAPHY_LABEL_SIZE] = "12px"
-            patched_tokens[TYPOGRAPHY_CAPTION_SIZE] = "11px"
+        _patch_table_sections(patched_sections, patched_tokens, wants_small_table_text)
 
     if wants_big_hero:
-        patched_tokens[TYPOGRAPHY_HERO_SIZE] = "72px"
-        patched_tokens[TYPOGRAPHY_DISPLAY_SIZE] = "52px"
-        for section in patched_sections:
-            if str(section.get("role") or "").lower() == "header" or section.get("position") == "header":
-                if section.get("layout") in _HEADER_TEMPLATE_LAYOUTS or str(section.get("component") or "") == "HeaderTemplate":
-                    section["layout"] = "hero-header"
-                    section["component"] = "HeaderTemplate"
-                    style = dict(section.get("style") or {})
-                    style["header_variant"] = "hero"
-                    section["style"] = style
-                    break
+        _patch_big_hero(patched_tokens, patched_sections)
 
     patched_styling.update({key: val for key, val in patched_tokens.items() if key in _STYLING_TOKEN_KEYS})
     return patched_pages, patched_sections, patched_tokens, patched_styling
@@ -1321,6 +1346,23 @@ def _allowed_layout(role: str, base_layout: str, proposed: str) -> str:
     return proposed
 
 
+def _apply_llm_section_overrides(sec: dict, llm: dict) -> None:
+    """Apply LLM layout/style overrides to a section dict in-place."""
+    role = str(sec.get("role") or "")
+    if llm.get("layout") is not None:
+        safe = _allowed_layout(role, str(sec.get("layout") or ""), llm["layout"])
+        sec["layout"] = safe
+        if safe == llm["layout"] and llm.get("component") is not None:
+            sec["component"] = llm["component"]
+    for field in ("position", "col_span"):
+        if llm.get(field) is not None:
+            sec[field] = llm[field]
+    if llm.get("style"):
+        merged = dict(sec.get("style") or {})
+        merged.update(llm["style"])
+        sec["style"] = merged
+
+
 def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: dict) -> tuple[list, list]:
     """Merge LLM layout/style decisions onto base pages/sections, preserving all data fields."""
     pages = copy.deepcopy(base_pages)
@@ -1332,23 +1374,8 @@ def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: d
     for sec in sections:
         sid = str(sec.get("id", ""))
         llm = llm_sec_map.get(sid)
-        if not llm:
-            continue
-        role = str(sec.get("role") or "")
-        # Layout: enforce role-based constraints to prevent LLM from breaking form/detail/activity sections
-        if llm.get("layout") is not None:
-            safe = _allowed_layout(role, str(sec.get("layout") or ""), llm["layout"])
-            sec["layout"] = safe
-            # Only apply component if layout was accepted
-            if safe == llm["layout"] and llm.get("component") is not None:
-                sec["component"] = llm["component"]
-        for field in ("position", "col_span"):
-            if llm.get(field) is not None:
-                sec[field] = llm[field]
-        if llm.get("style"):
-            merged = dict(sec.get("style") or {})
-            merged.update(llm["style"])
-            sec["style"] = merged
+        if llm:
+            _apply_llm_section_overrides(sec, llm)
 
     for page in pages:
         pid = str(page.get("id", ""))
@@ -1442,6 +1469,27 @@ def _tokens_from_llm_schema(llm_candidate: dict, base_tokens: dict, index: int) 
     return tokens
 
 
+def _build_gen_styling(llm_cand: dict, base_styling: dict, raw_base_tokens: dict, index: int) -> tuple[dict, dict, str]:
+    """Build tokens, styling, and variant_name for a single generated candidate."""
+    llm_styling = llm_cand.get("styling") or {}
+    llm_tokens = llm_cand.get("tokens") or {}
+    tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, index)
+    styling = dict(base_styling or {})
+    for key in (
+        "fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider",
+        "pageMaxWidth", "accentColor", "accentSecondary", "backgroundColor", "textColor",
+        *_STYLING_TOKEN_KEYS,
+    ):
+        if llm_styling.get(key) is not None:
+            styling[key] = llm_styling[key]
+        elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
+            styling[key] = llm_tokens[key]
+    variant_name = llm_cand.get("name") or _candidate_variant_name(index)
+    styling["variantIndex"] = index
+    styling["variantName"] = variant_name
+    return tokens, styling, variant_name
+
+
 def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
     """Generate and save exactly 3 candidates from the current interface DSL and designer prompt."""
     try:
@@ -1466,27 +1514,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
             llm_cand = llm_candidates[index]
             variant_pages, variant_sections = _merge_llm_candidate(pages, sections, llm_cand)
             variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
-
-            llm_styling = llm_cand.get("styling") or {}
-            llm_tokens = llm_cand.get("tokens") or {}
-            tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, index)
-
-            styling = dict(base_styling or {})
-            for key in (
-                "fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider",
-                "pageMaxWidth", "accentColor", "accentSecondary", "backgroundColor", "textColor",
-                *_STYLING_TOKEN_KEYS,
-            ):
-                if llm_styling.get(key) is not None:
-                    styling[key] = llm_styling[key]
-                elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
-                    styling[key] = llm_tokens[key]
-            fallback_name = _candidate_variant_name(index)
-            variant_name = llm_cand.get("name") or fallback_name
-            styling["variantIndex"] = index
-            styling["variantName"] = variant_name
-            variation_strategy = variant_name
-
+            tokens, styling, variant_name = _build_gen_styling(llm_cand, base_styling, raw_base_tokens, index)
             result = validate_and_save_candidate(
                 interface_id=interface_id,
                 candidate_index=index,
@@ -1497,7 +1525,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                 tokens=json.dumps(tokens) if tokens else "",
                 styling=json.dumps(styling) if styling else "",
                 prompt=prompt,
-                variation_strategy=variation_strategy,
+                variation_strategy=variant_name,
             )
             results.append(result)
             if not str(result).startswith("OK:"):
@@ -1509,6 +1537,28 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
         return f"ERROR: interface {interface_id} not found."
     except Exception as e:
         return f"ERROR: generate_candidate_set failed: {e}"
+
+def _build_regen_styling(llm_cand: dict, base_styling: dict, raw_base_tokens: dict, index: int) -> tuple[dict, dict]:
+    """Build tokens and styling for a single regenerated candidate."""
+    llm_styling = llm_cand.get("styling") or {}
+    llm_tokens = llm_cand.get("tokens") or {}
+    tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, index)
+    styling = dict(base_styling or {})
+    for key in (
+        "fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider",
+        "pageMaxWidth", "accentColor", "accentSecondary", "backgroundColor", "textColor",
+        *_STYLING_TOKEN_KEYS,
+    ):
+        if llm_styling.get(key) is not None:
+            styling[key] = llm_styling[key]
+        elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
+            styling[key] = llm_tokens[key]
+    fallback_name = _candidate_variant_name(index)
+    base_variant_name = llm_cand.get("name") or fallback_name
+    styling["variantIndex"] = index
+    styling["variantName"] = base_variant_name
+    return tokens, styling
+
 
 def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, designer_requirements: str = "") -> str:
     """Regenerate exactly 3 candidates from a selected/base candidate using deterministic variants."""
@@ -1524,8 +1574,6 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
             return "ERROR: selected candidate has no pages/sections."
         raw_base_tokens = copy.deepcopy(base.get("tokens") or {})
         base_styling_raw = dict(base.get("styling") or {})
-        # Do not merge regex parser styling overrides here. The LLM candidate
-        # schema should decide fine-grained styling/token values.
         base_styling = dict(base_styling_raw or {})
 
         llm_candidates = _llm_regenerate_3_candidates(pages, sections, designer_requirements, base_styling_raw)
@@ -1538,24 +1586,8 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
             variant_pages, variant_sections = _merge_llm_candidate(pages, sections, llm_cand)
             variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
 
-            llm_styling = llm_cand.get("styling") or {}
-            llm_tokens = llm_cand.get("tokens") or {}
-            tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, index)
-
-            styling = dict(base_styling or {})
-            for key in (
-                "fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider",
-                "pageMaxWidth", "accentColor", "accentSecondary", "backgroundColor", "textColor",
-                *_STYLING_TOKEN_KEYS,
-            ):
-                if llm_styling.get(key) is not None:
-                    styling[key] = llm_styling[key]
-                elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
-                    styling[key] = llm_tokens[key]
-            fallback_name = _candidate_variant_name(index)
-            base_variant_name = llm_cand.get("name") or fallback_name
-            styling["variantIndex"] = index
-            styling["variantName"] = base_variant_name
+            tokens, styling = _build_regen_styling(llm_cand, base_styling, raw_base_tokens, index)
+            base_variant_name = styling.get("variantName") or _candidate_variant_name(index)
             variant_name = f"{base_variant_name} Regen"
             variation_strategy = base_variant_name
 

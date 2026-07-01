@@ -463,6 +463,26 @@ def _ensure_usecase_pages(pages: list, usecase_navigation: dict) -> list:
     return pages
 
 
+def _make_workflow_start_section(entry: dict, page: dict) -> dict:
+    """Build the section dict for a workflow start entry point."""
+    sid = f"{_section_id(page.get('id') or page.get('name'))}_workflow_start"
+    return {
+        "id": sid,
+        "name": entry.get("label") or "Start Workflow",
+        "label": entry.get("label") or "Start Workflow",
+        "type": "activity_start",
+        "layout": "activity_start",
+        "primary_model": "",
+        "class": "",
+        "operations": {"create": False, "update": False, "delete": False},
+        "attributes": [],
+        "methods": [],
+        "col_span": 12,
+        "position": "main",
+        "style": {"color": "accent", "density": "normal", "shadow": "sm", "bg": "white", "columns": "1", "cta_label": entry.get("button_label") or "Start"},
+    }
+
+
 def _ensure_workflow_entry_sections(pages: list, sections: list, usecase_navigation: dict) -> tuple[list, list]:
     """Ensure workflow entry sections."""
     entries = usecase_navigation.get("workflow_entry_points") or []
@@ -478,26 +498,54 @@ def _ensure_workflow_entry_sections(pages: list, sections: list, usecase_navigat
             continue
         sid = f"{_section_id(page.get('id') or page.get('name'))}_workflow_start"
         if sid not in section_ids:
-            sections.append({
-                "id": sid,
-                "name": entry.get("label") or "Start Workflow",
-                "label": entry.get("label") or "Start Workflow",
-                "type": "activity_start",
-                "layout": "activity_start",
-                "primary_model": "",
-                "class": "",
-                "operations": {"create": False, "update": False, "delete": False},
-                "attributes": [],
-                "methods": [],
-                "col_span": 12,
-                "position": "main",
-                "style": {"color": "accent", "density": "normal", "shadow": "sm", "bg": "white", "columns": "1", "cta_label": entry.get("button_label") or "Start"},
-            })
+            sections.append(_make_workflow_start_section(entry, page))
             section_ids.add(sid)
         refs = page.get("sections") or []
         if sid not in {_ref_id(ref) for ref in refs}:
             page["sections"] = refs + [{"value": sid}]
     return pages, sections
+
+
+def _select_preferred_model(entry: dict, known_models: set) -> str:
+    """Select the preferred model for a workflow entry point."""
+    preferred = [m for m in (entry.get("pre_workflow_collections") or []) if m in known_models]
+    if not preferred:
+        preferred = [m for m in (entry.get("related_models") or []) if m in known_models and _is_child_collection_model(m)]
+    if not preferred:
+        preferred = [m for m in [entry.get("primary_model")] if m in known_models]
+    return preferred[0] if preferred else ""
+
+
+def _make_pre_workflow_section(sid: str, model: str, page_id: str, page: dict, model_attrs: dict, candidate_index: int, is_select_existing: bool) -> dict:
+    """Build a pre-workflow content section dict."""
+    layout = "list" if _is_child_collection_model(model) else _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
+    style: dict = {
+        "color": "accent",
+        "density": "compact" if layout in {"list", "table"} else "normal",
+        "shadow": "sm",
+        "border": "light",
+        "bg": "white",
+    }
+    if layout == "list":
+        style["list_style"] = "default"
+    return {
+        "id": sid,
+        "name": f"{model} Items" if _is_child_collection_model(model) else f"{model} Overview",
+        "layout": layout,
+        "primary_model": model,
+        "class": model,
+        "attributes": _model_field_names(model_attrs, model, 8),
+        "operations": {
+            "create": False,
+            "update": layout in {"list", "table", "detail", "form"} and not is_select_existing,
+            "delete": layout in {"list", "table", "card", "gallery"} and not is_select_existing,
+            "select": is_select_existing,
+        },
+        "query": {},
+        "col_span": 12,
+        "position": "main",
+        "style": style,
+    }
 
 
 def _ensure_pre_workflow_content_sections(
@@ -533,18 +581,7 @@ def _ensure_pre_workflow_content_sections(
             if (section_map.get(sid) or {}).get("position", "main") == "main"
             and (section_map.get(sid) or {}).get("layout") in {"card", "list", "table", "detail", "gallery", "form"}
         ]
-        preferred_models = [
-            m for m in (entry.get("pre_workflow_collections") or [])
-            if m in known_models
-        ]
-        if not preferred_models:
-            preferred_models = [
-                m for m in (entry.get("related_models") or [])
-                if m in known_models and _is_child_collection_model(m)
-            ]
-        if not preferred_models:
-            preferred_models = [m for m in [entry.get("primary_model")] if m in known_models]
-        model = preferred_models[0] if preferred_models else ""
+        model = _select_preferred_model(entry, known_models)
         if not model:
             continue
         has_model_section = any(s.get("primary_model") == model for s in main_data_sections)
@@ -558,40 +595,28 @@ def _ensure_pre_workflow_content_sections(
             suffix += 1
         page_text = f"{page_id} {page.get('name', '')} {entry.get('usecase_name', '')}".lower()
         is_select_existing = any(term in page_text for term in ("search", "select", "choose", "pick", "browse"))
-        layout = "list" if _is_child_collection_model(model) else _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
-        style = {
-            "color": "accent",
-            "density": "compact" if layout in {"list", "table"} else "normal",
-            "shadow": "sm",
-            "border": "light",
-            "bg": "white",
-        }
-        if layout == "list":
-            style["list_style"] = "default"
-        section = {
-            "id": sid,
-            "name": f"{model} Items" if _is_child_collection_model(model) else f"{model} Overview",
-            "layout": layout,
-            "primary_model": model,
-            "class": model,
-            "attributes": _model_field_names(model_attrs, model, 8),
-            "operations": {
-                "create": False,
-                "update": layout in {"list", "table", "detail", "form"} and not is_select_existing,
-                "delete": layout in {"list", "table", "card", "gallery"} and not is_select_existing,
-                "select": is_select_existing,
-            },
-            "query": {},
-            "col_span": 12,
-            "position": "main",
-            "style": style,
-        }
+        section = _make_pre_workflow_section(sid, model, page_id, page, model_attrs, candidate_index, is_select_existing)
         sections.append(section)
         section_map[sid] = section
         activity_start_refs = [ref for ref in refs if (section_map.get(_ref_id(ref)) or {}).get("layout") == "activity_start"]
         other_refs = [ref for ref in refs if ref not in activity_start_refs]
         page["sections"] = other_refs + [{"value": sid}] + activity_start_refs
     return pages, sections
+
+
+def _apply_section_nav(section: dict, nav_ids: set, nav_names: list, workflow_icon_links: list) -> dict:
+    """Apply nav methods and icon links to a single section dict."""
+    section = dict(section)
+    layout = _normalize_layout_alias(section.get("layout"))
+    if nav_ids and (layout in (_HEADER_NAV_LAYOUTS | {"nav-bar"}) or (section.get("position") in {"header", "sidebar"} and layout in {"site-nav", "nav-links", "nav-bar"})):
+        section["layout"] = layout
+        section["methods"] = _navigation_methods(nav_names)
+    if section.get("position") == "header" or layout in _HEADER_TEMPLATE_LAYOUTS or layout == "icon-actions":
+        style = dict(section.get("style") or {})
+        if workflow_icon_links and not style.get("icon_links"):
+            style["icon_links"] = workflow_icon_links[:2]
+        section["style"] = style
+    return section
 
 
 def _apply_nav_methods(pages: list, sections: list, usecase_navigation: dict) -> list:
@@ -606,20 +631,7 @@ def _apply_nav_methods(pages: list, sections: list, usecase_navigation: dict) ->
     workflow_icon_links = _workflow_icon_links(usecase_navigation, page_by_id)
     if not nav_names and not workflow_icon_links:
         return sections
-    fixed = []
-    for section in sections:
-        section = dict(section)
-        layout = _normalize_layout_alias(section.get("layout"))
-        if nav_ids and (layout in (_HEADER_NAV_LAYOUTS | {"nav-bar"}) or (section.get("position") in {"header", "sidebar"} and layout in {"site-nav", "nav-links", "nav-bar"})):
-            section["layout"] = layout
-            section["methods"] = _navigation_methods(nav_names)
-        if section.get("position") == "header" or layout in _HEADER_TEMPLATE_LAYOUTS or layout == "icon-actions":
-            style = dict(section.get("style") or {})
-            if workflow_icon_links and not style.get("icon_links"):
-                style["icon_links"] = workflow_icon_links[:2]
-            section["style"] = style
-        fixed.append(section)
-    return fixed
+    return [_apply_section_nav(section, nav_ids, nav_names, workflow_icon_links) for section in sections]
 
 
 def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, model_attrs: dict) -> tuple[list, list]:

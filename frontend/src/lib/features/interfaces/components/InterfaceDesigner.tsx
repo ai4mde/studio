@@ -594,6 +594,95 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
     };
 };
 
+const reorderPageSectionRefs = (page: any, fromId: string, toId: string): any => {
+    const rawIds: string[] = (page.sections || []).map((ref: any) =>
+        typeof ref === 'string' ? ref : ref?.value
+    );
+    const fi = rawIds.indexOf(fromId);
+    const ti = rawIds.indexOf(toId);
+    if (fi === -1 || ti === -1) return page;
+    const newRefs = [...(page.sections || [])];
+    newRefs.splice(ti, 0, newRefs.splice(fi, 1)[0]);
+    return { ...page, sections: newRefs };
+};
+
+const moveSectionInArray = (prev: any[], fromId: string, beforeId: string, newPosition: string, sidebarSide: string): any[] => {
+    const arr = [...prev];
+    const fi = arr.findIndex((s: any) => s.id === fromId);
+    if (fi === -1) return prev;
+    const [moving] = arr.splice(fi, 1);
+    const normalizedPosition = ['header', 'hero', 'main', 'sidebar', 'footer'].includes(newPosition)
+        ? newPosition
+        : (moving.position || 'main');
+    const nextStyle = { ...moving.style };
+    if (normalizedPosition === 'sidebar' && ['left', 'right'].includes(sidebarSide)) {
+        nextStyle.sidebar_side = sidebarSide;
+    } else if (normalizedPosition !== 'sidebar') {
+        delete nextStyle.sidebar_side;
+    }
+    const nextMoving = { ...moving, position: normalizedPosition, style: nextStyle };
+    const ti = beforeId === '__end__' ? arr.length : arr.findIndex((s: any) => s.id === beforeId);
+    arr.splice(ti === -1 ? arr.length : ti, 0, nextMoving);
+    return arr;
+};
+
+const moveSectionRefInPage = (page: any, fromId: string, beforeId: string): any => {
+    const refs = [...(page.sections || [])];
+    const fi = refs.findIndex((ref: any) => sectionRefId(ref) === fromId);
+    if (fi === -1) return page;
+    const [movingRef] = refs.splice(fi, 1);
+    const ti = beforeId === '__end__' ? refs.length : refs.findIndex((ref: any) => sectionRefId(ref) === beforeId);
+    refs.splice(ti === -1 ? refs.length : ti, 0, movingRef);
+    return { ...page, sections: refs };
+};
+
+const duplicateSectionInPageRefs = (page: any, id: string, cloneId: string): any => {
+    const refs = page.sections || [];
+    const fi = refs.findIndex((ref: any) =>
+        (typeof ref === 'string' ? ref : ref?.value) === id
+    );
+    if (fi === -1) return page;
+    const cloneRef = typeof refs[fi] === 'string'
+        ? cloneId
+        : { ...refs[fi], value: cloneId };
+    const next = [...refs];
+    next.splice(fi + 1, 0, cloneRef);
+    return { ...page, sections: next };
+};
+
+const insertSectionInArray = (prev: any[], fromId: string, beforeId: string, newPosition: string): any[] => {
+    const arr = [...prev];
+    const fi = arr.findIndex((s: any) => s.id === fromId);
+    if (fi === -1) return prev;
+    const [moved] = arr.splice(fi, 1);
+    if (newPosition) moved.position = newPosition;
+    if (beforeId === '__end__') {
+        arr.push(moved);
+    } else {
+        const ti = arr.findIndex((s: any) => s.id === beforeId);
+        arr.splice(ti === -1 ? arr.length : ti, 0, moved);
+    }
+    return arr;
+};
+
+const insertSectionRefInPage = (page: any, fromId: string, beforeId: string): any => {
+    const refs = [...(page.sections || [])];
+    const fi = refs.findIndex((ref: any) =>
+        (typeof ref === 'string' ? ref : ref?.value) === fromId
+    );
+    if (fi === -1) return page;
+    const [moved] = refs.splice(fi, 1);
+    if (beforeId === '__end__') {
+        refs.push(moved);
+    } else {
+        const ti = refs.findIndex((ref: any) =>
+            (typeof ref === 'string' ? ref : ref?.value) === beforeId
+        );
+        refs.splice(ti === -1 ? refs.length : ti, 0, moved);
+    }
+    return { ...page, sections: refs };
+};
+
 export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceId, systemId }) => {
     const storagePrefix = interfaceId || 'new-interface';
     const [sections, setSections] = useLocalStorage(`interface:${storagePrefix}:sections`, []);
@@ -837,47 +926,15 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                     arr.splice(ti, 0, arr.splice(fi, 1)[0]);
                     return arr;
                 });
-                setPages((prev: any[]) => prev.map((page: any) => {
-                    const rawIds: string[] = (page.sections || []).map((ref: any) =>
-                        typeof ref === 'string' ? ref : ref?.value
-                    );
-                    const fi = rawIds.indexOf(fromId);
-                    const ti = rawIds.indexOf(toId);
-                    if (fi === -1 || ti === -1) return page;
-                    const newRefs = [...(page.sections || [])];
-                    newRefs.splice(ti, 0, newRefs.splice(fi, 1)[0]);
-                    return { ...page, sections: newRefs };
-                }));
+                setPages((prev: any[]) => prev.map((page: any) =>
+                    reorderPageSectionRefs(page, fromId, toId)
+                ));
             } else if (e.data?.type === 'section-move') {
                 const { fromId, beforeId, newPosition, sidebarSide } = e.data;
-                setSections((prev: any[]) => {
-                    const arr = [...prev];
-                    const fi = arr.findIndex((s: any) => s.id === fromId);
-                    if (fi === -1) return prev;
-                    const [moving] = arr.splice(fi, 1);
-                    const normalizedPosition = ['header', 'hero', 'main', 'sidebar', 'footer'].includes(newPosition)
-                        ? newPosition
-                        : (moving.position || 'main');
-                    const nextStyle = { ...moving.style };
-                    if (normalizedPosition === 'sidebar' && ['left', 'right'].includes(sidebarSide)) {
-                        nextStyle.sidebar_side = sidebarSide;
-                    } else if (normalizedPosition !== 'sidebar') {
-                        delete nextStyle.sidebar_side;
-                    }
-                    const nextMoving = { ...moving, position: normalizedPosition, style: nextStyle };
-                    const ti = beforeId === '__end__' ? arr.length : arr.findIndex((s: any) => s.id === beforeId);
-                    arr.splice(ti === -1 ? arr.length : ti, 0, nextMoving);
-                    return arr;
-                });
-                setPages((prev: any[]) => prev.map((page: any) => {
-                    const refs = [...(page.sections || [])];
-                    const fi = refs.findIndex((ref: any) => sectionRefId(ref) === fromId);
-                    if (fi === -1) return page;
-                    const [movingRef] = refs.splice(fi, 1);
-                    const ti = beforeId === '__end__' ? refs.length : refs.findIndex((ref: any) => sectionRefId(ref) === beforeId);
-                    refs.splice(ti === -1 ? refs.length : ti, 0, movingRef);
-                    return { ...page, sections: refs };
-                }));
+                setSections((prev: any[]) => moveSectionInArray(prev, fromId, beforeId, newPosition, sidebarSide));
+                setPages((prev: any[]) => prev.map((page: any) =>
+                    moveSectionRefInPage(page, fromId, beforeId)
+                ));
             } else if (e.data?.type === 'section-resize') {
                 const { id, col_span } = e.data;
                 setSections((prev: any[]) => prev.map((s: any) =>
@@ -908,19 +965,9 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                     next.splice(idx + 1, 0, clone);
                     return next;
                 });
-                setPages((prev: any[]) => prev.map((page: any) => {
-                    const refs = page.sections || [];
-                    const fi = refs.findIndex((ref: any) =>
-                        (typeof ref === 'string' ? ref : ref?.value) === id
-                    );
-                    if (fi === -1) return page;
-                    const cloneRef = typeof refs[fi] === 'string'
-                        ? cloneId
-                        : { ...refs[fi], value: cloneId };
-                    const next = [...refs];
-                    next.splice(fi + 1, 0, cloneRef);
-                    return { ...page, sections: next };
-                }));
+                setPages((prev: any[]) => prev.map((page: any) =>
+                    duplicateSectionInPageRefs(page, id, cloneId)
+                ));
             } else if (e.data?.type === 'section-delete') {
                 const { id } = e.data;
                 setSections((prev: any[]) => prev.filter((s: any) => s.id !== id));
@@ -930,39 +977,12 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
                         (typeof ref === 'string' ? ref : ref?.value) !== id
                     ),
                 })));
-            } else if (e.data?.type === 'section-insert' || e.data?.type === 'section-move') {
+            } else if (e.data?.type === 'section-insert') {
                 const { fromId, beforeId, newPosition } = e.data;
-                setSections((prev: any[]) => {
-                    const arr = [...prev];
-                    const fi = arr.findIndex((s: any) => s.id === fromId);
-                    if (fi === -1) return prev;
-                    const [moved] = arr.splice(fi, 1);
-                    if (newPosition) moved.position = newPosition;
-                    if (beforeId === '__end__') {
-                        arr.push(moved);
-                    } else {
-                        const ti = arr.findIndex((s: any) => s.id === beforeId);
-                        arr.splice(ti === -1 ? arr.length : ti, 0, moved);
-                    }
-                    return arr;
-                });
-                setPages((prev: any[]) => prev.map((page: any) => {
-                    const refs = [...(page.sections || [])];
-                    const fi = refs.findIndex((ref: any) =>
-                        (typeof ref === 'string' ? ref : ref?.value) === fromId
-                    );
-                    if (fi === -1) return page;
-                    const [moved] = refs.splice(fi, 1);
-                    if (beforeId === '__end__') {
-                        refs.push(moved);
-                    } else {
-                        const ti = refs.findIndex((ref: any) =>
-                            (typeof ref === 'string' ? ref : ref?.value) === beforeId
-                        );
-                        refs.splice(ti === -1 ? refs.length : ti, 0, moved);
-                    }
-                    return { ...page, sections: refs };
-                }));
+                setSections((prev: any[]) => insertSectionInArray(prev, fromId, beforeId, newPosition));
+                setPages((prev: any[]) => prev.map((page: any) =>
+                    insertSectionRefInPage(page, fromId, beforeId)
+                ));
             }
         };
         window.addEventListener('message', handler);

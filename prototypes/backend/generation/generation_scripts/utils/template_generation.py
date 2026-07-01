@@ -231,43 +231,55 @@ def generate_change_user_assignment(application_component: ApplicationComponent,
     return False
 
 
-def generate_templates(application_component: ApplicationComponent, system_id: str, _variant_id: str = "") -> bool:
-    project_name = project_name_sanitization(application_component.project)
-    application_name = app_name_sanitization(application_component.name)
-    pages_in_app = application_component.pages
-    styling = application_component.styling
+_FONT_CDN = {
+    "inter":    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "roboto":   "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
+    "poppins":  "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
+    "playfair": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
+    "mono":     "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
+    "geist":    "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap",
+}
+_FONT_CSS_NAME = {
+    "inter": "Inter", "roboto": "Roboto", "poppins": "Poppins",
+    "playfair": "'Playfair Display'", "mono": "'JetBrains Mono'", "geist": "Geist",
+}
+_DEFAULT_BLUES = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
 
-    # Interface metadata tokens are the canonical theme source; styling fills legacy gaps.
-    tokens = dict(getattr(application_component, "tokens", {}) or {})
-    _expand_legacy_token_hex(tokens)
-    _FONT_CDN = {
-        "inter":    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
-        "roboto":   "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
-        "poppins":  "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
-        "playfair": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
-        "mono":     "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
-        "geist":    "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap",
-    }
-    _FONT_CSS_NAME = {
-        "inter": "Inter", "roboto": "Roboto", "poppins": "Poppins",
-        "playfair": "'Playfair Display'", "mono": "'JetBrains Mono'", "geist": "Geist",
-    }
-    default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
-    if styling:
-        styling_accent = getattr(styling, 'accent_color', None)
-        if styling_accent and tokens.get(ACCENT_HEX_TOKEN) in default_blues:
-            tokens[ACCENT_HEX_TOKEN] = styling_accent
-        accent = tokens.get(ACCENT_HEX_TOKEN)
-        if accent:
-            tokens.setdefault("region.header.bg", f"bg-[{accent}]")
-            tokens.setdefault("page.header.text", "text-white")
-            tokens.setdefault("brand.name", application_name)
-        if getattr(styling, 'background_color', None):
-            tokens.setdefault("page.body.bg", f"bg-[{styling.background_color}]")
-            tokens.setdefault("page.body.bg_hex", styling.background_color)
-        if getattr(styling, 'text_color', None):
-            tokens.setdefault("page.body.text", f"text-[{styling.text_color}]")
-            tokens.setdefault("page.body.text_hex", styling.text_color)
+
+def _apply_styling_to_tokens(tokens: dict, styling, application_name: str) -> None:
+    """Merge styling attributes into the tokens dict in-place."""
+    if not styling:
+        return
+    styling_accent = getattr(styling, 'accent_color', None)
+    if styling_accent and tokens.get(ACCENT_HEX_TOKEN) in _DEFAULT_BLUES:
+        tokens[ACCENT_HEX_TOKEN] = styling_accent
+    accent = tokens.get(ACCENT_HEX_TOKEN)
+    if accent:
+        tokens.setdefault("region.header.bg", f"bg-[{accent}]")
+        tokens.setdefault("page.header.text", "text-white")
+        tokens.setdefault("brand.name", application_name)
+    if getattr(styling, 'background_color', None):
+        tokens.setdefault("page.body.bg", f"bg-[{styling.background_color}]")
+        tokens.setdefault("page.body.bg_hex", styling.background_color)
+    if getattr(styling, 'text_color', None):
+        tokens.setdefault("page.body.text", f"text-[{styling.text_color}]")
+        tokens.setdefault("page.body.text_hex", styling.text_color)
+
+
+def _apply_accent_fallbacks(tokens: dict) -> None:
+    """Propagate the accent hex token to header/footer/button keys if they are still default blues."""
+    accent_hex = tokens.get(ACCENT_HEX_TOKEN)
+    if not accent_hex:
+        return
+    for key in ("region.header.bg_hex", "region.footer.bg_hex", "button.primary.bg_hex", "button.primary.border_hex", "input.border_focus_hex"):
+        if tokens.get(key) in _DEFAULT_BLUES:
+            tokens[key] = accent_hex
+    tokens.setdefault("region.header.text_hex", "#ffffff")
+    tokens.setdefault("region.footer.text_hex", "#ffffff")
+
+
+def _apply_font_and_theme_tokens(tokens: dict, styling) -> None:
+    """Apply font, radius, and theme tokens from styling in-place."""
     font = getattr(styling, 'font_family', 'inter') if styling else 'inter'
     tokens.setdefault("page.font.family", _FONT_CSS_NAME.get(font, "Inter"))
     tokens.setdefault("page.font.cdn", _FONT_CDN.get(font, _FONT_CDN["inter"]))
@@ -279,32 +291,43 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     tokens.setdefault("theme.card.hover", getattr(styling, 'card_hover', 'lift') if styling else 'lift')
     tokens.setdefault("theme.image.ratio", getattr(styling, 'image_ratio', '4:3') if styling else '4:3')
     tokens.setdefault("theme.divider", getattr(styling, 'divider', 'none') if styling else 'none')
-    accent_hex = tokens.get(ACCENT_HEX_TOKEN)
-    if accent_hex:
-        for key in ("region.header.bg_hex", "region.footer.bg_hex", "button.primary.bg_hex", "button.primary.border_hex", "input.border_focus_hex"):
-            if tokens.get(key) in default_blues:
-                tokens[key] = accent_hex
-        tokens.setdefault("region.header.text_hex", "#ffffff")
-        tokens.setdefault("region.footer.text_hex", "#ffffff")
+
+
+def _generate_manager_pages(application_component: ApplicationComponent, output_dir: str) -> None:
+    """Generate manager-only pages (action log and user assignment)."""
+    if not generate_action_log_page(application_component, output_dir):
+        raise Exception("Failed to generate action log page")
+    if not generate_change_user_assignment(application_component, output_dir):
+        raise Exception("Failed to generate change user assignment page")
+
+
+def generate_templates(application_component: ApplicationComponent, system_id: str, _variant_id: str = "") -> bool:
+    project_name = project_name_sanitization(application_component.project)
+    application_name = app_name_sanitization(application_component.name)
+    pages_in_app = application_component.pages
+    styling = application_component.styling
+
+    tokens = dict(getattr(application_component, "tokens", {}) or {})
+    _expand_legacy_token_hex(tokens)
+    _apply_styling_to_tokens(tokens, styling, application_name)
+    _apply_font_and_theme_tokens(tokens, styling)
+    _apply_accent_fallbacks(tokens)
 
     OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/" + application_name + "/templates"
-    
+
     try:
         ensure_generated_directory(OUTPUT_TEMPLATES_DIRECTORY)
     except:
         raise Exception("Failed to create templates directory for " + application_name + " application")
-    
+
     if not generate_base_page(application_component, OUTPUT_TEMPLATES_DIRECTORY, tokens):
         raise Exception("Failed to generate base page")
-    
+
     if not generate_home_page(application_component, OUTPUT_TEMPLATES_DIRECTORY, tokens):
         raise Exception("Failed to generate home page")
-    
+
     if application_component.settings and application_component.settings.manager_access:
-        if not generate_action_log_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
-            raise Exception("Failed to generate action log page")
-        if not generate_change_user_assignment(application_component, OUTPUT_TEMPLATES_DIRECTORY):
-            raise Exception("Failed to generate change user assignment page")
+        _generate_manager_pages(application_component, OUTPUT_TEMPLATES_DIRECTORY)
 
     for page in pages_in_app:
         OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_" + page_name_sanitization(page.name) + ".html"

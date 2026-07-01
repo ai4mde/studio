@@ -290,6 +290,25 @@ _CTX_TRANSFORMS: dict[str, Callable] = {
 }
 
 
+_SELF_REF = "@self"
+
+
+def _eval_path_expr(expr: str, source: dict, ctx: "_Context") -> Any:
+    """Evaluate a $-path expression with an optional transform."""
+    raw = expr[1:]
+    path_part, transform_name = (raw.split(" | ", 1) if " | " in raw else (raw, None))
+    value = _resolve_path(path_part.strip(), source)
+    if transform_name:
+        tn = transform_name.strip()
+        if tn in _CTX_TRANSFORMS:
+            value = _CTX_TRANSFORMS[tn](value, ctx)
+        else:
+            fn = _TRANSFORMS.get(tn)
+            if fn and value is not None:
+                value = fn(value)
+    return value
+
+
 def _eval(expr: Any, source: dict, ctx: "_Context") -> Any:
     """
     Evaluate one TKB mapping expression.
@@ -308,21 +327,10 @@ def _eval(expr: Any, source: dict, ctx: "_Context") -> Any:
     if expr == "@list":   return []
     if expr == "@dict":   return {}
     if expr == "@null":   return None
-    if expr == "@self":   return source
+    if expr == _SELF_REF:   return source
 
     if expr.startswith("$"):
-        raw = expr[1:]
-        path_part, transform_name = (raw.split(" | ", 1) if " | " in raw else (raw, None))
-        value = _resolve_path(path_part.strip(), source)
-        if transform_name:
-            tn = transform_name.strip()
-            if tn in _CTX_TRANSFORMS:
-                value = _CTX_TRANSFORMS[tn](value, ctx)
-            else:
-                fn = _TRANSFORMS.get(tn)
-                if fn and value is not None:
-                    value = fn(value)
-        return value
+        return _eval_path_expr(expr, source, ctx)
 
     return expr  # plain string constant
 
@@ -348,6 +356,18 @@ def _apply_mapping(mapping: dict, source: dict, ctx: "_Context") -> dict:
     for dotted_key, expr in mapping.items():
         _set_nested(result, dotted_key, _eval(expr, source, ctx))
     return result
+
+
+def _edge_mult_matches(edge: dict, req_types: set, allowed_src_mult: set, allowed_tgt_mult: set, rel_data: dict) -> bool:
+    """Return True if an edge satisfies type and multiplicity constraints."""
+    if req_types and rel_data.get("type") not in req_types:
+        return False
+    mult = rel_data.get("multiplicity", {})
+    if allowed_src_mult and mult.get("source") not in allowed_src_mult:
+        return False
+    if allowed_tgt_mult and mult.get("target") not in allowed_tgt_mult:
+        return False
+    return True
 
 
 def _match_pattern(diagram: dict, pattern: list, ctx: "_Context") -> list[dict]:
@@ -380,35 +400,47 @@ def _match_pattern(diagram: dict, pattern: list, ctx: "_Context") -> list[dict]:
         req_types = set(req_type if isinstance(req_type, list) else [req_type]) if req_type else set()
         allowed_src_mult = set(espec.get("source_multiplicity") or [])
         allowed_tgt_mult = set(espec.get("target_multiplicity") or [])
-
-        for edge in diagram.get("edges", []):
-            rel = edge.get("rel") or {}
-            rel_data = rel.get("data", rel)
-            if req_types and rel_data.get("type") not in req_types:
-                continue
-            mult = rel_data.get("multiplicity", {})
-            if allowed_src_mult and mult.get("source") not in allowed_src_mult:
-                continue
-            if allowed_tgt_mult and mult.get("target") not in allowed_tgt_mult:
-                continue
-
-            src_id = ctx.edge_source_id(edge)
-            tgt_id = ctx.edge_target_id(edge)
-            src_node = ctx.find_node(diagram, src_id) or ctx.find_node_by_ptr(diagram, src_id)
-            tgt_node = ctx.find_node(diagram, tgt_id) or ctx.find_node_by_ptr(diagram, tgt_id)
-            if not src_node or not tgt_node:
-                continue
-
-            from_type = node_specs.get(from_var, {}).get("node_type")
-            to_type   = node_specs.get(to_var,   {}).get("node_type")
-            if from_type and ctx.node_type(src_node) != from_type:
-                continue
-            if to_type and ctx.node_type(tgt_node) != to_type:
-                continue
-
-            matches.append({from_var: src_node, to_var: tgt_node, "_edge": edge})
+        matches.extend(
+            _match_edges_for_spec(
+                diagram, ctx, from_var, to_var,
+                req_types, allowed_src_mult, allowed_tgt_mult, node_specs,
+            )
+        )
 
     return matches
+
+
+def _match_edges_for_spec(
+    diagram: dict,
+    ctx: "_Context",
+    from_var: str,
+    to_var: str,
+    req_types: set,
+    allowed_src_mult: set,
+    allowed_tgt_mult: set,
+    node_specs: dict,
+) -> list[dict]:
+    """Yield all edge matches for a single edge-spec within a diagram."""
+    results: list[dict] = []
+    for edge in diagram.get("edges", []):
+        rel = edge.get("rel") or {}
+        rel_data = rel.get("data", rel)
+        if not _edge_mult_matches(edge, req_types, allowed_src_mult, allowed_tgt_mult, rel_data):
+            continue
+        src_id = ctx.edge_source_id(edge)
+        tgt_id = ctx.edge_target_id(edge)
+        src_node = ctx.find_node(diagram, src_id) or ctx.find_node_by_ptr(diagram, src_id)
+        tgt_node = ctx.find_node(diagram, tgt_id) or ctx.find_node_by_ptr(diagram, tgt_id)
+        if not src_node or not tgt_node:
+            continue
+        from_type = node_specs.get(from_var, {}).get("node_type")
+        to_type   = node_specs.get(to_var,   {}).get("node_type")
+        if from_type and ctx.node_type(src_node) != from_type:
+            continue
+        if to_type and ctx.node_type(tgt_node) != to_type:
+            continue
+        results.append({from_var: src_node, to_var: tgt_node, "_edge": edge})
+    return results
 
 
 def _build_attributes(raw: list) -> list:
@@ -934,7 +966,7 @@ class TransformationEngine:
         registry = reg.get("registry")
         key = _eval(reg.get("key", ""), source, ctx)
         val_expr = reg.get("value", "@null")
-        value = generated if val_expr == "@self" else _eval(val_expr, source, ctx)
+        value = generated if val_expr == _SELF_REF else _eval(val_expr, source, ctx)
 
         if key is None:
             return
@@ -943,7 +975,7 @@ class TransformationEngine:
             ctx.actor_registry[str(key)] = value
         elif registry == "class_section":
             ctx.class_section_registry[registry_key or str(key)] = (
-                generated if val_expr == "@self" else value
+                generated if val_expr == _SELF_REF else value
             )
 
 

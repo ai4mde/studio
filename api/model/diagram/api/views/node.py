@@ -232,22 +232,8 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str,
     return remove_reply_markdown(reply)
     
 
-@node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
-def generate_method(request: HttpRequest, node_id: str, name: str, description: str, model: str = "mixtral-8x7b-32768"):
-    diagram = utils.get_diagram(request)
-    if not diagram:
-        return 404, "Diagram not found"
-    
-    node = diagram.nodes.get(id=node_id)
-    if not node:
-        return 404, "Node not found"
-    
-    if node.cls.data["type"] != "class":
-        return 422, "Node is not a class"
-    
-    system_id = str(diagram.system_id)
-
-    # Build classifier name map and context
+def _build_classifier_maps(system_id: str) -> tuple[dict, dict]:
+    """Return (name_map, clf_data_map) for all class/entity/model classifiers in a system."""
     name_map: dict[str, str] = {}
     clf_data_map: dict[str, dict] = {}
     for clf in MetaClassifier.objects.filter(system_id=system_id):
@@ -256,14 +242,12 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
         if clf_name and data.get("type") in {"class", "entity", "model"}:
             name_map[str(clf.id)] = clf_name
             clf_data_map[clf_name] = data
+    return name_map, clf_data_map
 
-    model_lines: list[str] = []
+
+def _build_relation_lines(system_id: str, name_map: dict) -> list:
+    """Build relation description lines for LLM context."""
     rel_lines: list[str] = []
-    for clf_name, data in clf_data_map.items():
-        attrs = data.get("attributes") or []
-        parts = [f"{a.get('name')}({a.get('type','str')})" for a in attrs if a.get("name")]
-        model_lines.append(f"{clf_name}: " + (", ".join(parts) or "(no fields)"))
-
     for rel in Relation.objects.filter(system_id=system_id):
         rd = rel.data or {}
         src_name = name_map.get(str(rel.source_id), "")
@@ -277,6 +261,33 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
             rel_lines.append(f"{src_name} 1-many {tgt_name}: self.{tgt_name.lower()}_set.all()")
         else:
             rel_lines.append(f"{src_name} →{tgt_name}: self.{tgt_name.lower()}")
+    return rel_lines
+
+
+@node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
+def generate_method(request: HttpRequest, node_id: str, name: str, description: str, model: str = "mixtral-8x7b-32768"):
+    diagram = utils.get_diagram(request)
+    if not diagram:
+        return 404, "Diagram not found"
+
+    node = diagram.nodes.get(id=node_id)
+    if not node:
+        return 404, "Node not found"
+
+    if node.cls.data["type"] != "class":
+        return 422, "Node is not a class"
+
+    system_id = str(diagram.system_id)
+
+    name_map, clf_data_map = _build_classifier_maps(system_id)
+
+    model_lines: list[str] = []
+    for clf_name, data in clf_data_map.items():
+        attrs = data.get("attributes") or []
+        parts = [f"{a.get('name')}({a.get('type','str')})" for a in attrs if a.get("name")]
+        model_lines.append(f"{clf_name}: " + (", ".join(parts) or "(no fields)"))
+
+    rel_lines = _build_relation_lines(system_id, name_map)
 
     target_name = node.cls.data.get("name") or ""
     target_clf = clf_data_map.get(target_name) or {}

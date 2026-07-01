@@ -68,27 +68,37 @@ def _compact_interface_data_for_agent(data: dict) -> dict:
     return compact
 
 
-def _extract_adk_event_error(event) -> str:
-    found = []
-
-    def walk(value):
-        if isinstance(value, dict):
-            for key, child in value.items():
-                key_l = str(key).lower()
-                if key_l in {"error", "error_message", "errormessage", "message", "status"} and isinstance(child, str):
-                    text = child.strip()
-                    if any(term in text.lower() for term in ("error", "failed", "invalid", "exceeds", "bad request", "timeout")):
-                        found.append(text)
-                walk(child)
-        elif isinstance(value, list):
-            for child in value:
-                walk(child)
-        elif isinstance(value, str):
-            text = value.strip()
-            if any(term in text.lower() for term in ("input token count exceeds", "bad request", "agent error", "failed to")):
+def _extract_error_from_dict(value: dict, found: list) -> None:
+    """Scan a dict for known error keys and collect matching string values."""
+    for key, child in value.items():
+        key_l = str(key).lower()
+        if key_l in {"error", "error_message", "errormessage", "message", "status"} and isinstance(child, str):
+            text = child.strip()
+            if any(term in text.lower() for term in ("error", "failed", "invalid", "exceeds", "bad request", "timeout")):
                 found.append(text)
+        _walk_adk_event(child, found)
 
-    walk(event)
+
+def _extract_error_from_list(value: list, found: list) -> None:
+    """Walk a list and collect error strings."""
+    for child in value:
+        _walk_adk_event(child, found)
+
+
+def _walk_adk_event(value, found: list) -> None:
+    if isinstance(value, dict):
+        _extract_error_from_dict(value, found)
+    elif isinstance(value, list):
+        _extract_error_from_list(value, found)
+    elif isinstance(value, str):
+        text = value.strip()
+        if any(term in text.lower() for term in ("input token count exceeds", "bad request", "agent error", "failed to")):
+            found.append(text)
+
+
+def _extract_adk_event_error(event) -> str:
+    found: list = []
+    _walk_adk_event(event, found)
     return " | ".join(dict.fromkeys(found))[:1200]
 
 
@@ -101,6 +111,53 @@ def list_interfaces(request, system: Optional[str] = None):
     return qs
 
 
+def _stream_prototype_generation(id: str, system, payload):
+    """Generator that drives LLM-based prototype generation and yields NDJSON status lines."""
+    renderer_classifiers = [{"id": str(c.id), "data": c.data} for c in system.classifiers.all()]
+    renderer_relations = [
+        {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
+        for r in system.relations.all()
+    ]
+
+    yield json.dumps({"status": "Connecting to agent... (连接 AI 中...)"}) + "\n"
+
+    if "generate_candidates" in (payload.prompt or ""):
+        yield json.dumps({"status": "Generating candidates..."}) + "\n"
+        result = generate_candidate_set(str(id), payload.prompt or "")
+        if not str(result).startswith("OK:"):
+            yield json.dumps({"status": f"Agent error: {result}"}) + "\n"
+            return
+    else:
+        yield json.dumps({"status": "Applying interface edit..."}) + "\n"
+        result = apply_prompt_to_interface(str(id), str(system.id), payload.prompt or "")
+        if result.get("status") != "ok":
+            yield json.dumps({"status": f"Agent error: {result.get('message', '')}"}) + "\n"
+            return
+
+    interface = Interface.objects.get(id=id)
+    data = interface.data or {}
+    render_data = data
+    if "generate_candidates" in (payload.prompt or ""):
+        candidates = data.get("candidates") or []
+        c0 = next((c for c in candidates if c), None)
+        if c0:
+            render_data = {
+                "pages": c0.get("pages", data.get("pages", [])),
+                "sections": c0.get("sections", data.get("sections", [])),
+                "tokens": c0.get("tokens", data.get("tokens", {})),
+                "styling": c0.get("styling", data.get("styling", {})),
+            }
+    files = render_layout(
+        interface_data=render_data,
+        classifiers=renderer_classifiers,
+        layout_config=None,
+        interface_name=interface.name,
+        inject_click_handlers=True,
+        relations=renderer_relations,
+    )
+    yield json.dumps({"status": "Done", "files": files, "message": "AI Generation Successful.", "interface_data": interface.data}) + "\n"
+
+
 @interfaces.post("/{uuid:id}/generate/")
 def generate_interface_prototype(request, id: str, payload: GeneratePrototypeRequest):
     try:
@@ -110,7 +167,6 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
 
     system = interface.system
 
-    # Fast path: template-based render, no LLM
     if not payload.prompt or payload.interface_data_override is not None:
         interface_data = payload.interface_data_override or interface.data or {}
         classifiers = [{"id": str(c.id), "data": c.data} for c in system.classifiers.all()]
@@ -128,53 +184,7 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
         )
         return {"message": f"Generated {len(files)} page(s).", "files": files}
 
-    def stream_generator():
-        renderer_classifiers = [{"id": str(c.id), "data": c.data} for c in system.classifiers.all()]
-        renderer_relations = [
-            {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
-            for r in system.relations.all()
-        ]
-
-        yield json.dumps({"status": "Connecting to agent... (连接 AI 中...)"}) + "\n"
-
-        if "generate_candidates" in (payload.prompt or ""):
-            yield json.dumps({"status": "Generating candidates..."}) + "\n"
-            result = generate_candidate_set(str(id), payload.prompt or "")
-            if not str(result).startswith("OK:"):
-                yield json.dumps({"status": f"Agent error: {result}"}) + "\n"
-                return
-        else:
-            yield json.dumps({"status": "Applying interface edit..."}) + "\n"
-            result = apply_prompt_to_interface(str(id), str(system.id), payload.prompt or "")
-            if result.get("status") != "ok":
-                yield json.dumps({"status": f"Agent error: {result.get('message', '')}"}) + "\n"
-                return
-
-        interface.refresh_from_db()
-        data = interface.data or {}
-        render_data = data
-        if "generate_candidates" in (payload.prompt or ""):
-            candidates = data.get("candidates") or []
-            c0 = next((c for c in candidates if c), None)
-            if c0:
-                render_data = {
-                    "pages": c0.get("pages", data.get("pages", [])),
-                    "sections": c0.get("sections", data.get("sections", [])),
-                    "tokens": c0.get("tokens", data.get("tokens", {})),
-                    "styling": c0.get("styling", data.get("styling", {})),
-                }
-        files = render_layout(
-            interface_data=render_data,
-            classifiers=renderer_classifiers,
-            layout_config=None,
-            interface_name=interface.name,
-            inject_click_handlers=True,
-            relations=renderer_relations,
-        )
-        yield json.dumps({"status": "Done", "files": files, "message": "AI Generation Successful.", "interface_data": interface.data}) + "\n"
-
-
-    resp = StreamingHttpResponse(stream_generator(), content_type="application/x-ndjson")
+    resp = StreamingHttpResponse(_stream_prototype_generation(id, system, payload), content_type="application/x-ndjson")
     resp['X-Accel-Buffering'] = 'no'
     resp['Cache-Control'] = 'no-cache'
     return resp
