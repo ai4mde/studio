@@ -18,6 +18,15 @@ Keyword guidance:
 - Use exit-condition hints to plan explicit `exit_to` targets or termination points
 
 {% endif %}
+{% if topology_artifact %}
+Topology artifact guidance:
+Use the following topology artifact as strong guidance for control structure presence, nesting, and branch-local containment.
+Preserve the process text as the source of truth if there is a conflict.
+Do not output the topology artifact. Use it only to help produce the final ActivitySketch JSON.
+
+{{ topology_artifact | tojson(indent=2) }}
+
+{% endif %}
 Output schema:
 Return ONLY a compact JSON sketch of the control-flow scaffold.
 
@@ -35,6 +44,34 @@ Describe only:
 - whether a merge is required
 - whether a loop branch returns to an earlier action
 - where a block exits to the main flow
+
+Internal planning workflow:
+Before generating the JSON sketch, reason through topology ownership and reconnection in this order. Keep this reasoning internal and do not output it.
+
+Step 1: Identify control structures
+For each decision, loop, or parallel block implied by the process text, identify:
+- purpose
+- triggering condition
+- scope
+
+Step 2: Determine topology ownership
+For each control structure, decide:
+- whether it is part of the main flow
+- whether it belongs to a specific branch
+- whether it belongs inside a loop
+- whether it belongs inside a parallel branch
+- what its parent control structure is, if any
+
+Step 3: Determine reconnection semantics
+For each control structure, decide:
+- where execution continues after completion
+- whether it returns to the local branch
+- whether it returns to the enclosing control structure
+- whether it reconnects to the main flow
+- whether it terminates the process
+
+Step 4: Generate the final sketch
+Only after ownership and reconnection are resolved, generate the final JSON sketch.
 
 Return a JSON object with this structure:
 
@@ -99,12 +136,19 @@ Rules:
 - Keep the sketch high-level and include only major control-flow structures
 - Use sequential identifiers such as `S1`, `S2`, `B1`, `B2`
 - Use an empty `control_blocks` list when the process is linear
+- Decide control-block ownership before assigning `entry_after`, branch placement, `next_block_id`, or `child_block_ids`
+- Attach a control block to the narrowest scope that owns it
+- If a control structure belongs to a branch's internal topology, keep it owned by that branch instead of attaching it to the enclosing main flow
+- If a control structure belongs inside a loop or inside a parallel branch, keep it inside that local scope instead of reconnecting it too early to the enclosing flow
 - Use branch `steps` only for actions that occur on that branch before it returns, exits, or continues into another block
 - Use `requires_merge=true` when a decision or parallel block must close before continuing
 - Use `exit_to` and `exit_to_step_id` when a block reconnects to a specific later main-flow action
 - Use `next_block_id` only for sequential continuation to a later sibling control block in the enclosing sequence
 - Use `child_block_ids` only when a branch owns downstream control blocks as part of that branch's internal topology
 - Keep branch-owned control blocks in the top-level `control_blocks` list
+- Do not attach a nested decision, loop, or parallel block to the main flow if it actually belongs to a branch-local continuation
+- Do not place a control block after a join or merge if its real scope is inside one branch before that branch rejoins
+- Do not reconnect a branch to main flow, an enclosing block, or termination until that branch's owned control structures have completed
 - A decision block must represent exactly one business question, and its branch labels must be direct answers to that question
 - If a branch continues to a later sibling business question in the enclosing sequence, create a separate decision block and connect it with `next_block_id` instead of combining multiple questions into one decision
 - If the downstream control structure belongs inside the branch's own topology, use `child_block_ids` instead of `next_block_id`
@@ -112,6 +156,7 @@ Rules:
 - For retry or validation behavior, use `type="loop"` with `loop_back_to` and `loop_back_to_step_id` pointing to the earlier action reached by the retry branch
 - Retry or validation loops should normally use `requires_merge=false`; use `requires_merge=true` only when multiple forward branches rejoin before the shared continuation
 - Keep corrective or retry actions in the retry branch `steps`
+- Ensure every `exit_to`, `returns_to_main_flow`, `next_block_id`, `child_block_ids`, and `loop_back_to` choice is consistent with the ownership and reconnection decisions above
 - Do not explain the answer
 - Do not use markdown
 

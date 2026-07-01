@@ -102,8 +102,25 @@ def semantic_sketch_plan_response_format() -> Dict[str, Any]:
     }
 
 
+def _strip_optional_json_code_fence(raw_output: str) -> str:
+    stripped = raw_output.strip()
+    if not stripped.startswith("```"):
+        return stripped
+
+    lines = stripped.splitlines()
+    if not lines:
+        return stripped
+    if not lines[0].startswith("```"):
+        return stripped
+
+    body_lines = lines[1:]
+    if body_lines and body_lines[-1].strip() == "```":
+        body_lines = body_lines[:-1]
+    return "\n".join(body_lines).strip()
+
+
 def parse_semantic_sketch_plan_json(raw_output: str) -> Dict[str, Any]:
-    parsed_json = json.loads(raw_output)
+    parsed_json = json.loads(_strip_optional_json_code_fence(raw_output))
     validated = SemanticSketchPlan.model_validate(parsed_json)
     return validated.model_dump(mode="json")
 

@@ -51,6 +51,21 @@ CONDITIONS: Dict[str, ConditionConfig] = {
         "enable_sketch_review_agent": None,
         "enable_graph_repair_agent": None,
     },
+    "condition_E": {
+        "label": "E",
+        "name": "stable_plus_topology_guidance",
+        "pipeline_profile": "stable",
+        "enable_sketch_review_agent": None,
+        "enable_graph_repair_agent": None,
+        "use_topology_artifact_guidance": True,
+    },
+    "condition_F": {
+        "label": "F",
+        "name": "semantic_deterministic",
+        "pipeline_profile": "semantic_deterministic",
+        "enable_sketch_review_agent": None,
+        "enable_graph_repair_agent": None,
+    },
 }
 
 
@@ -108,12 +123,47 @@ def _run_condition(
     run_index: int,
     output_dir: Path,
 ) -> RunRecord:
-    bundle = debug_model_activity(
-        workflow["process_text"],
-        pipeline_profile=condition["pipeline_profile"],
-        enable_sketch_review_agent=condition["enable_sketch_review_agent"],
-        enable_graph_repair_agent=condition["enable_graph_repair_agent"],
-    )
+    raw_path = output_dir / condition_key / f"{_slugify(workflow['name'])}_run_{run_index:02d}.json"
+    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        bundle = debug_model_activity(
+            workflow["process_text"],
+            pipeline_profile=condition["pipeline_profile"],
+            enable_sketch_review_agent=condition["enable_sketch_review_agent"],
+            enable_graph_repair_agent=condition["enable_graph_repair_agent"],
+            use_topology_artifact_guidance=condition.get("use_topology_artifact_guidance", False),
+        )
+    except Exception as exc:
+        debug_artifacts = getattr(exc, "debug_artifacts", None)
+        failure_payload = {
+            "workflow": workflow["name"],
+            "process_text": workflow["process_text"],
+            "condition": condition_key,
+            "condition_name": condition["name"],
+            "run_index": run_index,
+            "failed": True,
+            "error_type": type(exc).__name__,
+            "error_message": str(exc),
+            "debug_artifacts": debug_artifacts,
+        }
+        with raw_path.open("w", encoding="utf-8") as handle:
+            json.dump(failure_payload, handle, indent=2, ensure_ascii=False)
+        return {
+            "workflow": workflow["name"],
+            "condition": condition_key,
+            "condition_name": condition["name"],
+            "run_index": run_index,
+            "raw_path": str(raw_path),
+            "failed": True,
+            "clean_topology": False,
+            "topology_issues": [],
+            "topology_metrics": {},
+            "topology_details": {},
+            "semantic_issue_codes": [],
+            "semantic_issue_counts": {},
+            "alignment_issue_counts": {},
+            "sketch_repair_metrics": {},
+        }
     topology = analyze_activity_graph(bundle["parsed"])
     semantic = bundle.get("semantic_analysis") or {"issues": [], "metrics": {}}
     alignment = bundle.get("sketch_alignment") or {"issues": [], "metrics": {}, "details": {}}
@@ -138,10 +188,9 @@ def _run_condition(
         "sketch_alignment": alignment,
         "semantic_analysis": semantic,
         "topology": topology,
+        "stage_artifacts": bundle.get("stage_artifacts"),
     }
 
-    raw_path = output_dir / condition_key / f"{_slugify(workflow['name'])}_run_{run_index:02d}.json"
-    raw_path.parent.mkdir(parents=True, exist_ok=True)
     with raw_path.open("w", encoding="utf-8") as handle:
         json.dump(raw_payload, handle, indent=2, ensure_ascii=False)
 
@@ -165,6 +214,8 @@ def _run_condition(
 def _build_summary_rows(records: List[RunRecord], runs: int) -> List[Dict[str, Any]]:
     grouped: Dict[Tuple[str, str], List[RunRecord]] = defaultdict(list)
     for record in records:
+        if record.get("failed"):
+            continue
         grouped[(record["workflow"], record["condition"])].append(record)
 
     rows: List[Dict[str, Any]] = []
@@ -185,6 +236,8 @@ def _build_summary_rows(records: List[RunRecord], runs: int) -> List[Dict[str, A
 def _build_topology_metric_rows(records: List[RunRecord]) -> List[Dict[str, Any]]:
     grouped: Dict[Tuple[str, str], Counter[str]] = defaultdict(Counter)
     for record in records:
+        if record.get("failed"):
+            continue
         key = (record["workflow"], record["condition"])
         grouped[key]["clean_topology_runs"] += int(record["clean_topology"])
         grouped[key]["disconnected_nodes"] += int(record["topology_metrics"].get("disconnected_node_count", 0))
@@ -216,6 +269,7 @@ def _build_diagnostics_rows(records: List[RunRecord]) -> List[Dict[str, Any]]:
                 "workflow": record["workflow"],
                 "condition": record["condition"],
                 "run_index": record["run_index"],
+                "failed": record.get("failed", False),
                 "clean_topology": record["clean_topology"],
                 "topology_issues": "|".join(record["topology_issues"]),
                 "semantic_issue_codes": "|".join(record["semantic_issue_codes"]),
@@ -303,6 +357,10 @@ def main() -> int:
     parser.add_argument("--dataset", required=True, help="Path to a workflow dataset JSON file.")
     parser.add_argument("--runs", type=int, default=10, help="Runs per condition for each workflow.")
     parser.add_argument("--output", required=True, help="Directory for raw outputs and reports.")
+    parser.add_argument(
+        "--conditions",
+        help="Optional comma-separated condition keys to run, e.g. 'condition_A,condition_E'. Defaults to all conditions.",
+    )
     args = parser.parse_args()
 
     if args.runs <= 0:
@@ -314,11 +372,19 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
     raw_dir.mkdir(parents=True, exist_ok=True)
 
+    selected_conditions = CONDITIONS
+    if args.conditions:
+        requested_keys = [item.strip() for item in args.conditions.split(",") if item.strip()]
+        unknown = [key for key in requested_keys if key not in CONDITIONS]
+        if unknown:
+            raise ValueError(f"Unknown condition keys: {', '.join(unknown)}")
+        selected_conditions = {key: CONDITIONS[key] for key in requested_keys}
+
     workflows = _load_dataset(dataset_path)
     records: List[RunRecord] = []
 
     for workflow in workflows:
-        for condition_key, condition in CONDITIONS.items():
+        for condition_key, condition in selected_conditions.items():
             for run_index in range(1, args.runs + 1):
                 records.append(
                     _run_condition(
@@ -352,6 +418,7 @@ def main() -> int:
             "workflow",
             "condition",
             "run_index",
+            "failed",
             "clean_topology",
             "topology_issues",
             "semantic_issue_codes",
