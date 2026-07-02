@@ -494,6 +494,17 @@ def seed_prototype_data():
     if not os.path.isdir(proto_path):
         return 'Prototype directory not found', 404
 
+    migrate_env = os.environ.copy()
+    migrate_env['DJANGO_SETTINGS_MODULE'] = f'{project_name}.settings'
+    migrate_result = subprocess.run(
+        ['python', MANAGE_PY, 'migrate', '--skip-checks'],
+        cwd=proto_path, env=migrate_env, capture_output=True, text=True,
+    )
+    if migrate_result.returncode != 0:
+        detail = (migrate_result.stderr or migrate_result.stdout or '').strip()
+        app.logger.error("Failed to migrate before seed for %s:\n%s", project_name, detail)
+        return f'Failed to migrate before seed: {detail}', 500
+
     result = _reconcile_sqlite_schema(proto_path)
     if result.returncode != 0:
         app.logger.error("Failed to reconcile database schema before seed for %s", project_name)
@@ -509,7 +520,9 @@ def seed_prototype_data():
         capture_output=True, text=True, timeout=90, env=env,
     )
     if result.returncode != 0:
-        return 'Seed failed', 500
+        detail = (result.stderr or result.stdout or '').strip()
+        app.logger.error("Seed failed for %s:\n%s", project_name, detail)
+        return f'Seed failed: {detail}', 500
 
     _patch_autologin(proto_path)
     return 'Seeded OK', 200

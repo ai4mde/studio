@@ -573,6 +573,21 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
             Q(user=self.request.user) | Q(action_node__actor__in=_user_roles)
         ).distinct()
         {% endif -%}
+        {% if page.type != 'activity' -%}
+        {% for section in page.section_components -%}
+        {% if section.primary_model and section.has_update_operation -%}
+        _upd_id_{{ section.name }} = self.request.GET.get('instance_id_{{ section.primary_model }}')
+        if _upd_id_{{ section.name }} and context.get('update_instance') is None:
+            _upd_obj_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=_upd_id_{{ section.name }}).first()
+            if _upd_obj_{{ section.name }}:
+                context['update_instance'] = _upd_obj_{{ section.name }}
+        {% endif -%}
+        {% if section.has_create_operation -%}
+        if self.request.GET.get('create_{{ section }}'):
+            context['create_{{ section }}'] = True
+        {% endif -%}
+        {% endfor -%}
+        {% endif -%}
         return context
 
 {% endif -%}

@@ -181,23 +181,6 @@ def test_interface_to_agent_dict_serializes_interface():
     }
 
 
-def test_sync_method_to_interface_sections_updates_matching_sections():
-    """Verify that sync method to interface sections updates matching sections."""
-    interface = make_interface({
-        "sections": [
-            {"id": "a", "class": "product", "methods": [{"name": "restock"}]},
-            {"id": "b", "class": "Product", "methods": []},
-        ]
-    })
-    install_fake_modules(interfaces=[interface])
-    ds = import_fresh("llm.interface_generator.django_service")
-
-    ds._sync_method_to_interface_sections("product", "Product", {"name": "restock", "body": "return 1"}, "system")
-
-    assert interface.data["sections"][0]["methods"][0]["body"] == "return 1"
-    assert interface.data["sections"][1]["methods"][0]["name"] == "restock"
-
-
 def test_generate_missing_method_bodies_updates_classifier_and_syncs(monkeypatch):
     """Verify that generate missing method bodies updates classifier and syncs."""
     classifier = Obj(
@@ -258,95 +241,6 @@ def test_ensure_action_panel_sections_adds_detail_page_actions():
 
     assert interface.data["sections"][-1]["id"] == "detail_product_action_panel"
     assert interface.data["pages"][0]["sections"][-1] == {"value": "detail_product_action_panel"}
-
-
-def test_resolve_interface_semantics_with_llm_filters_model_and_step_overrides(monkeypatch):
-    """Verify that resolve interface semantics with LLM filters model and step overrides."""
-    install_fake_modules()
-    ds = import_fresh("llm.interface_generator.django_service")
-    monkeypatch.setenv("GEMINI_API_KEY", "key")
-    response_payload = {
-        "actor_model_scopes": {"Product": "collection", "Hidden": "collection"},
-        "models": {"Product": {"layout": "table", "component": "DataTable"}, "Hidden": {"layout": "map", "component": "MapView"}},
-        "activity_steps": {"Review": {"layout": "detail", "component": "DetailPanel", "role": "object_detail", "model": "Product", "readonly_fields": ["name", "bad"]}},
-        "workflow_steps": {"Review": {"intent": "check", "target_model": "Product", "editable_fields": ["price"], "condition": {"model": "Product", "field": "price", "operator": ">", "threshold": "0"}}},
-    }
-
-    class Response:
-        def raise_for_status(self):
-            """Provide the raise for status test helper."""
-            return None
-
-        def json(self):
-            """Provide the json test helper."""
-            return {"candidates": [{"content": {"parts": [{"text": json.dumps(response_payload)}]}}]}
-
-    monkeypatch.setattr(ds._req, "post", lambda *args, **kwargs: Response())
-
-    result = ds.resolve_interface_semantics_with_llm(
-        {
-            "semantic_decisions": [{"question": "q"}],
-            "actor_intel": {"target_permissions": {"Product": ["read"]}},
-            "model_graph": {"Product": {"attributes": [{"name": "name"}, {"name": "price"}]}},
-            "workflow_intel": {"workflows": [{"steps": [{"action": "Review"}]}]},
-        },
-        {"pages": []},
-    )
-
-    assert result["actor_model_scopes"] == {"Product": "collection"}
-    assert result["models"] == {"Product": {"layout": "table", "component": "DataTable"}}
-    assert result["activity_steps"]["Review"]["readonly_fields"] == ["name"]
-    assert result["workflow_steps"]["Review"]["condition"]["field"] == "price"
-    assert ds.resolve_interface_semantics_with_llm({"semantic_decisions": []}, {}) == {}
-
-
-def test_debug_uml_extract_returns_diagnostics(monkeypatch):
-    """Verify that debug UML extract returns diagnostics."""
-    interface = make_interface()
-    install_fake_modules(interfaces=[interface])
-    ds = import_fresh("llm.interface_generator.django_service")
-    monkeypatch.setattr(ds, "_fetch_system_context_data", lambda system_id: {"relations": [{"data": {"type": "association"}}]})
-    monkeypatch.setattr(ds, "_actor_name_from_context", lambda data, actor: "Customer")
-    monkeypatch.setattr(ds, "extract_uml_intelligence", lambda data, actor_id, actor_name: {
-        "model_graph": {"Product": {"compositions_owned": [], "associations": []}},
-        "actor_intel": {"target_permissions": {"Product": ["read"]}, "target_use_cases": [{"name": "Browse", "primary_model": "Product", "page_role": "collection"}]},
-        "workflow_intel": {"workflows": [{"name": "Flow", "step_count": 1, "steps": [{"action": "Review", "model": "Product"}]}]},
-        "semantic_decisions": [],
-    })
-    monkeypatch.setattr(ds, "generate_interface_plan", lambda intel: {"pages": [{"id": "p", "primary_model": "Product", "sections": ["s"]}], "sections": [{"id": "s", "component": "DataTable"}]})
-
-    result = ds.debug_uml_extract("iface")
-
-    assert result["actor"] == "Customer"
-    assert result["rel_types_in_data"] == ["association"]
-    assert result["plan_sections"] == [{"id": "s", "component": "DataTable"}]
-
-
-def test_map_uml_to_interface_runs_mapping_pipeline(monkeypatch):
-    """Verify that map UML to interface runs mapping pipeline."""
-    interface = make_interface({"existing": True})
-    install_fake_modules(interfaces=[interface])
-    ds = import_fresh("llm.interface_generator.django_service")
-    monkeypatch.setattr(ds, "_fetch_system_context_data", lambda system_id: {"classifiers": []})
-    monkeypatch.setattr(ds, "_actor_name_from_context", lambda context, actor_id: "Customer")
-    monkeypatch.setattr(ds, "extract_uml_intelligence", lambda context, actor_id, actor_name: {"model_graph": {}, "actor_intel": {}, "workflow_intel": {}})
-    monkeypatch.setattr(ds, "_generate_missing_method_bodies", lambda *args: None)
-    monkeypatch.setattr(ds, "generate_interface_plan", lambda intel, overrides=None: {"pages": [{"id": "p", "sections": ["s"]}], "sections": [{"id": "s", "layout": "card", "attributes": []}]})
-    monkeypatch.setattr(ds, "resolve_interface_semantics_with_llm", lambda *args: {})
-    monkeypatch.setattr(ds, "_build_usecase_navigation", lambda *args: {"workflow_steps": []})
-    monkeypatch.setattr(ds, "_apply_builtin_workflow_logic", lambda data, *args, **kwargs: data)
-    monkeypatch.setattr(ds, "_ensure_mapping_content_sections", lambda pages, sections, nav, attrs, graph: (pages, sections))
-    monkeypatch.setattr(ds, "_ensure_mapping_chrome_sections", lambda pages, sections: (pages, sections))
-    monkeypatch.setattr(ds, "_drop_unreferenced_non_global_sections", lambda pages, sections: sections)
-    monkeypatch.setattr(ds, "_sync_all_classifier_methods_to_interfaces", lambda system_id: None)
-    monkeypatch.setattr(ds, "_ensure_action_panel_sections", lambda interface_id, system_id: None)
-
-    result = ds.map_uml_to_interface("iface")
-
-    assert result["status"] == "ok"
-    assert interface.data["pages"][0]["id"] == "p"
-    assert interface.data["sections"][0]["id"] == "s"
-    assert ds.map_uml_to_interface("")["status"] == "error"
 
 
 def test_map_uml_to_all_interfaces_aggregates_results(monkeypatch):

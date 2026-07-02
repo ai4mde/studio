@@ -54,72 +54,47 @@ const sectionRefId = (ref: any) => typeof ref === 'string' ? ref : ref?.value;
 
 const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     table:   ['color', 'density', 'shadow', 'border', 'bg', 'header_style'],
-    card:    ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
-    list:    ['list_style', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'availability_label', 'delivery_label'],
+    card:    ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    list:    ['list_style', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     detail:  ['image_position', 'image_size', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     gallery: ['columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     filter:  ['color', 'density', 'bg'],
-    form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'cta_label', 'success_page'],
-    activity_action: ['activity_label', 'activity_workflow_action', 'activity_target_page', 'activity_variant', 'activity_align', 'activity_size'],
+    form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'success_page'],
+    activity_action: ['activity_label', 'activity_target_page', 'activity_variant', 'activity_align', 'activity_size'],
 };
 
 const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
-    NavBar: ['methods', 'nav_height', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
-    Logo: ['text', 'logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
-    BrandLockup: ['text', 'logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
-    ImageLogo: ['text', 'logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
-    IconActions: ['methods', 'action_variant', 'show_logout', 'logout_label', 'density'],
-    SearchBar: ['text', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
-    SiteFooter: ['text', 'methods', 'density', 'bg', 'shadow'],
-    FooterLinkGrid: ['methods', 'density', 'bg'],
-    ProductCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
-    CategoryTileGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    PersonCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    CardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    ObjectCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    ImageCard: ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    ImageCardGrid: ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    NavBar: ['nav_height', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
+    Logo: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
+    BrandLockup: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
+    ImageLogo: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
+    IconActions: ['action_variant', 'show_logout', 'logout_label', 'density'],
+    SearchBar: ['density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
+    SiteFooter: ['density', 'bg', 'shadow'],
+    FooterLinkGrid: ['density', 'bg'],
+    ProductCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    CategoryTileGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    PersonCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    CardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    ObjectCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    ImageCard: ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    ImageCardGrid: ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style'],
     DataTable: ['density', 'shadow', 'border', 'bg', 'header_style'],
-    ObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    LineItemList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    RelatedObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    LineItemList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    RelatedObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style'],
     ProductDetailPanel: ['image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
     MediaDetailPanel: ['image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
     ObjectDetailPanel: ['density', 'shadow', 'border', 'bg', 'header_style'],
     DetailPanel: ['density', 'shadow', 'border', 'bg', 'header_style'],
     SummaryPanel: ['density', 'shadow', 'border', 'bg', 'header_style', 'sidebar_side', 'sidebar_width'],
-    ObjectForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
-    AddressForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
-    PaymentMethodForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
-    ReviewForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
+    ObjectForm: ['form_style', 'density', 'bg', 'success_page'],
+    AddressForm: ['form_style', 'density', 'bg', 'success_page'],
+    PaymentMethodForm: ['form_style', 'density', 'bg', 'success_page'],
+    ReviewForm: ['form_style', 'density', 'bg', 'success_page'],
     FilterPanel: ['density', 'bg', 'sidebar_side', 'sidebar_width'],
 };
 
-const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
-    'promo-bar':      'Each line = promo strip item (e.g. "Gratis verzending vanaf €25,-"). Text field = right-side CTA label.',
-    'logo':           'Text field = brand name. Logo URL/tagline/size/shape are editable below.',
-    'search-bar':     'Text field = search input placeholder.',
-    'icon-actions':   'Each line = action label (e.g. "Inloggen", "♡", "Cart icon").',
-    'nav-links':      'Line 1 = categories label. Lines 2–4 = extra nav links. Lines 5+ = top-right links.',
-    'main-header':    'Text field = search placeholder.',
-    'minimal-header': 'Text field = cart amount in header button (e.g. "0,00").',
-    'commerce-header': 'Full commerce header with promo/search/actions/nav treatment.',
-    'dashboard-header': 'Dense app dashboard header with workspace navigation.',
-    'split-header': 'Dark split header with compact brand/search/action treatment.',
-    'app-header': 'Application-style top bar for operational tools.',
-    'compact-header': 'Compact one-row header for focused workflows.',
-    'mega-header': 'Large navigation-heavy header for multi-page apps.',
-    'service-bar':    'Each line = a service bar link in the footer.',
-    'link-grid':      'Line 1 = column title. Lines 2+ = footer links in that column.',
-    'brand-strip':    'Each line = a brand name shown in the brand strip.',
-    'compact-footer': 'Small legal/status footer.',
-    'legal-footer': 'Legal links and copyright-style footer.',
-    'newsletter-footer': 'Footer with subscribe/CTA emphasis.',
-    'social-footer': 'Footer with brand/social/action links.',
-    'mega-footer': 'Large multi-column footer.',
-    'site-nav':       'Lines 1–3: promo strip items. Line 4: right-side highlight text.',
-    'site-footer':    'Each line becomes a service-bar link in the footer.',
-};
 
 const PROMPT_GUIDE_EXAMPLES = [
     {
@@ -230,7 +205,6 @@ const LAYOUT_GROUPS: LayoutGroup[] = [
         { value: 'activity_action', label: 'Activity Button', icon: <Code2 size={13} /> },
     ]},
     { label: 'Header', options: [
-        { value: 'promo-bar',      label: 'Promo Bar',    icon: <Monitor size={13} /> },
         { value: 'logo',           label: 'Logo',         icon: <Monitor size={13} /> },
         { value: 'search-bar',     label: 'Search Bar',   icon: <Monitor size={13} /> },
         { value: 'icon-actions',   label: 'Icon Actions', icon: <Monitor size={13} /> },
@@ -238,23 +212,12 @@ const LAYOUT_GROUPS: LayoutGroup[] = [
         { value: 'main-header',    label: 'Main Header',  icon: <Monitor size={13} /> },
         { value: 'minimal-header', label: 'Min. Header',  icon: <Monitor size={13} /> },
         { value: 'commerce-header', label: 'Commerce',    icon: <Monitor size={13} /> },
-        { value: 'dashboard-header', label: 'Dashboard',  icon: <Monitor size={13} /> },
-        { value: 'split-header',    label: 'Split',       icon: <Monitor size={13} /> },
-        { value: 'app-header',      label: 'App Header',  icon: <Monitor size={13} /> },
         { value: 'compact-header',  label: 'Compact',     icon: <Monitor size={13} /> },
-        { value: 'mega-header',     label: 'Mega Header', icon: <Monitor size={13} /> },
     ]},
     { label: 'Footer', options: [
-        { value: 'service-bar', label: 'Service Bar', icon: <Monitor size={13} /> },
         { value: 'link-grid',   label: 'Link Grid',   icon: <Monitor size={13} /> },
         { value: 'brand-strip', label: 'Brand Strip', icon: <Monitor size={13} /> },
-        { value: 'compact-footer', label: 'Compact', icon: <Monitor size={13} /> },
-        { value: 'legal-footer', label: 'Legal', icon: <Monitor size={13} /> },
-        { value: 'newsletter-footer', label: 'Newsletter', icon: <Monitor size={13} /> },
-        { value: 'social-footer', label: 'Social', icon: <Monitor size={13} /> },
-        { value: 'mega-footer', label: 'Mega Footer', icon: <Monitor size={13} /> },
-        { value: 'site-nav',    label: 'Site Nav',    icon: <Monitor size={13} /> },
-        { value: 'site-footer', label: 'Site Footer', icon: <Monitor size={13} /> },
+        { value: 'compact-footer', label: 'Compact',  icon: <Monitor size={13} /> },
     ]},
 ];
 
@@ -566,17 +529,6 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
         .split('-')
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
-    const methods = layout === 'logo' || layout === 'search-bar' || layout === 'minimal-header'
-        ? []
-        : [{ name: layout === 'link-grid' ? 'Customer service' : 'Contact' }];
-    let text = '';
-    if (layout === 'logo') {
-        text = 'Brand';
-    } else if (layout === 'search-bar') {
-        text = 'Search products';
-    } else if (layout === 'minimal-header') {
-        text = '0,00';
-    }
     return {
         id: `${position}-${layout}-${Date.now()}`,
         name: label,
@@ -585,8 +537,6 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
         class: '',
         operations: { create: false, update: false, delete: false },
         attributes: [],
-        methods,
-        text,
         col_span: 12,
         position,
         style: {},
@@ -1881,7 +1831,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         || isMethodOnly
         || isChromeSection
         || (!isChromeSection && ['chrome', 'control', 'activity_action'].includes(String(sectionKind)));
-    const showComponentSelector = componentOptions.length > 1 && !isChromeOrControlSection;
     const showFieldComposer = !!selectedSection && !isChromeOrControlSection && !!selectedPrimaryModel;
     const fieldLayout = selectedSection?.field_layout && typeof selectedSection.field_layout === 'object'
         ? selectedSection.field_layout
@@ -2030,7 +1979,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     });
     const componentControls = COMPONENT_CONTROLS[secComponent];
     const baseLayoutControls = CHROME_LAYOUT_SET.has(secLayout)
-        ? ['text', 'methods', ...(['nav-links', 'site-nav'].includes(secLayout) ? ['nav_height'] : []), 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width']
+        ? [...(['nav-links', 'site-nav'].includes(secLayout) ? ['nav_height'] : []), 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width']
         : (LAYOUT_CONTROLS[secLayout] ?? []);
     const layoutControls = new Set(Array.from(new Set([...(baseLayoutControls || []), ...(componentControls || [])]))
         .filter((control) => (control !== 'image_position' && control !== 'image_size') || hasMediaAttr || secComponent.toLowerCase().includes('media') || secComponent.toLowerCase().includes('productdetail')));
@@ -2041,11 +1990,15 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     if (isChromeLike && !hasDataShape) {
         baseLayoutGroupsForSelected = LAYOUT_GROUPS.filter(group => group.label === 'Header' || group.label === 'Footer');
     } else if (hasDataShape) {
+        const hasFormOp = !!(selectedSection?.operations?.create || selectedSection?.operations?.update);
         baseLayoutGroupsForSelected = LAYOUT_GROUPS
             .filter(group => group.label === 'Generic')
             .map(group => ({
                 ...group,
-                options: group.options.filter(opt => opt.value !== 'activity_action'),
+                options: group.options.filter(opt =>
+                    opt.value !== 'activity_action' &&
+                    (opt.value !== 'form' || hasFormOp)
+                ),
             }));
     }
     const layoutGroupsForSelected = baseLayoutGroupsForSelected.filter(group => group.options.length > 0);
@@ -2081,7 +2034,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const pageFooterWidth = currentPage?.layout?.footer_width || 'contained';
     const pageSidebarBg: BgOption | 'transparent' = currentPage?.layout?.sidebar_bg || 'transparent';
     const pageSidebarShadow: ShadowOption = currentPage?.layout?.sidebar_shadow || 'none';
-    const pageGap = currentPage?.gap?.value || 'normal';
+    const pageGap = (typeof currentPage?.gap === 'string' ? currentPage.gap : currentPage?.gap?.value) || 'normal';
 
     const btnBase: React.CSSProperties = {
         display: 'flex', alignItems: 'center', gap: 4,
@@ -2616,7 +2569,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     { label: 'Spacious', value: 'spacious' },
                                 ].map(opt => (
                                     <button key={opt.value} style={{ ...btnBase, ...active(pageGap === opt.value), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updatePageProperty(previewPageIndex, 'gap', opt)}>
+                                        onClick={() => updatePageProperty(previewPageIndex, 'gap', opt.value)}>
                                         {opt.label}
                                     </button>
                                 ))}
@@ -3231,20 +3184,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             </>
                             )}
 
-                            {showComponentSelector && (
-                            <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#fff' }}>
-                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Component</p>
-                                <select
-                                    value={secComponent}
-                                    onChange={(e) => updateSection(selectedSection.id, 'component', e.target.value)}
-                                    style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
-                                >
-                                    {componentOptions.map((component) => (
-                                        <option key={component} value={component}>{component}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            )}
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Layout</p>
                             {isActivityAction && (
@@ -3593,69 +3532,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
                             /></>)}
 
-                            {hasControl('cta_label') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CTA Button Label</p>
-                            <input type="text" placeholder="e.g. In winkelwagen"
-                                value={secStyle.cta_label ?? ''}
-                                onChange={e => updateSection(selectedSection.id, 'cta_label', e.target.value)}
-                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                            /></>)}
-
-                            {hasControl('success_page') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>After Submit → Go to Page</p>
-                            <input type="text" placeholder="e.g. view_cart"
-                                value={secStyle.success_page ?? ''}
-                                onChange={e => updateSection(selectedSection.id, 'success_page', e.target.value)}
-                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                            /></>)}
-
-                            {hasControl('seller_label') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seller Label</p>
-                            <input type="text" placeholder="e.g. Verkoop door bol"
-                                value={secStyle.seller_label ?? ''}
-                                onChange={e => updateSection(selectedSection.id, 'seller_label', e.target.value)}
-                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                            /></>)}
-
-                            {hasControl('availability_label') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Availability Label</p>
-                            <input type="text" placeholder="e.g. Op voorraad"
-                                value={secStyle.availability_label ?? ''}
-                                onChange={e => updateSection(selectedSection.id, 'availability_label', e.target.value)}
-                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                            /></>)}
-
-                            {hasControl('delivery_label') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Delivery Label</p>
-                            <input type="text" placeholder="e.g. ✓ Morgen in huis"
-                                value={secStyle.delivery_label ?? ''}
-                                onChange={e => updateSection(selectedSection.id, 'delivery_label', e.target.value)}
-                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                            /></>)}
-
-                            {hasControl('login_label') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Login Button Label</p>
-                            <input type="text" placeholder="e.g. Inloggen"
-                                value={secStyle.login_label ?? ''}
-                                onChange={e => updateSection(selectedSection.id, 'login_label', e.target.value)}
-                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                            /></>)}
-
-                            {hasControl('step_icon') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Step Icon (emoji)</p>
-                            <input type="text" placeholder="e.g. 📦 🏠 💳"
-                                value={secStyle.step_icon ?? ''}
-                                onChange={e => updateSection(selectedSection.id, 'step_icon', e.target.value)}
-                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                            /></>)}
-
-                            {hasControl('total_label') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Label</p>
-                            <input type="text" placeholder="e.g. Nog te betalen:"
-                                value={secStyle.total_label ?? ''}
-                                onChange={e => updateSection(selectedSection.id, 'total_label', e.target.value)}
-                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                            /></>)}
 
                             {hasControl('activity_label') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activity Button Label</p>
@@ -3665,14 +3541,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
                             /></>)}
 
-                            {hasControl('activity_workflow_action') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Workflow Action</p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-                                {(['complete','navigate','complete_then_page'] as const).map(v => (
-                                    <button key={v} style={{ ...btnBase, ...active((selectedSection.workflow?.action || 'complete') === v), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'workflow_action', v)}>{v}</button>
-                                ))}
-                            </div></>)}
 
                             {hasControl('activity_target_page') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Target Page</p>
@@ -3712,45 +3580,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 ))}
                             </div></>)}
 
-                            {hasControl('text') && (
-                                <>
-                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Text</p>
-                                    {METHODS_HINTS[secLayout] && (
-                                        <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>{METHODS_HINTS[secLayout]}</p>
-                                    )}
-                                    <input
-                                        type="text"
-                                        placeholder="Brand name, search placeholder, footer note..."
-                                        value={selectedSection.text ?? ''}
-                                        onChange={e => updateSection(selectedSection.id, 'text', e.target.value)}
-                                        style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
-                                    />
-                                </>
-                            )}
-
-                            {hasControl('methods') && (
-                                <>
-                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Section Actions (one per line)</p>
-                                    <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>Rendered once for the whole section, not once per record.</p>
-                                    {!hasControl('text') && METHODS_HINTS[secLayout] && (
-                                        <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>{METHODS_HINTS[secLayout]}</p>
-                                    )}
-                                    <textarea
-                                        rows={4}
-                                        placeholder="Gratis verzending vanaf €25,-&#10;Bezorging zelfde dag*&#10;Gratis retourneren"
-                                        value={(selectedSection.methods || []).map((m: any) =>
-                                            typeof m === 'string' ? m : (m?.name || m?.label || '')
-                                        ).join('\n')}
-                                        onChange={e => {
-                                            const lines = e.target.value.split('\n').map((l: string) => ({ name: l }));
-                                            setSections((prev: any[]) => prev.map((s: any) =>
-                                                s.id === selectedSection.id ? { ...s, methods: lines } : s
-                                            ));
-                                        }}
-                                        style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, resize: 'vertical', boxSizing: 'border-box' }}
-                                    />
-                                </>
-                            )}
                         </>
                     )}
                 </div>
@@ -3974,19 +3803,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             {isSyncingLive ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
                             {syncButtonLabel}
                         </button>
-                        <button onClick={handleVisualCheck} disabled={isVisualChecking || !interfaceId}
-                            title={visualCheckSummary || 'Compare current design schema against the live prototype'}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
-                                cursor: isVisualChecking ? 'default' : 'pointer',
-                                border: `1px solid ${visualCheckTone.border}`,
-                                background: visualCheckTone.background,
-                                color: visualCheckTone.color,
-                                opacity: isVisualChecking ? 0.6 : 1,
-                            }}>
-                            {isVisualChecking ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Monitor size={12} />}
-                            {visualCheckButtonLabel}
-                        </button>
                         <button onClick={handleViewGeneratorMetadata} disabled={!interfaceId || !systemId || isLoadingMetadata}
                             title="View metadata sent to the prototype generator"
                             style={{
@@ -3996,43 +3812,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 opacity: !interfaceId || !systemId || isLoadingMetadata ? 0.55 : 1,
                             }}>
                             {isLoadingMetadata ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Code2 size={13} />}
-                        </button>
-                        <button
-                            onClick={() => {
-                                const actor = systemClassifiers.find(
-                                    (cls: any) => String(cls?.id) === String(currentInterface?.actor)
-                                );
-                                const actorName = String(
-                                    actor?.data?.name || currentInterface?.name || 'Actor'
-                                );
-                                startWorkflowGuidance({
-                                    allPages: pages as any[],
-                                    allSections: sections as any[],
-                                    actorName,
-                                    switchToLive: () => {
-                                        setPreviewMode('live');
-                                        setLiveKey((k: number) => k + 1);
-                                    },
-                                    navigateToPage: (idx) => {
-                                        setPreviewPageIndex(idx);
-                                        setSelectedSectionId(null);
-                                        setLiveKey((k: number) => k + 1);
-                                    },
-                                    switchActor: (username) => {
-                                        setLiveUser(username);
-                                        setLiveKey((k: number) => k + 1);
-                                    },
-                                });
-                            }}
-                            title="Test workflow step-by-step"
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: 4,
-                                padding: '3px 8px', borderRadius: 6, fontSize: 12,
-                                border: '1px solid #a7f3d0', background: '#ecfdf5',
-                                color: '#065f46', cursor: 'pointer',
-                            }}>
-                            <PlayCircle size={13} />
-                            Test Workflow
                         </button>
                         <button
                             onClick={() => startInterfaceTour({ switchToExplore: () => setDesignMode('explore'), switchToRefine: () => setDesignMode('refine') })}

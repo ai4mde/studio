@@ -1144,6 +1144,8 @@ def validate_and_save_candidate(
         return f"Error saving candidate: Interface {interface_id} not found."
     except Exception as e:
         return f"Error saving candidate: {e}"
+
+        
 def get_candidate_regeneration_context(interface_id: str, candidate_index: int, designer_requirements: str = "") -> str:
     """Return the selected candidate as the baseline for human-guided regeneration."""
     try:

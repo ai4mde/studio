@@ -1241,7 +1241,7 @@ href="#"
 {%- if _component == 'RelatedObjectList' %}{%- set _lstyle = 'related' %}{%- endif %}
 {%- if _component == 'DataTable' and eff_lay == 'gallery' %}{%- set _glay = 'table' %}{%- endif %}
 {%- if _component in ('ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm') %}{%- set _glay = 'form' %}{%- endif %}
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ lay }}" data-col-span="{{ section_component.col_span or 12 }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}" data-sidebar-width="{{ _s.get('sidebar_width', '') }}" data-nav-height="{{ _s.get('nav_height', _s.get('density', 'normal')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}{% if not _is_chrome_layout and _bg_key != 'white' and _sec_bg %} {{ _sec_bg }}{% endif %}{% if not _is_chrome_layout and _sec_sh %} {{ _sec_sh }}{% endif %}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ lay }}" data-col-span="{{ section_component.col_span or 12 }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}" data-sidebar-width="{{ _s.get('sidebar_width', '') }}" data-nav-height="{{ _s.get('nav_height', _s.get('density', 'normal')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
   {% include "helpers/unified_page_field_styles.html.jinja2" %}
 
   {% if page.type != 'activity' and not _hs_hide and _glay not in ('form', 'filter') and not _is_chrome_layout %}
@@ -3147,6 +3147,24 @@ href="#"
 {%- else %}
   {# Default / auth form: render attribute inputs #}
   <div class="{{ cs }} {{ r }} {{ d.p }}">
+    {%- if section_component.has_create_operation and list_var_name %}
+    {% raw %}{%{% endraw %} if {{ list_var_name }} {% raw %}%}{% endraw %}
+    <div class="mb-4 divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+      {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
+      <div class="flex items-center justify-between px-4 py-2.5 bg-white hover:bg-gray-50">
+        <span class="text-sm text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }} {% raw %}}}{% endraw %}</span>
+        {%- if section_component.has_delete_operation %}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="inline">
+          {% raw %}{% csrf_token %}{% endraw %}
+          <button type="submit" class="text-xs text-red-400 hover:text-red-600">Remove</button>
+        </form>
+        {%- endif %}
+      </div>
+      {% raw %}{% empty %}{% endraw %}
+      {% raw %}{% endfor %}{% endraw %}
+    </div>
+    {% raw %}{% endif %}{% endraw %}
+    {%- endif %}
     {%- if section_component.has_create_operation %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
