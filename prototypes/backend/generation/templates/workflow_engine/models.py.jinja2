@@ -1,5 +1,0 @@
-{% for model in models %}
-    @property
-    def {{ model.lower() }}s(self) -> QuerySet["{{ model }}"]:
-        return self._associated_queryset({{ model }})
-{% endfor %}
