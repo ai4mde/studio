@@ -1,5 +1,4 @@
 import { authAxios, useAuthStore } from '$auth/state/auth';
-import { trackEvent } from '$lib/features/analytics/trackEvent';
 import { Button, Modal, ModalClose, ModalDialog, Typography } from '@mui/joy';
 import { AlignJustify, Code2, Database, GalleryHorizontal, GripVertical, HelpCircle, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, PlayCircle, Plus, RefreshCw, Table2, User, Wand2 } from 'lucide-react';
 import { startInterfaceTour } from './useInterfaceTour';
@@ -996,9 +995,6 @@ export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceI
         }
     }, []);
 
-    useEffect(() => {
-        trackEvent('session_start', { interface_id: interfaceId, system_id: systemId });
-    }, [interfaceId]);
 
     const dismissTourBanner = () => {
         localStorage.setItem(TOUR_SEEN_KEY, '1');
@@ -1648,7 +1644,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         const prompt = explorePrompt;
         setIsGeneratingCandidates(true);
         setCandidateStatus('Connecting to agent...');
-        trackEvent('candidates_generated', { prompt, interface_id: interfaceId, system_id: systemId });
         setCandidates([]);
         setPreviewCandidateIdx(null);
         try {
@@ -1677,7 +1672,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         const designer_requirements = explorePrompt;
         setIsGeneratingCandidates(true);
         setCandidateStatus(`Regenerating 3 candidates from Candidate ${idx + 1}...`);
-        trackEvent('candidates_regenerated', { from_candidate_index: idx, prompt: designer_requirements, interface_id: interfaceId, system_id: systemId });
         setCandidates([]);
         setPreviewCandidateIdx(null);
         try {
@@ -1715,7 +1709,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             if (d?.tokens && Object.keys(d.tokens).length) setTokens(normalizeDesignTokens(d.tokens, d.styling));
             setDesignMode('refine');
             setPreviewCandidateIdx(null);
-            trackEvent('candidate_selected', { candidate_index: idx, interface_id: interfaceId });
         } catch { /* ignore */ }
     }, [interfaceId, applyVariantDSL, setStyling, setTokens]);
 
@@ -1751,8 +1744,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         setCurrentPrompt('');
         setIsLoadingAgent(true);
         setAgentStatus('Initiating...');
-        trackEvent('refinement_submitted', { prompt, interface_id: interfaceId });
-
         try {
             const bearerToken = useAuthStore.getState().bearerToken;
             const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
@@ -2387,7 +2378,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             <div style={{ display: 'flex', gap: 6 }}>
                                                 <button
                                                     onClick={() => {
-                                                        if (!isExpanded) trackEvent('candidate_previewed', { candidate_index: idx, interface_id: interfaceId });
                                                         setPreviewCandidateIdx(isExpanded ? null : idx);
                                                     }}
                                                     style={{
