@@ -1,0 +1,322 @@
+import re
+from urllib.parse import urlencode, urlparse
+
+from django.apps import apps
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
+from django.http import HttpResponse, HttpResponseForbidden
+
+from workflow_engine.models import ActionLog, ActiveProcess, ActiveProcessNode, Process
+from shared_models.models import User
+from shared_models.views import GenericView, GenericTemplateView, GenericUpdateView
+
+
+def _user_roles(request):
+    roles = getattr(getattr(request, "user", None), "roles", []) or []
+    if isinstance(roles, str):
+        return [roles]
+    return list(roles)
+
+
+def _user_home_url(request):
+    roles = _user_roles(request)
+    return f"/{roles[0]}" if roles else "/"
+
+
+def _active_node_url(active_process_node):
+    return f"{active_process_node.action_node.url.rstrip('/')}/{active_process_node.id}"
+
+
+def _actor_from_url(target_url):
+    path = urlparse(target_url).path or str(target_url or "")
+    return path.strip("/").split("/", 1)[0]
+
+
+def _success_url(request, next_url=None, next_actor=None):
+    params = {"workflow_success": "1"}
+    if next_url:
+        params["workflow_next"] = next_url
+    if next_actor:
+        params["workflow_next_actor"] = next_actor
+        params["workflow_next_login"] = f"/autologin?{urlencode({'as': next_actor, 'next': next_url or f'/{next_actor}/'})}"
+    return f"{_user_home_url(request)}?{urlencode(params)}"
+
+
+def _redirect_home_success(request, next_url=None, next_actor=None):
+    return redirect(_success_url(request, next_url, next_actor))
+
+
+def _redirect_success_for_node(request, active_process_node):
+    if active_process_node:
+        return _redirect_home_success(
+            request,
+            _active_node_url(active_process_node),
+            active_process_node.action_node.actor,
+        )
+    return _redirect_home_success(request)
+
+
+def _associate_posted_instances(request, active_process):
+    if not active_process:
+        return
+    for key, value in request.POST.items():
+        if not key.startswith("instance_id_") or not value:
+            continue
+        model_name = key.removeprefix("instance_id_")
+        try:
+            model = apps.get_model("shared_models", model_name)
+        except LookupError:
+            continue
+        instance = model.objects.filter(pk=value).first()
+        if instance:
+            active_process.add_associated_instance(instance)
+
+
+def _user_can_visit_url(request, target_url):
+    if not target_url:
+        return False
+    roles = {str(role).strip() for role in _user_roles(request)}
+    if not roles:
+        return True
+    path = urlparse(target_url).path or str(target_url)
+    first_segment = path.strip("/").split("/", 1)[0]
+    return not first_segment or first_segment in roles
+
+
+def _user_can_continue_to_node(request, active_process_node):
+    if not active_process_node:
+        return False
+    user = getattr(request, "user", None)
+    if getattr(active_process_node, "user_id", None) and user and active_process_node.user_id == user.id:
+        return True
+    return active_process_node.action_node.actor in _user_roles(request)
+
+
+def _find_active_node_for_url(active_process, target_url, user=None):
+    if not target_url:
+        return None
+    normalized_target = target_url.rstrip("/")
+    candidates = ActiveProcessNode.objects.filter(
+        active_process=active_process,
+        action_node__url__isnull=False,
+    ).select_related("action_node", "user")
+    candidate_sets = [candidates.filter(user=user), candidates] if user else [candidates]
+    for candidate_set in candidate_sets:
+        for node in candidate_set:
+            if (node.action_node.url or "").rstrip("/") == normalized_target:
+                return node
+    return None
+
+
+def _redirect_to_active_node(active_process_node):
+    return redirect(_active_node_url(active_process_node))
+
+
+def _redirect_to_active_node_or_success(request, active_process_node):
+    if _user_can_continue_to_node(request, active_process_node):
+        return _redirect_to_active_node(active_process_node)
+    return _redirect_success_for_node(request, active_process_node)
+
+
+def _find_current_active_node(request):
+    candidates = ActiveProcessNode.objects.filter(
+        active_process__completed=False,
+        action_node__url__isnull=False,
+    ).select_related("action_node", "user")
+    referer_path = urlparse(request.META.get("HTTP_REFERER", "")).path
+    current_url = re.sub(r"/\d+/?$", "", referer_path).rstrip("/") if referer_path else ""
+    if current_url and getattr(request, "user", None) and request.user.is_authenticated:
+        logged_process_ids = ActionLog.objects.filter(
+            user=request.user,
+            active_process__completed=False,
+            action_node__url__isnull=False,
+        ).order_by("-created_at").values_list("active_process_id", "action_node__url")
+        for process_id, logged_url in logged_process_ids:
+            if (logged_url or "").rstrip("/") != current_url:
+                continue
+            node = candidates.filter(active_process_id=process_id, user=request.user).first()
+            if node is None:
+                node = candidates.filter(active_process_id=process_id).first()
+            if node:
+                return node
+    if getattr(request, "user", None) and request.user.is_authenticated:
+        node = candidates.filter(user=request.user).first()
+        if node:
+            return node
+    return candidates.first()
+
+
+class StartProcessView(GenericView):
+    {% if authentication_present -%}
+    required_roles = None
+    {% endif %}
+    def post(self, request, process_id, *args, **kwargs):
+        process = get_object_or_404(Process, id=process_id)
+        initial_node = process.start_process(request.user)
+        active_process_node = ActiveProcessNode.objects.filter(
+            active_process=initial_node.active_process
+        ).select_related("action_node").first()
+        if not active_process_node:
+            return _redirect_home_success(request)
+        return _redirect_to_active_node_or_success(request, active_process_node)
+
+
+class RedirectToProcessView(GenericView):
+    {% if authentication_present -%}
+    required_roles = None
+    {% endif %}
+    def post(self, request, active_process_node_id, *args, **kwargs):
+        active_process_node = ActiveProcessNode.objects.filter(id=active_process_node_id).select_related("action_node").first()
+        if not active_process_node:
+            replacement = _find_current_active_node(request)
+            if replacement:
+                return _redirect_to_active_node_or_success(request, replacement)
+            return _redirect_home_success(request)
+        return _redirect_to_active_node_or_success(request, active_process_node)
+
+
+class RedirectToProcessPageView(GenericView):
+    {% if authentication_present -%}
+    required_roles = None
+    {% endif %}
+    def get(self, request, active_process_node_id, *args, **kwargs):
+        active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        target_url = request.GET.get("target_url") or request.POST.get("target_url")
+        target_node = _find_active_node_for_url(active_process_node.active_process, target_url, request.user)
+        if target_node:
+            return _redirect_to_active_node_or_success(request, target_node)
+        if target_url:
+            if _user_can_visit_url(request, target_url):
+                return redirect(target_url)
+            return _redirect_home_success(request, target_url, _actor_from_url(target_url))
+        return _redirect_to_active_node_or_success(request, active_process_node)
+
+    def post(self, request, active_process_node_id, *args, **kwargs):
+        return self.get(request, active_process_node_id, *args, **kwargs)
+
+
+class CompleteProcessStepView(GenericView):
+    {% if authentication_present -%}
+    required_roles = None
+    {% endif %}
+    def post(self, request, active_process_node_id, *args, **kwargs):
+        active_process_node = ActiveProcessNode.objects.filter(id=active_process_node_id).select_related("action_node").first()
+        if not active_process_node:
+            replacement = _find_current_active_node(request)
+            if replacement:
+                return _redirect_to_active_node_or_success(request, replacement)
+            return _redirect_home_success(request)
+        active_process = active_process_node.active_process
+        _associate_posted_instances(request, active_process)
+        active_process_node.complete_node(request.user)
+        explicit_next_url = request.POST.get("next_url")
+        if explicit_next_url:
+            next_active_process_node = _find_active_node_for_url(active_process, explicit_next_url, request.user)
+            if next_active_process_node:
+                return _redirect_to_active_node_or_success(request, next_active_process_node)
+        explicit_next = request.POST.get("next")
+        if explicit_next:
+            if _user_can_visit_url(request, explicit_next):
+                return redirect(explicit_next)
+            return _redirect_home_success(request, explicit_next, _actor_from_url(explicit_next))
+        next_active_process_node = ActiveProcessNode.objects.filter(
+            active_process=active_process,
+            action_node__url__isnull=False,
+        ).select_related("action_node", "user").filter(user=request.user).first()
+        if next_active_process_node:
+            return _redirect_to_active_node_or_success(request, next_active_process_node)
+        next_active_process_node = ActiveProcessNode.objects.filter(
+            active_process=active_process,
+            action_node__url__isnull=False,
+        ).select_related("action_node", "user").first()
+        if next_active_process_node:
+            return _redirect_success_for_node(request, next_active_process_node)
+        return _redirect_home_success(request)
+
+
+class DeleteProcessView(GenericView):
+    {% if authentication_present -%}
+    required_roles = None
+    {% endif %}
+    def post(self, request, active_process_node_id, *args, **kwargs):
+        active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        if active_process_node.user != request.user:
+            return HttpResponseForbidden("You do not have permission to delete this process.")
+        active_process_node.active_process.completed = True
+        active_process_node.active_process.save()
+        active_process_node.delete()
+        ActionLog.objects.create(
+            status="CANCELLED",
+            action_node=active_process_node.action_node,
+            active_process=active_process_node.active_process,
+            user=request.user,
+        )
+        return redirect(f'/{request.user.roles[0]}')
+
+
+class ActionLogView(GenericTemplateView):
+    {% if authentication_present -%}
+    required_roles = [{% for name in manager_roles %}'{{ name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    {% endif %}
+    def __init__(self, template_name, **kwargs):
+        super().__init__(**kwargs)
+        self.template_name = template_name
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        action_logs = ActionLog.objects.all()
+    
+        if status_filter := self.request.GET.get("status"):
+            action_logs = action_logs.filter(status=status_filter)
+        
+        if user_filter := self.request.GET.get("user"):
+            action_logs = action_logs.filter(user__username=user_filter)
+        
+        if active_process_filter := self.request.GET.get("active_process_id"):
+            action_logs = action_logs.filter(active_process__id=active_process_filter)
+        
+        context = {
+            'action_logs': action_logs,
+            'status_choices': ActionLog.STATUS_CHOICES,
+        }
+
+        return context
+
+class ChangeUserAssignmentView(GenericTemplateView):
+    {% if authentication_present -%}
+    required_roles = [{% for name in manager_roles %}'{{ name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    {% endif %}
+
+    def __init__(self, template_name, **kwargs):
+        super().__init__(**kwargs)
+        self.template_name = template_name
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        active_process_nodes = ActiveProcessNode.objects.filter(active_process__completed=False)
+
+        if update_instance_id := self.request.GET.get("update_instance_id"):
+            update_instance = get_object_or_404(ActiveProcessNode, id=update_instance_id)
+            actor = update_instance.action_node.actor
+            possible_users = User.objects.filter(**{f"is_{actor}": True})
+            return {
+                'active_processes': active_process_nodes,
+                'update_instance': update_instance,
+                'possible_users': possible_users,
+            }
+        return {
+            'active_processes': active_process_nodes,
+        }
+
+
+class ChangeUserAssignmentUpdateView(GenericView):
+    {% if authentication_present -%}
+    required_roles = [{% for name in manager_roles %}'{{ name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    {% endif %}
+
+    def post(self, request, pk, app, *args, **kwargs):
+        active_process_node = get_object_or_404(ActiveProcessNode, pk=pk)
+        if new_user_id := request.POST.get("new_user"):
+            new_user = get_object_or_404(User, pk=new_user_id)
+            active_process_node.reassign_user(new_user)
+        return redirect(reverse(f"{app}:{app}_change_user_assignment"))

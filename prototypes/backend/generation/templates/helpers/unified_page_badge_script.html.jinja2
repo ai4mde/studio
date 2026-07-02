@@ -1,0 +1,16 @@
+<script>
+(function() {
+  var kw = {
+    success: /\b(active|approved|success|paid|completed|confirmed|verified|enabled|done|shipped)\b/i,
+    error:   /\b(rejected|failed|error|cancelled|canceled|declined|inactive|disabled|expired|denied)\b/i,
+    warning: /\b(pending|processing|draft|review|waiting|hold|queued)\b/i,
+  };
+  document.querySelectorAll('.si-badge').forEach(function(el) {
+    var t = el.textContent.trim();
+    if (kw.success.test(t))      { el.className = 'si-badge si-badge-success'; }
+    else if (kw.error.test(t))   { el.className = 'si-badge si-badge-error'; }
+    else if (kw.warning.test(t)) { el.className = 'si-badge si-badge-warning'; }
+    else                         { el.className = 'si-badge si-badge-neutral'; }
+  });
+})();
+</script>

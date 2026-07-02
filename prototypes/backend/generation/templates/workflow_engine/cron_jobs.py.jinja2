@@ -1,0 +1,14 @@
+import logging
+
+from workflow_engine.models import Process
+
+logger = logging.getLogger(__name__)
+
+{% for job in cron_jobs %}
+def start_process_{{ job.process_id }}():
+    try:
+        process = Process.objects.get(id={{ job.process_id }})
+        process.start_process(None)
+    except Exception as e:
+        logger.error(f"Failed to start cron job {{ job.process_id }}: {e}")
+{% endfor %}
