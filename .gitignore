@@ -31,3 +31,6 @@ config/cloudflared-config.local.yml
 bachelor_thesis_draft_version_v2/
 figures/
 ppt/
+
+# Local Claude Code config
+.claude/
