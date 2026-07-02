@@ -520,11 +520,12 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
         raise Exception("Failed to retrieve section components from metadata: metadata is empty")
     
     out = []
+    _seen_section_ids: set[str] = set()
     try:
         for application_component in json.loads(metadata)["interfaces"]:
             if app_name_sanitization(application_component["label"]) != application_name:
                 continue
-            
+
             if "pages" not in application_component["value"]["data"]: # no pages in interface
                 return []
 
@@ -557,12 +558,15 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                 for page_section in page_sections:
                     section = None
                     page_section_id = page_section["value"] if isinstance(page_section, dict) else str(page_section)
+                    if page_section_id in _seen_section_ids:
+                        continue
                     for application_section in application_component["value"]["data"]["sections"]:
                         if application_section["id"] == page_section_id:
                             section = application_section
-                    
+
                     if not section:
                         continue
+                    _seen_section_ids.add(page_section_id)
 
                     if section.get("type") == "activity_action" or section.get("layout") == "activity_action":
                         out.append(make_activity_action_section(
