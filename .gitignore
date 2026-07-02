@@ -34,3 +34,6 @@ ppt/
 
 # Local Claude Code config
 .claude/
+
+# Editor config
+.vscode/
