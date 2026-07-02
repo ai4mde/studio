@@ -1,6 +1,7 @@
 """UML mapping section materialization helpers."""
 
 from .navigation_planner import DATA_SECTION_ROLES
+from ..semantic_mapper.engine import _layout_from_intent_profile
 from ..section_utils import (
     _CHROME_TEMPLATE_LAYOUTS,
     _HEADER_NAV_LAYOUTS,
@@ -8,7 +9,6 @@ from ..section_utils import (
     _HEADER_TEMPLATE_LAYOUTS,
     _fallback_model_for_page,
     _infer_section_component,
-    _infer_section_layout,
     _model_field_names,
     _normalize_layout_alias,
     _normalize_section_operations,
@@ -148,6 +148,7 @@ def _ensure_mapping_content_sections(
     usecase_navigation: dict,
     model_attrs: dict,
     model_graph: dict | None = None,
+    semantic_profiles: dict | None = None,
 ) -> tuple[list, list]:
     """Materialize OOUI/data support sections once during UML mapping, not during candidate generation."""
     nav_plan = (usecase_navigation or {}).get("nav_plan") or {}
@@ -168,6 +169,7 @@ def _ensure_mapping_content_sections(
         model_attrs,
         0,
         add_missing_content=True,
+        semantic_profiles=semantic_profiles or {},
     )
     sections = _apply_nav_methods(pages, sections, usecase_navigation or {})
     pages, sections = _ensure_section_data_relationships(pages, sections, model_attrs)
@@ -516,9 +518,15 @@ def _select_preferred_model(entry: dict, known_models: set) -> str:
     return preferred[0] if preferred else ""
 
 
-def _make_pre_workflow_section(sid: str, model: str, page_id: str, page: dict, model_attrs: dict, candidate_index: int, is_select_existing: bool) -> dict:
+def _make_pre_workflow_section(sid: str, model: str, page_id: str, page: dict, model_attrs: dict, candidate_index: int, is_select_existing: bool, semantic_profiles: dict | None = None) -> dict:
     """Build a pre-workflow content section dict."""
-    layout = "list" if _is_child_collection_model(model) else _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
+    if _is_child_collection_model(model):
+        layout = "list"
+    elif semantic_profiles and (profile := semantic_profiles.get(model)):
+        layout = _layout_from_intent_profile(profile)
+    else:
+        from ..section_utils import _infer_section_layout
+        layout = _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
     style: dict = {
         "color": "accent",
         "density": "compact" if layout in {"list", "table"} else "normal",
@@ -555,6 +563,7 @@ def _ensure_pre_workflow_content_sections(
     model_attrs: dict,
     candidate_index: int = 0,
     add_missing_content: bool = True,
+    semantic_profiles: dict | None = None,
 ) -> tuple[list, list]:
     """Ensure pre workflow content sections."""
     if not add_missing_content:
@@ -595,7 +604,7 @@ def _ensure_pre_workflow_content_sections(
             suffix += 1
         page_text = f"{page_id} {page.get('name', '')} {entry.get('usecase_name', '')}".lower()
         is_select_existing = any(term in page_text for term in ("search", "select", "choose", "pick", "browse"))
-        section = _make_pre_workflow_section(sid, model, page_id, page, model_attrs, candidate_index, is_select_existing)
+        section = _make_pre_workflow_section(sid, model, page_id, page, model_attrs, candidate_index, is_select_existing, semantic_profiles=semantic_profiles)
         sections.append(section)
         section_map[sid] = section
         activity_start_refs = [ref for ref in refs if (section_map.get(_ref_id(ref)) or {}).get("layout") == "activity_start"]
