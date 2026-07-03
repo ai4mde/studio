@@ -9,7 +9,7 @@ issued via `/auth/token`, cleared via `/auth/logout`, and can be verified
 via `/auth/status`.
 """
 
-from diagram.api import diagram_router
+from diagram.api.routing import diagram_router
 from django.http import HttpResponse
 from metadata.api import metadata_router
 from prose.api import prose_router
