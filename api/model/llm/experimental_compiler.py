@@ -127,6 +127,121 @@ def _decision_label(block_id: str, block: Dict[str, Any]) -> str:
     return f"{block_id or 'decision'}?"
 
 
+def _dedupe_edges(edges: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen: set[tuple[str, str, str, str]] = set()
+    deduped: List[Dict[str, Any]] = []
+    for edge in edges:
+        signature = (
+            str(edge.get("source") or ""),
+            str(edge.get("target") or ""),
+            str(edge.get("label") or ""),
+            str(edge.get("condition") or ""),
+        )
+        if signature in seen:
+            continue
+        seen.add(signature)
+        deduped.append(edge)
+    return deduped
+
+
+def _next_node_id(nodes: List[Dict[str, Any]]) -> str:
+    max_index = 0
+    for node in nodes:
+        node_id = str(node.get("id") or "")
+        if node_id.startswith("n") and node_id[1:].isdigit():
+            max_index = max(max_index, int(node_id[1:]))
+    return f"n{max_index + 1}"
+
+
+def _incoming_edges(edges: List[Dict[str, Any]], node_id: str) -> List[Dict[str, Any]]:
+    return [edge for edge in edges if str(edge.get("target") or "") == node_id]
+
+
+def _outgoing_edges(edges: List[Dict[str, Any]], node_id: str) -> List[Dict[str, Any]]:
+    return [edge for edge in edges if str(edge.get("source") or "") == node_id]
+
+
+def _canonicalize_merge_chains(graph: Dict[str, Any]) -> Dict[str, Any]:
+    nodes = [dict(node) for node in graph.get("nodes") or []]
+    edges = [dict(edge) for edge in graph.get("edges") or []]
+
+    while True:
+        node_by_id = {str(node.get("id")): node for node in nodes}
+        changed = False
+
+        for node in list(nodes):
+            node_id = str(node.get("id") or "")
+            if str(node.get("type") or "") != "merge":
+                continue
+
+            outgoing = _outgoing_edges(edges, node_id)
+            if len(outgoing) != 1:
+                continue
+            bridge_edge = outgoing[0]
+            if str(bridge_edge.get("label") or "").strip() or str(bridge_edge.get("condition") or "").strip():
+                continue
+
+            downstream_id = str(bridge_edge.get("target") or "")
+            downstream = node_by_id.get(downstream_id)
+            if downstream is None or str(downstream.get("type") or "") != "merge":
+                continue
+
+            incoming = _incoming_edges(edges, node_id)
+            if not incoming:
+                continue
+
+            redirected: List[Dict[str, Any]] = []
+            for edge in incoming:
+                redirected_edge = dict(edge)
+                redirected_edge["target"] = downstream_id
+                redirected.append(redirected_edge)
+
+            edges = [
+                edge
+                for edge in edges
+                if str(edge.get("source") or "") != node_id and str(edge.get("target") or "") != node_id
+            ]
+            edges.extend(redirected)
+            edges = _dedupe_edges(edges)
+            nodes = [candidate for candidate in nodes if str(candidate.get("id") or "") != node_id]
+            changed = True
+            break
+
+        if changed:
+            continue
+
+        final_nodes = [node for node in nodes if str(node.get("type") or "") == "final"]
+        if len(final_nodes) == 1:
+            final_id = str(final_nodes[0].get("id") or "")
+            incoming_to_final = _incoming_edges(edges, final_id)
+            if len(incoming_to_final) > 1:
+                merge_id = _next_node_id(nodes)
+                nodes.append({"id": merge_id, "type": "merge"})
+                redirected_to_merge: List[Dict[str, Any]] = []
+                for edge in incoming_to_final:
+                    redirected_edge = dict(edge)
+                    redirected_edge["target"] = merge_id
+                    redirected_to_merge.append(redirected_edge)
+                edges = [
+                    edge
+                    for edge in edges
+                    if str(edge.get("target") or "") != final_id
+                ]
+                edges.extend(redirected_to_merge)
+                edges.append({"source": merge_id, "target": final_id, "type": "control"})
+                edges = _dedupe_edges(edges)
+                changed = True
+
+        if not changed:
+            break
+
+    canonical_graph = {
+        "nodes": nodes,
+        "edges": edges,
+    }
+    return ActivityModel.model_validate(canonical_graph).model_dump(exclude_none=True)
+
+
 def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     if not sketch:
         builder = _GraphBuilder()
@@ -384,7 +499,7 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         else:
             builder.add_edge(node_id, final_id)
 
-    return builder.build()
+    return _canonicalize_merge_chains(builder.build())
 
 
 __all__ = ["compile_activity_sketch"]

@@ -573,3 +573,351 @@ def test_experimental_compiler_sweeps_uncompiled_blocks_and_preserves_all_block_
     assert "loop_back_edge_not_realized" not in alignment["issues"]
     assert "missing_merge_for_decision" not in alignment["issues"]
     assert "disconnected_nodes" not in topology["issues"]
+
+
+def test_experimental_compiler_collapses_redundant_terminal_merge_chain() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review deployment request"},
+                {"step_id": "S2", "action": "complete deployment process"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review deployment request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "cancel deployment request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "complete deployment process",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "approve deployment request",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": "scope_T1_approved",
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "needs_review",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "review compliance"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["T3"],
+                        },
+                        {
+                            "label": "no_review",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "deploy application"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "complete deployment process",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "additional compliance required",
+                },
+                {
+                    "block_id": "T3",
+                    "type": "decision",
+                    "entry_after": "review compliance",
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "send confirmation notification"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject deployment request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "complete deployment process",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "compliance approved",
+                },
+            ],
+        }
+    )
+
+    merge_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "merge"]
+    final_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "final"]
+    assert len(final_nodes) == 1
+    assert len(merge_nodes) == 1
+    final_incoming = [
+        edge for edge in graph["edges"]
+        if edge["target"] == final_nodes[0]["id"] and edge["type"] == "control"
+    ]
+    assert len(final_incoming) == 1
+    assert final_incoming[0]["source"] == merge_nodes[0]["id"]
+
+
+def test_experimental_compiler_preserves_merges_separated_by_intervening_actions() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "archive request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {"label": "approved", "returns_to_main_flow": True, "steps": [{"action": "issue order"}], "next_block_id": None, "child_block_ids": []},
+                        {"label": "rejected", "returns_to_main_flow": False, "steps": [{"action": "send rejection"}], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "archive request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request approved",
+                },
+                {
+                    "block_id": "B2",
+                    "type": "decision",
+                    "entry_after_step_id": "S2",
+                    "entry_after": "archive request",
+                    "branches": [
+                        {"label": "notify", "returns_to_main_flow": True, "steps": [{"action": "notify customer"}], "next_block_id": None, "child_block_ids": []},
+                        {"label": "skip", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "notification required",
+                },
+            ],
+        }
+    )
+
+    merge_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "merge"]
+    assert len(merge_nodes) == 2
+
+
+def test_experimental_compiler_preserves_retry_loop_back_edges_after_merge_canonicalization() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "submit request"},
+                {"step_id": "S2", "action": "review deployment request"},
+                {"step_id": "S3", "action": "complete deployment process"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "parallel",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "submit request",
+                    "branches": [
+                        {
+                            "label": "infrastructure",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1A", "action": "provision servers"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "security",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1B", "action": "validate security policies"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["T3"],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "review deployment request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "deployment tracks",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "submit request",
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1C", "action": "retry server provisioning"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "success",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "review deployment request",
+                    "loop_back_to_step_id": "S1A",
+                    "loop_back_to": "provision servers",
+                    "notes": None,
+                },
+                {
+                    "block_id": "T3",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "submit request",
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1D", "action": "update security policies"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "success",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "review deployment request",
+                    "loop_back_to_step_id": "S1B",
+                    "loop_back_to": "validate security policies",
+                    "notes": "repeat validation until requirements are satisfied",
+                },
+                {
+                    "block_id": "T4",
+                    "type": "decision",
+                    "entry_after_step_id": "S2",
+                    "entry_after": "review deployment request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["T5"],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S2A", "action": "cancel deployment request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S3",
+                    "exit_to": "complete deployment process",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "approve or reject deployment request",
+                },
+                {
+                    "block_id": "T5",
+                    "type": "decision",
+                    "entry_after_step_id": "S2",
+                    "entry_after": "review deployment request",
+                    "branches": [
+                        {
+                            "label": "needs_review",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S2B", "action": "compliance officer reviews request"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["T6"],
+                        },
+                        {
+                            "label": "no_review",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S2C", "action": "deploy application"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S3",
+                    "exit_to": "complete deployment process",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "determine if additional compliance approval is required",
+                },
+                {
+                    "block_id": "T6",
+                    "type": "decision",
+                    "entry_after_step_id": "S2",
+                    "entry_after": "review deployment request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S2D", "action": "deploy application"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S2E", "action": "reject deployment request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S3",
+                    "exit_to": "complete deployment process",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "compliance officer approval decision",
+                },
+            ],
+        }
+    )
+
+    node_names = {node["id"]: node.get("name") for node in graph["nodes"]}
+    loop_edges = [
+        edge
+        for edge in graph["edges"]
+        if node_names.get(edge["source"]) == "update security policies"
+        and node_names.get(edge["target"]) == "validate security policies"
+    ]
+
+    assert loop_edges
