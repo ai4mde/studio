@@ -60,18 +60,18 @@ const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     gallery: ['columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     filter:  ['color', 'density', 'bg'],
     form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'success_page'],
-    activity_action: ['activity_label', 'activity_target_page', 'activity_variant', 'activity_align', 'activity_size'],
+    activity_action: ['activity_label', 'activity_target_page', 'activity_align', 'activity_size'],
 };
 
 const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
-    NavBar: ['nav_height', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
-    Logo: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
-    BrandLockup: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
-    ImageLogo: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
-    IconActions: ['action_variant', 'show_logout', 'logout_label', 'density'],
-    SearchBar: ['density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
-    SiteFooter: ['density', 'bg', 'shadow'],
-    FooterLinkGrid: ['density', 'bg'],
+    NavBar: ['nav_height', 'sidebar_side', 'sidebar_width'],
+    Logo: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant'],
+    BrandLockup: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant'],
+    ImageLogo: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant'],
+    IconActions: ['action_variant', 'show_logout', 'logout_label'],
+    SearchBar: ['sidebar_side', 'sidebar_width'],
+    SiteFooter: [],
+    FooterLinkGrid: [],
     ProductCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style'],
     CategoryTileGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style'],
     PersonCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style'],
@@ -3552,15 +3552,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 <option value="">Auto next workflow page</option>
                                 {(pages as any[]).map((p: any) => <option key={p.id || p.name} value={p.name}>{p.name}</option>)}
                             </select></>)}
-
-                            {hasControl('activity_variant') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activity Variant</p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-                                {(['button','wizard_next','link','fab','auto'] as const).map(v => (
-                                    <button key={v} style={{ ...btnBase, ...active((secStyle.variant || 'button') === v), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'variant', v)}>{v}</button>
-                                ))}
-                            </div></>)}
 
                             {hasControl('activity_align') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activity Align</p>

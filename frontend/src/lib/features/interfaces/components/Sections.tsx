@@ -51,13 +51,6 @@ const METHODS_HINTS: Record<string, string> = {
     'site-footer':    'Each line becomes a service-bar link in the footer.',
 };
 
-const ACTIVITY_ACTION_VARIANTS = [
-    { value: 'button', label: 'Button' },
-    { value: 'wizard_next', label: 'Wizard next' },
-    { value: 'link', label: 'Link' },
-    { value: 'fab', label: 'Floating' },
-    { value: 'auto', label: 'Auto' },
-];
 
 const ACTIVITY_ACTION_ALIGNS = [
     { value: 'left', label: 'Left' },
@@ -181,11 +174,8 @@ interface SectionItemProps {
     editIndex: number;
     pencelClick: boolean;
     pencelClickText: boolean;
-    pencelClickImageUrl: boolean;
     newName: string;
     newText: string;
-    newImageUrl: string;
-    newImageAlt: string;
     selectedOperations: any;
     selectedAttributes: any[];
     selectedCustomMethods: any[];
@@ -204,11 +194,6 @@ interface SectionItemProps {
     handleTextChange: (index: number) => void;
     handleTextCancel: () => void;
     handleInputChangeText: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-    handlePencilClickImageUrl: () => void;
-    handleImageUrlChange: (index: number) => void;
-    handleImageUrlCancel: () => void;
-    handleInputChangeImageUrl: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    handleInputChangeImageAlt: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleActivityActionChange: (index: number, patch: Record<string, any>) => void;
     handleDelete: (index: number) => void;
     handleMinus: () => void;
@@ -244,15 +229,13 @@ interface SectionItemProps {
 const SectionItem: React.FC<SectionItemProps> = (props) => {
     const {
         section, index, data, pages, editIndex,
-        pencelClick, pencelClickText, pencelClickImageUrl,
-        newName, newText, newImageUrl, newImageAlt,
+        pencelClick, pencelClickText,
+        newName, newText,
         selectedOperations, selectedAttributes, selectedCustomMethods, selectedClassObject,
         classAttributes, classCustomMethods, classes, isSuccessClasses,
         classNameOptions, queryFieldOptions,
         handlePencilClick, handleNameChange, handleNameCancel, handleInputChange,
         handlePencilClickText, handleTextChange, handleTextCancel, handleInputChangeText,
-        handlePencilClickImageUrl, handleImageUrlChange, handleImageUrlCancel,
-        handleInputChangeImageUrl, handleInputChangeImageAlt,
         handleActivityActionChange, handleDelete, handleMinus, handleEdit,
         toggleClass, toggleOperation,
         handleAttributeSelect, handleAttributeRemove,
@@ -324,17 +307,6 @@ const SectionItem: React.FC<SectionItemProps> = (props) => {
                             onChange={(e) => handleActivityActionChange(index, { label: e.target.value, name: e.target.value || data[index].name })}
                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
                         />
-                        <span className="text-xs text-gray-500">Variant</span>
-                        <select
-                            aria-label="Activity button variant"
-                            value={data[index].style?.variant || 'button'}
-                            onChange={(e) => handleActivityActionChange(index, { style: { variant: e.target.value } })}
-                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                        >
-                            {ACTIVITY_ACTION_VARIANTS.map(option => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                        </select>
                         <span className="text-xs text-gray-500">Align</span>
                         <select
                             aria-label="Activity button alignment"
@@ -438,56 +410,39 @@ const SectionItem: React.FC<SectionItemProps> = (props) => {
                     </div>
                     </SectionEditorGroup>
                     <SectionEditorGroup title="Content" description="Optional copy, media, and section-level actions shown once for this component." defaultOpen={false}>
+                    {!CHROME_LAYOUT_SET.has(data[index].layout) && (
                     <FormControl className="space-y-1">
-                        <h3 className="text-sm font-semibold text-gray-700">
-                            {CHROME_LAYOUT_SET.has(data[index].layout) ? 'Methods (one per line)' : 'Section Actions'}
-                        </h3>
-                        {CHROME_LAYOUT_SET.has(data[index].layout) ? (
-                            <>
-                                {METHODS_HINTS[data[index].layout] && (
-                                    <p className="text-xs text-gray-400">{METHODS_HINTS[data[index].layout]}</p>
-                                )}
-                                <Textarea
-                                    minRows={4}
-                                    maxRows={6}
-                                    placeholder={"Gratis verzending vanaf €25,-\nBezorging zelfde dag*\nGratis retourneren\nSelect — Ontdek nu de 4 voordelen"}
-                                    value={(data[index].methods || []).map((m: any) =>
-                                        typeof m === 'string' ? m : (m?.name || m?.label || '')
-                                    ).join('\n')}
-                                    onChange={(e) => handleMethodsTextChange(index, e.target.value)}
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <Multiselect
-                                    options={classCustomMethods}
-                                    displayValue='name'
-                                    placeholder="Select methods..."
-                                    showCheckbox={true}
-                                    style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
-                                    selectedValues={selectedCustomMethods}
-                                    onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
-                                    onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
-                                />
-                                <div className="mt-2 space-y-2">
-                                    {selectedCustomMethods.map((method, mIdx) => (
-                                        <div key={method.id || method.name} className="space-y-1 bg-stone-50 p-2 rounded-md border border-stone-200">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-xs font-bold text-gray-600">{method.name}</span>
-                                            </div>
-                                            <input
-                                                type="text"
-                                                placeholder="Label Template (e.g. Call {{ seller.phone }})"
-                                                value={method.label || ''}
-                                                onChange={(e) => handleMethodLabelChange(index, mIdx, e.target.value)}
-                                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
-                                            />
+                        <h3 className="text-sm font-semibold text-gray-700">Section Actions</h3>
+                        <>
+                            <Multiselect
+                                options={classCustomMethods}
+                                displayValue='name'
+                                placeholder="Select methods..."
+                                showCheckbox={true}
+                                style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
+                                selectedValues={selectedCustomMethods}
+                                onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
+                                onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
+                            />
+                            <div className="mt-2 space-y-2">
+                                {selectedCustomMethods.map((method, mIdx) => (
+                                    <div key={method.id || method.name} className="space-y-1 bg-stone-50 p-2 rounded-md border border-stone-200">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs font-bold text-gray-600">{method.name}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
+                                        <input
+                                            type="text"
+                                            placeholder="Label Template (e.g. Call {{ seller.phone }})"
+                                            value={method.label || ''}
+                                            onChange={(e) => handleMethodLabelChange(index, mIdx, e.target.value)}
+                                            className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     </FormControl>
+                    )}
                     <FormControl className="space-y-1">
                         <h3 className="text-sm font-semibold text-gray-700">Text</h3>
                         {!pencelClickText && (
@@ -525,62 +480,6 @@ const SectionItem: React.FC<SectionItemProps> = (props) => {
                                     </button>
                                     <button
                                         onClick={handleTextCancel}
-                                        className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
-                                    >
-                                        <Ban />
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </FormControl>
-                    <FormControl className="space-y-1">
-                        <h3 className="text-sm font-semibold text-gray-700">Image URL</h3>
-                        {!pencelClickImageUrl && (
-                            <div className="flex flex-wrap gap-2">
-                                <h2 className="text-l break-all">
-                                    {section.style?.image_url ? (
-                                        <span>{section.style.image_url}</span>
-                                    ) : (
-                                        <span style={{ color: 'grey' }}>No image URL specified...</span>
-                                    )}
-                                </h2>
-                                <Pencil
-                                    className="cursor-pointer ml-auto"
-                                    onClick={handlePencilClickImageUrl}
-                                />
-                                {section.style?.image_url && (
-                                    <img
-                                        src={section.style.image_url}
-                                        alt={section.style?.image_alt || section.name || 'Section image'}
-                                        className="w-full h-24 object-cover rounded-md border border-gray-200"
-                                    />
-                                )}
-                            </div>
-                        )}
-
-                        {pencelClickImageUrl && (
-                            <>
-                                <Input
-                                    name="image_url"
-                                    placeholder="https://example.com/header.jpg"
-                                    value={newImageUrl}
-                                    onChange={handleInputChangeImageUrl}
-                                />
-                                <Input
-                                    name="image_alt"
-                                    placeholder="Alt text"
-                                    value={newImageAlt}
-                                    onChange={handleInputChangeImageAlt}
-                                />
-                                <div className="flex flex-wrap gap-2 ml-auto">
-                                    <button
-                                        onClick={() => handleImageUrlChange(index)}
-                                        className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
-                                    >
-                                        <Save />
-                                    </button>
-                                    <button
-                                        onClick={handleImageUrlCancel}
                                         className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
                                     >
                                         <Ban />
@@ -899,12 +798,9 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
     const [newText, setNewText] = useState('');
-    const [newImageUrl, setNewImageUrl] = useState('');
-    const [newImageAlt, setNewImageAlt] = useState('');
     const [selectedOperations, setSelectedOperations] = useLocalStorage('selectedOperations', []);
     const [pencelClick, setPencelClick] = useState(false);
     const [pencelClickText, setPencelClickText] = useState(false);
-    const [pencelClickImageUrl, setPencelClickImageUrl] = useState(false);
     const [classes, isSuccessClasses] = useSystemClasses(systemId);
     const [selectedClass, setSelectedClass] = useLocalStorage('selectedClass', '');
     const selectedClassObject = React.useMemo(() => {
@@ -1007,9 +903,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         } else {
             setNewText('');
         }
-        setNewImageUrl(data[index].style?.image_url || data[index].image_url || '');
-        setNewImageAlt(data[index].style?.image_alt || data[index].image_alt || '');
-
         setEditIndex(index);
     };
 
@@ -1051,30 +944,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
 
     const handleTextCancel = () => {
         setPencelClickText(false);
-    };
-
-    const handleImageUrlChange = (index: number) => {
-        const newData = [...data];
-        const style = { ...asRecord(newData[index].style) };
-        if (newImageUrl) style.image_url = newImageUrl;
-        else delete style.image_url;
-        if (newImageAlt) style.image_alt = newImageAlt;
-        else delete style.image_alt;
-        newData[index].style = style;
-        setData(newData);
-        setPencelClickImageUrl(false);
-    };
-
-    const handlePencilClickImageUrl = () => {
-        setPencelClickImageUrl(true);
-    };
-
-    const handleImageUrlCancel = () => {
-        setPencelClickImageUrl(false);
-        if (editIndex >= 0) {
-            setNewImageUrl(data[editIndex].style?.image_url || data[editIndex].image_url || '');
-            setNewImageAlt(data[editIndex].style?.image_alt || data[editIndex].image_alt || '');
-        }
     };
 
     const handleQueryNumberChange = (index: number, key: 'limit' | 'offset', value: string) => {
@@ -1380,13 +1249,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         setNewText(event.target.value);
     };
 
-    const handleInputChangeImageUrl = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewImageUrl(event.target.value);
-    };
-
-    const handleInputChangeImageAlt = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewImageAlt(event.target.value);
-    };
 
     const handleDelete = (index: number) => {
         const newData = [...data];
@@ -1490,11 +1352,8 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                             editIndex={editIndex}
                             pencelClick={pencelClick}
                             pencelClickText={pencelClickText}
-                            pencelClickImageUrl={pencelClickImageUrl}
                             newName={newName}
                             newText={newText}
-                            newImageUrl={newImageUrl}
-                            newImageAlt={newImageAlt}
                             selectedOperations={selectedOperations}
                             selectedAttributes={selectedAttributes}
                             selectedCustomMethods={selectedCustomMethods}
@@ -1513,11 +1372,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                             handleTextChange={handleTextChange}
                             handleTextCancel={handleTextCancel}
                             handleInputChangeText={handleInputChangeText}
-                            handlePencilClickImageUrl={handlePencilClickImageUrl}
-                            handleImageUrlChange={handleImageUrlChange}
-                            handleImageUrlCancel={handleImageUrlCancel}
-                            handleInputChangeImageUrl={handleInputChangeImageUrl}
-                            handleInputChangeImageAlt={handleInputChangeImageAlt}
                             handleActivityActionChange={handleActivityActionChange}
                             handleDelete={handleDelete}
                             handleMinus={handleMinus}
