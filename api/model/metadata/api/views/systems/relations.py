@@ -1,10 +1,9 @@
-from ninja import Router
 from django.http import HttpRequest
+from ninja import Router
 
 from metadata.api.schemas import MetaRelationsSchema
+from metadata.models import Relation, System
 from metadata.specification import RelationSchema
-
-from metadata.models import System, Relation
 
 relations = Router()
 

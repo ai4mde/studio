@@ -1,9 +1,10 @@
 from typing import Any, List, Optional
 from uuid import UUID
 
-from ninja import ModelSchema, Schema
-from diagram.models import Edge, Relation as RelationModel
 from metadata.specification import Relation
+from ninja import ModelSchema, Schema
+
+from diagram.models import Edge
 
 
 class Point(Schema):

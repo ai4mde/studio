@@ -1,10 +1,12 @@
-from uuid import UUID
 from typing import Literal, Optional
-from pydantic import BaseModel, model_validator
+from uuid import UUID
+
 from django.core.exceptions import ObjectDoesNotExist
+from pydantic import BaseModel, model_validator
 
 from metadata.models import Classifier
 from metadata.specification.kernel import NamedElement, NamespacedElement
+
 
 class Event(NamedElement, NamespacedElement, BaseModel):
     type: Literal["event"] = "event"

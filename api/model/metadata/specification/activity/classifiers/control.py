@@ -1,6 +1,7 @@
+from typing import Annotated, Literal, Union
+
 from pydantic import BaseModel
 from pydantic.fields import Field
-from typing import Annotated, Union, Literal
 
 
 class Decision(BaseModel):

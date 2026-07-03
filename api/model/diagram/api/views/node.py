@@ -1,21 +1,25 @@
 from typing import List
-from django.http import HttpRequest
+
 from django.core import serializers
 from django.db.models import Q
-
-from ninja import Router, Schema
+from django.http import HttpRequest
+from llm.handler import llm_handler, remove_reply_markdown
+from metadata.models import Classifier as MetaClassifier
+from metadata.models import Relation
+from metadata.specification import Classifier
+from ninja import Router
 from pydantic import BaseModel
 
 import diagram.api.utils as utils
-
-from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram, DiagramUsageItem, ClassifierUsageResponse
-
-from metadata.specification import Classifier
-from metadata.models import Classifier as MetaClassifier, Relation
-
-from diagram.models import Node, Edge, Diagram
-
-from llm.handler import llm_handler, remove_reply_markdown
+from diagram.api.schemas import (
+    ClassifierUsageResponse,
+    CreateNode,
+    DiagramUsageItem,
+    FullDiagram,
+    NodeSchema,
+    PatchNode,
+)
+from diagram.models import Diagram, Edge, Node
 
 node = Router()
 
@@ -180,7 +184,6 @@ def import_node(request: HttpRequest, classifier_id: str):
 
     # Map of classifier id -> node
     nodes = diagram.nodes.select_related("cls").all()
-    classifier_ids_in_diagram = [n.cls_id for n in nodes]
     nodes_by_classifier_id = {str(n.cls_id): n for n in nodes}
 
     relations = Relation.objects.filter(

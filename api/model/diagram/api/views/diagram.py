@@ -1,22 +1,21 @@
 from typing import List
-from uuid import uuid4
+
+from django.db import transaction
+from metadata.models import System
+from ninja import Router
 
 from diagram.api.schemas import (
-    ImportDiagram,
     CreateDiagram,
     FullDiagram,
+    ImportDiagram,
     ReadDiagram,
     UpdateDiagram,
 )
+from diagram.api.utils import create_edge, create_node
 from diagram.models import Diagram
-from diagram.api.utils import create_node, create_edge
-from metadata.models import System
-from django.db import transaction
-from ninja import Router
-import networkx as nx
 
-from .node import node
 from .edge import edge
+from .node import node
 from .system import system
 
 diagrams = Router()

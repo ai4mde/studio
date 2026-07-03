@@ -1,11 +1,10 @@
 from typing import List, Optional
 
-from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface
-from metadata.models import System, Interface, Classifier
-from django.http import HttpRequest
-from metadata.api.views.defaulting import create_default_interface
-
 from ninja import Router
+
+from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface
+from metadata.api.views.defaulting import create_default_interface
+from metadata.models import Classifier, Interface, System
 
 interfaces = Router()
 

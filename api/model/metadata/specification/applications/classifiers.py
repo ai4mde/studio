@@ -1,10 +1,12 @@
+from typing import Literal, Union
+
 from pydantic import BaseModel, field_validator
-from typing import Union, Literal
-from metadata.specification.kernel import NamedElement, NamespacedElement
-from ..usecase.classifiers import Actor
+
+from metadata.specification.kernel import NamedElement
+
 from ..classes.classifiers import Class
 from ..kernel import Attribute
-import re
+from ..usecase.classifiers import Actor
 
 
 class Category(NamedElement, BaseModel):

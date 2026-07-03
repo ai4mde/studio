@@ -1,7 +1,9 @@
 import os
-from typing import Dict, Any
+from typing import Any, Dict
+
 from groq import Groq
 from openai import OpenAI
+
 from llm.prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
 from llm.prompts.prose import PROSE_GENERATE_METADATA
 

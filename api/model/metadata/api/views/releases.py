@@ -1,12 +1,17 @@
-from typing import List, Optional, Any, Dict
+from typing import List
 
 from django.shortcuts import get_object_or_404
-
-from metadata.api.schemas import ReadRelease, ImportRelease, ImportReleaseSystem, ExportProject, CreateRelease, ExportRelease
-from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams, load_interfaces, load_diagrams
-from metadata.models import Release, Project
 from ninja import Router, Schema
-import json
+
+from metadata.api.schemas import (
+    CreateRelease,
+    ExportProject,
+    ExportRelease,
+    ImportRelease,
+    ImportReleaseSystem,
+    ReadRelease,
+)
+from metadata.models import Project, Release
 
 releases = Router()
 

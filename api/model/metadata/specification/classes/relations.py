@@ -1,7 +1,8 @@
 from typing import Literal, Optional, Union
 
-from metadata.specification.kernel import RelationMultiplicity, RelationLabels
 from metadata.specification.base import RelationBase
+from metadata.specification.kernel import RelationLabels, RelationMultiplicity
+
 
 class Association(RelationBase):
     type: Literal["association"] = "association"

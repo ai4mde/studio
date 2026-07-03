@@ -1,8 +1,9 @@
 
-import re
 import csv
+import re
 from io import StringIO
 from uuid import uuid4
+
 
 def parse_relations(csv_table, classifiers):
     relations = []

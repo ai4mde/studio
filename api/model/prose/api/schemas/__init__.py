@@ -1,4 +1,9 @@
-from prose.api.schemas.pipelines import PipelineSchema, PipelineRequirementsSchema, PipelineModelSchema, PipelineResultsSchema
+from prose.api.schemas.pipelines import (
+    PipelineModelSchema,
+    PipelineRequirementsSchema,
+    PipelineResultsSchema,
+    PipelineSchema,
+)
 
 __all__ = [
     "PipelineSchema",

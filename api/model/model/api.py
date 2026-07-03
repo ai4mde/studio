@@ -1,9 +1,9 @@
 from diagram.api import diagram_router
 from django.http import HttpResponse
-from metadata.api import metadata_router
-from prose.api import prose_router
 from generator.api import generator_router
+from metadata.api import metadata_router
 from ninja import NinjaAPI, Schema
+from prose.api import prose_router
 
 from model.auth import auth, create_token
 

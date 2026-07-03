@@ -1,8 +1,8 @@
 import uuid
 
-from django.db import models, transaction
-from metadata.models import Classifier, Relation, System, ImportMixin
 import networkx as nx
+from django.db import models, transaction
+from metadata.models import Classifier, ImportMixin, Relation, System
 
 
 class Diagram(ImportMixin):

@@ -1,7 +1,8 @@
 from ninja import Router
 
-from .views import projects, systems, interfaces, releases
 from metadata.specification import ClassifierSchema, RelationSchema
+
+from .views import interfaces, projects, releases, systems
 
 metadata_router = Router()
 metadata_router.add_router("projects", projects, tags=["management"])

@@ -1,12 +1,13 @@
-from uuid import UUID
 from enum import Enum
 from typing import List, Optional
+from uuid import UUID
 
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram, Node
-from .node import CreateNode, NodeSchema, ExportNode, ImportNode
-from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
+
+from .edge import EdgeSchema, ExportEdge, ImportEdge
+from .node import ExportNode, ImportNode, NodeSchema
 
 
 class DiagramType(str, Enum):
@@ -120,11 +121,6 @@ class FullDiagram(ReadDiagram):
     @staticmethod
     def resolve_related_diagrams(obj):
         return Diagram.objects.filter(system=obj.system.id).exclude(id=obj.id)
-
-
-class ImportDiagram(CreateDiagram):
-    nodes: List[CreateNode]
-    edges: List[CreateEdge]
 
 
 class ExportDiagram(ModelSchema):

@@ -1,5 +1,6 @@
+from typing import Literal, Optional, Union
+
 from pydantic import BaseModel
-from typing import Union, Literal, Optional
 
 DataType = Literal["str", "int", "bool", "datetime", "enum"]
 

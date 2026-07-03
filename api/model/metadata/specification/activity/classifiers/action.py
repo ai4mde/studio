@@ -1,7 +1,9 @@
-from pydantic import BaseModel, model_validator
 from typing import Literal, Optional
-from metadata.specification.kernel import Operation, NamespacedElement, NamedElement
+
 from diagram.models import Node
+from pydantic import BaseModel, model_validator
+
+from metadata.specification.kernel import NamedElement, NamespacedElement, Operation
 
 
 class ActionClasses(BaseModel):

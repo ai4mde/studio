@@ -1,7 +1,9 @@
 from django.http import HttpRequest
+
 from diagram.models import Diagram
-from .node import create_node, import_node, remove_node, delete_classifier_everywhere
-from .edge import create_edge, remove_edge_from_diagram, delete_relation_everywhere
+
+from .edge import create_edge, delete_relation_everywhere, remove_edge_from_diagram
+from .node import create_node, delete_classifier_everywhere, import_node, remove_node
 
 
 def get_diagram(request: HttpRequest) -> Diagram | None:

@@ -1,16 +1,15 @@
-from ninja import Router
-
 from typing import List, Optional
+
 from django.core.exceptions import ObjectDoesNotExist
-
-from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem, ExportSingleSystem
-from metadata.models import Project, System
-from .meta import meta
-from .classifiers import classifiers, classes, actors
-from .relations import relations, classifier_relations
-from .node import nodes
-
 from ninja import Router, Schema
+
+from metadata.api.schemas import CreateSystem, ExportSingleSystem, ReadSystem, UpdateSystem
+from metadata.models import Project, System
+
+from .classifiers import actors, classes, classifiers
+from .meta import meta
+from .node import nodes
+from .relations import classifier_relations, relations
 
 systems = Router()
 

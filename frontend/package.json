@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "coverage": "vitest run --coverage",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -45,7 +46,9 @@
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.17.20",
     "@tanstack/react-query-devtools": "^5.17.21",
-    "@testing-library/react": "^14.2.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^14.3.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/lodash": "^4.14.202",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
@@ -59,6 +62,7 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "eslint-plugin-unused-imports": "^3.0.0",
     "happy-dom": "^13.3.8",
+    "jsdom": "^29.0.2",
     "postcss": "^8.4.33",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.0.2",
@@ -66,6 +70,6 @@
     "vite-plugin-pages": "^0.32.0",
     "vite-plugin-svgr": "^4.2.0",
     "vite-tsconfig-paths": "^4.3.1",
-    "vitest": "^1.2.2"
+    "vitest": "^1.6.1"
   }
 }

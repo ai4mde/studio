@@ -41,6 +41,24 @@ plugins = ["mypy_django_plugin.main"]
 [tool.django-stubs]
 django_settings_module = "model.settings"
 
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+    "model/**/migrations/*",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = [
+    "E501", # line too long
+    "E722", # bare except
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
 [tool.poetry.group.docs.dependencies]
 sphinx = "^8.1.3"
 myst-parser = "^4.0.0"

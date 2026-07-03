@@ -1,8 +1,9 @@
-from django.db import transaction
-from diagram.models import Diagram, Node, Edge
-from metadata.models import Classifier, Relation
 import metadata.specification as spec
-from diagram.api.utils.edge import remove_edge_from_diagram, delete_relation_everywhere
+from django.db import transaction
+from metadata.models import Classifier, Relation
+
+from diagram.api.utils.edge import delete_relation_everywhere, remove_edge_from_diagram
+from diagram.models import Diagram, Node
 
 
 def create_node(diagram: Diagram, data: spec.Classifier):

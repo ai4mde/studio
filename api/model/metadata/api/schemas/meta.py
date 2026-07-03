@@ -1,7 +1,9 @@
 from typing import List, Optional
+
+from ninja import ModelSchema, Schema
+
 from metadata.models import Classifier, Relation
 from metadata.specification import ClassifierSchema, RelationSchema
-from ninja import Schema, ModelSchema
 
 
 class MetaSchema(Schema):

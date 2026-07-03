@@ -1,5 +1,7 @@
 from ninja import ModelSchema, Schema
+
 from prose.models import Pipeline
+
 
 class PipelineSchema(ModelSchema):
     class Meta:
