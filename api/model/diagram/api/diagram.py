@@ -1,23 +1,21 @@
 from typing import List
-from uuid import uuid4
+from django.db import transaction
+from ninja import Router
 
-from diagram.api.schemas import (
+from diagram.schemas.diagram import (
     ImportDiagram,
     CreateDiagram,
     FullDiagram,
     ReadDiagram,
     UpdateDiagram,
 )
+from diagram.schemas.edge import SimpleEdgeSchema
+from diagram.schemas.node import SimpleNodeSchema
+from diagram.services.node import create_node
+from diagram.services.edge import create_edge
 from diagram.models import Diagram
-from diagram.api.utils import create_node, create_edge
-from metadata.models import System
-from django.db import transaction
-from ninja import Router
-import networkx as nx
 
-from .node import node
-from .edge import edge
-from .system import system
+from metadata.models import System
 
 diagrams = Router()
 
@@ -26,12 +24,6 @@ diagrams = Router()
 def list_diagrams(request):
     qs = Diagram.objects.all()
     return qs
-
-
-@diagrams.get("/{uuid:diagram_id}", response=FullDiagram)
-def read_diagram(request, diagram_id):
-    return Diagram.objects.get(id=diagram_id)
-
 
 @diagrams.post("/", response=ReadDiagram)
 def create_diagram(request, body: CreateDiagram):
@@ -42,7 +34,6 @@ def create_diagram(request, body: CreateDiagram):
         type=body.type,
     )
     return diagram
-
 
 @diagrams.post("/import", response=FullDiagram)
 @transaction.atomic
@@ -70,6 +61,18 @@ def import_diagram(request, body: ImportDiagram):
 
     return diagram
 
+@diagrams.get("/specification/node.schema.json", tags=["specification"])
+def get_node_schema(request):
+    return SimpleNodeSchema.model_json_schema()
+
+
+@diagrams.get("/specification/edge.schema.json", tags=["specification"])
+def get_edge_schema(request):
+    return SimpleEdgeSchema.model_json_schema()
+
+@diagrams.get("/{uuid:diagram_id}", response=FullDiagram)
+def read_diagram(request, diagram_id):
+    return Diagram.objects.get(id=diagram_id)
 
 @diagrams.patch("/{uuid:diagram_id}/", response=ReadDiagram)
 def update_diagram(request, diagram_id, payload: UpdateDiagram):
@@ -106,9 +109,3 @@ def auto_layout_diagram(request, diagram_id):
     diagram.auto_layout()
     return diagram
 
-
-diagrams.add_router("/{uuid:diagram}/node", node, tags=["diagrams"])
-diagrams.add_router("/{uuid:diagram}/edge", edge, tags=["diagrams"])
-diagrams.add_router("/system/", system, tags=["diagrams"])
-
-__all__ = ["diagrams"]

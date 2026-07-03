@@ -5,8 +5,8 @@ from typing import List, Optional
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram, Node
-from .node import CreateNode, NodeSchema, ExportNode, ImportNode
-from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
+from diagram.api.schemas.node import CreateNode, NodeSchema, ExportNode, ImportNode
+from diagram.api.schemas.edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
 
 
 class DiagramType(str, Enum):
@@ -91,7 +91,6 @@ class RelatedNode(ModelSchema):
             ]
         return None
 
-
 class RelatedDiagram(ModelSchema):
     nodes: List[RelatedNode]
 
@@ -143,6 +142,20 @@ class ExportDiagram(ModelSchema):
     def resolve_edges(obj):
         return obj.edges.all()
 
+class DiagramUsageItem(Schema):
+    diagram_id: str
+    diagram_name: str
+    system_id: str
+    system_name: str
+
+class ClassifierUsageResponse(Schema):
+    classifier_id: str
+    classifier_name: str
+    usages: List[DiagramUsageItem]
+
+class RelationUsageResponse(Schema):
+    relation_id: str
+    usages: List[DiagramUsageItem]
 
 class ImportDiagram(Schema):
     id: str
@@ -153,12 +166,3 @@ class ImportDiagram(Schema):
     nodes: List[ImportNode] = []
     edges: List[ImportEdge] = []
 
-
-__all__ = [
-    "ReadDiagram",
-    "ImportDiagram",
-    "CreateDiagram",
-    "UpdateDiagram",
-    "FullDiagram",
-    "ExportDiagram",
-]

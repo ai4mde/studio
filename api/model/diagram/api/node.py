@@ -6,9 +6,12 @@ from django.db.models import Q
 from ninja import Router, Schema
 from pydantic import BaseModel
 
-import diagram.api.utils as utils
+from diagram.services.diagram import get_diagram
+from diagram.services.node import remove_node, delete_classifier_everywhere, import_node, create_node
 
-from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram, DiagramUsageItem, ClassifierUsageResponse
+
+from diagram.schemas.diagram import FullDiagram, DiagramUsageItem, ClassifierUsageResponse
+from diagram.schemas.node import CreateNode, PatchNode, NodeSchema
 
 from metadata.specification import Classifier
 from metadata.models import Classifier as MetaClassifier, Relation
@@ -22,7 +25,7 @@ node = Router()
 
 @node.get("/", response=List[NodeSchema])
 def list_nodes(request):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -32,19 +35,19 @@ def list_nodes(request):
 
 @node.post("/", response=NodeSchema)
 def create_node(request: HttpRequest, data: CreateNode):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
 
-    node = utils.create_node(diagram, data.cls)
+    node = create_node(diagram, data.cls)
 
     return node
 
 
 @node.get("/{uuid:node_id}/", response=NodeSchema)
 def read_node(request: HttpRequest, node_id: str):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -54,7 +57,7 @@ def read_node(request: HttpRequest, node_id: str):
 
 @node.get("/{uuid:node_id}/classifier-usage/", response=ClassifierUsageResponse)
 def classifier_usage(request: HttpRequest, node_id: str):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
     
     if not diagram:
         return 404, "Diagram not found"
@@ -112,20 +115,20 @@ def get_connected_enums(request: HttpRequest, node_id: str):
 
 
 @node.delete("/{uuid:node_id}/", response=bool)
-def remove_node(request: HttpRequest, node_id: str):
-    diagram = utils.get_diagram(request)
+def remove_node_api(request: HttpRequest, node_id: str):
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
 
-    if utils.remove_node(diagram=diagram, node_id=node_id):
+    if remove_node(diagram=diagram, node_id=node_id):
         return True
     return False
 
 
 @node.delete("/{uuid:node_id}/hard/", response=bool)
 def hard_delete_classifier(request: HttpRequest, node_id: str):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -134,7 +137,7 @@ def hard_delete_classifier(request: HttpRequest, node_id: str):
     if not node:
         return 404, "Node not found"
     
-    return utils.delete_classifier_everywhere(str(node.cls_id))
+    return delete_classifier_everywhere(str(node.cls_id))
 
 
 class PatchModel(BaseModel):
@@ -143,7 +146,7 @@ class PatchModel(BaseModel):
 
 @node.patch("/{uuid:node_id}/", response=NodeSchema)
 def update_node(request: HttpRequest, node_id: str, data: PatchNode):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -164,7 +167,7 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
 
 @node.post("/import/{uuid:classifier_id}/", response=NodeSchema)
 def import_node(request: HttpRequest, classifier_id: str):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -175,7 +178,7 @@ def import_node(request: HttpRequest, classifier_id: str):
         return 404, "Classifier not found"
 
     # Import the node to this diagram
-    node = utils.import_node(diagram, classifier_id)
+    node = import_node(diagram, classifier_id)
     cls = node.cls
 
     # Map of classifier id -> node
@@ -204,7 +207,7 @@ def import_node(request: HttpRequest, classifier_id: str):
 
 @node.post("{uuid:node_id}/generate_attribute/", response={200: str, 404: str, 422: str})
 def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str, model: str = "mixtral-8x7b-32768"):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
     
@@ -234,7 +237,7 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str,
 
 @node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
 def generate_method(request: HttpRequest, node_id: str, name: str, description: str, model: str = "mixtral-8x7b-32768"):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
     
@@ -260,5 +263,3 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
                          input_data = input_data)
 
     return remove_reply_markdown(reply)
-    
-__all__ = ["node"]

@@ -2,13 +2,19 @@ from typing import List, Optional
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
-from diagram.models import Node
+
 from metadata.specification import Classifier
+
+from diagram.models import Node
 
 
 class NodePosition(Schema):
     x: int = 0
     y: int = 0
+
+
+class SimpleNodeSchema(Schema):
+    data: Classifier
 
 
 class NodeData(Schema):
@@ -56,25 +62,6 @@ class PatchNode(Schema):
 class ListNodes(Schema):
     nodes: List[NodeSchema] = []
 
-
-class DiagramUsageItem(Schema):
-    diagram_id: str
-    diagram_name: str
-    system_id: str
-    system_name: str
-
-
-class ClassifierUsageResponse(Schema):
-    classifier_id: str
-    classifier_name: str
-    usages: List[DiagramUsageItem]
-
-
-class RelationUsageResponse(Schema):
-    relation_id: str
-    usages: List[DiagramUsageItem]
-
-
 class ExportNode(ModelSchema):
     class Meta:
         model = Node
@@ -87,15 +74,3 @@ class ImportNode(Schema):
     cls: str
     data: dict
 
-
-__all__ = [
-    "CreateNode",
-    "PatchNode",
-    "NodeSchema",
-    "ListNodes",
-    "DiagramUsageItem",
-    "ClassifierUsageResponse",
-    "RelationUsageResponse",
-    "ExportNode",
-    "ImportNode",
-]

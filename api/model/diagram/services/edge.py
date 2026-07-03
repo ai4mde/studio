@@ -97,5 +97,3 @@ def fetch_and_update_edges(diagram: Diagram):
 
     return diagram.edges.all()
 
-
-__all__ = ["create_edge", "remove_edge_from_diagram", "delete_relation_everywhere", "fetch_and_update_edges"]

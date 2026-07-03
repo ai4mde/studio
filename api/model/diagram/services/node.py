@@ -1,9 +1,10 @@
 from django.db import transaction
+
 from diagram.models import Diagram, Node, Edge
-from metadata.models import Classifier, Relation
-import metadata.specification as spec
 from diagram.api.utils.edge import remove_edge_from_diagram, delete_relation_everywhere
 
+from metadata.models import Classifier, Relation
+import metadata.specification as spec
 
 def create_node(diagram: Diagram, data: spec.Classifier):
     classifier = Classifier.objects.create(
@@ -87,5 +88,3 @@ def delete_classifier_everywhere(classifier_id: str):
 
     return True
 
-
-__all__ = ["create_node", "remove_node", "delete_classifier_everywhere"]

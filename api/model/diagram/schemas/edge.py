@@ -2,13 +2,19 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
-from diagram.models import Edge, Relation as RelationModel
+
 from metadata.specification import Relation
+
+from diagram.models import Edge
 
 
 class Point(Schema):
     x: float
     y: float
+
+
+class SimpleEdgeSchema(Schema):
+    data: Relation
 
 
 class EdgeData(Schema):
@@ -88,10 +94,3 @@ class ImportEdge(Schema):
     data: dict
 
 
-__all__ = [
-    "CreateEdge",
-    "EdgeSchema",
-    "ListEdges",
-    "ExportEdge",
-    "ImportEdge",
-]

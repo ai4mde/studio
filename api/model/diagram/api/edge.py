@@ -6,11 +6,14 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 from pydantic import BaseModel
 
-import diagram.api.utils as utils
+from diagram.services.diagram import get_diagram
+from diagram.services.edge import create_edge
 
-from diagram.api.schemas import CreateEdge, EdgeSchema, UpdateEdge, DiagramUsageItem, RelationUsageResponse, PatchEdge
+from diagram.schemas.diagram import DiagramUsageItem, RelationUsageResponse
+from diagram.schemas.edge import CreateEdge, EdgeSchema, UpdateEdge, PatchEdge
+
 from diagram.models import Node, Edge, Edge
-from diagram.api.utils.edge import fetch_and_update_edges, remove_edge_from_diagram, delete_relation_everywhere
+from diagram.services.edge import fetch_and_update_edges, remove_edge_from_diagram, delete_relation_everywhere
 from metadata.specification import Relation
 
 
@@ -19,7 +22,7 @@ edge = Router()
 
 @edge.get("/", response=List[EdgeSchema])
 def list_edges(request):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -29,7 +32,7 @@ def list_edges(request):
 
 @edge.get("/{uuid:edge_id}/relation-usage/", response=RelationUsageResponse)
 def relation_usage(request, edge_id: str):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
 
@@ -38,16 +41,17 @@ def relation_usage(request, edge_id: str):
         return 404, "Edge not found"
 
     rel = edge.rel
-    rel_label = (rel.data or {}).get("label") or (rel.data or {}).get("type") or str(rel.id)
-
-    edges = Edge.objects.select_related("diagram", "diagram__system").filter(rel=rel)
+    edges = (
+        Edge.objects
+        .select_related("diagram", "diagram__system")
+        .filter(rel=rel)
+        .exclude(diagram=diagram)
+    )
 
     seen = set()
     usage_items = []
     for e in edges:
         d = e.diagram
-        if d.id == diagram.id:
-            continue
         if d.id in seen:
             continue
         seen.add(d.id)
@@ -67,21 +71,21 @@ def relation_usage(request, edge_id: str):
 
 @edge.post("/", response=EdgeSchema)
 def create_edge(request: HttpRequest, data: CreateEdge):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
     source = Node.objects.get(id=data.source)
     target = Node.objects.get(id=data.target)
 
     if not diagram:
         return 404, "Diagram not found"
 
-    edge = utils.create_edge(diagram, data.rel, source, target)
+    edge = create_edge(diagram, data.rel, source, target)
 
     return edge
 
 
 @edge.patch("/{uuid:edge_id}/", response=EdgeSchema)
 def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -148,7 +152,7 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
 
 @edge.delete("/{uuid:edge_id}/", response=bool)
 def remove_edge(request: HttpRequest, edge_id: str):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -158,7 +162,7 @@ def remove_edge(request: HttpRequest, edge_id: str):
 
 @edge.delete("/{uuid:edge_id}/hard/", response=bool)
 def hard_delete_relation(request: HttpRequest, edge_id: str):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
@@ -172,12 +176,10 @@ class PatchModel(BaseModel):
 
 @edge.get("/{uuid:edge_id}/", response=EdgeSchema)
 def edge_node(request: HttpRequest, edge_id: str):
-    diagram = utils.get_diagram(request)
+    diagram = get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
 
     return diagram.edges.get(id=edge_id)
 
-
-__all__ = ["edge"]

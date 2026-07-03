@@ -1,9 +1,12 @@
 from ninja import Router
 from django.http import HttpRequest
 from typing import List
-from diagram.api.schemas.diagram import FullDiagram
-from diagram.models import Diagram
+
 from metadata.models import System
+
+from diagram.schemas.diagram import FullDiagram
+from diagram.models import Diagram
+
 
 system = Router()
 
@@ -13,5 +16,3 @@ def get_diagrams(request: HttpRequest, system_id: str):
     if system == None:
         return 405, "Failed to resolve system."
     return Diagram.objects.filter(system=system)
-
-__all__= ["system"]
