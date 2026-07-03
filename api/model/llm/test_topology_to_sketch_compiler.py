@@ -241,3 +241,125 @@ def test_compile_topology_and_semantics_to_activity_sketch_uses_semantic_actions
         {"step_id": None, "action": "employee revises request and resubmits for budget review"}
     ]
     assert control_blocks["T3"]["branches"][1]["returns_to_main_flow"] is False
+
+
+def test_compile_topology_and_semantics_to_activity_sketch_lowers_target_slot_id_to_reconnect_step_id() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rework"],
+                "purpose": "request completeness decision",
+            }
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "review request"},
+            {"slot_id": "AFTER_T1", "action": "approve request"},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "approved",
+                "intent": "continue",
+                "steps": [],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "rework",
+                "intent": "continue",
+                "steps": [{"action": "recheck request"}],
+                "target_slot_id": "ROOT_START",
+            },
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+    control_blocks = {block["block_id"]: block for block in sketch["control_blocks"]}
+    rework_branch = next(
+        branch for branch in control_blocks["T1"]["branches"] if branch["label"] == "rework"
+    )
+    approved_branch = next(
+        branch for branch in control_blocks["T1"]["branches"] if branch["label"] == "approved"
+    )
+
+    assert rework_branch["reconnect_to_step_id"] == "S1"
+    assert "reconnect_to_step_id" not in approved_branch
+
+
+def test_compile_topology_and_semantics_to_activity_sketch_preserves_output_when_target_slot_id_is_absent() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+                "purpose": "approval decision",
+            }
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "review request"},
+            {"slot_id": "AFTER_T1", "action": "finalize request"},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "approved",
+                "intent": "continue",
+                "steps": [],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "rejected",
+                "intent": "terminate",
+                "steps": [{"action": "reject request"}],
+            },
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+
+    assert sketch == {
+        "main_flow": [
+            {"step_id": "S1", "action": "review request"},
+            {"step_id": "S2", "action": "finalize request"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "T1",
+                "type": "decision",
+                "entry_after": "review request",
+                "entry_after_step_id": "S1",
+                "branches": [
+                    {
+                        "label": "approved",
+                        "returns_to_main_flow": True,
+                        "steps": [],
+                        "next_block_id": None,
+                        "child_block_ids": [],
+                    },
+                    {
+                        "label": "rejected",
+                        "returns_to_main_flow": False,
+                        "steps": [{"step_id": None, "action": "reject request"}],
+                        "next_block_id": None,
+                        "child_block_ids": [],
+                    },
+                ],
+                "requires_merge": True,
+                "exit_to": "finalize request",
+                "exit_to_step_id": "S2",
+                "loop_back_to": None,
+                "loop_back_to_step_id": None,
+                "notes": "approval decision",
+            }
+        ],
+    }

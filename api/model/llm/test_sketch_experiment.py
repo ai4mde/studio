@@ -333,6 +333,51 @@ def test_activity_sketch_accepts_branch_local_steps_and_next_block_id() -> None:
     assert second_branch.next_block_id == "B2"
 
 
+def test_activity_sketch_accepts_branch_reconnect_to_step_id() -> None:
+    sketch = ActivitySketch.model_validate(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "approve request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "rework",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "recheck request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                            "reconnect_to_step_id": "S1",
+                        },
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "approve request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": None,
+                }
+            ],
+        }
+    )
+
+    assert sketch.control_blocks[0].branches[0].reconnect_to_step_id == "S1"
+    assert sketch.control_blocks[0].branches[1].reconnect_to_step_id is None
+
+
 def test_activity_sketch_accepts_child_block_ids_for_one_level_composition() -> None:
     sketch = ActivitySketch.model_validate(
         {

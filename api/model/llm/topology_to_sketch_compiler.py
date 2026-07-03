@@ -263,6 +263,11 @@ def compile_topology_and_semantics_to_activity_sketch(
             plan = branch_plans.get((structure.id, branch_label))
             direct_children = direct_children_by_branch[branch_label]
             intent = plan.intent if plan is not None else "continue"
+            reconnect_target = (
+                step_by_slot.get(plan.target_slot_id)
+                if plan is not None and plan.target_slot_id
+                else None
+            )
             steps = [
                 {"action": step.action}
                 for step in (plan.steps if plan is not None else [])
@@ -274,6 +279,8 @@ def compile_topology_and_semantics_to_activity_sketch(
                 "next_block_id": None,
                 "child_block_ids": [direct_children[0].id] if direct_children else [],
             }
+            if reconnect_target is not None:
+                branch_payload["reconnect_to_step_id"] = reconnect_target["step_id"]
             if intent in {"terminate", "loop_back"}:
                 branch_payload["returns_to_main_flow"] = False
             if direct_children:
