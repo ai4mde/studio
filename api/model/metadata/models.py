@@ -2,6 +2,7 @@ from typing import Any, Optional
 import uuid
 
 from django.db import models, transaction
+from django.db.models import Max
 
 
 class ImportMixin(models.Model):
@@ -115,6 +116,19 @@ class System(ImportMixin):
     )
     name = models.CharField(max_length=255)
     description = models.TextField()
+    current_revision = models.ForeignKey(
+        "SystemRevision",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    @classmethod
+    def get_import_field_map(cls) -> dict[str, str]:
+        field_map = super().get_import_field_map()
+        field_map.pop("current_revision", None)
+        return field_map
 
     @classmethod
     @transaction.atomic
@@ -165,6 +179,41 @@ class System(ImportMixin):
         cls.delete_missing(system.interfaces, interface_ids)
 
         return system
+
+
+class SystemRevision(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    system = models.ForeignKey(
+        System,
+        on_delete=models.CASCADE,
+        related_name="revisions",
+    )
+    revision_index = models.IntegerField()
+    parent_revision = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="child_revisions",
+    )
+    process_text = models.TextField()
+    pipeline_profile = models.CharField(max_length=64)
+    topology_artifact = models.JSONField(null=True, blank=True)
+    semantic_sketch_plan = models.JSONField(null=True, blank=True)
+    activity_graph = models.JSONField()
+    ai4mde_export = models.JSONField()
+    refinement_trace = models.JSONField(null=True, blank=True)
+    refinement_instruction = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["revision_index", "created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["system", "revision_index"],
+                name="unique_revision_index_per_system",
+            ),
+        ]
 
 
 class SystemGenerationArtifacts(models.Model):
@@ -281,7 +330,122 @@ def persist_semantic_generation_artifacts(
     return artifacts
 
 
+def create_system_revision(
+    *,
+    system_id: str,
+    process_text: str,
+    pipeline_profile: str,
+    activity_graph: dict[str, Any],
+    ai4mde_export: dict[str, Any] | list[dict[str, Any]],
+    topology_artifact: Optional[dict[str, Any]] = None,
+    semantic_sketch_plan: Optional[dict[str, Any]] = None,
+    refinement_trace: Optional[dict[str, Any]] = None,
+    refinement_instruction: Optional[str] = None,
+    parent_revision_id: Optional[str] = None,
+    set_as_current: bool = True,
+) -> SystemRevision:
+    system = System.objects.select_related("current_revision").get(pk=system_id)
+    max_index = system.revisions.aggregate(max_revision_index=Max("revision_index"))["max_revision_index"]
+    revision = SystemRevision.objects.create(
+        system=system,
+        revision_index=0 if max_index is None else int(max_index) + 1,
+        parent_revision_id=parent_revision_id,
+        process_text=process_text,
+        pipeline_profile=pipeline_profile,
+        topology_artifact=topology_artifact,
+        semantic_sketch_plan=semantic_sketch_plan,
+        activity_graph=activity_graph,
+        ai4mde_export=ai4mde_export,
+        refinement_trace=refinement_trace,
+        refinement_instruction=refinement_instruction,
+    )
+    if set_as_current:
+        system.current_revision = revision
+        system.save(update_fields=["current_revision"])
+    return revision
+
+
+def _backfill_revision_from_legacy_sidecar(
+    system: System,
+    *,
+    fallback_process_text: Optional[str] = None,
+    fallback_pipeline_profile: Optional[str] = None,
+) -> Optional[SystemRevision]:
+    if system.current_revision_id:
+        return system.current_revision
+    if system.revisions.exists():
+        revision = system.revisions.order_by("-revision_index", "-created_at").first()
+        system.current_revision = revision
+        system.save(update_fields=["current_revision"])
+        return revision
+
+    legacy_artifacts = SystemGenerationArtifacts.objects.filter(system=system).first()
+    if legacy_artifacts is None and not fallback_process_text:
+        return None
+
+    from metadata.api.schemas import ExportSingleSystem
+    from llm.refinement_generator import _get_clean_model
+
+    ai4mde_system = ExportSingleSystem.model_validate(system).model_dump(mode="json")
+    ai4mde_export = [ai4mde_system]
+    clean_graph = _get_clean_model(ai4mde_export)
+    revision = SystemRevision.objects.create(
+        system=system,
+        revision_index=0,
+        parent_revision=None,
+        process_text=(legacy_artifacts.process_text if legacy_artifacts else str(fallback_process_text)),
+        pipeline_profile=(
+            legacy_artifacts.pipeline_profile
+            if legacy_artifacts
+            else str(fallback_pipeline_profile or "stable")
+        ),
+        topology_artifact=legacy_artifacts.topology_artifact if legacy_artifacts else None,
+        semantic_sketch_plan=legacy_artifacts.semantic_sketch_plan if legacy_artifacts else None,
+        activity_graph=clean_graph,
+        ai4mde_export=ai4mde_export,
+        refinement_trace=None,
+        refinement_instruction=None,
+    )
+    system.current_revision = revision
+    system.save(update_fields=["current_revision"])
+    return revision
+
+
+def get_current_revision(
+    system_id: str,
+    *,
+    fallback_process_text: Optional[str] = None,
+    fallback_pipeline_profile: Optional[str] = None,
+) -> Optional[SystemRevision]:
+    system = System.objects.select_related("current_revision").get(pk=system_id)
+    if system.current_revision_id:
+        return system.current_revision
+    return _backfill_revision_from_legacy_sidecar(
+        system,
+        fallback_process_text=fallback_process_text,
+        fallback_pipeline_profile=fallback_pipeline_profile,
+    )
+
+
+def list_system_revisions(system_id: str) -> list[SystemRevision]:
+    get_current_revision(system_id)
+    return list(
+        SystemRevision.objects.filter(system_id=system_id).order_by("revision_index", "created_at")
+    )
+
+
+def set_current_revision(system_id: str, revision_id: str) -> SystemRevision:
+    revision = SystemRevision.objects.select_related("system").get(pk=revision_id, system_id=system_id)
+    system = revision.system
+    system.current_revision = revision
+    system.save(update_fields=["current_revision"])
+    return revision
+
+
 def get_topology_artifact(system_id: str) -> Optional[dict[str, Any]]:
+    revision = get_current_revision(system_id)
+    if revision is not None and revision.topology_artifact is not None:
+        return revision.topology_artifact
     artifacts = SystemGenerationArtifacts.objects.filter(system_id=system_id).first()
     if artifacts is None:
         return None
@@ -289,7 +453,20 @@ def get_topology_artifact(system_id: str) -> Optional[dict[str, Any]]:
 
 
 def get_semantic_sketch_plan(system_id: str) -> Optional[dict[str, Any]]:
+    revision = get_current_revision(system_id)
+    if revision is not None and revision.semantic_sketch_plan is not None:
+        return revision.semantic_sketch_plan
     artifacts = SystemGenerationArtifacts.objects.filter(system_id=system_id).first()
     if artifacts is None:
         return None
     return artifacts.semantic_sketch_plan
+
+
+def get_generation_process_text(system_id: str) -> Optional[str]:
+    revision = get_current_revision(system_id)
+    if revision is not None:
+        return revision.process_text
+    artifacts = SystemGenerationArtifacts.objects.filter(system_id=system_id).first()
+    if artifacts is None:
+        return None
+    return artifacts.process_text

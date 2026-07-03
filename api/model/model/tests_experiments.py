@@ -7,8 +7,11 @@ from metadata.models import (
     Project,
     System,
     SystemGenerationArtifacts,
+    SystemRevision,
+    get_current_revision,
     get_semantic_sketch_plan,
     get_topology_artifact,
+    persist_semantic_generation_artifacts,
 )
 
 
@@ -244,6 +247,77 @@ class ExperimentEndpointTests(TestCase):
         )
         mock_run.assert_called_once()
 
+    def test_project_delete_cascades_system_revisions(self):
+        project = Project.objects.create(
+            name="Cascade Delete Project",
+            description="Ensures revision persistence does not break project deletion.",
+        )
+        system = System.objects.create(
+            name="Cascade System",
+            project=project,
+            description="System attached to the project.",
+        )
+        revision = SystemRevision.objects.create(
+            system=system,
+            revision_index=0,
+            process_text="Start, review, end.",
+            pipeline_profile="semantic_deterministic",
+            activity_graph={"nodes": [], "edges": []},
+            ai4mde_export={"id": str(system.id)},
+        )
+        system.current_revision = revision
+        system.save(update_fields=["current_revision"])
+
+        project_id = project.id
+        system_id = system.id
+        revision_id = revision.id
+
+        project.delete()
+
+        self.assertFalse(Project.objects.filter(id=project_id).exists())
+        self.assertFalse(System.objects.filter(id=system_id).exists())
+        self.assertFalse(SystemRevision.objects.filter(id=revision_id).exists())
+
+    def test_generate_model_endpoint_forwards_direct_refinement_inputs(self):
+        topology_artifact = {"structures": []}
+        semantic_plan = {
+            "root_actions": [{"slot_id": "ROOT_START", "action": "Review Request"}],
+            "branch_plans": [],
+        }
+        with patch(
+            "model.experiment_pipeline.run_pipeline",
+            return_value={
+                "session_id": "s1",
+                "project_id": str(self.project.id),
+                "mode": "refinement",
+                "pipeline_profile": "semantic_deterministic",
+                "use_experimental_compiler": False,
+                "enable_sketch_review_agent": False,
+                "enable_prompted_sketch_repair_agent": False,
+                "enable_graph_repair_agent": False,
+                "systems": [],
+            },
+        ) as mock_run:
+            response = self.client.post(
+                "/api/v1/generate-model",
+                data={
+                    "process_text": "Receive request, review it, then finish.",
+                    "mode": "refinement",
+                    "pipeline_profile": "semantic_deterministic",
+                    "current_topology_artifact": topology_artifact,
+                    "current_semantic_sketch_plan": semantic_plan,
+                    "instruction": "Rename 'Review Request' to 'Validate Request'",
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        mock_run.assert_called_once()
+        _, kwargs = mock_run.call_args
+        self.assertEqual(kwargs["current_topology_artifact"], topology_artifact)
+        self.assertEqual(kwargs["current_semantic_sketch_plan"], semantic_plan)
+        self.assertEqual(kwargs["refinement_instruction"], "Rename 'Review Request' to 'Validate Request'")
+
     def test_generate_model_endpoint_defaults_to_full_response_mode(self):
         full_payload = {
             "session_id": "s1",
@@ -364,6 +438,361 @@ class ExperimentEndpointTests(TestCase):
         _, kwargs = mock_refine.call_args
         self.assertEqual(kwargs["pipeline_profile"], "stable")
 
+    def test_refine_model_endpoint_uses_semantic_refinement_planner(self):
+        persist_semantic_generation_artifacts(
+            system_id=str(self.system.id),
+            process_text="Receive request, validate it, send confirmation.",
+            pipeline_profile="semantic_deterministic",
+            topology_artifact={
+                "structures": [
+                    {
+                        "id": "T1",
+                        "type": "decision",
+                        "parent": "ROOT",
+                        "parent_branch": None,
+                        "branches": ["approved", "rejected"],
+                        "purpose": "approval decision",
+                    }
+                ]
+            },
+            semantic_sketch_plan={
+                "root_actions": [
+                    {"slot_id": "ROOT_START", "action": "review request"},
+                    {"slot_id": "AFTER_T1", "action": "finalize request"},
+                ],
+                "branch_plans": [
+                    {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+                    {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+                ],
+            },
+        )
+
+        updated_topology = {
+            "structures": [
+                {
+                    "id": "T1",
+                    "type": "decision",
+                    "parent": "ROOT",
+                    "parent_branch": None,
+                    "branches": ["approved", "rejected", "manual_review"],
+                    "purpose": "approval decision",
+                }
+            ]
+        }
+        updated_semantics = {
+            "root_actions": [
+                {"slot_id": "ROOT_START", "action": "review request"},
+                {"slot_id": "AFTER_T1", "action": "finalize request"},
+            ],
+            "branch_plans": [
+                {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+                {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+                {"structure_id": "T1", "branch": "manual_review", "intent": "continue", "steps": [{"action": "perform manual review"}]},
+            ],
+        }
+        clean_model = {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": "review request"},
+                {"id": "n3", "type": "action", "name": "finalize request"},
+                {"id": "n4", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2", "type": "control"},
+                {"source": "n2", "target": "n3", "type": "control"},
+                {"source": "n3", "target": "n4", "type": "control"},
+            ],
+        }
+
+        with patch(
+            "model.experiment_pipeline.generate_refinement_plan",
+            return_value={
+                "artifact": {
+                    "updated_topology_artifact": updated_topology,
+                    "updated_semantic_sketch_plan": updated_semantics,
+                    "refinement_trace": {"user_instruction": "Add a fallback review route."},
+                }
+            },
+        ) as mock_planner, patch(
+            "model.experiment_pipeline.compile_topology_and_semantics_to_activity_sketch",
+            return_value={"sketch": "deterministic"},
+        ), patch(
+            "model.experiment_pipeline.repair_activity_sketch",
+            return_value=({"sketch": "repaired"}, []),
+        ), patch(
+            "model.experiment_pipeline.compile_activity_sketch",
+            return_value=clean_model,
+        ), patch(
+            "model.experiment_pipeline.import_to_ai4mde",
+        ):
+            response = self.client.post(
+                "/api/v1/refine-model",
+                data={
+                    "process_text": "Receive request, validate it, send confirmation.",
+                    "selected_system_id": str(self.system.id),
+                    "refinement_instruction": "Add a fallback review route.",
+                    "pipeline_profile": "semantic_deterministic",
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        mock_planner.assert_called_once()
+        self.assertEqual(payload["process_text"], "Receive request, validate it, send confirmation.")
+        self.assertEqual(payload["topology_artifact"], updated_topology)
+        self.assertEqual(payload["semantic_sketch_plan"], updated_semantics)
+        self.assertEqual(payload["refinement_trace"], {"user_instruction": "Add a fallback review route."})
+        self.assertIn("activity_graph", payload)
+        self.assertTrue(payload["artifact_diff"]["topology_artifact_diff"]["changed"])
+        self.assertEqual(
+            payload["artifact_diff"]["topology_artifact_diff"]["structures"]["modified"][0]["id"],
+            "T1",
+        )
+        topology_modified = payload["artifact_diff"]["topology_artifact_diff"]["structures"]["modified"][0]
+        self.assertEqual(topology_modified["before"]["type"], topology_modified["after"]["type"])
+        self.assertEqual(topology_modified["before"]["id"], topology_modified["after"]["id"])
+        self.assertEqual(topology_modified["before"]["parent"], topology_modified["after"]["parent"])
+        self.assertEqual(topology_modified["before"]["branches"], ["approved", "rejected"])
+        self.assertEqual(topology_modified["after"]["branches"], ["approved", "rejected", "manual_review"])
+        self.assertEqual(
+            payload["artifact_diff"]["topology_artifact_diff"]["structures"]["removed"],
+            [],
+        )
+        self.assertEqual(
+            payload["artifact_diff"]["semantic_sketch_plan_diff"]["branch_plans"]["added"][0]["branch"],
+            "manual_review",
+        )
+        self.assertEqual(
+            payload["artifact_diff"]["semantic_sketch_plan_diff"]["root_actions"]["modified"],
+            [],
+        )
+        self.assertEqual(
+            payload["artifact_diff"]["semantic_sketch_plan_diff"]["branch_plans"]["removed"],
+            [],
+        )
+        modified_branch_plans = payload["artifact_diff"]["semantic_sketch_plan_diff"]["branch_plans"]["modified"]
+        self.assertEqual(modified_branch_plans, [])
+        self.assertIsNotNone(payload["current_revision_id"])
+        self.assertEqual(payload["revision_index"], 1)
+        persisted = SystemGenerationArtifacts.objects.get(system_id=str(self.system.id))
+        self.assertEqual(persisted.topology_artifact, updated_topology)
+        self.assertEqual(persisted.semantic_sketch_plan, updated_semantics)
+        self.system.refresh_from_db()
+        self.assertIsNotNone(self.system.current_revision_id)
+        current_revision = get_current_revision(str(self.system.id))
+        self.assertEqual(current_revision.revision_index, 1)
+        self.assertEqual(current_revision.parent_revision.revision_index, 0)
+        self.assertEqual(current_revision.topology_artifact, updated_topology)
+
+    def test_refine_model_endpoint_supports_hitl_shape_without_process_text(self):
+        persist_semantic_generation_artifacts(
+            system_id=str(self.system.id),
+            process_text="Receive request, review it, then finish.",
+            pipeline_profile="semantic_deterministic",
+            topology_artifact={"structures": []},
+            semantic_sketch_plan={
+                "root_actions": [{"slot_id": "ROOT_START", "action": "Review Request"}],
+                "branch_plans": [],
+            },
+        )
+        updated_topology = {"structures": []}
+        updated_semantics = {
+            "root_actions": [{"slot_id": "ROOT_START", "action": "Validate Request"}],
+            "branch_plans": [],
+        }
+        clean_model = {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": "Validate Request"},
+                {"id": "n3", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2", "type": "control"},
+                {"source": "n2", "target": "n3", "type": "control"},
+            ],
+        }
+
+        with patch(
+            "model.experiment_pipeline.generate_refinement_plan",
+            return_value={
+                "artifact": {
+                    "updated_topology_artifact": updated_topology,
+                    "updated_semantic_sketch_plan": updated_semantics,
+                    "refinement_trace": {"user_instruction": "Rename 'Review Request' to 'Validate Request'"},
+                }
+            },
+        ) as mock_planner, patch(
+            "model.experiment_pipeline.compile_topology_and_semantics_to_activity_sketch",
+            return_value={"sketch": "deterministic"},
+        ), patch(
+            "model.experiment_pipeline.repair_activity_sketch",
+            return_value=({"sketch": "repaired"}, []),
+        ), patch(
+            "model.experiment_pipeline.compile_activity_sketch",
+            return_value=clean_model,
+        ), patch(
+            "model.experiment_pipeline.import_to_ai4mde",
+        ):
+            response = self.client.post(
+                "/api/v1/refine-model",
+                data={
+                    "system_id": str(self.system.id),
+                    "instruction": "Rename 'Review Request' to 'Validate Request'",
+                    "pipeline_profile": "semantic_deterministic",
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["system_id"], str(self.system.id))
+        self.assertEqual(payload["process_text"], "Receive request, review it, then finish.")
+        self.assertEqual(payload["topology_artifact"], updated_topology)
+        self.assertEqual(payload["semantic_sketch_plan"], updated_semantics)
+        self.assertTrue(payload["artifact_diff"]["semantic_sketch_plan_diff"]["changed"])
+        self.assertEqual(
+            payload["artifact_diff"]["semantic_sketch_plan_diff"]["root_actions"]["modified"][0]["slot_id"],
+            "ROOT_START",
+        )
+        self.assertEqual(
+            payload["refinement_trace"],
+            {"user_instruction": "Rename 'Review Request' to 'Validate Request'"},
+        )
+        args, kwargs = mock_planner.call_args
+        self.assertEqual(args[0], "Receive request, review it, then finish.")
+        self.assertEqual(payload["revision_index"], 1)
+
+    def test_system_revisions_endpoint_lists_revision_history(self):
+        persist_semantic_generation_artifacts(
+            system_id=str(self.system.id),
+            process_text="Receive request, review it, then finish.",
+            pipeline_profile="semantic_deterministic",
+            topology_artifact={"structures": []},
+            semantic_sketch_plan={
+                "root_actions": [{"slot_id": "ROOT_START", "action": "Review Request"}],
+                "branch_plans": [],
+            },
+        )
+        current_revision = get_current_revision(str(self.system.id))
+
+        response = self.client.get(f"/api/v1/system-revisions/{self.system.id}")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["system_id"], str(self.system.id))
+        self.assertEqual(payload["current_revision_id"], str(current_revision.id))
+        self.assertEqual(len(payload["revisions"]), 1)
+        self.assertEqual(payload["revisions"][0]["revision_index"], 0)
+        self.assertTrue(payload["revisions"][0]["is_current"])
+
+    def test_restore_revision_endpoint_switches_current_revision(self):
+        baseline_export = convert_to_ai4mde(
+            clean_model={
+                "nodes": [
+                    {"id": "n1", "type": "initial"},
+                    {"id": "n2", "type": "action", "name": "Review Request"},
+                    {"id": "n3", "type": "final"},
+                ],
+                "edges": [
+                    {"source": "n1", "target": "n2", "type": "control"},
+                    {"source": "n2", "target": "n3", "type": "control"},
+                ],
+            },
+            system_id=str(self.system.id),
+            diagram_id=str(uuid4()),
+            name=str(self.system.name),
+            description=str(self.system.description),
+            project_id=str(self.project.id),
+        )
+        baseline_revision = SystemRevision.objects.create(
+            system=self.system,
+            revision_index=0,
+            process_text="Receive request, review it, then finish.",
+            pipeline_profile="semantic_deterministic",
+            topology_artifact={"structures": []},
+            semantic_sketch_plan={
+                "root_actions": [{"slot_id": "ROOT_START", "action": "Review Request"}],
+                "branch_plans": [],
+            },
+            activity_graph={
+                "nodes": [
+                    {"id": "n1", "type": "initial"},
+                    {"id": "n2", "type": "action", "name": "Review Request"},
+                    {"id": "n3", "type": "final"},
+                ],
+                "edges": [
+                    {"source": "n1", "target": "n2", "type": "control"},
+                    {"source": "n2", "target": "n3", "type": "control"},
+                ],
+            },
+            ai4mde_export=baseline_export,
+        )
+        refined_export = convert_to_ai4mde(
+            clean_model={
+                "nodes": [
+                    {"id": "n1", "type": "initial"},
+                    {"id": "n2", "type": "action", "name": "Validate Request"},
+                    {"id": "n3", "type": "final"},
+                ],
+                "edges": [
+                    {"source": "n1", "target": "n2", "type": "control"},
+                    {"source": "n2", "target": "n3", "type": "control"},
+                ],
+            },
+            system_id=str(self.system.id),
+            diagram_id=str(uuid4()),
+            name=str(self.system.name),
+            description=str(self.system.description),
+            project_id=str(self.project.id),
+        )
+        refined_revision = SystemRevision.objects.create(
+            system=self.system,
+            revision_index=1,
+            parent_revision=baseline_revision,
+            process_text="Receive request, review it, then finish.",
+            pipeline_profile="semantic_deterministic",
+            topology_artifact={"structures": []},
+            semantic_sketch_plan={
+                "root_actions": [{"slot_id": "ROOT_START", "action": "Validate Request"}],
+                "branch_plans": [],
+            },
+            activity_graph={
+                "nodes": [
+                    {"id": "n1", "type": "initial"},
+                    {"id": "n2", "type": "action", "name": "Validate Request"},
+                    {"id": "n3", "type": "final"},
+                ],
+                "edges": [
+                    {"source": "n1", "target": "n2", "type": "control"},
+                    {"source": "n2", "target": "n3", "type": "control"},
+                ],
+            },
+            ai4mde_export=refined_export,
+            refinement_trace={"user_instruction": "Rename 'Review Request' to 'Validate Request'"},
+            refinement_instruction="Rename 'Review Request' to 'Validate Request'",
+        )
+        self.system.current_revision = refined_revision
+        self.system.save(update_fields=["current_revision"])
+
+        with patch("model.experiment_pipeline.import_to_ai4mde") as mock_import:
+            response = self.client.post(
+                "/api/v1/restore-revision",
+                data={
+                    "system_id": str(self.system.id),
+                    "revision_id": str(baseline_revision.id),
+                },
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["current_revision_id"], str(baseline_revision.id))
+        self.assertEqual(payload["revision_index"], 0)
+        self.system.refresh_from_db()
+        self.assertEqual(self.system.current_revision_id, baseline_revision.id)
+        mock_import.assert_called_once_with(self.project, baseline_export)
+
 
 class ExperimentPipelineCompilerTests(TestCase):
     def setUp(self):
@@ -434,6 +863,11 @@ class ExperimentPipelineCompilerTests(TestCase):
                 {"source": "n2", "target": "n3", "type": "control"},
             ],
         }
+        topology_artifact = {"structures": []}
+        semantic_plan = {
+            "root_actions": [{"slot_id": "ROOT_START", "action": "Validate request"}],
+            "branch_plans": [],
+        }
         debug_bundle = {
             "parsed": clean_model,
             "executed_stages": [
@@ -444,13 +878,24 @@ class ExperimentPipelineCompilerTests(TestCase):
                 "Deterministic Compiler",
                 "Validation",
             ],
+            "stage_artifacts": {
+                "topology_artifact": topology_artifact,
+                "semantic_plan": semantic_plan,
+            },
         }
 
         with patch(
             "model.experiment_pipeline.generate_activity_model",
             return_value=debug_bundle,
         ) as mock_generate:
-            with patch("model.experiment_pipeline.import_to_ai4mde") as mock_import:
+            with patch("model.experiment_pipeline.import_to_ai4mde") as mock_import, patch(
+                "model.experiment_pipeline._create_revision_snapshot",
+                return_value={
+                    "revision_id": "rev-1",
+                    "revision_index": 0,
+                    "parent_revision_id": None,
+                },
+            ):
                 from model.experiment_pipeline import run_pipeline
 
                 payload = run_pipeline(
@@ -465,6 +910,9 @@ class ExperimentPipelineCompilerTests(TestCase):
         self.assertEqual(payload["systems"][0]["activity_graph"], clean_model)
         self.assertEqual(payload["systems"][0]["executed_stages"], debug_bundle["executed_stages"])
         self.assertIn("ai4mde", payload["systems"][0])
+        self.assertEqual(payload["systems"][0]["topology_artifact"], topology_artifact)
+        self.assertEqual(payload["systems"][0]["semantic_sketch_plan"], semantic_plan)
+        self.assertEqual(payload["systems"][0]["revision_index"], 0)
         mock_generate.assert_called_once()
         _, kwargs = mock_generate.call_args
         self.assertTrue(kwargs["debug"])
@@ -534,6 +982,9 @@ class ExperimentPipelineCompilerTests(TestCase):
         self.assertEqual(persisted.pipeline_profile, "semantic_deterministic")
         self.assertEqual(get_topology_artifact(system_id), topology_artifact)
         self.assertEqual(get_semantic_sketch_plan(system_id), semantic_plan)
+        current_revision = get_current_revision(system_id)
+        self.assertEqual(current_revision.revision_index, 0)
+        self.assertEqual(current_revision.activity_graph, clean_model)
 
     def test_run_pipeline_persists_semantic_artifacts_for_candidate_generation(self):
         clean_model = {
@@ -603,3 +1054,93 @@ class ExperimentPipelineCompilerTests(TestCase):
         self.assertEqual(persisted.pipeline_profile, "semantic_deterministic")
         self.assertEqual(get_topology_artifact(generated_system_id), topology_artifact)
         self.assertEqual(get_semantic_sketch_plan(generated_system_id), semantic_plan)
+        current_revision = get_current_revision(generated_system_id)
+        self.assertEqual(current_revision.revision_index, 0)
+
+    def test_run_pipeline_supports_direct_semantic_refinement(self):
+        current_topology_artifact = {"structures": []}
+        current_semantic_sketch_plan = {
+            "root_actions": [{"slot_id": "ROOT_START", "action": "Review Request"}],
+            "branch_plans": [],
+        }
+        updated_topology_artifact = {"structures": []}
+        updated_semantic_sketch_plan = {
+            "root_actions": [{"slot_id": "ROOT_START", "action": "Validate Request"}],
+            "branch_plans": [],
+        }
+        clean_model = {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": "Validate Request"},
+                {"id": "n3", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2", "type": "control"},
+                {"source": "n2", "target": "n3", "type": "control"},
+            ],
+        }
+
+        with patch(
+            "model.experiment_pipeline.generate_refinement_plan",
+            return_value={
+                "artifact": {
+                    "updated_topology_artifact": updated_topology_artifact,
+                    "updated_semantic_sketch_plan": updated_semantic_sketch_plan,
+                    "refinement_trace": {
+                        "user_instruction": "Rename 'Review Request' to 'Validate Request'",
+                    },
+                }
+            },
+        ) as mock_planner, patch(
+            "model.experiment_pipeline.compile_topology_and_semantics_to_activity_sketch",
+            return_value={"sketch": "deterministic"},
+        ) as mock_compile_sketch, patch(
+            "model.experiment_pipeline.repair_activity_sketch",
+            return_value=({"sketch": "repaired"}, []),
+        ) as mock_repair, patch(
+            "model.experiment_pipeline.compile_activity_sketch",
+            return_value=clean_model,
+        ) as mock_compile_graph:
+            from model.experiment_pipeline import run_pipeline
+
+            payload = run_pipeline(
+                "Receive request, review it, then finish.",
+                "refinement",
+                project_id=str(self.project.id),
+                pipeline_profile="semantic_deterministic",
+                current_topology_artifact=current_topology_artifact,
+                current_semantic_sketch_plan=current_semantic_sketch_plan,
+                refinement_instruction="Rename 'Review Request' to 'Validate Request'",
+            )
+
+        self.assertEqual(payload["mode"], "refinement")
+        self.assertEqual(payload["pipeline_profile"], "semantic_deterministic")
+        self.assertEqual(len(payload["systems"]), 1)
+        self.assertEqual(payload["systems"][0]["topology_artifact"], updated_topology_artifact)
+        self.assertEqual(payload["systems"][0]["semantic_sketch_plan"], updated_semantic_sketch_plan)
+        self.assertTrue(payload["systems"][0]["artifact_diff"]["semantic_sketch_plan_diff"]["changed"])
+        self.assertEqual(
+            payload["systems"][0]["artifact_diff"]["semantic_sketch_plan_diff"]["root_actions"]["modified"][0]["slot_id"],
+            "ROOT_START",
+        )
+        self.assertEqual(
+            payload["systems"][0]["refinement_trace"],
+            {"user_instruction": "Rename 'Review Request' to 'Validate Request'"},
+        )
+        self.assertEqual(payload["systems"][0]["revision_index"], 0)
+        generated_system_id = payload["systems"][0]["system_id"]
+        persisted = SystemGenerationArtifacts.objects.get(system_id=generated_system_id)
+        self.assertEqual(persisted.process_text, "Receive request, review it, then finish.")
+        self.assertEqual(persisted.pipeline_profile, "semantic_deterministic")
+        self.assertEqual(persisted.topology_artifact, updated_topology_artifact)
+        self.assertEqual(persisted.semantic_sketch_plan, updated_semantic_sketch_plan)
+        current_revision = get_current_revision(generated_system_id)
+        self.assertEqual(current_revision.revision_index, 0)
+        self.assertEqual(current_revision.refinement_instruction, "Rename 'Review Request' to 'Validate Request'")
+        mock_planner.assert_called_once()
+        mock_compile_sketch.assert_called_once_with(
+            updated_topology_artifact,
+            updated_semantic_sketch_plan,
+        )
+        mock_repair.assert_called_once()
+        mock_compile_graph.assert_called_once()

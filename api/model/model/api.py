@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from diagram.api import diagram_router
 from django.http import HttpResponse, JsonResponse
@@ -28,6 +28,9 @@ class GenerateModelRequest(Schema):
     project_id: Optional[str] = None
     pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "semantic_deterministic"
     response_mode: Literal["full", "summary"] = "full"
+    current_topology_artifact: Optional[dict[str, Any]] = None
+    current_semantic_sketch_plan: Optional[dict[str, Any]] = None
+    instruction: Optional[str] = None
     use_experimental_compiler: bool = False
     enable_sketch_review_agent: Optional[bool] = None
     enable_prompted_sketch_repair_agent: Optional[bool] = None
@@ -35,13 +38,20 @@ class GenerateModelRequest(Schema):
 
 
 class RefineModelRequest(Schema):
-    process_text: str
-    selected_system_id: str
-    refinement_instruction: str
+    process_text: Optional[str] = None
+    selected_system_id: Optional[str] = None
+    refinement_instruction: Optional[str] = None
+    system_id: Optional[str] = None
+    instruction: Optional[str] = None
     pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "stable"
     enable_sketch_review_agent: Optional[bool] = None
     enable_prompted_sketch_repair_agent: Optional[bool] = None
     enable_graph_repair_agent: Optional[bool] = None
+
+
+class RestoreRevisionRequest(Schema):
+    system_id: str
+    revision_id: str
 
 
 class GetTokenSchema(Schema):
@@ -82,6 +92,9 @@ def generate_model(request, body: GenerateModelRequest):
             body.mode,
             project_id=body.project_id,
             pipeline_profile=body.pipeline_profile,
+            current_topology_artifact=body.current_topology_artifact,
+            current_semantic_sketch_plan=body.current_semantic_sketch_plan,
+            refinement_instruction=body.instruction,
             use_experimental_compiler=body.use_experimental_compiler,
             enable_sketch_review_agent=body.enable_sketch_review_agent,
             enable_prompted_sketch_repair_agent=body.enable_prompted_sketch_repair_agent,
@@ -118,8 +131,8 @@ def refine_model(request, body: RefineModelRequest):
         return JsonResponse(
             refine_selected_model(
                 body.process_text,
-                selected_system_id=body.selected_system_id,
-                refinement_instruction=body.refinement_instruction,
+                selected_system_id=body.selected_system_id or body.system_id,
+                refinement_instruction=body.refinement_instruction or body.instruction,
                 pipeline_profile=body.pipeline_profile,
                 enable_sketch_review_agent=body.enable_sketch_review_agent,
                 enable_prompted_sketch_repair_agent=body.enable_prompted_sketch_repair_agent,
@@ -131,6 +144,41 @@ def refine_model(request, body: RefineModelRequest):
     except Exception as exc:  # noqa: BLE001
         return JsonResponse(
             {"error": "refinement_or_import_failed", "detail": str(exc)},
+            status=502,
+        )
+
+
+@api.get("/system-revisions/{system_id}", auth=None, tags=["experiments"])
+def system_revisions(request, system_id: str):
+    from model.experiment_pipeline import get_system_revisions
+
+    try:
+        return JsonResponse(get_system_revisions(system_id))
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": "revision_history_failed", "detail": str(exc)},
+            status=502,
+        )
+
+
+@api.post("/restore-revision", auth=None, tags=["experiments"])
+def restore_revision(request, body: RestoreRevisionRequest):
+    from model.experiment_pipeline import restore_revision as restore_revision_pipeline
+
+    try:
+        return JsonResponse(
+            restore_revision_pipeline(
+                system_id=body.system_id,
+                revision_id=body.revision_id,
+            )
+        )
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": "restore_revision_failed", "detail": str(exc)},
             status=502,
         )
 
