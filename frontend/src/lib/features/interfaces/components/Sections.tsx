@@ -739,7 +739,6 @@ const SectionItem: React.FC<SectionItemProps> = (props) => {
                             >
                                 <option value="none">None</option>
                                 <option value="navigate">Navigate to page</option>
-                                <option value="select">Select item</option>
                             </select>
                             {data[index].behavior?.item_click?.type === 'navigate' && (
                                 <div className="space-y-1">
