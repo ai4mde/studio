@@ -1,9 +1,10 @@
 #!/bin/bash
+set -euo pipefail
 
 export PROJECT_ID=$1
 export PROJECT_SYSTEM=$2
 export PROJECT_NAME=$3
-export METADATA="$4"
+export METADATA_FILE="$4"
 export WORKDIR=/usr/src/prototypes/backend/generation
 export OUTDIR=/usr/src/prototypes/generated_prototypes
 export ROOT=/usr/src/prototypes/
@@ -11,7 +12,7 @@ export ROOT=/usr/src/prototypes/
 export PYTHONPATH="${WORKDIR}/generation_scripts"
 
 # Global settings such as authentication go here
-export AUTH_PRESENT=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA")
+export AUTH_PRESENT=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA_FILE")
 
 
 create_outdir() {
@@ -43,7 +44,7 @@ update_django_project_settings() {
 create_shared_models_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "shared_models"
-    python "${WORKDIR}/generation_scripts/generate_models.py" "$PROJECT_NAME" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_models.py" "$PROJECT_NAME" "$METADATA_FILE" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['shared_models']" >> settings.py
 }
@@ -51,7 +52,7 @@ create_shared_models_app() {
 create_workflow_engine_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "workflow_engine"
-    python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
+    python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA_FILE" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
     cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine', 'django_crontab']" >> settings.py
@@ -61,7 +62,7 @@ create_workflow_engine_app() {
 create_authentication_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "authentication"
-    python "${WORKDIR}/generation_scripts/generate_authentication.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_authentication.py" "$PROJECT_NAME" "$METADATA_FILE" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['authentication']" >> settings.py
     echo "LOGIN_URL = '/'" >> settings.py
@@ -72,7 +73,7 @@ create_authentication_app() {
 create_noauth_home_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "noauth_home"
-    python "${WORKDIR}/generation_scripts/generate_noauth_home.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_noauth_home.py" "$PROJECT_NAME" "$METADATA_FILE" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['noauth_home']" >> settings.py
     echo "urlpatterns += [path(\"\", include(\"noauth_home.urls\"))]" >> urls.py
@@ -94,12 +95,12 @@ create_new_django_app() {
         exit 1
     fi
     python -m django startapp "$app"
-    python "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA_FILE" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
     update_global_app_settings "$app"
 }
 
 create_django_apps() {
-    applications=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_apps "$METADATA")
+    applications=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_apps "$METADATA_FILE")
     
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     
