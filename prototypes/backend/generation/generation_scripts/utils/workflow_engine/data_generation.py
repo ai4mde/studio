@@ -75,12 +75,28 @@ class ActivityDiagramParser:
     @cached_property
     def interface_map(self) -> dict[str, str]:
         """Map from the action node UUID to a possible interface url"""
-        return {
-            page['action']['value']: f"/{app_name_sanitization(interface['value']['name'])}/render_{app_name_sanitization(interface['value']['name'])}_{page_name_sanitization(page['name'])}"
-            for interface in self.metadata['interfaces']
-            for page in interface['value']['data']['pages']
-            if page['type']['value'] != 'normal'
-        }
+        interface_map = {}
+
+        for interface in self.metadata['interfaces']:
+            interface_name = interface['value']['name']
+
+            for page in interface['value']['data']['pages']:
+                if page['type']['value'] == 'normal':
+                    continue
+
+                if page.get('action') is None:
+                    raise ValueError(
+                        f"Page '{page['name']}' in interface '{interface_name}' "
+                        f"is missing an action."
+                    )
+                
+                interface_map[page['action']['value']] = (
+                    f"/{app_name_sanitization(interface_name)}"
+                    f"/render_{app_name_sanitization(interface_name)}_"
+                    f"{page_name_sanitization(page['name'])}"
+                )
+
+        return interface_map
 
     def _get_incoming_edges_count(self, edges: list[dict[str, Any]], target_id: str) -> int:
         """Get the number of incoming edges for a node"""
@@ -143,15 +159,18 @@ class ActivityDiagramParser:
 
     def parse_activity_diagram(self, diagram: dict[str, Any]) -> tuple[CronJob | None, dict[str, Node] | None]:
         """Parse an activity diagram starting from the initial node"""
+        self.nodes = {}
+
         start_node = list(filter(lambda node: node['cls']['type'] == 'initial', diagram['nodes']))
         if len(start_node) != 1:
             raise ValueError("Activity diagrams must have exactly one start node")
         start_node = start_node[0]
         cron_job = CronJob(
-            process_id=self.process_id,
+            process_id=0, # Corrected later in get_workflow_engine_data
             schedule=start_node['cls'].get('schedule', '')
         ) if start_node['cls'].get('scheduled', False) and start_node['cls'].get('schedule', '') else None
-        return cron_job, self.create_nodes(diagram, start_node['id'])
+        self.create_nodes(diagram, start_node['id'])
+        return cron_job, dict(self.nodes)
 
     def parse_metadata(self) -> list[Diagram]:
         """Parse all activity diagrams in the metadata"""
@@ -298,13 +317,22 @@ class ActivityDiagramParser:
         join_node_entries = []
         cron_jobs = []
         for diagram in diagrams:
+            self.nodes = diagram.nodes
+            self.action_nodes = {}
+            self.join_nodes = {}
+        
             process = {
                 "id": self.process_id,
                 "name": diagram.name,
             }
 
             if diagram.cron_job:
-                cron_jobs.append(diagram.cron_job)
+                cron_jobs.append(
+                    CronJob(
+                        process_id=self.process_id,
+                        schedule=diagram.cron_job.schedule
+                    )
+                )
 
             # Create action and join nodes as well as the start node
             action_nodes, join_nodes, start_node = self.create_relevant_nodes(diagram.nodes)
@@ -319,11 +347,6 @@ class ActivityDiagramParser:
 
             # Create the rules connecting the action nodes
             rule_entries.extend(self.create_rules())
-
-            # Reset the class attributes for the next process
-            self.nodes = {}
-            self.action_nodes = {}
-            self.join_nodes = {}
 
             # Increment the process ID for the next process
             self.process_id += 1

@@ -13,7 +13,11 @@ def main():
     
     project_name = project_name_sanitization(sys.argv[1])
     application_name = app_name_sanitization(sys.argv[2])
-    metadata = sys.argv[3]
+
+    metadata_path = sys.argv[3]
+    with open(metadata_path, 'r', encoding='utf-8') as f:
+        metadata = f.read()
+
     authentication_present = sys.argv[4] == "True"
     system_id = sys.argv[5]
 
