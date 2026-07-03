@@ -64,7 +64,7 @@ const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
 };
 
 const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
-    NavBar: ['nav_height', 'sidebar_side', 'sidebar_width'],
+    NavBar: ['sidebar_side', 'sidebar_width'],
     Logo: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant'],
     BrandLockup: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant'],
     ImageLogo: ['logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant'],
@@ -1979,7 +1979,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     });
     const componentControls = COMPONENT_CONTROLS[secComponent];
     const baseLayoutControls = CHROME_LAYOUT_SET.has(secLayout)
-        ? [...(['nav-links', 'site-nav'].includes(secLayout) ? ['nav_height'] : []), 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width']
+        ? ['sidebar_side', 'sidebar_width']
         : (LAYOUT_CONTROLS[secLayout] ?? []);
     const layoutControls = new Set(Array.from(new Set([...(baseLayoutControls || []), ...(componentControls || [])]))
         .filter((control) => (control !== 'image_position' && control !== 'image_size') || hasMediaAttr || secComponent.toLowerCase().includes('media') || secComponent.toLowerCase().includes('productdetail')));
@@ -3470,14 +3470,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 ))}
                             </div></>)}
 
-                            {hasControl('nav_height') && (
-                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nav Height</p>
-                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                {(['compact','normal','tall','xl'] as NavHeightOption[]).map(h => (
-                                    <button key={h} style={{ ...btnBase, ...active(secNavHeight === h), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'nav_height', h)}>{h}</button>
-                                ))}
-                            </div></>)}
 
                             {hasControl('shadow') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shadow</p>
