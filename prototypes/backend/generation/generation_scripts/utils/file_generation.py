@@ -1,7 +1,7 @@
-from typing import Dict, Any
 import os
+from pathlib import Path
+from typing import Dict, Any
 import jinja2
-import pathlib
 from jinja2 import Environment, FileSystemLoader, Template
 from utils.definitions.model import Attribute, AttributeType, CustomMethod, Cardinality
 from utils.definitions.section_component import SectionComponent, SectionCustomMethod
@@ -10,6 +10,24 @@ from utils.definitions.category import Category
 from utils.definitions.application_component import ApplicationComponent
 from utils.definitions.styling import Styling, StyleType
 from utils.definitions.settings import Settings
+
+
+GENERATED_PROTOTYPES_ROOT = Path(
+    os.environ.get("GENERATED_PROTOTYPES_ROOT", "/usr/src/prototypes/generated_prototypes")
+).resolve()
+
+
+def _resolve_generated_path(path: str) -> Path:
+    resolved_path = Path(path).resolve()
+    if resolved_path != GENERATED_PROTOTYPES_ROOT and GENERATED_PROTOTYPES_ROOT not in resolved_path.parents:
+        raise ValueError("Output path must be inside generated prototypes directory")
+    return resolved_path
+
+
+def ensure_generated_directory(path: str) -> Path:
+    directory = _resolve_generated_path(path)
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
 
 
 # TODO: there could be added more logic here to only add relevant
@@ -55,11 +73,12 @@ def write_to_file(OUTPUT_FILE_PATH: str, content: str) -> bool:
     """
     Writes the given content to the specified file path.
     """
+    output_path = _resolve_generated_path(OUTPUT_FILE_PATH)
     try:
-        pathlib.Path(OUTPUT_FILE_PATH).parent.mkdir(parents=True, exist_ok=True)
-        with open(OUTPUT_FILE_PATH, "w+") as fh:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open("w+", encoding="utf-8") as fh:
             fh.write(content)
-    except:
+    except Exception:
         raise Exception("Failed to write to " + OUTPUT_FILE_PATH)
     return True
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuthStore } from "$auth/state/auth";
+import { authAxios, useAuthStore } from "$auth/state/auth";
 import {
     Button,
     CircularProgress,
@@ -8,6 +8,7 @@ import {
     FormLabel,
     Input,
 } from "@mui/joy";
+import { decodeJwt } from "jose";
 import { useLoginStore } from "$auth/state/login";
 
 export const LoginUser = () => {
@@ -19,6 +20,24 @@ export const LoginUser = () => {
         setLoading(true);
         const formData = new FormData(e.currentTarget);
         login(`${formData.get("username")}`, `${formData.get("password")}`);
+        setLoading(false);
+    };
+
+    const onDemoLogin = async () => {
+        setLoading(true);
+        try {
+            const { data } = await authAxios.post("v1/auth/demo");
+            authAxios.defaults.headers.common = { Authorization: `Bearer ${data.token}` };
+            useAuthStore.setState({
+                isAuthenticated: true,
+                bearerToken: data.token,
+                expires: Date.now() + 1000 * 3600,
+                user: { id: data.id, email: data.email, username: data.username },
+                tokenData: decodeJwt(data.token),
+            });
+        } catch (e) {
+            console.error(e);
+        }
         setLoading(false);
     };
 
@@ -58,13 +77,25 @@ export const LoginUser = () => {
                             type="button"
                             color="neutral"
                             className="w-full"
-                            onClick={() => {
-                                setPage("register");
-                            }}
+                            onClick={() => setPage("register")}
                         >
                             Register
                         </Button>
                     </div>
+                    <div className="relative flex items-center gap-2 py-1">
+                        <div className="flex-1 border-t border-slate-200" />
+                        <span className="text-xs text-slate-400">or</span>
+                        <div className="flex-1 border-t border-slate-200" />
+                    </div>
+                    <Button
+                        type="button"
+                        variant="outlined"
+                        color="neutral"
+                        className="w-full"
+                        onClick={onDemoLogin}
+                    >
+                        Try Demo — no account needed
+                    </Button>
                 </>
             )}
         </form>

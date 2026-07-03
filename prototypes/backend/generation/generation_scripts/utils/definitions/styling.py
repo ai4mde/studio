@@ -12,10 +12,16 @@ class Styling():
             self,
             id: str = uuid4(),
             style_type: StyleType = StyleType.BASIC,
-            radius: int = 5,
-            text_color: str = "#000000", # TODO: might need some backend validation
-            accent_color: str = "#777777", # TODO: might need some backend validation
-            background_color: str = "#FFFFFF", # TODO: might need some backend validation
+            radius: int = 8,
+            text_color: str = "#111827",
+            accent_color: str = "#2563eb",
+            background_color: str = "#ffffff",
+            font_family: str = "inter",
+            page_max_width: str = "xl",
+            button_style: str = "solid",
+            card_hover: str = "lift",
+            image_ratio: str = "4:3",
+            divider: str = "none",
     ):
         self.id = id
         self.style_type = style_type
@@ -23,3 +29,9 @@ class Styling():
         self.text_color = text_color
         self.accent_color = accent_color
         self.background_color = background_color
+        self.font_family = font_family
+        self.page_max_width = page_max_width
+        self.button_style = button_style
+        self.card_hover = card_hover
+        self.image_ratio = image_ratio
+        self.divider = divider

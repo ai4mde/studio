@@ -4,6 +4,7 @@ services:
   traefik:
     image: "traefik:v3.6.7"
     container_name: "traefik"
+    restart: unless-stopped
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -19,8 +20,10 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   postgres:
-    image: postgres
+    image: postgres:17
+    restart: unless-stopped
     env_file: config/postgres.env
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c maintenance_work_mem=32MB -c max_connections=20
     volumes:
       - pgsql-data:/var/lib/postgresql/data
     ports:
@@ -29,16 +32,24 @@ services:
       - ai4mde_traefik
 
   studio-api:
+    restart: unless-stopped
+    stop_grace_period: 300s
     depends_on: ["postgres"]
     build:
       context: api
+    command: ["python", "/usr/src/model/manage.py", "runserver", "--noreload", "0.0.0.0:8000"]
+    ports:
+      - "8000:8000"
     env_file:
       - config/api.env
       - config/secrets.env
+    environment:
+      - INTERNAL_API_KEY=studio-internal-service-key
     networks:
       - ai4mde_traefik
     volumes:
       - ./api/model:/usr/src/model:ro
+      - ./prototypes/backend/generation/templates:/usr/src/templates:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.localhost`)"
@@ -46,6 +57,7 @@ services:
       - "traefik.http.services.studio-api.loadbalancer.server.port=8000"
 
   studio-prototypes:
+    restart: unless-stopped
     depends_on: ["postgres"]
     build:
       context: prototypes
@@ -56,18 +68,15 @@ services:
       - ./prototypes:/usr/src/prototypes
     labels:
       - "traefik.enable=true"
-
-    # Router for Flask API
       - "traefik.http.routers.flask_api_router.rule=Host(`prototypes_api.ai4mde.localhost`)"
       - "traefik.http.routers.flask_api_router.service=flask_api_service"
       - "traefik.http.services.flask_api_service.loadbalancer.server.port=8010"
-
-      # Router for Django prototype
       - "traefik.http.routers.django_prototype_router.rule=Host(`prototype.ai4mde.localhost`)"
       - "traefik.http.routers.django_prototype_router.service=django_prototype_service"
       - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
 
   studio:
+    restart: unless-stopped
     build:
       context: frontend
     env_file: config/frontend.env

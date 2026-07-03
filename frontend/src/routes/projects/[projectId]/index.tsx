@@ -21,7 +21,7 @@ const ViewProject: React.FC = () => {
           <span className="flex flex-row items-center gap-2">
             <GalleryVertical size={24} />
             <h1 className="text-lg">
-              Systems - {name} ({id?.split("-").slice(-1)})
+              Systems - {name} ({id?.split("-")?.slice(-1)})
             </h1>
           </span>
 

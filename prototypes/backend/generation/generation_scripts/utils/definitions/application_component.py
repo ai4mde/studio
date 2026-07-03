@@ -16,6 +16,7 @@ class ApplicationComponent():
         pages: List[Page],
         styling: Styling,
         settings: Settings,
+        tokens: dict | None = None,
         authentication_present: bool = True,
     ):
         self.id = id
@@ -25,6 +26,7 @@ class ApplicationComponent():
         self.pages = pages
         self.styling = styling
         self.settings = settings
+        self.tokens = tokens or {}
         self.authentication_present = authentication_present # TODO: maybe put this in a global settings object
 
     def __str__(self):

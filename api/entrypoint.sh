@@ -10,19 +10,24 @@ if [ -t 0 ] ; then
 else
   # run boot scripts if not an interactive terminal (such as /bin/bash)
   echo "🗄️ Waiting for the DB to come online"
-  /usr/src/model/manage.py wait_for_db
-  if ! /usr/src/model/manage.py migrate --check >/dev/null 2>&1; then
+  python /usr/src/model/manage.py wait_for_db
+  if ! python /usr/src/model/manage.py migrate --check >/dev/null 2>&1; then
     echo "💾 Applying database migrations"
-    /usr/src/model/manage.py migrate --no-input
+    python /usr/src/model/manage.py migrate --no-input
   fi
   if [ "$DJANGO_SUPERUSER_USERNAME" ]; then
     echo "👤 Ensuring admin user"
-    /usr/src/model/manage.py create_admin \
+    python /usr/src/model/manage.py create_admin \
       --noinput \
       --username $DJANGO_SUPERUSER_USERNAME \
       --email $DJANGO_SUPERUSER_EMAIL \
       --password $DJANGO_SUPERUSER_PASSWORD
   fi
+  echo "👤 Ensuring demo user"
+  python /usr/src/model/manage.py create_demo_user \
+    --username "${DEMO_USER_USERNAME:-demo}" \
+    --password "${DEMO_USER_PASSWORD:-demo}" \
+    --email "${DEMO_USER_EMAIL:-demo@localhost}"
 fi
 
 exec "$@"

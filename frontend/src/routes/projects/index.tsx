@@ -60,7 +60,11 @@ const ProjectsIndex: React.FC = () => {
         try {
             const text = await selectedFile.text();
             const json = JSON.parse(text);
-            await authAxios.post("/v1/metadata/projects/import/", json);
+            if (Array.isArray(json)) {
+                await authAxios.post("/v1/metadata/systems/import/", json);
+            } else {
+                await authAxios.post("/v1/metadata/projects/import/", json);
+            }
 
             setSelectedFile(null);
             setShowUploadModal(false);

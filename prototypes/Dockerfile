@@ -14,6 +14,7 @@ ENV PYTHONFAULTHANDLER=1 \
     POETRY_NO_INTERACTION=1 \
     PATH="$PATH:/root/.local/bin"
 
+WORKDIR /usr/src
 RUN pip install pipx
 RUN pipx install "poetry==$POETRY_VERSION"
 RUN pipx ensurepath
@@ -25,8 +26,13 @@ FROM python:3.12.1
 WORKDIR /usr/src/app
 
 RUN apt-get update && apt-get install -y cron
-COPY --from=venv /.venv /usr/src/.venv
+COPY --from=venv /usr/src/.venv /usr/src/.venv
 COPY . /usr/src/prototypes
 ENV PATH="/usr/src/.venv/bin:$PATH"
 
-CMD ["/usr/src/prototypes/entrypoint.sh" ]
+RUN echo '#!/bin/bash' > /docker-entrypoint.sh && \
+    echo 'sed -i "s/\r$//" /usr/src/prototypes/entrypoint.sh' >> /docker-entrypoint.sh && \
+    echo 'exec bash /usr/src/prototypes/entrypoint.sh' >> /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
+
+CMD ["/docker-entrypoint.sh"]

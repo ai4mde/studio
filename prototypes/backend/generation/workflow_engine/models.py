@@ -84,19 +84,19 @@ class ActionNode(models.Model):
         module_name, function_name = self.custom_code.rsplit(".", 1)
         
         try:
-            # Import the module and function dynamically
             module = importlib.import_module(module_name)
-            custom_function = getattr(module, function_name)
-
-            if not callable(custom_function):
-                raise TypeError(f"{function_name} is not callable in module {module_name}")
-            
-            # Execute the custom function
-            custom_function(active_process=active_process)
         except ImportError as e:
-            raise ImportError(f"Failled to import module when executing custom code: {module_name}") from e
+            raise ImportError(f"Failed to import module when executing custom code: {module_name}") from e
+
+        try:
+            custom_function = getattr(module, function_name)
         except AttributeError as e:
             raise AttributeError(f"Module {module_name} does not have function named {function_name}") from e
+
+        if not callable(custom_function):
+            raise TypeError(f"{function_name} is not callable in module {module_name}")
+
+        custom_function(active_process=active_process)
  
     def _get_next_user(self, current_user: User | None) -> User | None:
         """Determine the next user for the given node."""
@@ -112,6 +112,17 @@ class ActionNode(models.Model):
         # TODO: Implement a better distribution algorithm
         # For now, just return the first user that matches the actor
         next_user = users.first() if users.exists() else None
+        if not next_user:
+            role_field = f"is_{self.actor}"
+            if hasattr(User, role_field):
+                username = f"demo-{self.actor.lower().replace('_', '-')}"
+                next_user, _ = User.objects.get_or_create(
+                    username=username,
+                    defaults={role_field: True},
+                )
+                if not getattr(next_user, role_field, False):
+                    setattr(next_user, role_field, True)
+                    next_user.save(update_fields=[role_field])
         if not next_user:
             logger.warning(f"No user found for actor {self.actor}. The user assignment for this node will have to be done manually.")
         return next_user
@@ -214,7 +225,9 @@ class Rule(models.Model):
             raise ValueError(f"Rule {self.id} references a non-existing action node: {node_id}")
 
     def _evaluate_condition(self, active_process: "ActiveProcess", condition: Condition) -> bool:
-        target_property_name = f"{condition.target_class_name.lower()}s"
+        # Multi-word class names (e.g. "Process Payment") → take last word ("Payment") → "payments"
+        class_name = condition.target_class_name.strip().split()[-1].lower()
+        target_property_name = f"{class_name}s"
         target_objects = getattr(active_process, target_property_name, None)
 
         if target_objects is None or not isinstance(target_objects, QuerySet):
@@ -364,12 +377,72 @@ class ActiveProcess(models.Model):
 
     # Properties
 
+    def _associated_queryset(self, model: type[models.Model]) -> QuerySet:
+        return model.objects.filter(
+            id__in=self.associated_model_instances.filter(
+                content_type=ContentType.objects.get_for_model(model)
+            ).values_list("instance_id", flat=True)
+        )
+
+    def _fallback_value_for_field(self, field: models.Field):
+        if field.has_default():
+            return field.get_default()
+        if getattr(field, "null", False):
+            return None
+        internal_type = field.get_internal_type()
+        if internal_type in {"CharField", "TextField", "SlugField", "EmailField", "URLField"}:
+            return field.name.replace("_", " ")
+        if internal_type in {"BooleanField", "NullBooleanField"}:
+            return False
+        if internal_type in {"IntegerField", "PositiveIntegerField", "PositiveSmallIntegerField", "SmallIntegerField", "BigIntegerField"}:
+            return 0
+        if internal_type in {"FloatField", "DecimalField"}:
+            return 0
+        if internal_type in {"DateField", "DateTimeField", "TimeField"}:
+            return now()
+        return None
+
+    def _get_or_create_process_instance(self, model: type[models.Model], seen: set[str] | None = None) -> models.Model | None:
+        qs = self._associated_queryset(model)
+        instance = qs.first()
+        if instance:
+            return instance
+
+        instance = model.objects.first()
+        if instance:
+            self.add_associated_instance(instance)
+            return instance
+
+        seen = seen or set()
+        model_key = model._meta.label_lower
+        if model_key in seen:
+            return None
+        seen.add(model_key)
+
+        defaults = {}
+        for field in model._meta.fields:
+            if field.primary_key or getattr(field, "auto_created", False):
+                continue
+            related_model = getattr(getattr(field, "remote_field", None), "model", None)
+            if related_model:
+                related_instance = User.objects.first() if related_model is User else self._get_or_create_process_instance(related_model, seen)
+                if related_instance is not None:
+                    defaults[field.name] = related_instance
+                elif getattr(field, "null", False):
+                    defaults[field.name] = None
+                continue
+            defaults[field.name] = self._fallback_value_for_field(field)
+
+        instance = model.objects.create(**defaults)
+        self.add_associated_instance(instance)
+        return instance
+
     def add_associated_instance(self, instance: models.Model) -> None:
-        AssociatedModelInstance.objects.create(
-            instance=instance,
+        AssociatedModelInstance.objects.get_or_create(
             content_type=ContentType.objects.get_for_model(instance),
             instance_id=instance.pk,
             active_process=self,
+            defaults={"instance": instance},
         )
     
     def remove_associated_instance(self, instance: models.Model) -> None:
@@ -490,7 +563,7 @@ class ActiveProcessNode(models.Model):
     def _complete_unattended_nodes(self, user: User | None) -> None:
         """
             Complete all nodes that should be completed without any user interaction.
-            This includes custom code nodes and nodes without a URL.
+            This includes custom code nodes, nodes without a URL, and System actor nodes.
         """
         custom_code_nodes = ActiveProcessNode.objects.filter(
             active_process=self.active_process,
@@ -502,7 +575,16 @@ class ActiveProcessNode(models.Model):
         for process_node in custom_code_nodes:
             process_node.action_node.execute_custom_code(self.active_process)
             process_node.complete_node(user)
-        
+
+        # System actor nodes always complete automatically regardless of URL
+        system_nodes = ActiveProcessNode.objects.filter(
+            active_process=self.active_process,
+            action_node__actor="System",
+            action_node__custom_code__isnull=True,
+        )
+        for process_node in system_nodes:
+            process_node.complete_node(user)
+
         empty_nodes = ActiveProcessNode.objects.filter(
             active_process=self.active_process,
             action_node__url__isnull=True,

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, model_validator, ValidationError
+from pydantic import BaseModel, model_validator
 from typing import Literal, Union, Optional
 from metadata.specification.base import RelationBase
 
@@ -15,24 +15,10 @@ class ControlFlowCondition(BaseModel):
     target_class_name: Optional[str] = None
 
     @model_validator(mode="after")
-    def validate_condition(cls, values):
-        if values.isElse:
-            return values
-        required_fields = (
-            ['target_class', 'operator', 'threshold']
-            if values.aggregator == "count"
-            else ['target_class', 'target_attribute', 'target_attribute_type', 'operator', 'threshold']
-        )
-        missing_fields = [field for field in required_fields if not getattr(values, field)]
-        if missing_fields:
-            raise ValidationError(f"The following fields are required for a condition: {', '.join(missing_fields)}")
-        return values
-    
-    @model_validator(mode="after")
-    def set_target_class_name(cls, values):
-        if values.target_class:
-            values.target_class_name = Node.objects.get(id=values.target_class).cls.data.get("name", "Unknown class")
-        return values
+    def set_target_class_name(self):
+        if self.target_class:
+            self.target_class_name = Node.objects.get(id=self.target_class).cls.data.get("name", "Unknown class")
+        return self
 
 class ControlFlow(RelationBase):
     is_directed: bool = True

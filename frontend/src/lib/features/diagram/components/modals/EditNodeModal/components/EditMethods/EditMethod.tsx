@@ -88,6 +88,8 @@ const EditMethod: React.FC<{
                             <option value="str">string</option>
                             <option value="int">integer</option>
                             <option value="bool">boolean</option>
+                            <option value="image">image</option>
+                            <option value="video">video</option>
                         </select>
                     </div>
                     <div className={style.body}>

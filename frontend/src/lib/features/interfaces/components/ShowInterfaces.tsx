@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { Plus, PaintRoller, X } from "lucide-react";
+import { Plus, PaintRoller, X, Wand2, Loader2 } from "lucide-react";
 import React, { useState} from "react";
 import { createInterfaceAtom } from "../../browser/atoms";
 import { useInterfaces } from "$browser/queries";
@@ -17,13 +17,25 @@ type Props = {
 export const ListInterface: React.FC<Props> = ({ system }) => {
     const [, setCreate] = useAtom(createInterfaceAtom);
     const { systemId } = useParams();
-    const { data, isSuccess, refetch } = useInterfaces(systemId);
+    const { data, isSuccess, isLoading, isError, error, refetch } = useInterfaces(systemId);
+    const interfaces = Array.isArray(data) ? data : [];
     const [, setStyling, ] = useLocalStorage('styling', '');
     const [, setCategories, ] = useLocalStorage('categories', []);
     const [, setPages, ] = useLocalStorage('pages', []);
     const [, setSections, ] = useLocalStorage('sections', []);
     const [showDeleteInterfaceModal, setShowDeleteInterfaceModal] = useState(false);
     const [interfaceToDelete, setInterfaceToDelete] = useState("");
+    const [isMappingAll, setIsMappingAll] = useState(false);
+    const [mapAllStatus, setMapAllStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    let mapAllButtonBackground = '#ede9fe';
+    let mapAllButtonLabel = 'Map All';
+    if (mapAllStatus === 'ok') {
+        mapAllButtonBackground = '#f0fdf4';
+        mapAllButtonLabel = 'Mapped!';
+    } else if (mapAllStatus === 'error') {
+        mapAllButtonBackground = '#fef2f2';
+        mapAllButtonLabel = 'Failed';
+    }
 
     const handleLoadInterface = (app_comp) => {
 
@@ -32,6 +44,25 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
         setPages(app_comp.pages || []);
         setSections(app_comp.sections || []);
     }
+
+    const handleMapAllInterfaces = async () => {
+        if (!systemId) return;
+        setIsMappingAll(true);
+        setMapAllStatus('idle');
+        try {
+            const { data: mapResult } = await authAxios.post(`/v1/generator/prototypes/map_uml_to_all_interfaces/`, { system_id: systemId });
+            if (!mapResult?.ok) {
+                throw new Error(mapResult?.message || 'UML mapping failed');
+            }
+            setMapAllStatus('ok');
+        } catch (error) {
+            console.error('UML mapping failed:', error);
+            setMapAllStatus('error');
+        } finally {
+            setIsMappingAll(false);
+            setTimeout(() => setMapAllStatus('idle'), 4000);
+        }
+    };
 
     const generateDefaultInterfaces = async () => {
         try {
@@ -61,13 +92,20 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
 
     return (
         <>
+            {isLoading && (
+                <div className="text-sm text-stone-500">Loading interfaces...</div>
+            )}
+            {isError && (
+                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    Failed to load interfaces{error instanceof Error ? `: ${error.message}` : "."}
+                </div>
+            )}
             {isSuccess && (
                 <div className="flex flex-wrap gap-4">
-                    {data.length > 0 ? (
-                        data.map((e) => (
-                            <div className="relative">
+                    {interfaces.length > 0 ? (
+                        interfaces.map((e) => (
+                            <div key={e.id} className="relative">
                                 <a
-                                    key={e.id}
                                     onClick={() => handleLoadInterface(e.data)}
                                     href={`/systems/${system}/interfaces/${e.id}`}
                                     className="flex h-fit w-48 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
@@ -97,6 +135,22 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
                             </div>
                         </button>
                 )}
+                    <button
+                        onClick={handleMapAllInterfaces}
+                        disabled={isMappingAll || !systemId}
+                        title="Map UML diagrams to interfaces for all actors in this system"
+                        className="flex h-fit w-30 flex-col gap-2 overflow-hidden text-ellipsis rounded-md p-4 hover:bg-stone-300"
+                        style={{
+                            background: mapAllButtonBackground,
+                            opacity: isMappingAll || !systemId ? 0.6 : 1,
+                            cursor: isMappingAll ? 'default' : 'pointer',
+                        }}
+                    >
+                        <div className="flex flex-row gap-1 items-center">
+                            {isMappingAll ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={20} />}
+                            <p>{mapAllButtonLabel}</p>
+                        </div>
+                    </button>
                     <button
                         onClick={() => setCreate(true)}
                         className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"

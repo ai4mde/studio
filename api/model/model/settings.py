@@ -109,6 +109,8 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # TODO: Investigate if need to change this to UUIDField
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(environ.get("DATA_UPLOAD_MAX_MEMORY_SIZE", 50 * 1024 * 1024))
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(environ.get("FILE_UPLOAD_MAX_MEMORY_SIZE", 50 * 1024 * 1024))
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",  # TODO: Setup some environment variables for this
     "http://localhost:5173",
@@ -116,9 +118,11 @@ CSRF_TRUSTED_ORIGINS = [
     "https://" + environ.get("HOSTNAME", "api.ai4mde.localhost"),
     "http://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
     "https://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
-
+    "https://*.trycloudflare.com",
+    "https://*.aivorab.xyz",
 ]
-CSRF_COOKIE_DOMAIN = '.'.join(environ.get("HOSTNAME", "ai4mde.localhost").split('.')[1:])  # TODO: Test & investigate how to fix this stuff, so we can run from localhost:5173
+_hostname_parts = environ.get("HOSTNAME", "api.ai4mde.localhost").split('.')
+CSRF_COOKIE_DOMAIN = None if _hostname_parts[-1] == "localhost" else '.' + '.'.join(_hostname_parts[-2:])
 CORS_ALLOW_ALL_ORIGINS = True  # TODO: Not in PROD!
 CORS_ALLOW_CREDENTIALS = True  # TODO: Investigate if necessary?
 CSRF_COOKIE_HTTPONLY = False  # TODO: Is this even used?

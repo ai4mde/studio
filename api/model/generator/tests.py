@@ -1,8 +1,9 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from generator.models import Prototype
-from metadata.models import Project, System
+from metadata.models import Interface, Project, System
 from django.contrib.auth.models import User
+from unittest.mock import patch
 from uuid import uuid4
 
 prototype_metadata = {
@@ -79,3 +80,65 @@ class PrototypeAPITests(APITestCase):
         response = self.client.get(self.url, {'system': uuid4()}) # Random uuid
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 0)  # No prototypes
+
+    def test_hot_reload_preserves_styling(self):
+        interface = Interface.objects.create(
+            system=self.system1,
+            name="TestInterface",
+            description="Test interface",
+            data={
+                "sections": [{"id": "section-1", "type": "card"}],
+                "pages": [{"id": "page-1", "type": "home"}],
+                "styling": {
+                    "accentColor": "#123456",
+                    "backgroundColor": "#ffffff",
+                },
+            },
+        )
+
+        payload = {
+            "interface_id": str(interface.id),
+            "sections": [{"id": "section-2", "type": "list"}],
+            "pages": [{"id": "page-1", "type": "home"}],
+            "styling": {
+                "accentColor": "#ff0000",
+                "backgroundColor": "#111111",
+            },
+        }
+
+        with patch("generator.api.views.prototypes.requests.get") as mock_get, \
+             patch("generator.api.views.prototypes.requests.post") as mock_post, \
+             patch("generator.api.views.prototypes.render_layout") as mock_render_layout, \
+             patch("generator.api.views.prototypes.render_base_template") as mock_render_base:
+            mock_get.return_value.json.return_value = {
+                "running": True,
+                "system": str(self.system1.id),
+                "name": "TestPrototype1",
+            }
+            mock_render_layout.return_value = [
+                {"path": "templates/customer_browse_products.html", "content": "<html>hot reload</html>"}
+            ]
+            mock_render_base.return_value = {
+                "path": "templates/customer_base.html",
+                "content": "<html>base hot reload</html>",
+            }
+            mock_post.return_value.status_code = 200
+            mock_post.return_value.json.return_value = {"updated": 2}
+
+            response = self.client.post(
+                "/api/v1/generator/prototypes/hot_reload/",
+                payload,
+                format="json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"updated": 2, "requested": 2})
+        mock_render_layout.assert_called_once()
+        mock_render_base.assert_called_once()
+        rendered_interface_data = mock_render_layout.call_args.args[0]
+        self.assertEqual(rendered_interface_data["styling"], payload["styling"])
+        self.assertEqual(rendered_interface_data["sections"][0]["id"], payload["sections"][0]["id"])
+        self.assertEqual(rendered_interface_data["sections"][0]["type"], payload["sections"][0]["type"])
+        posted_files = mock_post.call_args.kwargs["json"]["files"]
+        self.assertEqual(posted_files[0]["path"], "Customer/templates/Customer_Browse_Products.html")
+        self.assertEqual(posted_files[1]["path"], "Customer/templates/Customer_base.html")

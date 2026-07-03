@@ -1,5 +1,5 @@
 from utils.file_generation import generate_output_file
-from utils.sanitization import project_name_sanitization, app_name_sanitization
+from utils.sanitization import project_name_sanitization, app_name_sanitization, app_namespace_sanitization
 from utils.definitions.application_component import ApplicationComponent
 
 def generate_urls(application_component: ApplicationComponent, system_id: str) -> bool:
@@ -13,6 +13,7 @@ def generate_urls(application_component: ApplicationComponent, system_id: str) -
     data = {
         "project_name": project_name,
         "application_name": application_name,
+        "application_namespace": app_namespace_sanitization(application_name),
         "pages": pages_in_app,
         "settings": application_component.settings,
     }

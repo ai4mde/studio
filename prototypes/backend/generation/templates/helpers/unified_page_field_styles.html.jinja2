@@ -1,0 +1,44 @@
+{%- set _field_cfgs = _fl.get('field_styles') or {} %}
+{%- if _field_cfgs %}
+<style>
+{%- set _field_width = {'3':'25%', '4':'33.333%', '6':'50%', '8':'66.666%', '12':'100%'} %}
+{%- set _field_text = {'xs':'0.75rem', 'sm':'0.875rem', 'md':'1rem', 'lg':'1.125rem', 'xl':'1.25rem'} %}
+{%- set _field_height = {'sm':'96px', 'md':'160px', 'lg':'240px', 'xl':'320px'} %}
+{%- for fname, fcfg in _field_cfgs.items() %}
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] {
+  {%- if fcfg.get('order') is not none %} order: {{ fcfg.get('order') }};{% endif %}
+  {%- if fcfg.get('align') in ['left', 'center', 'right'] %} text-align: {{ fcfg.get('align') }};{% endif %}
+  {%- if fcfg.get('col_span') %}
+    flex-basis: {{ _field_width.get(fcfg.get('col_span')|string, 'auto') }};
+    width: {{ _field_width.get(fcfg.get('col_span')|string, 'auto') }};
+    {%- if (fcfg.get('col_span')|string) in ['8', '12'] %} grid-column: 1 / -1;{% endif %}
+  {%- endif %}
+}
+{%- if fcfg.get('visible') == 'hidden' %}
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] { display: none !important; }
+{%- endif %}
+{%- if fcfg.get('text_size') %}
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"],
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-value {
+  font-size: {{ _field_text.get(fcfg.get('text_size')|string, 'inherit') }} !important;
+}
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] :where(span, a, button, input, select, textarea, label, p, div) {
+  font-size: inherit !important;
+}
+{%- endif %}
+{%- if fcfg.get('height') %}
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-media,
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] img,
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] video,
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-img,
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-video {
+  height: {{ _field_height.get(fcfg.get('height')|string, 'auto') }};
+  aspect-ratio: auto;
+}
+{%- endif %}
+{%- if fcfg.get('label') == 'hidden' %}
+[data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-label { display: none !important; }
+{%- endif %}
+{%- endfor %}
+</style>
+{%- endif %}

@@ -3,5 +3,6 @@ WORKDIR /usr/src/app
 
 COPY . /usr/src/app
 RUN npm install --frozen-lockfile
+ENV NODE_OPTIONS=--max-old-space-size=1536
 RUN npm run build
 ENTRYPOINT ["npm", "run", "dev", "--", "--host"]

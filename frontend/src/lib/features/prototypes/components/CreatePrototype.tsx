@@ -51,6 +51,8 @@ export const CreatePrototype: React.FC = () => {
     const [databaseHash, setDatabaseHash] = useState<string | null>(null);
     const [databasePrototypes, setDatabasePrototypes] = useState([]);
     const [selectedDatabasePrototype, setSelectedDatabasePrototype] = useState(null);
+    const layout = 'table';
+    const color = 'blue';
 
     useEffect(() => {
         if (isSuccessInterfaces && interfaces) {
@@ -98,26 +100,17 @@ export const CreatePrototype: React.FC = () => {
     >({
         mutationFn: async (input) => {
             const { name, description, system, metadata } = input;
-            if (selectedDatabasePrototype) {
-                const { data } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${selectedDatabasePrototype.label}`, {
-                    name,
-                    description,
-                    system_id: system,
-                    metadata,
-                    database_hash: databaseHash,
-                });
-                return data
-            }
-            else {
-                const { data } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=`, {
-                    name,
-                    description,
-                    system_id: system,
-                    metadata,
-                    database_hash: databaseHash,
-                });
-                return data
-            }
+            const databasePrototypeQuery = selectedDatabasePrototype
+                ? `?database_prototype_name=${encodeURIComponent(selectedDatabasePrototype.label)}`
+                : "";
+            const { data } = await authAxios.post(`/v1/generator/prototypes/${databasePrototypeQuery}`, {
+                name,
+                description,
+                system,
+                metadata,
+                database_hash: databaseHash,
+            });
+            return data
 
         },
         onError: (error) => {
@@ -138,6 +131,7 @@ export const CreatePrototype: React.FC = () => {
             "diagrams": diagrams,
             "interfaces": selectedInterfaces,
             "useAuthentication": useAuthentication,
+            "layout_config": { layout, style: { color, density: "normal", columns: 3, radius: "xl", card_style: "elevated" } },
         };
 
         const alphanumericRegex = /^[a-zA-Z0-9]+$/;

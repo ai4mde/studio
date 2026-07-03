@@ -8,6 +8,12 @@ import tsconfigPaths from "vite-tsconfig-paths";
 // https://vitejs.dev/config/
 export default defineConfig({
     optimizeDeps: {
+        force: true,
+        include: [
+            "zustand",
+            "zustand/middleware",
+            "use-sync-external-store/shim/with-selector",
+        ],
         exclude: ["@codemirror/state"],
     },
 
@@ -20,6 +26,10 @@ export default defineConfig({
         project: "studio-studio",
         url: "https://sentry.semax.nguml.com"
     })],
+
+    server: {
+        allowedHosts: true,
+    },
 
     build: {
         sourcemap: true

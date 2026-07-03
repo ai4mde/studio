@@ -40,24 +40,44 @@ export const useDiagramStore = create<DiagramState>((set) => ({
         })),
     nodesFromAPI: (nds) => {
         const swimlaneGroupUUID = nds.filter((n) => n?.cls?.type === 'swimlanegroup')[0]?.id;
+        const classifierNodeMap = new Map(
+            nds
+                .filter((n) => n?.cls_ptr && n?.id)
+                .map((n) => [n.cls_ptr, n.id]),
+        );
         set(() => ({
-            nodes: nds.map((e) => ({
-                id: e?.id,
-                type: e?.cls?.type,
-                position: {
-                    x: e.data?.position?.x ?? 0,
-                    y: e.data?.position?.y ?? 0,
-                },
-                data: {
-                    ...e.cls,
-                    systemName: e.system_name,
-                    systemId: e.system_id,
-                },
-                parentNode: e?.cls?.parentNode ?? (e?.cls?.actorNode ? swimlaneGroupUUID : null), // TODO swimlanes should also use parentNode, this might, however, also require changes in prototype generation
-                extend: e?.cls?.actorNode ? 'parent' : null,
-                connectable: e?.cls?.type === 'swimlanegroup' ? false : true,
-                zIndex: e?.cls?.type === "swimlanegroup" || e?.cls.type == "system_boundary" ? -1: 1,
-            })),
+            nodes: nds.map((e) => {
+                let parentNode = null;
+                if (e?.cls?.parentNode) {
+                    parentNode = classifierNodeMap.get(e.cls.parentNode) ?? e.cls.parentNode;
+                } else if (e?.cls?.actorNode) {
+                    parentNode = swimlaneGroupUUID;
+                }
+                let zIndex = 1;
+                if (e?.cls?.type === "swimlanegroup") {
+                    zIndex = -1;
+                } else if (e?.cls?.type === "system_boundary") {
+                    zIndex = 0;
+                }
+
+                return {
+                    id: e?.id,
+                    type: e?.cls?.type,
+                    position: {
+                        x: e.data?.position?.x ?? 0,
+                        y: e.data?.position?.y ?? 0,
+                    },
+                    data: {
+                        ...e.cls,
+                        systemName: e.system_name,
+                        systemId: e.system_id,
+                    },
+                    parentNode,
+                    extent: parentNode ? 'parent' : null,
+                    connectable: e?.cls?.type !== 'swimlanegroup',
+                    zIndex,
+                };
+            }),
         }))
     },
     edgesFromAPI: (eds) =>

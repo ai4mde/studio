@@ -1,12 +1,19 @@
 from pydantic import BaseModel, model_validator
 from typing import Literal, Optional
 from metadata.specification.kernel import Operation, NamespacedElement, NamedElement
-from diagram.models import Node
+from metadata.specification.activity.classifiers.actor_resolution import UNKNOWN_ACTOR, resolve_actor_name
 
 
 class ActionClasses(BaseModel):
     input: list[str] = []  # TODO: Should refer to an existing class with uuid
     output: list[str] = []  # TODO: Should refer to an existing class with uuid
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_list(cls, v):
+        if isinstance(v, list):
+            return {"input": v, "output": []}
+        return v
 
 
 class Action(NamedElement, NamespacedElement, BaseModel):
@@ -29,7 +36,7 @@ class Action(NamedElement, NamespacedElement, BaseModel):
     @model_validator(mode="after")
     def set_actor_node_name(cls, values):
         if values.actorNode:
-            values.actorNodeName = Node.objects.get(id=values.actorNode).cls.data.get("name", "Unknown actor")
+            values.actorNodeName = resolve_actor_name(values.actorNode)
         return values
 
 ActionClassifier = Action

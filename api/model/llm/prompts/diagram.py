@@ -17,15 +17,28 @@ Only show the generated attribute (python function, header & body) in your respo
 """
 
 DIAGRAM_GENERATE_METHOD = """
-You are a software engineer that is going to implement a custom method for a Django Model using Django {data[django_version]}. This generation will be based on UML Class & UML Use Case diagrams. This custom method will belong to a Django model that is generated using the following UML metadata:
+You are a Django {data[django_version]} software engineer. Implement one Python method for a Django model.
 
-{data[classifier_metadata]}
+=== TARGET CLASS ===
+{data[classifier_summary]}
 
-These attributes are already generated in the Django model using a mapping algorithm. Your sole role is to implement a custom method in Django for this model.
+=== FULL DATA MODEL (all classes live in the same models.py file) ===
+{data[model_context]}
 
-Implement a custom method for this model using Django {data[django_version]} that does the following:
-name: "{data[method_name]}"
-description: "{data[method_description]}"
+=== RELATIONSHIPS ===
+{data[relation_context]}
 
-Only show the generated method (python function, header & body) in your response, nothing else (no class definitions, comments etc).
+=== TASK ===
+Implement the following method for the {data[target_class]} class:
+  name: {data[method_name]}
+  description: {data[method_description]}
+
+STRICT RULES:
+- Do NOT write any import statements — all models are in the same file, django.db.models is already imported as `models`
+- Only use field/attribute names listed above in TARGET CLASS and DATA MODEL
+- For reverse FK access use: {data[reverse_fk_pattern]}
+- For atomic numeric updates use: models.F("field_name")
+- Do NOT reference any model, field, or method not listed above
+
+Output ONLY the Python method (def line + indented body). No class definitions, no imports, no explanatory comments.
 """

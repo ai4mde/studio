@@ -1,20 +1,31 @@
 from enum import Enum
 from typing import List, Optional
 import ast
+from utils.sanitization import custom_method_name_sanitization
 
 class CustomMethod():
     def __init__(
             self,
             name: str,
-            body: str
+            body: str = None,
+            action: str = None,
+            target_model: str = None,
+            parameters = None,
+            call_name: str = None,
     ):
         self.name = name
-        try:
-            ast.parse(body)
-            self.body = body
-            self.body_is_valid = True
-        except SyntaxError:
-            self.body_is_valid = False
+        self.call_name = call_name or custom_method_name_sanitization(name)
+        self.action = action
+        self.target_model = target_model
+        self.parameters = parameters or []
+        self.body = body
+        self.body_is_valid = False
+        if body:
+            try:
+                ast.parse(body)
+                self.body_is_valid = True
+            except SyntaxError:
+                self.body_is_valid = False
 
     def __str__(self):
         return self.name
@@ -27,6 +38,8 @@ class AttributeType(Enum):
     ENUM = 4
     FOREIGN_MODEL = 5
     NONE = 6
+    IMAGE = 7
+    VIDEO = 8
 
 
 class Cardinality(Enum):

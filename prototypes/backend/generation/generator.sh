@@ -4,7 +4,8 @@ set -euo pipefail
 export PROJECT_ID=$1
 export PROJECT_SYSTEM=$2
 export PROJECT_NAME=$3
-export METADATA_FILE="$4"
+export METADATA="$4"
+export VARIANT_ID="$5"
 export WORKDIR=/usr/src/prototypes/backend/generation
 export OUTDIR=/usr/src/prototypes/generated_prototypes
 export ROOT=/usr/src/prototypes/
@@ -12,7 +13,7 @@ export ROOT=/usr/src/prototypes/
 export PYTHONPATH="${WORKDIR}/generation_scripts"
 
 # Global settings such as authentication go here
-export AUTH_PRESENT=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA_FILE")
+export AUTH_PRESENT=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA")
 
 
 create_outdir() {
@@ -24,7 +25,7 @@ create_outdir() {
 
 create_new_django_project() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}"
-    if [ -d "$PROJECT_NAME" ]; then
+    if [[ -d "$PROJECT_NAME" ]]; then
         echo "Error: Directory with project name already exists."
         exit 1
     fi
@@ -34,9 +35,12 @@ create_new_django_project() {
 update_django_project_settings() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "ALLOWED_HOSTS += ['*']" >> settings.py
+    echo "CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://ai4mde.localhost', 'http://prototype.ai4mde.localhost', 'http://prototypes_api.ai4mde.localhost', 'https://*.trycloudflare.com', 'https://*.aivorab.xyz']" >> settings.py
+    echo "CSRF_COOKIE_HTTPONLY = False" >> settings.py
+    echo "MIDDLEWARE = [m for m in MIDDLEWARE if 'XFrameOptionsMiddleware' not in m]" >> settings.py
     echo "from django.urls import include" >> urls.py
     
-    if [ "$AUTH_PRESENT" = "True" ]; then
+    if [[ "$AUTH_PRESENT" = "True" ]]; then
         echo "AUTH_USER_MODEL = \"shared_models.User\"" >> settings.py
     fi
 }
@@ -44,7 +48,8 @@ update_django_project_settings() {
 create_shared_models_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "shared_models"
-    python "${WORKDIR}/generation_scripts/generate_models.py" "$PROJECT_NAME" "$METADATA_FILE" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_models.py" "$PROJECT_NAME" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_shared_views.py" "$PROJECT_NAME" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['shared_models']" >> settings.py
 }
@@ -52,17 +57,21 @@ create_shared_models_app() {
 create_workflow_engine_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "workflow_engine"
-    python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA_FILE" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
+    python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
+    if ! grep -q "class StartProcessView" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/views.py"; then
+        echo "Error: workflow_engine/views.py generation failed (StartProcessView missing)." >&2
+        exit 1
+    fi
     cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine', 'django_crontab']" >> settings.py
-    echo "urlpatterns += [path('workflow_engine', include('workflow_engine.urls', namespace='workflow_engine'))]" >> urls.py
+    echo "urlpatterns += [path('workflow_engine/', include('workflow_engine.urls', namespace='workflow_engine'))]" >> urls.py
 }   
 
 create_authentication_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "authentication"
-    python "${WORKDIR}/generation_scripts/generate_authentication.py" "$PROJECT_NAME" "$METADATA_FILE" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_authentication.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['authentication']" >> settings.py
     echo "LOGIN_URL = '/'" >> settings.py
@@ -73,7 +82,7 @@ create_authentication_app() {
 create_noauth_home_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "noauth_home"
-    python "${WORKDIR}/generation_scripts/generate_noauth_home.py" "$PROJECT_NAME" "$METADATA_FILE" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_noauth_home.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['noauth_home']" >> settings.py
     echo "urlpatterns += [path(\"\", include(\"noauth_home.urls\"))]" >> urls.py
@@ -82,31 +91,36 @@ create_noauth_home_app() {
 
 update_global_app_settings() {
     local app="$1"
+    local lower_app
+    lower_app="$(printf '%s' "$app" | tr '[:upper:]' '[:lower:]')"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "urlpatterns += [path(\"$app/\", include(\"$app.urls\"))]" >> urls.py
+    if [[ "$lower_app" != "$app" ]]; then
+        echo "urlpatterns += [path(\"$lower_app/\", include(\"$app.urls\"))]" >> urls.py
+    fi
 	echo "INSTALLED_APPS += ['$app']" >> settings.py
 }
 
 create_new_django_app() {
     local app="$1"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    if [ -d "$app" ]; then
+    if [[ -d "$app" ]]; then
         echo "Error: Directory with application component name already exists."
         exit 1
     fi
     python -m django startapp "$app"
-    python "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA_FILE" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM" "$VARIANT_ID"
     update_global_app_settings "$app"
 }
 
 create_django_apps() {
-    applications=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_apps "$METADATA_FILE")
+    applications=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_apps "$METADATA")
     
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     
     create_shared_models_app
     create_workflow_engine_app
-    if [ "$AUTH_PRESENT" = "True" ]; then
+    if [[ "$AUTH_PRESENT" = "True" ]]; then
         create_authentication_app
     else
         create_noauth_home_app
@@ -118,9 +132,9 @@ create_django_apps() {
 
 run_migrations() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    python "manage.py" "makemigrations"
+    python "manage.py" "makemigrations" "--skip-checks"
     cp "${WORKDIR}/workflow_engine/0002_populate_workflow_engine.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/migrations"
-    python "manage.py" "migrate"
+    python "manage.py" "migrate" "--skip-checks"
 }
 
 add_cron_jobs() {

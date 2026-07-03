@@ -18,6 +18,17 @@ type AuthStore = {
     logout: () => void;
 };
 
+const clearAuthState = () => {
+    delete authAxios.defaults.headers.common.Authorization;
+    useAuthStore.setState({
+        isAuthenticated: false,
+        bearerToken: undefined,
+        expires: undefined,
+        user: undefined,
+        tokenData: undefined,
+    });
+};
+
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
@@ -85,4 +96,39 @@ export const useAuthStore = create(
             storage: createJSONStorage(() => localStorage), // TODO: Make this localStorage
         },
     ),
+);
+
+// Restore Authorization header after page reload or Vite HMR by subscribing to persisted state
+useAuthStore.subscribe((state) => {
+    if (state.bearerToken) {
+        authAxios.defaults.headers.common.Authorization = `Bearer ${state.bearerToken}`;
+    } else {
+        delete authAxios.defaults.headers.common.Authorization;
+    }
+});
+
+// Always inject the current token per-request to avoid race conditions on page load
+authAxios.interceptors.request.use((config) => {
+    const { bearerToken: token, expires } = useAuthStore.getState();
+    if (expires && expires < Date.now()) {
+        clearAuthState();
+        return config;
+    }
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+authAxios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const url = String(error.config?.url || "");
+        const isAuthStatusRequest = url.includes("/auth/status");
+        if (error.response?.status === 401 && isAuthStatusRequest) {
+            clearAuthState();
+        }
+
+        return Promise.reject(error);
+    },
 );
