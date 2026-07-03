@@ -3282,7 +3282,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                         >
                                             <option value="none">None</option>
                                             <option value="navigate">Navigate</option>
-                                            <option value="select">Select</option>
                                         </select>
                                         {selectedSection.behavior?.item_click?.type === 'navigate' && (
                                             <select
