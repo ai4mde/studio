@@ -12,8 +12,8 @@ api = NinjaAPI(
     version="0.0.1",  # TODO: Use package-wide versioning
     description="AI4MDE Studio API",
     auth=auth,
-    csrf=False,  # TODO: Ensure this works with Axios frontend / XSRF Header
 )
+
 api.add_router("/metadata/", metadata_router)
 api.add_router("/diagram/", diagram_router)
 api.add_router("/prose/", prose_router)
