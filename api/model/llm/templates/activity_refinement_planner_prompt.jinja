@@ -1,0 +1,102 @@
+You are refining planning artifacts for a deterministic activity-model pipeline.
+
+You are given:
+- the original process description
+- the current topology artifact
+- the current semantic sketch plan
+- a natural-language refinement instruction
+
+Your task is to return a COMPLETE updated topology artifact and a COMPLETE updated semantic sketch plan.
+
+{{ refinement_contract_text }}
+
+Planner generation rules:
+- Return full updated artifacts, not patches
+- Do not return edit operations
+- Do not return update modes
+- Preserve unrelated parts conservatively when the instruction is ambiguous
+- Default to the smallest possible change that satisfies the instruction
+- The current TopologyArtifact is the default output
+- Start from the current artifact and edit it
+- Apply only the minimum necessary edits
+- Assume every existing structure, branch name, branch intent, and semantic entry should stay unchanged unless the instruction explicitly requires changing it
+- Treat every existing structure as immutable unless the instruction explicitly requires changing it
+- If the instruction requires no changes, return the unchanged artifacts
+- Treat the contract above as generation constraints, not as post-processing hints
+- Produce artifacts that already satisfy the deterministic builder/compiler invariants as much as possible before reconciliation
+- Do not rely on reconciliation to add missing branch plans, missing root actions, or remove obsolete semantic entries
+- After deciding the updated topology, explicitly derive the full updated semantic coverage required by that topology before producing the final JSON
+- Semantic entries should describe meaning only; they must never encode topology structure, topology ordering, or topology ownership
+- Topology decisions must be expressed in the topology artifact, not hidden inside semantic wording
+- If you add, remove, reorder, reparent, or replace topology structures, preserve unaffected structures exactly and recompute only the semantic coverage required by the changed topology
+- Do not redesign or improve the artifact
+- Do not rewrite structures for clarity or consistency
+- Never delete an unrelated decision, loop, or parallel structure
+- Never convert an existing decision into a loop, or a loop into a decision, unless the instruction explicitly requires that exact change
+- Never rename unrelated branches
+- Never modify unrelated branch intents
+- Reuse existing structures whenever possible instead of deleting and recreating them
+- If an existing structure already satisfies the instruction, reuse it unchanged
+- Only create new ids for genuinely new structures
+- Every unchanged structure must preserve exactly:
+  - `id`
+  - `type`
+  - `parent`
+  - `parent_branch`
+  - `branches`
+- For local insertions such as `Add a compliance review before approval`, keep unrelated structures, branches, and branch intents identical
+- Use the exact `structure_id` and `branch` values from the updated topology when writing branch plans
+- Do not choose `continue`, `terminate`, or `loop_back` from branch wording alone
+- `branch_plans.intent` is NOT a free-text description field
+- `branch_plans.intent` must always be exactly one of:
+  - `continue`
+  - `terminate`
+  - `loop_back`
+- Put semantic meaning in `branch_plans.steps`, not in `branch_plans.intent`
+- Never place action descriptions such as `conduct compliance review`, `approve`, `rework request`, or `finalize task` into `branch_plans.intent`
+- Good example:
+  - `intent: "continue"` with `steps: [{"action": "conduct compliance review"}]`
+- Bad example:
+  - `intent: "conduct compliance review"`
+
+Current process description:
+{{ process_text }}
+
+Current topology artifact:
+{{ current_topology_artifact | tojson(indent=2) }}
+
+Current topology root slots:
+These describe the current semantic coverage pattern. If you change topology, recompute the updated slots from the updated topology rather than copying these blindly.
+
+{{ current_root_slots | tojson(indent=2) }}
+
+Current topology branch coverage:
+These describe the current `(structure_id, branch)` coverage pattern. If you change topology, recompute the updated branch coverage from the updated topology rather than copying these blindly.
+
+{{ current_branch_slots | tojson(indent=2) }}
+
+Current semantic sketch plan:
+{{ current_semantic_sketch_plan | tojson(indent=2) }}
+
+Refinement instruction:
+{{ instruction }}
+
+Output requirements:
+- Return ONLY valid JSON
+- The JSON object must contain:
+  - `updated_topology_artifact`
+  - `updated_semantic_sketch_plan`
+  - `refinement_trace`
+- `refinement_trace` must contain only:
+  - `user_instruction`
+- Set `refinement_trace.user_instruction` to the original user instruction
+- Before returning JSON, verify internally that:
+  - the updated root slots implied by the updated topology are fully covered by `updated_semantic_sketch_plan.root_actions`
+  - every updated topology branch has exactly one branch plan in `updated_semantic_sketch_plan.branch_plans`
+  - obsolete semantic entries from removed topology are not present
+  - every unchanged structure preserved its original `id`, `type`, `parent`, `parent_branch`, and `branches`
+  - every unrelated structure from the current topology is preserved unchanged unless the instruction explicitly requires changing it
+  - unrelated branch names and unrelated branch intents remain unchanged
+  - no existing decision, loop, or parallel structure was deleted or retyped unless the instruction explicitly requires it
+- Do not include explanations
+- Do not include markdown
