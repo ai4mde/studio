@@ -2277,9 +2277,9 @@ href="#"
 {%- set _gen_img   = ('{{ ' + _m + '.' + _image_attr|string + ' }}') if _image_attr else '' %}
 {%- set _gen_price = ('{{ ' + _m + '.' + _primary_attr|string + ' }}') if _primary_attr else '' %}
 {%- if section_component.item_click_target_page and section_component.item_click_target_page|string in _activity_page_names %}
-{%- set _gen_vurl  = '{% url "' + application_namespace + ':' + application_name + '-homerender" %}' %}
+{%- set _gen_vurl  = "{% url '" + application_namespace + ':' + application_name + "-homerender' %}" %}
 {%- elif section_component.item_click_target_page %}
-{%- set _gen_vurl  = '{% url "' + application_namespace + ':render_' + application_name + '_' + section_component.item_click_target_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}' %}
+{%- set _gen_vurl  = "{% url '" + application_namespace + ':render_' + application_name + '_' + section_component.item_click_target_page|string + "' %}?instance_id_" + _m + '={{ ' + _m + '.id }}' %}
 {%- else %}
 {%- set _gen_vurl  = '#' %}
 {%- endif %}
@@ -2508,9 +2508,9 @@ href="#"
 {%- set _gen_img   = ('{{ ' + _m + '.' + _image_attr|string + ' }}') if _image_attr else '' %}
 {%- set _gen_price = ('{{ ' + _m + '.' + _primary_attr|string + ' }}') if _primary_attr else '' %}
 {%- if section_component.item_click_target_page and section_component.item_click_target_page|string in _activity_page_names %}
-{%- set _gen_vurl  = '{% url "' + application_namespace + ':' + application_name + '-homerender" %}' %}
+{%- set _gen_vurl  = "{% url '" + application_namespace + ':' + application_name + "-homerender' %}" %}
 {%- elif section_component.item_click_target_page %}
-{%- set _gen_vurl  = '{% url "' + application_namespace + ':render_' + application_name + '_' + section_component.item_click_target_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}' %}
+{%- set _gen_vurl  = "{% url '" + application_namespace + ':render_' + application_name + '_' + section_component.item_click_target_page|string + "' %}?instance_id_" + _m + '={{ ' + _m + '.id }}' %}
 {%- else %}
 {%- set _gen_vurl  = '#' %}
 {%- endif %}
