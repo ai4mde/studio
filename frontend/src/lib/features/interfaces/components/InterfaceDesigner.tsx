@@ -2034,7 +2034,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const pageFooterWidth = currentPage?.layout?.footer_width || 'contained';
     const pageSidebarBg: BgOption | 'transparent' = currentPage?.layout?.sidebar_bg || 'transparent';
     const pageSidebarShadow: ShadowOption = currentPage?.layout?.sidebar_shadow || 'none';
-    const pageGap = (typeof currentPage?.gap === 'string' ? currentPage.gap : currentPage?.gap?.value) || 'normal';
 
     const btnBase: React.CSSProperties = {
         display: 'flex', alignItems: 'center', gap: 4,
@@ -2560,20 +2559,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     </div>
                                 </div>
                             ))}
-
-                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Page Gap</p>
-                            <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
-                                {[
-                                    { label: 'Compact', value: 'compact' },
-                                    { label: 'Normal', value: 'normal' },
-                                    { label: 'Spacious', value: 'spacious' },
-                                ].map(opt => (
-                                    <button key={opt.value} style={{ ...btnBase, ...active(pageGap === opt.value), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updatePageProperty(previewPageIndex, 'gap', opt.value)}>
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
 
                             {/* Global Theme */}
                             <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12 }}>
