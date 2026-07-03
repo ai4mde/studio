@@ -3254,15 +3254,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 ))}
                             </div></>)}
 
-                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Width</p>
-                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                {COL_SPAN_OPTIONS.map(opt => (
-                                    <button key={opt.value} style={{ ...btnBase, ...active(secColSpan === opt.value), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'col_span', opt.value)}>
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
 
                             {!isChromeOrControlSection && (
                             <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#f9fafb' }}>
