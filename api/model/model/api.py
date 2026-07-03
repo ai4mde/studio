@@ -1,3 +1,14 @@
+"""
+AI4MDE Studio API root configuration.
+
+This module wires up the top-level Django Ninja `NinjaAPI` instance for
+AI4MDE Studio, mounting the feature-specific routers (metadata, diagram,
+prose, generator) and defining authentication endpoints for token-based
+login/logout and auth status checks. Cookie-based session tokens are
+issued via `/auth/token`, cleared via `/auth/logout`, and can be verified
+via `/auth/status`.
+"""
+
 from diagram.api import diagram_router
 from django.http import HttpResponse
 from metadata.api import metadata_router

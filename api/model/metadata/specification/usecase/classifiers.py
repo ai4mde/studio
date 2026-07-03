@@ -48,6 +48,4 @@ class SystemBoundary(NamedElement, BaseModel):
 
 UsecaseClassifier = Union[Actor, Usecase, SystemBoundary]
 
-__all__ = [
-    "UsecaseClassifier",
-]
+

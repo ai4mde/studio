@@ -24,7 +24,3 @@ def get_meta(request: HttpRequest):
         "relations": system.relations.all(),
     }
 
-
-__all__ = [
-    "meta",
-]

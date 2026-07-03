@@ -20,4 +20,3 @@ def relation_schema(request):
     return RelationSchema.model_json_schema()
 
 
-__all__ = ["metadata_router"]

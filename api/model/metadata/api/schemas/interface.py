@@ -42,11 +42,3 @@ class ImportInterface(Schema):
     system: str
     data: dict
 
-
-__all__ = [
-    "ReadInterface",
-    "CreateInterface",
-    "UpdateInterface",
-    "DeleteInterface",
-    "ExportInterface",
-]

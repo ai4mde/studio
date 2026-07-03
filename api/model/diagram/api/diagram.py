@@ -13,7 +13,7 @@ from diagram.schemas.edge import SimpleEdgeSchema
 from diagram.schemas.node import SimpleNodeSchema
 from diagram.services.node import create_node
 from diagram.services.edge import create_edge
-from diagram.models import Diagram
+from diagram.models.diagram import Diagram
 
 from metadata.models import System
 

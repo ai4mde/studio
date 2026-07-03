@@ -5,8 +5,7 @@ from ninja import ModelSchema, Schema
 
 from metadata.specification import Relation
 
-from diagram.models import Edge
-
+from diagram.models.edge import Edge
 
 class Point(Schema):
     x: float

@@ -48,13 +48,3 @@ class RelationLabels(BaseModel):
     target: str = ""
 
 
-__all__ = [
-    "DataType",
-    "Attribute",
-    "Multiplicity",
-    "NamedElement",
-    "NamespacedElement",
-    "Operation",
-    "RelationMultiplicity",
-    "RelationLabels",
-]

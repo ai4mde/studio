@@ -1,6 +1,8 @@
 from django.db.models import Count, Q
 
-from diagram.models import Diagram, Edge, Node
+from diagram.models.diagram import Diagram
+from diagram.models.node import Node
+from diagram.models.edge import Edge
 from metadata.models import Relation
 import metadata.specification as spec
 

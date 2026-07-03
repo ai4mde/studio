@@ -35,4 +35,3 @@ class Object(NamedElement, NamespacedElement, BaseModel):
     
 ObjectClassifier = Object
 
-__all__ = ["ObjectClassifier"]

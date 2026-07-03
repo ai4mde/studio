@@ -1,6 +1,6 @@
 from django.http import HttpRequest
 
-from diagram.models import Diagram
+from diagram.models.diagram import Diagram
 
 def get_diagram(request: HttpRequest) -> Diagram | None:
     if not request.resolver_match:
@@ -11,4 +11,3 @@ def get_diagram(request: HttpRequest) -> Diagram | None:
 
     id = request.resolver_match.kwargs.get("diagram")
     return Diagram.objects.get(id=id)
-

@@ -1,7 +1,9 @@
 from pydantic import BaseModel, model_validator
 from typing import Literal, Optional
+
 from metadata.specification.kernel import Operation, NamespacedElement, NamedElement
-from diagram.models import Node
+
+from diagram.models.node import Node
 
 
 class ActionClasses(BaseModel):
@@ -34,7 +36,3 @@ class Action(NamedElement, NamespacedElement, BaseModel):
 
 ActionClassifier = Action
 
-__all__ = [
-    "Action",
-    "ActionClassifier",
-]

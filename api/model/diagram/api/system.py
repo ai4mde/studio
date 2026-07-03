@@ -5,8 +5,7 @@ from typing import List
 from metadata.models import System
 
 from diagram.schemas.diagram import FullDiagram
-from diagram.models import Diagram
-
+from diagram.models.diagram import Diagram
 
 system = Router()
 

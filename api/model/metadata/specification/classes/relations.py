@@ -29,6 +29,3 @@ class Dependency(RelationBase):
 ClassRelation = Union[Association, Composition, Generalization, Dependency]
 
 
-__all__ = [
-    "ClassRelation",
-]

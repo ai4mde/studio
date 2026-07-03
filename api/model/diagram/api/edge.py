@@ -12,7 +12,8 @@ from diagram.services.edge import create_edge
 from diagram.schemas.diagram import DiagramUsageItem, RelationUsageResponse
 from diagram.schemas.edge import CreateEdge, EdgeSchema, UpdateEdge, PatchEdge
 
-from diagram.models import Node, Edge, Edge
+from diagram.models.node import Node
+from diagram.models.edge import Edge
 from diagram.services.edge import fetch_and_update_edges, remove_edge_from_diagram, delete_relation_everywhere
 from metadata.specification import Relation
 

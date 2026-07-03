@@ -76,4 +76,3 @@ systems.add_router("/{uuid:system_id}/classifier-relations", classifier_relation
 systems.add_router("/{uuid:system_id}/nodes", nodes, tags=["metadata"])
 
 
-__all__ = ["systems"]

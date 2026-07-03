@@ -91,7 +91,3 @@ class ApplicationComponent(NamedElement, BaseModel):
 
 ApplicationsClassifier = Union[Category, Page, Text, Link, SectionComponent, Styling, Fragment, ApplicationComponent]
 
-
-__all__ = [
-    "ApplicationsClassifier",
-]

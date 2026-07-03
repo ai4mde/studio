@@ -74,4 +74,3 @@ def delete_interface(request, interface_id):
 
 
 
-__all__ = ["interfaces"]

@@ -34,4 +34,3 @@ class Event(NamedElement, NamespacedElement, BaseModel):
     
 EventClassifier = Event
 
-__all__ = ["EventClassifier"]

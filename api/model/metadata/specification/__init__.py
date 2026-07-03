@@ -55,9 +55,3 @@ class RelationSchema(ModelSchema):
         fields = ["id", "data", "source", "target"]
 
 
-__all__ = [
-    "Classifier",
-    "ClassifierSchema",
-    "Relation",
-    "RelationSchema",
-]

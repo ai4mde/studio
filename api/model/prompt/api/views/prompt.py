@@ -6,4 +6,3 @@ prompt.get("/")
 def prompt_root(request):
     return {"message": "Hello World"}
 
-__all__ = ["prompt"]

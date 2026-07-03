@@ -71,7 +71,4 @@ def read_classifier_relations(request: HttpRequest):
         "relations": classifier_relations.order_by('id')
     }
 
-__all__ = [
-    "relations",
-    "classifier_relations"
-]
+

@@ -1,10 +1,9 @@
 from typing import Literal, Union, Optional
-
 from pydantic import model_validator
-from diagram.models import Node
+
 from metadata.specification.base import RelationBase
 
-
+from diagram.models.node import Node
 
 class Interface(RelationBase):
     type: Literal["interface"] = "interface"

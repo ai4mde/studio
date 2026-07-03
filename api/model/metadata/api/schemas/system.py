@@ -3,12 +3,12 @@ from uuid import UUID
 
 from ninja import ModelSchema, Schema
 
+from metadata.api.schemas.interface import ExportInterface, ImportInterface
 from metadata.api.schemas.meta import ExportClassifier, ExportRelation, ImportClassifier, ImportRelation
 from metadata.models import System, Classifier, Relation, Interface
-from diagram.models import Diagram
-from diagram.api.schemas.diagram import ExportDiagram, ImportDiagram
-from metadata.api.schemas.interface import ExportInterface, ImportInterface
 
+from diagram.schemas.diagram import ExportDiagram, ImportDiagram
+from diagram.models.diagram import Diagram
 
 class FlatDiagram(Schema):
     id: UUID

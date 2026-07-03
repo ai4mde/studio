@@ -4,9 +4,10 @@ from typing import List, Optional
 
 from ninja import ModelSchema, Schema
 
-from diagram.models import Diagram, Node
-from diagram.api.schemas.node import CreateNode, NodeSchema, ExportNode, ImportNode
-from diagram.api.schemas.edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
+from diagram.models.diagram import Diagram
+from diagram.models.node import Node
+from diagram.schemas.node import CreateNode, NodeSchema, ExportNode, ImportNode
+from diagram.schemas.edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
 
 
 class DiagramType(str, Enum):

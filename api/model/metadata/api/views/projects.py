@@ -1,11 +1,14 @@
 from typing import List
+from ninja import Router
+from ninja.responses import Response
 
 from django.core.exceptions import ObjectDoesNotExist
 
 from metadata.api.schemas import CreateProject, ReadProject, UpdateProject, ExportProject, ImportProject
 from metadata.models import Project
-from ninja import Router
-from ninja.responses import Response
+
+from metadata.services.system import import_project_from_json
+
 
 projects = Router()
 
@@ -71,7 +74,7 @@ def import_project(request, payload: ImportProject, force: bool = False):
                 status=409,
             )
 
-        project = Project.import_from_json(json_data)
+        project = import_project_from_json(json_data)
         return Response(
             {
                 "status": "success",
@@ -89,4 +92,3 @@ def import_project(request, payload: ImportProject, force: bool = False):
         )
 
 
-__all__ = ["projects"]

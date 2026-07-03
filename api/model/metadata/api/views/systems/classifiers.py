@@ -108,8 +108,3 @@ def read_actors(request: HttpRequest):
     }
 
 
-__all__ = [
-    "classifiers",
-    "classes",
-    "actors",
-]

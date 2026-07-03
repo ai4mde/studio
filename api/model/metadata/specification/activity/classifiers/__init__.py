@@ -8,4 +8,3 @@ from .event import EventClassifier
  
 ActivityClassifier = Union[SwimLaneClassifier, ActionClassifier, ControlClassifier, ObjectClassifier, EventClassifier]
  
-__all__ = ["ActivityClassifier"]

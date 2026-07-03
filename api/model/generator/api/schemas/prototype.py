@@ -38,4 +38,3 @@ class UpdatePrototype(ModelSchema):
         ]
 
 
-__all__ = ["ReadPrototype", "CreatePrototype", "UpdatePrototype"]

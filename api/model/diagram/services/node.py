@@ -1,7 +1,8 @@
 from django.db import transaction
 
-from diagram.models import Diagram, Node, Edge
-from diagram.api.utils.edge import remove_edge_from_diagram, delete_relation_everywhere
+from diagram.models.diagram import Diagram
+from diagram.models.node import Node
+from diagram.services.edge import remove_edge_from_diagram, delete_relation_everywhere
 
 from metadata.models import Classifier, Relation
 import metadata.specification as spec

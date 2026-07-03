@@ -16,7 +16,9 @@ from diagram.schemas.node import CreateNode, PatchNode, NodeSchema
 from metadata.specification import Classifier
 from metadata.models import Classifier as MetaClassifier, Relation
 
-from diagram.models import Node, Edge, Diagram
+from diagram.models.diagram import Diagram
+from diagram.models.node import Node
+from diagram.models.edge import Edge
 
 from llm.handler import llm_handler, remove_reply_markdown
 

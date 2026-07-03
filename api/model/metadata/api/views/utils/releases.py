@@ -5,7 +5,9 @@ import uuid
 from django.db import transaction
 
 from metadata.models import System, Interface, Release, Classifier, Relation
-from diagram.models import Diagram, Node, Edge
+from diagram.models.diagram import Diagram
+from diagram.models.node import Node
+from diagram.models.edge import Edge
 
 DIAGRAM_TYPE_MAP = {
     "classes": "classes",

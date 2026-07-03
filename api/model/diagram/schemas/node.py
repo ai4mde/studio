@@ -5,8 +5,7 @@ from ninja import ModelSchema, Schema
 
 from metadata.specification import Classifier
 
-from diagram.models import Node
-
+from diagram.models.node import Node
 
 class NodePosition(Schema):
     x: int = 0

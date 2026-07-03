@@ -2,10 +2,10 @@ from typing import Optional, List
 
 from ninja import Router
 
-from diagram.api.schemas import NodeSchema
-from diagram.models import Node
 from metadata.models import System
 
+from diagram.schemas.node import NodeSchema
+from diagram.models.node import Node
 
 nodes = Router()
 

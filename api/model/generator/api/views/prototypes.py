@@ -165,4 +165,3 @@ def get_active_prototype(request):
     return response.json()
 
 
-__all__ = ["prototypes"]

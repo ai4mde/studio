@@ -1,17 +1,17 @@
 from typing import List
 from ninja import Router
-from prose.api.schemas.pipelines import PipelineSchema, PipelineRequirementsSchema, PipelineModelSchema, PipelineResultsSchema
-from diagram.api.schemas import FullDiagram
 
-from prose.models import Pipeline
-from diagram.models import Diagram
+from diagram.models.diagram import Diagram
+from diagram.schemas.diagram import FullDiagram
 
 from llm.handler import llm_handler
-from .utils import parse_llm_response
 
+from prose.api.schemas.pipelines import PipelineSchema, PipelineRequirementsSchema, PipelineModelSchema, PipelineResultsSchema
+from prose.models import Pipeline
+
+from prose.api.views.utils import parse_llm_response
 
 pipelines = Router()
-
 
 @pipelines.get('/', response=List[PipelineSchema])
 def list_pipelines(request):
@@ -91,4 +91,3 @@ def delete_pipeline(request, pipeline_id: str):
     pipeline.delete()
     return {"status": "ok"}
 
-__all__ = ["pipelines"]

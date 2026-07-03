@@ -1,12 +1,13 @@
 from typing import List, Optional, Any, Dict
+import json
+from ninja import Router, Schema
 
 from django.shortcuts import get_object_or_404
 
 from metadata.api.schemas import ReadRelease, ImportRelease, ImportReleaseSystem, ExportProject, CreateRelease, ExportRelease
-from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams, load_interfaces, load_diagrams
 from metadata.models import Release, Project
-from ninja import Router, Schema
-import json
+from metadata.services.system import import_systems_from_json, import_project_from_json
+
 
 releases = Router()
 
@@ -48,7 +49,7 @@ def load_release(request, release_id):
         return 404, "Release does not contain project data"
 
     try:
-        Project.import_from_json(release.project_data)
+        import_project_from_json(release.project_data)
     except Exception as e:
         return 422, f"Failed to import project data: {e}"
     return 200, "Release loaded successfully"
@@ -84,7 +85,8 @@ class ErrorResponse(Schema):
 def import_systems(request, project_id: str, payload: ImportReleaseSystem):
     project = get_object_or_404(Project, id=project_id)
     try:
-        project.import_systems_from_json(
+        import_systems_from_json(
+            project,
             [system.model_dump() for system in payload.systems] # Make pylance happy
         )
     except Exception as e:
@@ -119,4 +121,3 @@ def delete_release(request, release_id):
     return 200, "Release deleted successfully"
     
 
-__all__ = ["releases"]

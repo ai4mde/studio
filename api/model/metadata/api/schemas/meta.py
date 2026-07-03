@@ -45,12 +45,4 @@ class ImportRelation(Schema):
     data: dict
 
 
-__all__ = [
-    "MetaSchema",
-    "MetaClassifiersSchema",
-    "MetaRelationsSchema",
-    "ExportClassifier",
-    "ExportRelation",
-    "ImportClassifier",
-    "ImportRelation",
-]
+

@@ -35,4 +35,3 @@ class ExportRelease(ModelSchema):
         fields = ["project", "project_data", "release_notes"]
 
 
-__all__ = ["ReadRelease", "ImportRelease", "CreateRelease", "ExportRelease", "ImportReleaseSystem"]

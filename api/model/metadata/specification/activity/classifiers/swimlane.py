@@ -1,8 +1,8 @@
 from pydantic import BaseModel, field_validator
 from pydantic.fields import Field
 from typing import Annotated, Union, Literal, List
-from diagram.models import Node
 
+from diagram.models.node import Node
 
 class SwimLane(BaseModel):
     type: Literal["swimlane"] = "swimlane"
@@ -37,8 +37,3 @@ SwimLaneClassifier = Annotated[
     ),
 ]
 
-
-__all__ = [
-    "SwimLaneGroup",
-    "SwimLaneClassifier",
-]

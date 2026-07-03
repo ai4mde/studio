@@ -9,6 +9,3 @@ class ChangesChatbot:
         return "EHLO!"
 
 
-__all__ = [
-    "ChangesChatbot",
-]
