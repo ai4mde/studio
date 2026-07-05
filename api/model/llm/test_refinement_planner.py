@@ -58,6 +58,11 @@ def test_build_refinement_planner_prompt_includes_locality_rules() -> None:
     assert "Do not redesign or improve the artifact" in prompt
     assert "Do not rewrite structures for clarity or consistency" in prompt
     assert "Only create new ids for genuinely new structures" in prompt
+    assert (
+        "If the instruction explicitly asks to add, insert, create, or rename an activity, action, or task, "
+        "model exactly one business action unless the instruction explicitly requests a decision, loop, parallel "
+        "block, branch, or other control-flow structure"
+    ) in prompt
     assert "Never delete an unrelated decision, loop, or parallel structure" in prompt
     assert "Never rename unrelated branches" in prompt
     assert "Never modify unrelated branch intents" in prompt

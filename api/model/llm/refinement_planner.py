@@ -177,6 +177,7 @@ Canonical refinement contract:
 - Never rename unrelated branches or modify unrelated branch intents
 - Reuse existing structures whenever possible; if an existing structure already satisfies the instruction, keep it
 - Only create new ids for genuinely new structures
+- If the instruction explicitly asks to add, insert, create, or rename an activity, action, or task, model exactly one business action in semantics unless the instruction explicitly requests a decision, loop, parallel block, branch, or other control-flow structure
 - Branch labels are names only; never infer `continue`, `terminate`, or `loop_back` from words like `retry`, `reject`, `approve`, or similar labels
 - Choose branch intent from the updated control-flow role designed by the updated topology and preserved semantics
 - `branch_plans.intent` is a control-flow enum only and must always be exactly one of: `continue`, `terminate`, `loop_back`

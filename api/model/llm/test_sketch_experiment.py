@@ -595,6 +595,125 @@ def test_repair_activity_sketch_removes_invalid_references_and_normalizes_loop_m
     assert report["critical_defects"]
 
 
+def test_repair_activity_sketch_preserves_valid_reconnect_to_step_id() -> None:
+    sketch, report = repair_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "approve request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "rework",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "recheck request"}],
+                            "reconnect_to_step_id": "S1",
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "approve request",
+                    "notes": None,
+                }
+            ],
+        }
+    )
+
+    rework_branch = sketch["control_blocks"][0]["branches"][0]
+    assert rework_branch["reconnect_to_step_id"] == "S1"
+    assert rework_branch["returns_to_main_flow"] is True
+    assert "B1:removed_invalid_reconnect_to_step" not in report["repairs"]
+
+
+def test_repair_activity_sketch_removes_invalid_reconnect_to_step_id_deterministically() -> None:
+    sketch, report = repair_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "rework",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "recheck request"}],
+                            "reconnect_to_step_id": "S9",
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        }
+                    ],
+                    "requires_merge": True,
+                    "notes": None,
+                }
+            ],
+        }
+    )
+
+    branch = sketch["control_blocks"][0]["branches"][0]
+    assert "reconnect_to_step_id" not in branch
+    assert branch["returns_to_main_flow"] is False
+    assert "B1:removed_invalid_reconnect_to_step" in report["repairs"]
+    assert report["metrics"]["invalid_reference_count"] >= 1
+    assert report["metrics"]["reconnect_repair_count"] >= 1
+    assert report["metrics"]["dead_end_repair_count"] >= 1
+
+
+def test_repair_activity_sketch_treats_reconnect_as_valid_branch_continuation_without_exit_to() -> None:
+    sketch, report = repair_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "rework",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "recheck request"}],
+                            "reconnect_to_step_id": "S1",
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        }
+                    ],
+                    "requires_merge": True,
+                    "notes": None,
+                }
+            ],
+        }
+    )
+
+    branch = sketch["control_blocks"][0]["branches"][0]
+    assert branch["returns_to_main_flow"] is True
+    assert branch["reconnect_to_step_id"] == "S1"
+    assert report["metrics"]["dead_end_repair_count"] == 0
+    assert "B1:branch_return_marked_false" not in report["repairs"]
+
+
 def test_sketch_requires_retry_for_mixed_decision_semantics() -> None:
     _, report = repair_activity_sketch(
         {

@@ -143,6 +143,7 @@ def _branch_has_valid_continuation(
     *,
     block: Dict[str, Any],
     valid_block_ids: Set[str],
+    valid_step_ids: Set[str],
 ) -> bool:
     next_block_id = str(branch.get("next_block_id") or "").strip()
     if next_block_id and next_block_id in valid_block_ids:
@@ -153,6 +154,9 @@ def _branch_has_valid_continuation(
         if str(block_id).strip()
     ]
     if any(block_id in valid_block_ids for block_id in child_block_ids):
+        return True
+    reconnect_step_id = str(branch.get("reconnect_to_step_id") or "").strip()
+    if reconnect_step_id and reconnect_step_id in valid_step_ids:
         return True
     if block.get("type") == "loop" and str(block.get("loop_back_to_step_id") or "").strip():
         return True
@@ -288,10 +292,19 @@ def repair_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Tuple[Optional[D
                     repairs.append(f"{block_id or 'block'}:removed_invalid_child_block")
             branch["child_block_ids"] = child_block_ids
 
+            reconnect_step_id = str(branch.get("reconnect_to_step_id") or "").strip()
+            if reconnect_step_id:
+                if reconnect_step_id not in all_step_ids:
+                    invalid_reference_count += 1
+                    reconnect_repair_count += 1
+                    branch.pop("reconnect_to_step_id", None)
+                    repairs.append(f"{block_id or 'block'}:removed_invalid_reconnect_to_step")
+
             if bool(branch.get("returns_to_main_flow")) and not _branch_has_valid_continuation(
                 branch,
                 block=block,
                 valid_block_ids=valid_block_ids,
+                valid_step_ids=all_step_ids,
             ):
                 replacement_step_id = str(block.get("exit_to_step_id") or "").strip()
                 if replacement_step_id:

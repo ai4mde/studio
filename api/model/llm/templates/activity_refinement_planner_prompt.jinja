@@ -38,6 +38,7 @@ Planner generation rules:
 - Reuse existing structures whenever possible instead of deleting and recreating them
 - If an existing structure already satisfies the instruction, reuse it unchanged
 - Only create new ids for genuinely new structures
+- If the instruction explicitly asks to add, insert, create, or rename an activity, action, or task, model exactly one business action unless the instruction explicitly requests a decision, loop, parallel block, branch, or other control-flow structure
 - Every unchanged structure must preserve exactly:
   - `id`
   - `type`
