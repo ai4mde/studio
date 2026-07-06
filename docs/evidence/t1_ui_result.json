@@ -1,0 +1,12 @@
+{
+  "prototypeName": "LibraryT1A",
+  "prototypeId": "56022de9-a562-4ad7-8b29-c2b7206e2f53",
+  "systemId": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+  "projectId": "8cb1ece6-71a0-4e7e-8c0f-7baeed02601e",
+  "generatedPath": "prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryT1A",
+  "route": "Studio Prototypes UI -> Create Prototype modal -> POST /api/v1/generator/prototypes/?database_prototype_name= -> Flask /generate -> generator.sh",
+  "defaultInterfaceObservation": "The create modal showed librarian in the default selected interfaces; the selector was not changed.",
+  "useAuthenticationObservation": "Authentication switch was left at the default checked state; captured metadata has useAuthentication=true.",
+  "backendResult": "Prototype row and generated directory exist; studio-prototypes log shows POST /generate 200.",
+  "generationDurationObservation": "The headless UI command returned after about 10 seconds; the isolated generator log segment runs from 05:06:06Z detection to POST 200 at 05:06:08Z."
+}

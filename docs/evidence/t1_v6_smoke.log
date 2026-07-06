@@ -1,0 +1,4 @@
+time="2026-07-06T07:11:18+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+[smoke] BookLoan pk=1 late_risk='LOW'
+[PASS] V6: fake post_save runtime writes BookLoan.late_risk='LOW'
+[DONE] T1 late_risk runtime smoke PASS.

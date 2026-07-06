@@ -1,0 +1,6 @@
+[PASS] V1: metadata and generator detection both carry late_risk + reading_plan ai_config
+[PASS] V2: AI artifact set present; ai_runtime files=['__init__.py', 'chains.py', 'context.py', 'parsers.py', 'prompt_templates/library_late_risk_v1.j2', 'prompt_templates/reading_plan_analyze_taste_v1.j2', 'prompt_templates/reading_plan_recommend_v1.j2', 'prompt_templates/reading_plan_sequence_v1.j2', 'reading_plan.py', 'routing.py', 'templates.py']
+[PASS] V3: post_save and user_action triggers are split correctly
+[PASS] V4: domain models match step8 order-independently; observed auth-only User fields=['is_librarian']
+[PASS] V5: all checked migrations applied: [('shared_models', '[X] 0001_initial'), ('workflow_engine', '[X] 0001_initial'), ('workflow_engine', '[X] 0002_populate_workflow_engine')]
+[DONE] T1 semantic gates V1-V5 PASS.
