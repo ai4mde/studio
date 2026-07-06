@@ -1,8 +1,13 @@
 import uuid
+import networkx as nx
 
 from django.db import models, transaction
+
 from metadata.models import Classifier, Relation, ImportMixin
-import networkx as nx
+
+from diagram.models.node import Node
+from diagram.models.edge import Edge
+
 
 class Diagram(ImportMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -18,8 +23,8 @@ class Diagram(ImportMixin):
             Reuse a Classifier in this system if possible (search by id and by name + type).
             Otherwise create a new Classifier.
         """
-        cls_id = str(classifier.get("id")) if classifier.get("id") else None
-        data = classifier.get("data", {}) or {}
+        cls_id = str(classifier.get("id")) if classifier.get("id") else None  # TODO: what is in this dictionary that can be false that should be None?
+        data = classifier.get("data", {}) or {}  # TODO: Again why can the value of a key be Falsy? (replace empty dict with a new empty dict is weird)
 
         # Search by id
         if cls_id:
@@ -85,7 +90,7 @@ class Diagram(ImportMixin):
         # If not existing, create Relation
         return Relation.objects.create(system=self.system, source=source, target=target, data=data)
 
-    def add_node_and_classifier(self, classifier: dict, id_map: dict | None = None):
+    def add_node_and_classifier(self, classifier: dict, id_map: dict | None = None) -> str:
         """
         Ensure classifier exists in the system. Create a node in this diagram pointing to classifier.
         Update id_map[old_id] -> system_id so relations can remap endpoints.
@@ -105,7 +110,7 @@ class Diagram(ImportMixin):
 
         return str(cls_obj.id)
 
-    def add_edge_and_relation(self, relation: dict, id_map: dict | None = None):
+    def add_edge_and_relation(self, relation: dict, id_map: dict | None = None) -> str:
         """
         Ensure relation exists in the system. Create an edge in this diagram pointing to relation.
         """
