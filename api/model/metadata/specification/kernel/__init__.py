@@ -11,6 +11,7 @@ class Attribute(BaseModel):
     derived: bool = False
     description: Optional[str] = None
     body: Optional[str] = None
+    ai_config: Optional[dict] = None
 
 class Multiplicity(BaseModel):
     is_ordered: bool = False
