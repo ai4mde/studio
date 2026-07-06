@@ -410,6 +410,13 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
                     continue
                 refs = realize_block(normalized_child_id, refs, reference_kind="child")
 
+            reconnect_step_id = str(branch.get("reconnect_to_step_id") or "").strip()
+            if reconnect_step_id:
+                reconnect_target_id = step_lookup_node(reconnect_step_id, None)
+                if reconnect_target_id is not None:
+                    connect_refs(refs, reconnect_target_id)
+                    continue
+
             has_explicit_continuation = bool(next_block_id or child_block_ids)
             if (
                 block_type == "loop"
@@ -427,12 +434,12 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
             branch_outputs.append(refs)
 
         requires_merge = bool(block.get("requires_merge", False))
-        if block_type == "decision" and requires_merge:
+        if block_type == "decision" and requires_merge and branch_outputs:
             merge_id = builder.add_node("merge", origin_block_id=block_id)
             for refs in branch_outputs:
                 connect_refs(refs, merge_id)
             terminal_refs = [(merge_id, None)]
-        elif block_type == "parallel" and requires_merge:
+        elif block_type == "parallel" and requires_merge and branch_outputs:
             join_id = builder.add_node("join", origin_block_id=block_id)
             for refs in branch_outputs:
                 connect_refs(refs, join_id)

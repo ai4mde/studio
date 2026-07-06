@@ -38,7 +38,16 @@ Planner generation rules:
 - Reuse existing structures whenever possible instead of deleting and recreating them
 - If an existing structure already satisfies the instruction, reuse it unchanged
 - Only create new ids for genuinely new structures
-- If the instruction explicitly asks to add, insert, create, or rename an activity, action, or task, model exactly one business action unless the instruction explicitly requests a decision, loop, parallel block, branch, or other control-flow structure
+- First classify the refinement intent as exactly one of: `Insert Action`, `Insert Decision`, `Insert Loop`, `Insert Parallel`, or a non-insert refinement type before deciding whether topology changes
+- Distinguish refinement kinds from the instruction before editing artifacts:
+  - Insert Action: add exactly one business activity when the instruction asks for a step and does not imply branching, repetition, or concurrency
+  - Insert Decision: add one `decision` structure when the instruction asks to check, decide, determine, classify, route, gate, or split flow based on a condition or outcome, even if the word `decision` is not used explicitly
+  - Insert Loop: add one `loop` structure when the instruction asks to repeat, retry, rework until a condition holds, or iterate
+  - Insert Parallel: add one `parallel` structure when the instruction asks to run paths concurrently, simultaneously, in parallel, or independently at the same time
+- If the refinement is classified as `Insert Action`, keep `updated_topology_artifact` identical to the current topology artifact and model exactly one business action in semantics
+- If the refinement is classified as `Insert Decision`, `Insert Loop`, or `Insert Parallel`, update `updated_topology_artifact` to add that control-flow structure and then derive the required updated semantics from the new topology
+- Do not apply the `Insert Action` rule to instructions that are classified as `Insert Decision`, `Insert Loop`, or `Insert Parallel`, even when the instruction also mentions an activity, action, task, review step, or other business step
+- If an inserted decision is placed before an existing activity, rewire control flow so the new decision occurs first and the referenced existing activity remains after the decision on the appropriate continuing branch or branches
 - Every unchanged structure must preserve exactly:
   - `id`
   - `type`
@@ -46,7 +55,22 @@ Planner generation rules:
   - `parent_branch`
   - `branches`
 - For local insertions such as `Add a compliance review before approval`, keep unrelated structures, branches, and branch intents identical
+- For unchanged root slots, preserve the existing root action text exactly instead of regenerating or paraphrasing it
+- Treat `updated_semantic_sketch_plan.root_actions` as an ordered root-scope sequence aligned to the updated root slots in root order:
+  - `ROOT_START`
+  - `AFTER_<first root structure>`
+  - `AFTER_<second root structure>`
+  - and so on
+- When a root-level action is inserted, removed, or replaced, recompute the full ordered `root_actions` sequence for the updated root slots instead of editing one slot in isolation
+- `updated_semantic_sketch_plan.root_actions` must contain exactly one entry for each required root slot, and each `slot_id` may appear only once
+- `updated_topology_artifact.structures[*].type` must always be exactly one of:
+  - `decision`
+  - `loop`
+  - `parallel`
+- Never use synonyms or descriptive phrases for `structures[*].type`
+- If a structure is unchanged, preserve its existing `type` exactly instead of regenerating it
 - Use the exact `structure_id` and `branch` values from the updated topology when writing branch plans
+- If the instruction says to connect or reconnect a branch/path to an existing action or decision, resolve that reference to the corresponding existing `target_slot_id` instead of introducing a new structure
 - Do not choose `continue`, `terminate`, or `loop_back` from branch wording alone
 - `branch_plans.intent` is NOT a free-text description field
 - `branch_plans.intent` must always be exactly one of:
@@ -93,7 +117,9 @@ Output requirements:
 - Set `refinement_trace.user_instruction` to the original user instruction
 - Before returning JSON, verify internally that:
   - the updated root slots implied by the updated topology are fully covered by `updated_semantic_sketch_plan.root_actions`
+  - `updated_semantic_sketch_plan.root_actions` contains exactly one entry per required root slot and no duplicate `slot_id` values
   - every updated topology branch has exactly one branch plan in `updated_semantic_sketch_plan.branch_plans`
+  - every `updated_topology_artifact.structures[*].type` value is exactly one of `decision`, `loop`, or `parallel`
   - obsolete semantic entries from removed topology are not present
   - every unchanged structure preserved its original `id`, `type`, `parent`, `parent_branch`, and `branches`
   - every unrelated structure from the current topology is preserved unchanged unless the instruction explicitly requires changing it

@@ -6,6 +6,8 @@ from llm.refinement_planner import (
     generate_refinement_plan,
     parse_refinement_planner_json,
 )
+from llm.topology_to_sketch_compiler import compile_topology_and_semantics_to_activity_sketch
+from llm.experimental_compiler import compile_activity_sketch
 
 
 CURRENT_TOPOLOGY = {
@@ -29,6 +31,161 @@ CURRENT_SEMANTICS = {
     "branch_plans": [
         {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
         {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+    ],
+}
+
+SIMPLE_LIFECYCLE_TOPOLOGY = {
+    "structures": [
+        {
+            "id": "T1",
+            "type": "decision",
+            "parent": "ROOT",
+            "parent_branch": None,
+            "branches": ["approved", "rejected"],
+            "purpose": "determine if the request is complete",
+        }
+    ]
+}
+
+SIMPLE_LIFECYCLE_SEMANTICS = {
+    "root_actions": [
+        {"slot_id": "ROOT_START", "action": "submit request"},
+        {"slot_id": "AFTER_T1", "action": "complete request handling"},
+    ],
+    "branch_plans": [
+        {
+            "structure_id": "T1",
+            "branch": "approved",
+            "intent": "continue",
+            "steps": [{"action": "approve request"}],
+        },
+        {
+            "structure_id": "T1",
+            "branch": "rejected",
+            "intent": "terminate",
+            "steps": [{"action": "return request for rework"}],
+        },
+    ],
+}
+
+COMPLEX_ROOT_TOPOLOGY = {
+    "structures": [
+        {
+            "id": "T1",
+            "type": "parallel",
+            "parent": "ROOT",
+            "parent_branch": None,
+            "branches": ["infrastructure", "security"],
+            "purpose": "run deployment tracks concurrently",
+        },
+        {
+            "id": "T2",
+            "type": "loop",
+            "parent": "T1",
+            "parent_branch": "infrastructure",
+            "branches": ["retry", "success"],
+            "purpose": "retry provisioning until it succeeds",
+        },
+        {
+            "id": "T3",
+            "type": "loop",
+            "parent": "T1",
+            "parent_branch": "security",
+            "branches": ["retry", "success"],
+            "purpose": "repeat security validation until all requirements are satisfied",
+        },
+        {
+            "id": "T4",
+            "type": "decision",
+            "parent": "ROOT",
+            "parent_branch": None,
+            "branches": ["cancelled", "approved"],
+            "purpose": "decide if the deployment request is approved",
+        },
+        {
+            "id": "T5",
+            "type": "decision",
+            "parent": "T4",
+            "parent_branch": "approved",
+            "branches": ["needs_compliance", "deploy"],
+            "purpose": "determine whether additional compliance approval is required",
+        },
+        {
+            "id": "T6",
+            "type": "decision",
+            "parent": "T5",
+            "parent_branch": "needs_compliance",
+            "branches": ["compliance_approved", "rejected"],
+            "purpose": "decide whether to approve the deployment request",
+        },
+    ]
+}
+
+COMPLEX_ROOT_SEMANTICS = {
+    "root_actions": [
+        {"slot_id": "ROOT_START", "action": "submit deployment request"},
+        {"slot_id": "AFTER_T1", "action": "review deployment request"},
+        {"slot_id": "AFTER_T4", "action": "complete request handling"},
+    ],
+    "branch_plans": [
+        {"structure_id": "T1", "branch": "infrastructure", "intent": "continue", "steps": [{"action": "provision servers"}]},
+        {"structure_id": "T1", "branch": "security", "intent": "continue", "steps": [{"action": "validate security policies"}]},
+        {"structure_id": "T2", "branch": "retry", "intent": "loop_back", "steps": [{"action": "retry provisioning"}]},
+        {"structure_id": "T2", "branch": "success", "intent": "continue", "steps": []},
+        {"structure_id": "T3", "branch": "retry", "intent": "loop_back", "steps": [{"action": "update security policies"}]},
+        {"structure_id": "T3", "branch": "success", "intent": "continue", "steps": []},
+        {"structure_id": "T4", "branch": "cancelled", "intent": "terminate", "steps": [{"action": "cancel deployment request"}]},
+        {"structure_id": "T4", "branch": "approved", "intent": "continue", "steps": []},
+        {"structure_id": "T5", "branch": "needs_compliance", "intent": "continue", "steps": []},
+        {"structure_id": "T5", "branch": "deploy", "intent": "continue", "steps": [{"action": "deploy application"}, {"action": "send confirmation notification"}]},
+        {"structure_id": "T6", "branch": "compliance_approved", "intent": "continue", "steps": [{"action": "deploy application"}, {"action": "send confirmation notification"}]},
+        {"structure_id": "T6", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject deployment request"}]},
+    ],
+}
+
+ROOT_DECISION_CHAIN_TOPOLOGY = {
+    "structures": [
+        {
+            "id": "T1",
+            "type": "decision",
+            "parent": "ROOT",
+            "parent_branch": None,
+            "branches": ["approved", "rejected"],
+            "purpose": "determine whether the request can proceed",
+        },
+        {
+            "id": "T2",
+            "type": "decision",
+            "parent": "ROOT",
+            "parent_branch": None,
+            "branches": ["ready", "blocked"],
+            "purpose": "determine whether the request is ready for approval",
+        },
+        {
+            "id": "T3",
+            "type": "decision",
+            "parent": "ROOT",
+            "parent_branch": None,
+            "branches": ["archive", "retain"],
+            "purpose": "determine how the request is closed",
+        },
+    ]
+}
+
+ROOT_DECISION_CHAIN_SEMANTICS = {
+    "root_actions": [
+        {"slot_id": "ROOT_START", "action": "submit request"},
+        {"slot_id": "AFTER_T1", "action": "review request"},
+        {"slot_id": "AFTER_T2", "action": "approve request"},
+        {"slot_id": "AFTER_T3", "action": "archive request"},
+    ],
+    "branch_plans": [
+        {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+        {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+        {"structure_id": "T2", "branch": "ready", "intent": "continue", "steps": []},
+        {"structure_id": "T2", "branch": "blocked", "intent": "terminate", "steps": [{"action": "hold request"}]},
+        {"structure_id": "T3", "branch": "archive", "intent": "terminate", "steps": [{"action": "archive request"}]},
+        {"structure_id": "T3", "branch": "retain", "intent": "continue", "steps": []},
     ],
 }
 
@@ -59,14 +216,43 @@ def test_build_refinement_planner_prompt_includes_locality_rules() -> None:
     assert "Do not rewrite structures for clarity or consistency" in prompt
     assert "Only create new ids for genuinely new structures" in prompt
     assert (
-        "If the instruction explicitly asks to add, insert, create, or rename an activity, action, or task, "
-        "model exactly one business action unless the instruction explicitly requests a decision, loop, parallel "
-        "block, branch, or other control-flow structure"
+        "First classify the refinement intent as exactly one of: `Insert Action`, `Insert Decision`, "
+        "`Insert Loop`, `Insert Parallel`, or a non-insert refinement type before deciding whether topology changes"
+    ) in prompt
+    assert (
+        "If the refinement is classified as `Insert Action`, keep `updated_topology_artifact` identical to the "
+        "current topology artifact and model exactly one business action in semantics"
+    ) in prompt
+    assert "Distinguish refinement kinds from the instruction before editing artifacts" in prompt
+    assert (
+        "Insert Decision: add one `decision` structure when the instruction asks to check, decide, determine, "
+        "classify, route, gate, or split flow based on a condition or outcome, even if the word `decision` is "
+        "not used explicitly"
+    ) in prompt
+    assert (
+        "If the refinement is classified as `Insert Decision`, `Insert Loop`, or `Insert Parallel`, update "
+        "`updated_topology_artifact` to add that control-flow structure and then derive the required updated "
+        "semantics from the new topology"
+    ) in prompt
+    assert (
+        "Do not apply the `Insert Action` rule to instructions that are classified as `Insert Decision`, "
+        "`Insert Loop`, or `Insert Parallel`, even when the instruction also mentions an activity, action, task, "
+        "review step, or other business step"
+    ) in prompt
+    assert (
+        "If an inserted decision is placed before an existing activity, rewire control flow so the new decision "
+        "occurs first and the referenced existing activity remains after the decision on the appropriate "
+        "continuing branch or branches"
     ) in prompt
     assert "Never delete an unrelated decision, loop, or parallel structure" in prompt
     assert "Never rename unrelated branches" in prompt
     assert "Never modify unrelated branch intents" in prompt
     assert "For local insertions such as `Add a compliance review before approval`, keep unrelated structures, branches, and branch intents identical" in prompt
+    assert "preserve the existing root action text exactly instead of regenerating or paraphrasing it" in prompt
+    assert "Treat `updated_semantic_sketch_plan.root_actions` as an ordered root-scope sequence aligned to the updated root slots in root order" in prompt
+    assert "each `slot_id` may appear only once" in prompt
+    assert "`updated_topology_artifact.structures[*].type` must always be exactly one of" in prompt
+    assert "resolve that reference to the corresponding existing `target_slot_id`" in prompt
 
 
 def test_parse_refinement_planner_json_rejects_inconsistent_branch_coverage() -> None:
@@ -402,3 +588,655 @@ def test_generate_refinement_plan_best_effort_refinement() -> None:
 
     branches = result["artifact"]["updated_topology_artifact"]["structures"][0]["branches"]
     assert "manual_review" in branches
+
+
+def test_generate_refinement_plan_infers_target_slot_id_for_existing_decision_reconnect() -> None:
+    current_topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["complete", "retry"],
+                "purpose": "Determine if the request is complete?",
+            }
+        ]
+    }
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "Review Request"},
+            {"slot_id": "AFTER_T1", "action": "Approve Request"},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "complete", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "retry", "intent": "continue", "steps": []},
+        ],
+    }
+
+    with patch(
+        "llm.refinement_planner.call_openai",
+        return_value=_planner_payload(current_topology, current_semantics),
+    ):
+        result = generate_refinement_plan(
+            "Review Request. Determine if the request is complete? If complete, Approve Request.",
+            current_topology_artifact=current_topology,
+            current_semantic_sketch_plan=current_semantics,
+            instruction=(
+                "Remove the connection from the retry path to Perform Corrective Action. "
+                "Connect the retry path to Determine if the request is complete?"
+            ),
+        )
+
+    retry_branch = next(
+        branch
+        for branch in result["artifact"]["updated_semantic_sketch_plan"]["branch_plans"]
+        if branch["structure_id"] == "T1" and branch["branch"] == "retry"
+    )
+    assert retry_branch["target_slot_id"] == "ROOT_START"
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(
+        result["artifact"]["updated_topology_artifact"],
+        result["artifact"]["updated_semantic_sketch_plan"],
+    )
+    retry_sketch_branch = next(
+        branch
+        for branch in sketch["control_blocks"][0]["branches"]
+        if branch["label"] == "retry"
+    )
+    assert retry_sketch_branch["reconnect_to_step_id"] == "S1"
+
+    graph = compile_activity_sketch(sketch)
+    review_nodes = [
+        node for node in graph["nodes"]
+        if node.get("type") == "action" and node.get("name") == "Review Request"
+    ]
+    decision_nodes = [
+        node for node in graph["nodes"]
+        if node.get("type") == "decision"
+    ]
+    assert len(review_nodes) == 1
+    assert len(decision_nodes) == 1
+    assert any(
+        edge.get("label") == "retry" and edge.get("target") == review_nodes[0]["id"]
+        for edge in graph["edges"]
+    )
+
+
+def test_generate_refinement_plan_prefers_existing_decision_reconnect_over_generated_return_step() -> None:
+    current_topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["complete", "retry"],
+                "purpose": "Determine if the request is complete?",
+            }
+        ]
+    }
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "Review Request"},
+            {"slot_id": "AFTER_T1", "action": "Approve Request"},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "complete", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "retry", "intent": "continue", "steps": []},
+        ],
+    }
+    planner_semantics = {
+        "root_actions": current_semantics["root_actions"],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "complete", "intent": "continue", "steps": []},
+            {
+                "structure_id": "T1",
+                "branch": "retry",
+                "intent": "continue",
+                "steps": [{"action": "Return to check if request is complete"}],
+            },
+        ],
+    }
+
+    with patch(
+        "llm.refinement_planner.call_openai",
+        return_value=_planner_payload(current_topology, planner_semantics),
+    ):
+        result = generate_refinement_plan(
+            "Review Request. Determine if the request is complete? If complete, Approve Request.",
+            current_topology_artifact=current_topology,
+            current_semantic_sketch_plan=current_semantics,
+            instruction=(
+                "Connect the retry path to the existing Determine if the request is complete? decision."
+            ),
+        )
+
+    retry_branch = next(
+        branch
+        for branch in result["artifact"]["updated_semantic_sketch_plan"]["branch_plans"]
+        if branch["structure_id"] == "T1" and branch["branch"] == "retry"
+    )
+    assert retry_branch["target_slot_id"] == "ROOT_START"
+    assert retry_branch["steps"] == []
+
+
+def test_generate_refinement_plan_recovers_json_from_fallback_output() -> None:
+    noisy_fallback_output = (
+        "Here is the updated planner payload:\n"
+        "```json\n"
+        f"{_planner_payload(CURRENT_TOPOLOGY, CURRENT_SEMANTICS)}\n"
+        "```\n"
+        "This preserves the existing refinement contract."
+    )
+
+    with patch(
+        "llm.refinement_planner.call_openai",
+        side_effect=[
+            Exception("Structured output request failed before a valid JSON response was returned."),
+            noisy_fallback_output,
+        ],
+    ):
+        result = generate_refinement_plan(
+            "Review request, approve or reject it, then finalize it.",
+            current_topology_artifact=CURRENT_TOPOLOGY,
+            current_semantic_sketch_plan=CURRENT_SEMANTICS,
+            instruction="Keep the current process unchanged.",
+        )
+
+    assert result["response_mode"] == "fallback_json_mode"
+    assert result["artifact"]["updated_topology_artifact"] == CURRENT_TOPOLOGY
+    assert result["artifact"]["updated_semantic_sketch_plan"] == CURRENT_SEMANTICS
+
+
+def test_generate_refinement_plan_deduplicates_root_actions_before_validation() -> None:
+    duplicated_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "screen request"},
+            {"slot_id": "ROOT_START", "action": "review request"},
+            {"slot_id": "AFTER_T1", "action": "finalize request"},
+            {"slot_id": "AFTER_T1", "action": "finalize request"},
+        ],
+        "branch_plans": CURRENT_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(CURRENT_TOPOLOGY, duplicated_semantics)):
+        result = generate_refinement_plan(
+            "Review request, approve or reject it, then finalize it.",
+            current_topology_artifact=CURRENT_TOPOLOGY,
+            current_semantic_sketch_plan=CURRENT_SEMANTICS,
+            instruction="Rename review request to screen request.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "screen request"},
+        {"slot_id": "AFTER_T1", "action": "finalize request"},
+    ]
+
+
+def test_generate_refinement_plan_preserves_current_type_when_fallback_type_is_invalid() -> None:
+    invalid_type_topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "approval decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+                "purpose": "approval decision",
+            }
+        ]
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(invalid_type_topology, CURRENT_SEMANTICS)):
+        result = generate_refinement_plan(
+            "Review request, approve or reject it, then finalize it.",
+            current_topology_artifact=CURRENT_TOPOLOGY,
+            current_semantic_sketch_plan=CURRENT_SEMANTICS,
+            instruction="Keep the current process unchanged.",
+        )
+
+    assert result["artifact"]["updated_topology_artifact"] == CURRENT_TOPOLOGY
+
+
+def test_generate_refinement_plan_simple_insert_action_keeps_branch_local_behavior() -> None:
+    inserted_semantics = {
+        "root_actions": SIMPLE_LIFECYCLE_SEMANTICS["root_actions"],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "approved",
+                "intent": "continue",
+                "steps": [{"action": "conduct compliance review"}, {"action": "approve request"}],
+            },
+            SIMPLE_LIFECYCLE_SEMANTICS["branch_plans"][1],
+        ],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(SIMPLE_LIFECYCLE_TOPOLOGY, inserted_semantics)):
+        result = generate_refinement_plan(
+            "A request is submitted. A reviewer checks whether the request is complete. If the request is complete, it is approved. Otherwise, the request is returned for rework.",
+            current_topology_artifact=SIMPLE_LIFECYCLE_TOPOLOGY,
+            current_semantic_sketch_plan=SIMPLE_LIFECYCLE_SEMANTICS,
+            instruction="Insert a new activity named Conduct Compliance Review between the decision node and the Approve Request activity.",
+        )
+
+    approved_branch = next(
+        branch_plan
+        for branch_plan in result["artifact"]["updated_semantic_sketch_plan"]["branch_plans"]
+        if branch_plan["structure_id"] == "T1" and branch_plan["branch"] == "approved"
+    )
+    assert approved_branch["steps"] == [{"action": "conduct compliance review"}, {"action": "approve request"}]
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == SIMPLE_LIFECYCLE_SEMANTICS["root_actions"]
+
+
+def test_generate_refinement_plan_simple_replace_action_keeps_branch_local_behavior() -> None:
+    replaced_semantics = {
+        "root_actions": SIMPLE_LIFECYCLE_SEMANTICS["root_actions"],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "approved",
+                "intent": "continue",
+                "steps": [{"action": "confirm request"}],
+            },
+            SIMPLE_LIFECYCLE_SEMANTICS["branch_plans"][1],
+        ],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(SIMPLE_LIFECYCLE_TOPOLOGY, replaced_semantics)):
+        result = generate_refinement_plan(
+            "A request is submitted. A reviewer checks whether the request is complete. If the request is complete, it is approved. Otherwise, the request is returned for rework.",
+            current_topology_artifact=SIMPLE_LIFECYCLE_TOPOLOGY,
+            current_semantic_sketch_plan=SIMPLE_LIFECYCLE_SEMANTICS,
+            instruction="Replace Approve Request with Confirm Request.",
+        )
+
+    approved_branch = next(
+        branch_plan
+        for branch_plan in result["artifact"]["updated_semantic_sketch_plan"]["branch_plans"]
+        if branch_plan["structure_id"] == "T1" and branch_plan["branch"] == "approved"
+    )
+    assert approved_branch["steps"] == [{"action": "confirm request"}]
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == SIMPLE_LIFECYCLE_SEMANTICS["root_actions"]
+
+
+def test_generate_refinement_plan_simple_remove_action_keeps_branch_local_behavior() -> None:
+    current_semantics = {
+        "root_actions": SIMPLE_LIFECYCLE_SEMANTICS["root_actions"],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "approved",
+                "intent": "continue",
+                "steps": [{"action": "conduct compliance review"}, {"action": "approve request"}],
+            },
+            SIMPLE_LIFECYCLE_SEMANTICS["branch_plans"][1],
+        ],
+    }
+    removed_semantics = {
+        "root_actions": SIMPLE_LIFECYCLE_SEMANTICS["root_actions"],
+        "branch_plans": SIMPLE_LIFECYCLE_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(SIMPLE_LIFECYCLE_TOPOLOGY, removed_semantics)):
+        result = generate_refinement_plan(
+            "A request is submitted. A reviewer checks whether the request is complete. If the request is complete, it is approved. Otherwise, the request is returned for rework.",
+            current_topology_artifact=SIMPLE_LIFECYCLE_TOPOLOGY,
+            current_semantic_sketch_plan=current_semantics,
+            instruction="Remove the conduct compliance review step.",
+        )
+
+    approved_branch = next(
+        branch_plan
+        for branch_plan in result["artifact"]["updated_semantic_sketch_plan"]["branch_plans"]
+        if branch_plan["structure_id"] == "T1" and branch_plan["branch"] == "approved"
+    )
+    assert approved_branch["steps"] == [{"action": "approve request"}]
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == SIMPLE_LIFECYCLE_SEMANTICS["root_actions"]
+
+
+def test_generate_refinement_plan_complex_insert_action_recomputes_root_actions_in_order() -> None:
+    inserted_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T4", "action": "conduct compliance review"},
+            {"slot_id": "AFTER_T4", "action": "review deployment request"},
+        ],
+        "branch_plans": COMPLEX_ROOT_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(COMPLEX_ROOT_TOPOLOGY, inserted_semantics)):
+        result = generate_refinement_plan(
+            "A customer submits a cloud deployment request. After both activities have been completed successfully, the deployment manager reviews the deployment request and decides whether to approve it.",
+            current_topology_artifact=COMPLEX_ROOT_TOPOLOGY,
+            current_semantic_sketch_plan=COMPLEX_ROOT_SEMANTICS,
+            instruction="Insert conduct compliance Review before the review deployment request",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "submit deployment request"},
+        {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+        {"slot_id": "AFTER_T4", "action": "review deployment request"},
+    ]
+    assert result["artifact"]["updated_semantic_sketch_plan"]["branch_plans"] == COMPLEX_ROOT_SEMANTICS["branch_plans"]
+
+
+def test_generate_refinement_plan_complex_replace_action_recomputes_root_actions_in_order() -> None:
+    replaced_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T4", "action": "conduct compliance review"},
+            {"slot_id": "AFTER_T4", "action": "complete request handling"},
+        ],
+        "branch_plans": COMPLEX_ROOT_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(COMPLEX_ROOT_TOPOLOGY, replaced_semantics)):
+        result = generate_refinement_plan(
+            "A customer submits a cloud deployment request. After both activities have been completed successfully, the deployment manager reviews the deployment request and decides whether to approve it.",
+            current_topology_artifact=COMPLEX_ROOT_TOPOLOGY,
+            current_semantic_sketch_plan=COMPLEX_ROOT_SEMANTICS,
+            instruction="Replace Review Deployment Request with Conduct Compliance Review.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "submit deployment request"},
+        {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+        {"slot_id": "AFTER_T4", "action": "complete request handling"},
+    ]
+    assert result["artifact"]["updated_semantic_sketch_plan"]["branch_plans"] == COMPLEX_ROOT_SEMANTICS["branch_plans"]
+
+
+def test_generate_refinement_plan_complex_remove_action_recomputes_root_actions_in_order() -> None:
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+            {"slot_id": "AFTER_T4", "action": "review deployment request"},
+        ],
+        "branch_plans": COMPLEX_ROOT_SEMANTICS["branch_plans"],
+    }
+    removed_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T4", "action": "review deployment request"},
+            {"slot_id": "AFTER_T4", "action": "complete request handling"},
+        ],
+        "branch_plans": COMPLEX_ROOT_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(COMPLEX_ROOT_TOPOLOGY, removed_semantics)):
+        result = generate_refinement_plan(
+            "A customer submits a cloud deployment request. After both activities have been completed successfully, the deployment manager reviews the deployment request and decides whether to approve it.",
+            current_topology_artifact=COMPLEX_ROOT_TOPOLOGY,
+            current_semantic_sketch_plan=current_semantics,
+            instruction="Remove the conduct compliance review step.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "submit deployment request"},
+        {"slot_id": "AFTER_T1", "action": "review deployment request"},
+        {"slot_id": "AFTER_T4", "action": "complete request handling"},
+    ]
+    assert result["artifact"]["updated_semantic_sketch_plan"]["branch_plans"] == COMPLEX_ROOT_SEMANTICS["branch_plans"]
+
+
+def test_generate_refinement_plan_remove_continuation_after_root_decision_merge() -> None:
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit request"},
+            {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+            {"slot_id": "AFTER_T2", "action": "approve request"},
+            {"slot_id": "AFTER_T3", "action": "archive request"},
+        ],
+        "branch_plans": ROOT_DECISION_CHAIN_SEMANTICS["branch_plans"],
+    }
+    planner_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit request"},
+            {"slot_id": "AFTER_T3", "action": "review request"},
+            {"slot_id": "AFTER_T3", "action": "approve request"},
+            {"slot_id": "AFTER_T3", "action": "archive request"},
+        ],
+        "branch_plans": ROOT_DECISION_CHAIN_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(ROOT_DECISION_CHAIN_TOPOLOGY, planner_semantics)):
+        result = generate_refinement_plan(
+            "A request is submitted, reviewed, approved, and then archived.",
+            current_topology_artifact=ROOT_DECISION_CHAIN_TOPOLOGY,
+            current_semantic_sketch_plan=current_semantics,
+            instruction="Remove the conduct compliance review step.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == ROOT_DECISION_CHAIN_SEMANTICS["root_actions"]
+
+
+def test_generate_refinement_plan_remove_continuation_after_root_parallel_join() -> None:
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+            {"slot_id": "AFTER_T4", "action": "complete request handling"},
+        ],
+        "branch_plans": COMPLEX_ROOT_SEMANTICS["branch_plans"],
+    }
+    planner_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T4", "action": "review deployment request"},
+            {"slot_id": "AFTER_T4", "action": "complete request handling"},
+        ],
+        "branch_plans": COMPLEX_ROOT_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(COMPLEX_ROOT_TOPOLOGY, planner_semantics)):
+        result = generate_refinement_plan(
+            "A customer submits a cloud deployment request. After both activities have been completed successfully, the deployment manager reviews the deployment request and decides whether to approve it.",
+            current_topology_artifact=COMPLEX_ROOT_TOPOLOGY,
+            current_semantic_sketch_plan=current_semantics,
+            instruction="Remove the conduct compliance review step.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == COMPLEX_ROOT_SEMANTICS["root_actions"]
+
+
+def test_generate_refinement_plan_remove_final_root_continuation_does_not_preserve_obsolete_action() -> None:
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit request"},
+            {"slot_id": "AFTER_T1", "action": "review request"},
+            {"slot_id": "AFTER_T2", "action": "approve request"},
+            {"slot_id": "AFTER_T3", "action": "conduct compliance review"},
+        ],
+        "branch_plans": ROOT_DECISION_CHAIN_SEMANTICS["branch_plans"],
+    }
+    planner_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit request"},
+            {"slot_id": "AFTER_T1", "action": "review request"},
+            {"slot_id": "AFTER_T2", "action": "approve request"},
+        ],
+        "branch_plans": ROOT_DECISION_CHAIN_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(ROOT_DECISION_CHAIN_TOPOLOGY, planner_semantics)):
+        result = generate_refinement_plan(
+            "A request is submitted, reviewed, approved, and then archived.",
+            current_topology_artifact=ROOT_DECISION_CHAIN_TOPOLOGY,
+            current_semantic_sketch_plan=current_semantics,
+            instruction="Remove the conduct compliance review step after approval.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "submit request"},
+        {"slot_id": "AFTER_T1", "action": "review request"},
+        {"slot_id": "AFTER_T2", "action": "approve request"},
+        {"slot_id": "AFTER_T3", "action": "root_scope_4"},
+    ]
+
+
+def test_generate_refinement_plan_consecutive_root_removals_drop_obsolete_actions() -> None:
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit request"},
+            {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+            {"slot_id": "AFTER_T2", "action": "obtain second approval"},
+            {"slot_id": "AFTER_T3", "action": "archive request"},
+        ],
+        "branch_plans": ROOT_DECISION_CHAIN_SEMANTICS["branch_plans"],
+    }
+    planner_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit request"},
+            {"slot_id": "AFTER_T3", "action": "archive request"},
+        ],
+        "branch_plans": ROOT_DECISION_CHAIN_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(ROOT_DECISION_CHAIN_TOPOLOGY, planner_semantics)):
+        result = generate_refinement_plan(
+            "A request is submitted, reviewed, approved, and then archived.",
+            current_topology_artifact=ROOT_DECISION_CHAIN_TOPOLOGY,
+            current_semantic_sketch_plan=current_semantics,
+            instruction="Remove the conduct compliance review and obtain second approval steps.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "submit request"},
+        {"slot_id": "AFTER_T1", "action": "archive request"},
+        {"slot_id": "AFTER_T2", "action": "root_scope_3"},
+        {"slot_id": "AFTER_T3", "action": "root_scope_4"},
+    ]
+
+
+def test_generate_refinement_plan_incomplete_root_sequence_does_not_preserve_obsolete_tail() -> None:
+    partial_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T4", "action": "conduct compliance review"},
+        ],
+        "branch_plans": COMPLEX_ROOT_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(COMPLEX_ROOT_TOPOLOGY, partial_semantics)):
+        result = generate_refinement_plan(
+            "A customer submits a cloud deployment request. After both activities have been completed successfully, the deployment manager reviews the deployment request and decides whether to approve it.",
+            current_topology_artifact=COMPLEX_ROOT_TOPOLOGY,
+            current_semantic_sketch_plan=COMPLEX_ROOT_SEMANTICS,
+            instruction="Replace Review Deployment Request with Conduct Compliance Review.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "submit deployment request"},
+        {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+        {"slot_id": "AFTER_T4", "action": "root_scope_3"},
+    ]
+
+
+def test_generate_refinement_plan_multiple_consecutive_root_edits_reconcile_as_one_sequence() -> None:
+    extended_topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["infrastructure", "security"],
+                "purpose": "run deployment tracks concurrently",
+            },
+            {
+                "id": "T4",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["cancelled", "approved"],
+                "purpose": "decide if the deployment request is approved",
+            },
+            {
+                "id": "T7",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["completed", "archived"],
+                "purpose": "determine how the request is closed",
+            },
+        ]
+    }
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T1", "action": "review deployment request"},
+            {"slot_id": "AFTER_T4", "action": "complete request handling"},
+            {"slot_id": "AFTER_T7", "action": "archive deployment request"},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "infrastructure", "intent": "continue", "steps": [{"action": "provision servers"}]},
+            {"structure_id": "T1", "branch": "security", "intent": "continue", "steps": [{"action": "validate security policies"}]},
+            {"structure_id": "T4", "branch": "cancelled", "intent": "terminate", "steps": [{"action": "cancel deployment request"}]},
+            {"structure_id": "T4", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T7", "branch": "completed", "intent": "continue", "steps": []},
+            {"structure_id": "T7", "branch": "archived", "intent": "terminate", "steps": [{"action": "archive deployment request"}]},
+        ],
+    }
+    updated_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T7", "action": "conduct compliance review"},
+            {"slot_id": "AFTER_T7", "action": "obtain deployment approval"},
+            {"slot_id": "AFTER_T7", "action": "close deployment request"},
+        ],
+        "branch_plans": current_semantics["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(extended_topology, updated_semantics)):
+        result = generate_refinement_plan(
+            "A customer submits a cloud deployment request. After both activities have been completed successfully, the deployment manager reviews the request, completes handling, and archives it.",
+            current_topology_artifact=extended_topology,
+            current_semantic_sketch_plan=current_semantics,
+            instruction="Replace the remaining root actions after submission with Conduct Compliance Review, Obtain Deployment Approval, and Close Deployment Request.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "submit deployment request"},
+        {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+        {"slot_id": "AFTER_T4", "action": "obtain deployment approval"},
+        {"slot_id": "AFTER_T7", "action": "close deployment request"},
+    ]
+
+
+def test_generate_refinement_plan_multiple_root_lifecycle_edits_do_not_preserve_stale_actions() -> None:
+    current_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit request"},
+            {"slot_id": "AFTER_T1", "action": "review request"},
+            {"slot_id": "AFTER_T2", "action": "approve request"},
+            {"slot_id": "AFTER_T3", "action": "archive request"},
+        ],
+        "branch_plans": ROOT_DECISION_CHAIN_SEMANTICS["branch_plans"],
+    }
+    planner_semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit request"},
+            {"slot_id": "AFTER_T3", "action": "conduct compliance review"},
+            {"slot_id": "AFTER_T3", "action": "finalize approval"},
+            {"slot_id": "AFTER_T3", "action": "close request"},
+        ],
+        "branch_plans": ROOT_DECISION_CHAIN_SEMANTICS["branch_plans"],
+    }
+
+    with patch("llm.refinement_planner.call_openai", return_value=_planner_payload(ROOT_DECISION_CHAIN_TOPOLOGY, planner_semantics)):
+        result = generate_refinement_plan(
+            "A request is submitted, reviewed, approved, and then archived.",
+            current_topology_artifact=ROOT_DECISION_CHAIN_TOPOLOGY,
+            current_semantic_sketch_plan=current_semantics,
+            instruction="Replace the remaining root actions after submission with Conduct Compliance Review, Finalize Approval, and Close Request.",
+        )
+
+    assert result["artifact"]["updated_semantic_sketch_plan"]["root_actions"] == [
+        {"slot_id": "ROOT_START", "action": "submit request"},
+        {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+        {"slot_id": "AFTER_T2", "action": "finalize approval"},
+        {"slot_id": "AFTER_T3", "action": "close request"},
+    ]

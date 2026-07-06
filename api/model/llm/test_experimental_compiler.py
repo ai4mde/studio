@@ -13,6 +13,73 @@ from llm.experimental_compiler import compile_activity_sketch
 from llm.refinement_generator import debug_model_activity_with_experimental_compiler
 
 
+def test_experimental_compiler_realizes_reconnect_to_existing_step_without_duplication() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "approve request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "complete",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rework",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S1A", "action": "recheck request"}],
+                            "reconnect_to_step_id": "S1",
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "approve request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request complete",
+                }
+            ],
+        }
+    )
+
+    review_nodes = [
+        node
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+        and str(node.get("name") or "") == "review request"
+    ]
+    decision_nodes = [
+        node for node in graph["nodes"] if str(node.get("type") or "") == "decision"
+    ]
+    review_node_id = review_nodes[0]["id"]
+    reconnect_edges = [
+        edge
+        for edge in graph["edges"]
+        if edge["target"] == review_node_id
+    ]
+    recheck_node = next(
+        node for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+        and str(node.get("name") or "") == "recheck request"
+    )
+
+    assert len(review_nodes) == 1
+    assert len(decision_nodes) == 1
+    assert any(edge["source"] == recheck_node["id"] for edge in reconnect_edges)
+
+
 def test_experimental_compiler_realizes_loop_then_decision_chain() -> None:
     sketch_json = json.dumps(
         {
@@ -673,14 +740,26 @@ def test_experimental_compiler_collapses_redundant_terminal_merge_chain() -> Non
 
     merge_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "merge"]
     final_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "final"]
+    completion_nodes = [
+        node
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+        and str(node.get("name") or "") == "complete deployment process"
+    ]
     assert len(final_nodes) == 1
     assert len(merge_nodes) == 1
+    assert len(completion_nodes) == 1
+    completion_incoming = [
+        edge for edge in graph["edges"]
+        if edge["target"] == completion_nodes[0]["id"] and edge["type"] == "control"
+    ]
+    assert any(edge["source"] == merge_nodes[0]["id"] for edge in completion_incoming)
     final_incoming = [
         edge for edge in graph["edges"]
         if edge["target"] == final_nodes[0]["id"] and edge["type"] == "control"
     ]
     assert len(final_incoming) == 1
-    assert final_incoming[0]["source"] == merge_nodes[0]["id"]
+    assert final_incoming[0]["source"] == completion_nodes[0]["id"]
 
 
 def test_experimental_compiler_preserves_merges_separated_by_intervening_actions() -> None:
