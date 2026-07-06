@@ -1,0 +1,11 @@
+{
+  "targetUrl": "http://ai4mde.localhost/diagram/a9cb6660-0a0c-423a-9830-ec80067f459f",
+  "page": {
+    "href": "http://ai4mde.localhost/diagram/a9cb6660-0a0c-423a-9830-ec80067f459f",
+    "title": "AI4MDE - Editor"
+  },
+  "bodyText": "AI4MDE\nStudio\nDiagram Locked (Edit)\nSystem /Structure\nDashboard\nBuild\nProjects\nLogout\nwrites\n1\n*\nmakes\n1\n*\ncontains\n1\n*\nincludes\n1\n*\nAuthor\n+name\n: str\n+nationality\n: str\nBook\n+title\n: str\n+isbn\n: str\n+year\n: int\n+category\n: enum\nCustomer\n+name\n: str\n+email\n: str\n+reading_plan\n: str\nLoan\n+loan_date\n: str\n+due_date\n: str\n+return_date\n: str\nBookLoan\n+late_risk\n: str\n<<enumeration>>\nBookCategory\n FICTION\n NON_FICTION\n SCIENCE\n HISTORY\n CHILDREN\nReact Flow",
+  "consoleErrorCount": 0,
+  "consoleErrors": [],
+  "screenshotPath": "docs/evidence/t0_frontend_class_diagram.png"
+}
