@@ -1,0 +1,59 @@
+{
+  "pass": "G-save-off-DB; typed API observation recorded",
+  "raw": {
+    "BookLoan.late_risk": {
+      "body": null,
+      "derived": false,
+      "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH).",
+      "enum": null,
+      "name": "late_risk",
+      "type": "str"
+    },
+    "Customer.reading_plan": {
+      "ai_config": {
+        "ai_config_version": "1.0",
+        "context": {
+          "relations": [
+            "Loan",
+            "BookLoan",
+            "Book"
+          ]
+        },
+        "model_profile": "strong",
+        "output": {
+          "format": "reading_plan",
+          "write_back": "reading_plan"
+        },
+        "template": {
+          "chain": [
+            "reading_plan_analyze_taste_v1",
+            "reading_plan_recommend_v1",
+            "reading_plan_sequence_v1"
+          ]
+        },
+        "trigger": {
+          "class": "Customer",
+          "type": "user_action"
+        }
+      },
+      "body": null,
+      "derived": false,
+      "description": "AI-generated compact personalized reading plan.",
+      "enum": null,
+      "name": "reading_plan",
+      "type": "str"
+    }
+  },
+  "stage": "bookloan-off",
+  "typed_api": {
+    "BookLoan.late_risk": {
+      "ai_config": null,
+      "body": null,
+      "derived": false,
+      "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH).",
+      "enum": null,
+      "name": "late_risk",
+      "type": "str"
+    }
+  }
+}

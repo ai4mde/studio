@@ -1,0 +1,44 @@
+{
+  "studioUrl": "http://ai4mde.localhost/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/prototypes",
+  "prototypeUrl": "http://prototype.ai4mde.localhost",
+  "prototypeName": "LibraryT4A",
+  "preRunState": "LibraryT4A\n\tNot running\t\t\nMetadata\nRun",
+  "killClicked": false,
+  "runClicked": true,
+  "login": "demo_librarian / ai4mde-demo",
+  "createFormState": {
+    "hasForm": true,
+    "hasLateRiskInput": false,
+    "hasLoanSelect": true,
+    "hasBookSelect": true,
+    "loanAssociatedWithCreateForm": true,
+    "bookAssociatedWithCreateForm": true,
+    "saveAssociatedWithCreateForm": true,
+    "text": ""
+  },
+  "finalPage": {
+    "href": "http://prototype.ai4mde.localhost/librarian/render_librarian_loans",
+    "title": "librarian",
+    "hasLateRiskHeader": true,
+    "hasLowValue": true,
+    "bodyText": "Librarian\nHome\n\n\nloans\nLogout\nbook_loans\n\nBook loans\n\nlate_risk\tLoan\tBook\nLOW\t2026-01-01\tA Wizard of Earthsea\t\n\nLOW\t2026-02-01\tThe Left Hand of Darkness\t\n\nMEDIUM\t2026-03-01\tParable of the Sower\t\n\nLOW\t2026-04-01\tKindred\t\n\nHIGH\t2026-05-01\tGuards! Guards!\t\n\nLOW\t2026-01-01\tT1 Test Book\t\n\nLOW\t2026-01-01\tA Wizard of Earthsea\t"
+  },
+  "screenshots": {
+    "studio": "docs/evidence/t4_browser_studio_run.png",
+    "login": "docs/evidence/t4_browser_librarian_login.png",
+    "createForm": "docs/evidence/t4_browser_librarian_create_form.png",
+    "listLateRisk": "docs/evidence/t4_browser_librarian_list_late_risk.png"
+  },
+  "manualAiRuntimeFakeExport": false,
+  "consoleErrors": [
+    {
+      "source": "console",
+      "text": "Warning: Each child in a list should have a unique \"key\" prop.%s%s See https://reactjs.org/link/warning-keys for more information.%s \n\nCheck the render method of `TopNavigation`.  \n    at TopNavigation (http://ai4mde.localhost/src/lib/shared/components/TopNavigation.tsx:20:33)\n    at div\n    at div\n    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)\n    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/prototypes/index.tsx:26:24)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=9d642078:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=9d642078:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=9d642078:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=9d642078:4097:5)\n    at Suspense\n    at main\n    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)\n    at App (http://ai4mde.localhost/src/main.tsx:48:3)\n    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=9d642078:4582:15)\n    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=9d642078:559:5)\n    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-7G4Y6YMR.js?v=9d642078:2892:3)"
+    },
+    {
+      "source": "log",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://prototype.ai4mde.localhost/favicon.ico"
+    }
+  ]
+}

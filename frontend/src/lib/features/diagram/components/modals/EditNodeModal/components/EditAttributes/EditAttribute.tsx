@@ -6,6 +6,7 @@ import { PanelTopClose, Pencil, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { Node } from "reactflow";
+import AiConfigSection from "./AiConfigSection";
 import style from "./editattributes.module.css";
 
 const EditAttribute: React.FC<{
@@ -218,6 +219,11 @@ const EditAttribute: React.FC<{
                     {generationError && <p style={{ color: 'red' }}>{generationError}</p>}
                 </div>
             )}
+            <AiConfigSection
+                attribute={attribute}
+                className={node?.data?.name ?? ""}
+                update={update}
+            />
         </div>
     );
 };

@@ -1,0 +1,62 @@
+{
+  "BookLoan.late_risk": {
+    "ai_config_version": "1.0",
+    "context": {
+      "fields": [
+        "loan_date",
+        "due_date",
+        "return_date"
+      ],
+      "relations": [
+        "Book",
+        "Customer",
+        "Loan"
+      ]
+    },
+    "model_profile": "cheap",
+    "output": {
+      "allowed_values": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ],
+      "format": "risk_label",
+      "write_back": "late_risk"
+    },
+    "template": {
+      "name": "library_late_risk_v1"
+    },
+    "trigger": {
+      "class": "BookLoan",
+      "type": "post_save"
+    }
+  },
+  "Customer.reading_plan": {
+    "ai_config_version": "1.0",
+    "context": {
+      "relations": [
+        "Loan",
+        "BookLoan",
+        "Book"
+      ]
+    },
+    "model_profile": "strong",
+    "output": {
+      "format": "reading_plan",
+      "write_back": "reading_plan"
+    },
+    "template": {
+      "chain": [
+        "reading_plan_analyze_taste_v1",
+        "reading_plan_recommend_v1",
+        "reading_plan_sequence_v1"
+      ]
+    },
+    "trigger": {
+      "class": "Customer",
+      "type": "user_action"
+    }
+  },
+  "metadata": "docs/evidence/t4_metadata_from_ui.json",
+  "pass": "G-authority metadata canonical ai_config"
+}

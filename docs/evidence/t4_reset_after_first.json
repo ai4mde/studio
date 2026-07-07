@@ -1,0 +1,65 @@
+{
+  "classifiers": {
+    "BookLoan": {
+      "classifier_id": "9f7df5b5-fde5-429e-982b-48c37e868613",
+      "data": {
+        "abstract": false,
+        "attributes": [
+          {
+            "body": null,
+            "derived": false,
+            "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH).",
+            "enum": null,
+            "name": "late_risk",
+            "type": "str"
+          }
+        ],
+        "leaf": false,
+        "methods": [],
+        "name": "BookLoan",
+        "namespace": "",
+        "type": "class"
+      },
+      "node_id": "f5a8868c-f241-4935-a459-bf0f110fd297"
+    },
+    "Customer": {
+      "classifier_id": "fb0ceaeb-ba1c-4b0b-87cb-f16e1977f06a",
+      "data": {
+        "abstract": false,
+        "attributes": [
+          {
+            "body": null,
+            "derived": false,
+            "description": null,
+            "enum": null,
+            "name": "name",
+            "type": "str"
+          },
+          {
+            "body": null,
+            "derived": false,
+            "description": null,
+            "enum": null,
+            "name": "email",
+            "type": "str"
+          },
+          {
+            "body": null,
+            "derived": false,
+            "description": "AI-generated compact personalized reading plan.",
+            "enum": null,
+            "name": "reading_plan",
+            "type": "str"
+          }
+        ],
+        "leaf": false,
+        "methods": [],
+        "name": "Customer",
+        "namespace": "",
+        "type": "class"
+      },
+      "node_id": "9565d2d8-fdc3-454e-85c8-bb566f20dc05"
+    }
+  },
+  "system_id": "7d735a07-b6cd-409d-9cc7-f3a07cbec983"
+}

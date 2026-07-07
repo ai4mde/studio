@@ -1,0 +1,19 @@
+{
+  "action": "bookloan_values_safe_risky",
+  "diagramUrl": "http://ai4mde.localhost/diagram/a9cb6660-0a0c-423a-9830-ec80067f459f",
+  "screenshotPath": "docs/evidence/t4_form_allowed_values_edit.png",
+  "className": "BookLoan",
+  "attrName": "late_risk",
+  "save": {
+    "ok": true,
+    "clicked": true,
+    "disabled": false
+  },
+  "section": {
+    "text": "AI-managed attribute\nPreset\nLate return risk\nReading plan\nTrigger\npost_save\nBookLoan\nContext\nFields\nloan_date\ndue_date\nreturn_date\nRelations\nBook\nCustomer\nLoan\nTemplate\nlibrary_late_risk_v1\nModel profile\ncheap\nstrong\nOutput\nlate_risk\nrisk_label\nAllowed values",
+    "enabled": true,
+    "preset": "late_return_risk",
+    "modelProfile": "cheap",
+    "allowedValues": "SAFE, RISKY"
+  }
+}

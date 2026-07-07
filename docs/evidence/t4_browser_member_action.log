@@ -1,0 +1,28 @@
+{
+  "prototypeUrl": "http://prototype.ai4mde.localhost",
+  "prototypeName": "LibraryT4A",
+  "beforeClick": {
+    "hasAlice": true,
+    "name": "alice",
+    "email": "alice@example.com",
+    "readingPlan": "",
+    "hasGenerateButton": true,
+    "rowText": "alice\talice@example.com\t\t"
+  },
+  "responsePage": {
+    "hasAlice": true,
+    "name": "alice",
+    "email": "alice@example.com",
+    "readingPlan": "1) Book A; 2) Book B; 3) Book C",
+    "hasGenerateButton": true,
+    "rowText": "alice\talice@example.com\t1) Book A; 2) Book B; 3) Book C\t"
+  },
+  "responsePageHasSummary": true,
+  "refreshedPage": null,
+  "screenshots": {
+    "login": "docs/evidence/t4_browser_member_login.png",
+    "button": "docs/evidence/t4_browser_member_button.png",
+    "response": "docs/evidence/t4_browser_member_result.png",
+    "refreshed": null
+  }
+}

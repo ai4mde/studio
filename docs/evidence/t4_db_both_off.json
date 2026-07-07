@@ -1,0 +1,22 @@
+{
+  "pass": "reset state has no target ai_config keys",
+  "raw": {
+    "BookLoan.late_risk": {
+      "body": null,
+      "derived": false,
+      "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH).",
+      "enum": null,
+      "name": "late_risk",
+      "type": "str"
+    },
+    "Customer.reading_plan": {
+      "body": null,
+      "derived": false,
+      "description": "AI-generated compact personalized reading plan.",
+      "enum": null,
+      "name": "reading_plan",
+      "type": "str"
+    }
+  },
+  "stage": "both-off"
+}

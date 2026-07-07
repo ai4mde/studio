@@ -1,0 +1,19 @@
+{
+  "action": "customer_enable_reading_plan",
+  "diagramUrl": "http://ai4mde.localhost/diagram/a9cb6660-0a0c-423a-9830-ec80067f459f",
+  "screenshotPath": "docs/evidence/t4_form_customer_reading_plan.png",
+  "className": "Customer",
+  "attrName": "reading_plan",
+  "save": {
+    "ok": true,
+    "clicked": true,
+    "disabled": false
+  },
+  "section": {
+    "text": "AI-managed attribute\nPreset\nLate return risk\nReading plan\nTrigger\nuser_action\nCustomer\nContext\nFields\nNone\nRelations\nLoan\nBookLoan\nBook\nTemplate\nreading_plan_analyze_taste_v1\nreading_plan_recommend_v1\nreading_plan_sequence_v1\nModel profile\ncheap\nstrong\nOutput\nreading_plan\nreading_plan",
+    "enabled": true,
+    "preset": "reading_plan",
+    "modelProfile": "strong",
+    "allowedValues": null
+  }
+}

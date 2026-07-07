@@ -12,7 +12,9 @@ type Props = {
 };
 
 const EditAttributes: React.FC<Props> = ({ node }) => {
-    const [attributes, setAttributes] = useState(node?.data?.attributes ?? []);
+    const [attributes, setAttributes] = useState(() =>
+        (node?.data?.attributes ?? []).map((attribute: any) => ({ ...attribute })),
+    );
     const { diagram } = useDiagramStore();
     const dirty = useMemo(
         () => !isEqualWith(attributes, node?.data?.attributes),
@@ -31,8 +33,7 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                     attribute={e}
                     update={(v) => {
                         setAttributes((s: any[]) => {
-                            s[idx] = v;
-                            return [...s];
+                            return s.map((attribute, i) => (i === idx ? v : attribute));
                         });
                     }}
                     del={() => {
@@ -52,12 +53,14 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                     variant="outlined"
                     onClick={() =>
                         setAttributes((s: any) => {
-                            s.push({
+                            return [
+                                ...s,
+                                {
                                 type: "str",
                                 enum: null,
                                 derived: false,
-                            });
-                            return [...s];
+                                },
+                            ];
                         })
                     }
                 >

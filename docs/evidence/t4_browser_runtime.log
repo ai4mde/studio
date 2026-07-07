@@ -1,0 +1,27 @@
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 03:05:13] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 03:05:13] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 03:05:13] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 03:05:13] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | Watching for file changes with StatReloader
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 03:05:15] "[32mPOST /run HTTP/1.1[0m" 307 -
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 03:05:18] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | [07/Jul/2026 03:05:21] "GET / HTTP/1.1" 200 2766
+studio-prototypes-1  | [07/Jul/2026 03:05:21] "GET /static/authentication/authentication_style.css HTTP/1.1" 200 1349
+studio-prototypes-1  | Not Found: /favicon.ico
+studio-prototypes-1  | [07/Jul/2026 03:05:21] "GET /favicon.ico HTTP/1.1" 404 3125
+studio-prototypes-1  | [07/Jul/2026 03:05:21] "POST /login HTTP/1.1" 302 0
+studio-prototypes-1  | [07/Jul/2026 03:05:22] "GET /librarian/ HTTP/1.1" 200 1168
+studio-prototypes-1  | [07/Jul/2026 03:05:22] "GET /static/librarian/librarian_style.css HTTP/1.1" 200 4572
+studio-prototypes-1  | [07/Jul/2026 03:05:22] "GET /librarian/render_librarian_loans HTTP/1.1" 200 12470
+studio-prototypes-1  | [07/Jul/2026 03:05:22] "GET /librarian/render_librarian_loans?create_book_loans=true HTTP/1.1" 200 13795
+studio-prototypes-1  | [07/Jul/2026 03:05:22] "POST /librarian/loans_book_loans_create HTTP/1.1" 302 0
+studio-prototypes-1  | [07/Jul/2026 03:05:22] "GET /librarian/render_librarian_loans HTTP/1.1" 200 14270
+studio-prototypes-1  | [07/Jul/2026 03:05:52] "GET / HTTP/1.1" 200 2766
+studio-prototypes-1  | [07/Jul/2026 03:05:52] "GET /static/authentication/authentication_style.css HTTP/1.1" 200 1349
+studio-prototypes-1  | Not Found: /favicon.ico
+studio-prototypes-1  | [07/Jul/2026 03:05:52] "GET /favicon.ico HTTP/1.1" 404 3125
+studio-prototypes-1  | [07/Jul/2026 03:05:52] "POST /login HTTP/1.1" 302 0
+studio-prototypes-1  | [07/Jul/2026 03:05:52] "GET /member/ HTTP/1.1" 200 1152
+studio-prototypes-1  | [07/Jul/2026 03:05:52] "GET /static/member/member_style.css HTTP/1.1" 200 4572
+studio-prototypes-1  | [07/Jul/2026 03:05:53] "GET /member/render_member_customers HTTP/1.1" 200 2614
+studio-prototypes-1  | [07/Jul/2026 03:05:53] "GET /member/render_member_customers?custom_Customer_generate_reading_plan=1 HTTP/1.1" 200 2645

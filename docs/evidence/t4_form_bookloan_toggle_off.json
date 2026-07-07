@@ -1,0 +1,19 @@
+{
+  "action": "bookloan_toggle_off",
+  "diagramUrl": "http://ai4mde.localhost/diagram/a9cb6660-0a0c-423a-9830-ec80067f459f",
+  "screenshotPath": "docs/evidence/t4_form_toggle_off.png",
+  "className": "BookLoan",
+  "attrName": "late_risk",
+  "save": {
+    "ok": true,
+    "clicked": true,
+    "disabled": false
+  },
+  "section": {
+    "text": "AI-managed attribute",
+    "enabled": false,
+    "preset": null,
+    "modelProfile": null,
+    "allowedValues": null
+  }
+}
