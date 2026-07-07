@@ -224,7 +224,7 @@ export const CreatePrototype: React.FC = () => {
                             name="interfaces"
                             options={interfaces.map((e) => ({ label: e.name, value: e }))}
                             value={selectedInterfaces}
-                            onChange={(newValue) => setSelectedInterfaces(newValue ? newValue.map((v) => v.value) : [])}
+                            onChange={(newValue) => setSelectedInterfaces(newValue ? [...newValue] : [])}
                         />
 
                     </FormControl>

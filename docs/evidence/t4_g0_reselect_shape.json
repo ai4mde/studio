@@ -1,0 +1,311 @@
+{
+  "visibleShape": "option member, selected.\nlibrarian\nmember",
+  "prototypeName": "LibraryT4G0Reselect",
+  "prototypeId": "509828cf-967a-47f8-83eb-4a92fae0ccd4",
+  "postStatus": 200,
+  "postBodyReadError": "{\"code\":-32000,\"message\":\"No resource with given identifier found\"}",
+  "requestInterfaces": [
+    {
+      "label": "librarian",
+      "value": {
+        "id": "67638059-6cad-41ae-8da5-d593efca3ba5",
+        "name": "librarian",
+        "description": "Librarian application",
+        "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+        "actor": "c8078430-ab2c-4a37-83c1-4c4149460165",
+        "data": {
+          "pages": [
+            {
+              "id": "202b33b7-5e68-47d4-a449-5a31994fe3a7",
+              "name": "loans",
+              "type": {
+                "label": "Normal",
+                "value": "normal"
+              },
+              "action": null,
+              "category": null,
+              "sections": [
+                {
+                  "label": "book_loans",
+                  "value": "d4c30ee4-1d7e-4cc6-9ec7-908528f4bcc3"
+                }
+              ]
+            }
+          ],
+          "styling": {
+            "radius": 0,
+            "textColor": "#000000",
+            "accentColor": "#F5F5F4",
+            "selectedStyle": "modern",
+            "backgroundColor": "#FFFFFF"
+          },
+          "sections": [
+            {
+              "id": "d4c30ee4-1d7e-4cc6-9ec7-908528f4bcc3",
+              "name": "book_loans",
+              "text": "Book loans",
+              "class": "9f7df5b5-fde5-429e-982b-48c37e868613",
+              "attributes": [
+                {
+                  "body": null,
+                  "enum": null,
+                  "name": "late_risk",
+                  "type": "str",
+                  "derived": false,
+                  "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH)."
+                }
+              ],
+              "operations": {
+                "create": true,
+                "delete": false,
+                "update": true
+              }
+            }
+          ],
+          "settings": {
+            "managerAccess": false
+          },
+          "categories": []
+        }
+      }
+    },
+    {
+      "label": "member",
+      "value": {
+        "id": "c7a2acd3-1e1d-5cbe-a0fa-4ac850a2e5ff",
+        "name": "member",
+        "description": "member application",
+        "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+        "actor": "c8078430-ab2c-4a37-83c1-4c4149460165",
+        "data": {
+          "pages": [
+            {
+              "id": "4f934d64-a4c0-5692-b913-78acdfe03624",
+              "name": "customers",
+              "type": {
+                "label": "Normal",
+                "value": "normal"
+              },
+              "action": null,
+              "category": null,
+              "sections": [
+                {
+                  "label": "customers",
+                  "value": "330f864f-410b-5e12-b20c-a81c20ce1594"
+                }
+              ]
+            }
+          ],
+          "styling": {
+            "radius": 0,
+            "textColor": "#000000",
+            "accentColor": "#F5F5F4",
+            "selectedStyle": "modern",
+            "backgroundColor": "#FFFFFF"
+          },
+          "sections": [
+            {
+              "id": "330f864f-410b-5e12-b20c-a81c20ce1594",
+              "name": "customers",
+              "text": "Customers",
+              "class": "fb0ceaeb-ba1c-4b0b-87cb-f16e1977f06a",
+              "methods": [
+                {
+                  "body": "def generate_reading_plan(self):\n    pass",
+                  "name": "generate_reading_plan"
+                }
+              ],
+              "attributes": [
+                {
+                  "body": null,
+                  "enum": null,
+                  "name": "name",
+                  "type": "str",
+                  "derived": false,
+                  "description": null
+                },
+                {
+                  "body": null,
+                  "enum": null,
+                  "name": "email",
+                  "type": "str",
+                  "derived": false,
+                  "description": null
+                },
+                {
+                  "body": null,
+                  "enum": null,
+                  "name": "reading_plan",
+                  "type": "str",
+                  "derived": false,
+                  "description": "AI-generated compact personalized reading plan."
+                }
+              ],
+              "operations": {
+                "create": false,
+                "delete": false,
+                "update": false
+              }
+            }
+          ],
+          "settings": {
+            "managerAccess": false
+          },
+          "categories": []
+        }
+      }
+    }
+  ],
+  "metadataInterfaces": [
+    {
+      "label": "librarian",
+      "value": {
+        "id": "67638059-6cad-41ae-8da5-d593efca3ba5",
+        "data": {
+          "pages": [
+            {
+              "id": "202b33b7-5e68-47d4-a449-5a31994fe3a7",
+              "name": "loans",
+              "type": {
+                "label": "Normal",
+                "value": "normal"
+              },
+              "action": null,
+              "category": null,
+              "sections": [
+                {
+                  "label": "book_loans",
+                  "value": "d4c30ee4-1d7e-4cc6-9ec7-908528f4bcc3"
+                }
+              ]
+            }
+          ],
+          "styling": {
+            "radius": 0,
+            "textColor": "#000000",
+            "accentColor": "#F5F5F4",
+            "selectedStyle": "modern",
+            "backgroundColor": "#FFFFFF"
+          },
+          "sections": [
+            {
+              "id": "d4c30ee4-1d7e-4cc6-9ec7-908528f4bcc3",
+              "name": "book_loans",
+              "text": "Book loans",
+              "class": "9f7df5b5-fde5-429e-982b-48c37e868613",
+              "attributes": [
+                {
+                  "body": null,
+                  "enum": null,
+                  "name": "late_risk",
+                  "type": "str",
+                  "derived": false,
+                  "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH)."
+                }
+              ],
+              "operations": {
+                "create": true,
+                "delete": false,
+                "update": true
+              }
+            }
+          ],
+          "settings": {
+            "managerAccess": false
+          },
+          "categories": []
+        },
+        "name": "librarian",
+        "actor": "c8078430-ab2c-4a37-83c1-4c4149460165",
+        "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+        "description": "Librarian application"
+      }
+    },
+    {
+      "label": "member",
+      "value": {
+        "id": "c7a2acd3-1e1d-5cbe-a0fa-4ac850a2e5ff",
+        "data": {
+          "pages": [
+            {
+              "id": "4f934d64-a4c0-5692-b913-78acdfe03624",
+              "name": "customers",
+              "type": {
+                "label": "Normal",
+                "value": "normal"
+              },
+              "action": null,
+              "category": null,
+              "sections": [
+                {
+                  "label": "customers",
+                  "value": "330f864f-410b-5e12-b20c-a81c20ce1594"
+                }
+              ]
+            }
+          ],
+          "styling": {
+            "radius": 0,
+            "textColor": "#000000",
+            "accentColor": "#F5F5F4",
+            "selectedStyle": "modern",
+            "backgroundColor": "#FFFFFF"
+          },
+          "sections": [
+            {
+              "id": "330f864f-410b-5e12-b20c-a81c20ce1594",
+              "name": "customers",
+              "text": "Customers",
+              "class": "fb0ceaeb-ba1c-4b0b-87cb-f16e1977f06a",
+              "methods": [
+                {
+                  "body": "def generate_reading_plan(self):\n    pass",
+                  "name": "generate_reading_plan"
+                }
+              ],
+              "attributes": [
+                {
+                  "body": null,
+                  "enum": null,
+                  "name": "name",
+                  "type": "str",
+                  "derived": false,
+                  "description": null
+                },
+                {
+                  "body": null,
+                  "enum": null,
+                  "name": "email",
+                  "type": "str",
+                  "derived": false,
+                  "description": null
+                },
+                {
+                  "body": null,
+                  "enum": null,
+                  "name": "reading_plan",
+                  "type": "str",
+                  "derived": false,
+                  "description": "AI-generated compact personalized reading plan."
+                }
+              ],
+              "operations": {
+                "create": false,
+                "delete": false,
+                "update": false
+              }
+            }
+          ],
+          "settings": {
+            "managerAccess": false
+          },
+          "categories": []
+        },
+        "name": "member",
+        "actor": "c8078430-ab2c-4a37-83c1-4c4149460165",
+        "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+        "description": "member application"
+      }
+    }
+  ]
+}

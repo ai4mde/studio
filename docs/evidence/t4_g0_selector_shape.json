@@ -1,0 +1,21 @@
+{
+  "targetUrl": "http://ai4mde.localhost/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/prototypes",
+  "defaultShapePath": "docs/evidence/t4_g0_default_shape.json",
+  "reselectShapePath": "docs/evidence/t4_g0_reselect_shape.json",
+  "default": {
+    "prototypeName": "LibraryT4G0Default3",
+    "prototypeId": "11432877-7d92-48af-a914-57b6b41ae105",
+    "postStatus": 200,
+    "requestInterfacesWrapped": true,
+    "metadataInterfacesWrapped": true
+  },
+  "reselect": {
+    "prototypeName": "LibraryT4G0Reselect",
+    "prototypeId": "509828cf-967a-47f8-83eb-4a92fae0ccd4",
+    "postStatus": 200,
+    "requestInterfacesWrapped": true,
+    "metadataInterfacesWrapped": true,
+    "visibleShape": "option member, selected.\nlibrarian\nmember"
+  },
+  "pass": true
+}
