@@ -15,7 +15,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes if not attribute.ai_managed %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -59,7 +59,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes if not attribute.ai_managed %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 

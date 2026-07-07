@@ -35,13 +35,15 @@ class SectionAttribute():
             type: AttributeType,
             enum_literals: Optional[List[str]],
             updatable: bool,
-            derived: bool = False
+            derived: bool = False,
+            ai_managed: bool = False
     ):
         self.name = name
         self.type = type
         self.enum_literals = enum_literals
         self.updatable = updatable
         self.derived = derived
+        self.ai_managed = ai_managed
 
     def __str__(self):
         return self.name

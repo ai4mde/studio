@@ -1,0 +1,7 @@
+time="2026-07-06T07:55:00+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+BookLoan count baseline=6 after=7
+BookLoan rows newer than baseline max id: 1
+New BookLoan id=7 late_risk='LOW'
+JSONL lines baseline=1 after=2
+Last JSONL record: {"ai_config_version": "1.0", "context": {"author_name": "Ursula K. Le Guin", "book_title": "A Wizard of Earthsea", "customer_name": "alice", "due_date": "2026-01-15", "loan_date": "2026-01-01", "return_date": "2026-01-14"}, "error": null, "event": "invoke", "mode": "fake", "model": "BookLoan", "model_profile": "cheap", "parsed_output": "LOW", "pk": 7, "provider": "groq", "raw_output": "{\"late_risk\": \"LOW\", \"reason\": \"fake\", \"genres\": [\"fiction\"], \"notes\": \"fake taste\", \"books\": [\"Book A\", \"Book B\", \"Book C\"], \"ordered\": [\"Book A\", \"Book B\", \"Book C\"], \"summary\": \"1) Book A; 2) Book B; 3) Book C\"}", "routed_model": "llama-3.3-70b-versatile", "status": "success", "template": "library_late_risk_v1", "timestamp": "2026-07-06T05:54:26.974897+00:00", "trigger": "post_save", "write_back": {"field": "late_risk", "value": "LOW"}}
+PASS T2 browser e2e DB/JSONL assertions

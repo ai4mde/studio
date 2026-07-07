@@ -36,7 +36,7 @@
             <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes %}
-                {% if attribute.updatable and not attribute.derived %}
+                {% if attribute.updatable and not attribute.derived and not attribute.ai_managed %}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING %}
                     <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
@@ -173,7 +173,7 @@
             <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes -%}
-                {% if attribute.derived -%}
+                {% if attribute.derived or attribute.ai_managed -%}
                 <td></td>
                 {% else -%}
                 <td style="text-align:center;">

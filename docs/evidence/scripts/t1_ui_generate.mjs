@@ -22,7 +22,6 @@ if (!systemId) throw new Error("T1_SYSTEM_ID is required");
 if (!token) throw new Error("T1_BEARER_TOKEN is required");
 
 const targetUrl = `http://ai4mde.localhost/systems/${systemId}/prototypes`;
-const apiBase = "http://api.ai4mde.localhost:80/api/v1";
 
 const profileDir = await mkdtemp(join(tmpdir(), "t1-chrome-"));
 const chrome = spawn(
@@ -232,7 +231,11 @@ try {
             body: body.body,
           });
         } catch (error) {
-          reject(error);
+          resolve({
+            ...responsePayload,
+            body: null,
+            bodyReadError: error.message,
+          });
         }
       } else if (Date.now() - started > generationTimeoutMs) {
         clearInterval(timer);
@@ -291,20 +294,54 @@ try {
   const postResponse = await responsePromise;
   const endTime = new Date();
   let responseJson = {};
-  try {
-    responseJson = JSON.parse(postResponse.body);
-  } catch {
-    responseJson = { raw: postResponse.body };
+  if (postResponse.body) {
+    try {
+      responseJson = JSON.parse(postResponse.body);
+    } catch {
+      responseJson = { raw: postResponse.body };
+    }
   }
   if (postResponse.status !== 200) {
     throw new Error(`prototype POST failed: ${postResponse.status} ${postResponse.body}`);
   }
 
-  const prototypeId = responseJson.id;
+  let prototypeId = responseJson.id;
+  if (!prototypeId) {
+    const lookupEval = await evaluate(
+      client,
+      `fetch("http://api.ai4mde.localhost:80/api/v1/generator/prototypes/?system=${systemId}", {
+        headers: { Authorization: "Bearer ${token}" },
+        credentials: "include",
+      }).then(async (response) => {
+        if (!response.ok) throw new Error(response.status + " " + await response.text());
+        return response.json();
+      })`,
+      true,
+    );
+    if (lookupEval.exceptionDetails) {
+      throw new Error(lookupEval.exceptionDetails.exception?.description || "prototype lookup failed");
+    }
+    const match = [...lookupEval.result.value]
+      .reverse()
+      .find((candidate) => candidate.name === prototypeName);
+    prototypeId = match?.id;
+  }
   if (!prototypeId) throw new Error(`prototype id missing from response: ${postResponse.body}`);
-  const metadata = await fetchJson(`${apiBase}/generator/prototypes/${prototypeId}/meta/`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const metadataEval = await evaluate(
+    client,
+    `fetch("http://api.ai4mde.localhost:80/api/v1/generator/prototypes/${prototypeId}/meta/", {
+      headers: { Authorization: "Bearer ${token}" },
+      credentials: "include",
+    }).then(async (response) => {
+      if (!response.ok) throw new Error(response.status + " " + await response.text());
+      return response.json();
+    })`,
+    true,
+  );
+  if (metadataEval.exceptionDetails) {
+    throw new Error(metadataEval.exceptionDetails.exception?.description || "metadata fetch failed");
+  }
+  const metadata = metadataEval.result.value;
   await writeFile(metadataPath, JSON.stringify(metadata, null, 2) + "\n");
 
   const pageInfo = await evaluate(
@@ -325,6 +362,7 @@ try {
     prototypeId,
     systemId,
     postStatus: postResponse.status,
+    bodyReadError: postResponse.bodyReadError || null,
     generationStartedAt: startTime.toISOString(),
     generationFinishedAt: endTime.toISOString(),
     generationDurationSeconds: (endTime - startTime) / 1000,

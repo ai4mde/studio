@@ -1,0 +1,91 @@
+time="2026-07-06T07:55:12+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.03, 172.18.0.2:33334]
+studio-api-1  | HTTP GET /api/v1/metadata/interfaces/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.04, 172.18.0.2:33330]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/ 200 [0.04, 172.18.0.2:33314]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.04, 172.18.0.2:33346]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/classes/ 200 [0.02, 172.18.0.2:33334]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/classifier-relations/ 200 [0.02, 172.18.0.2:33330]
+studio-api-1  | HTTP GET /api/v1/diagram/system/7d735a07-b6cd-409d-9cc7-f3a07cbec983/ 200 [0.06, 172.18.0.2:33350]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:33346]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/d5a607a3829c0a5230562cc78d4693c4e29febe3b74f6f04220a3b9b36b6ec24 200 [0.01, 172.18.0.2:33350]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.01, 172.18.0.2:33346]
+studio-api-1  | HTTP POST /api/v1/generator/prototypes/run/9bc4fa93-8805-4a13-803c-550e0abcc754 200 [2.05, 172.18.0.2:33346]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.03, 172.18.0.2:33346]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.02, 172.18.0.2:55524]
+studio-api-1  | HTTP GET /api/v1/metadata/interfaces/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.02, 172.18.0.2:55556]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.03, 172.18.0.2:55540]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/ 200 [0.03, 172.18.0.2:55558]
+studio-api-1  | HTTP GET /api/v1/diagram/system/7d735a07-b6cd-409d-9cc7-f3a07cbec983/ 200 [0.04, 172.18.0.2:55526]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/classifier-relations/ 200 [0.02, 172.18.0.2:55524]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/classes/ 200 [0.02, 172.18.0.2:55556]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:55558]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.01, 172.18.0.2:55558]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/d5a607a3829c0a5230562cc78d4693c4e29febe3b74f6f04220a3b9b36b6ec24 200 [0.01, 172.18.0.2:55556]
+studio-api-1  | HTTP POST /api/v1/generator/prototypes/stop_prototypes/ 200 [0.03, 172.18.0.2:55556]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:55556]
+studio-api-1  | HTTP POST /api/v1/generator/prototypes/run/9bc4fa93-8805-4a13-803c-550e0abcc754 200 [2.03, 172.18.0.2:55556]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:55556]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:55556]
+studio-api-1  | HTTP GET /api/v1/metadata/interfaces/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.03, 172.18.0.2:36866]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.03, 172.18.0.2:36868]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.04, 172.18.0.2:36922]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/ 200 [0.04, 172.18.0.2:36906]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/classifier-relations/ 200 [0.02, 172.18.0.2:36866]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/classes/ 200 [0.02, 172.18.0.2:36868]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:36906]
+studio-api-1  | HTTP GET /api/v1/diagram/system/7d735a07-b6cd-409d-9cc7-f3a07cbec983/ 200 [0.06, 172.18.0.2:36890]
+studio-api-1         | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.01, 172.18.0.2:36906]
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:49:24] "GET /active_prototype HTTP/1.1" 200 -
+studio-api-1         | HTTP GET /api/v1/generator/prototypes/d5a607a3829c0a5230562cc78d4693c4e29febe3b74f6f04220a3b9b36b6ec24 200 [0.01, 172.18.0.2:36890]
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:49:24] "GET /active_prototype HTTP/1.1" 200 -
+studio-api-1         | HTTP POST /api/v1/generator/prototypes/stop_prototypes/ 200 [0.02, 172.18.0.2:36890]
+studio-api-1         | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:36890]
+studio-api-1         | HTTP POST /api/v1/generator/prototypes/run/9bc4fa93-8805-4a13-803c-550e0abcc754 200 [2.04, 172.18.0.2:36890]
+studio-api-1         | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:36890]
+studio-api-1         | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:36890]
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:49:24] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | Watching for file changes with StatReloader
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:49:26] "[32mPOST /run HTTP/1.1[0m" 307 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:49:29] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | [06/Jul/2026 05:49:32] "GET / HTTP/1.1" 200 2535
+studio-prototypes-1  | [06/Jul/2026 05:49:33] "GET /static/authentication/authentication_style.css HTTP/1.1" 200 1349
+studio-prototypes-1  | Not Found: /favicon.ico
+studio-prototypes-1  | [06/Jul/2026 05:49:33] "GET /favicon.ico HTTP/1.1" 404 3018
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:51:58] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:51:58] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:51:58] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:51:58] "POST /stop_prototypes HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:52:03] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | Watching for file changes with StatReloader
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:52:07] "[32mPOST /run HTTP/1.1[0m" 307 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:52:08] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:52:13] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | [06/Jul/2026 05:52:13] "GET / HTTP/1.1" 200 2535
+studio-prototypes-1  | [06/Jul/2026 05:52:13] "GET /static/authentication/authentication_style.css HTTP/1.1" 200 1349
+studio-prototypes-1  | Not Found: /favicon.ico
+studio-prototypes-1  | [06/Jul/2026 05:52:13] "GET /favicon.ico HTTP/1.1" 404 3018
+studio-prototypes-1  | [06/Jul/2026 05:52:14] "POST /login HTTP/1.1" 302 0
+studio-prototypes-1  | [06/Jul/2026 05:52:14] "GET /librarian/ HTTP/1.1" 200 1168
+studio-prototypes-1  | [06/Jul/2026 05:52:14] "GET /static/librarian/librarian_style.css HTTP/1.1" 200 4572
+studio-prototypes-1  | [06/Jul/2026 05:52:14] "GET /librarian/render_librarian_loans HTTP/1.1" 200 12470
+studio-prototypes-1  | [06/Jul/2026 05:52:14] "GET /librarian/render_librarian_loans?create_book_loans=true HTTP/1.1" 200 13795
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:54:10] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:54:10] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:54:10] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:54:10] "POST /stop_prototypes HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:54:15] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | Watching for file changes with StatReloader
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:54:19] "[32mPOST /run HTTP/1.1[0m" 307 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:54:20] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [06/Jul/2026 05:54:25] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | [06/Jul/2026 05:54:25] "GET / HTTP/1.1" 200 2535
+studio-prototypes-1  | [06/Jul/2026 05:54:25] "GET /static/authentication/authentication_style.css HTTP/1.1" 200 1349
+studio-prototypes-1  | Not Found: /favicon.ico
+studio-prototypes-1  | [06/Jul/2026 05:54:25] "GET /favicon.ico HTTP/1.1" 404 3018
+studio-prototypes-1  | [06/Jul/2026 05:54:26] "POST /login HTTP/1.1" 302 0
+studio-prototypes-1  | [06/Jul/2026 05:54:26] "GET /librarian/ HTTP/1.1" 200 1168
+studio-prototypes-1  | [06/Jul/2026 05:54:26] "GET /static/librarian/librarian_style.css HTTP/1.1" 200 4572
+studio-prototypes-1  | [06/Jul/2026 05:54:26] "GET /librarian/render_librarian_loans HTTP/1.1" 200 12470
+studio-prototypes-1  | [06/Jul/2026 05:54:26] "GET /librarian/render_librarian_loans?create_book_loans=true HTTP/1.1" 200 13795
+studio-prototypes-1  | [06/Jul/2026 05:54:26] "POST /librarian/loans_book_loans_create HTTP/1.1" 302 0
+studio-prototypes-1  | [06/Jul/2026 05:54:26] "GET /librarian/render_librarian_loans HTTP/1.1" 200 14270

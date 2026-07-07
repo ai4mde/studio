@@ -78,6 +78,22 @@ def find_model_id_by_class_ptr(metadata: str, class_ptr: str) -> str:
                 return node["id"]
     return None
 
+
+def attribute_is_ai_managed(metadata_json: dict, class_ptr: str, attribute_name: str) -> bool:
+    for diagram in metadata_json.get("diagrams", []):
+        if diagram.get("type") != "classes":
+            continue
+        for node in diagram.get("nodes", []):
+            if node.get("cls_ptr") != class_ptr:
+                continue
+            for class_attribute in node.get("cls", {}).get("attributes", []):
+                if class_attribute.get("name") != attribute_name:
+                    continue
+                ai_config = class_attribute.get("ai_config") or {}
+                output = ai_config.get("output") or {}
+                return output.get("write_back") == attribute_name
+    return False
+
 SOURCE_ACCEPTABLE_CARDINALITIES = [
     Cardinality.ZERO_MANY_TO_ONE,
     Cardinality.ONE_MANY_TO_ONE
@@ -140,6 +156,10 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
         return []
     
     out = []
+    try:
+        metadata_json = json.loads(metadata)
+    except:
+        metadata_json = {}
     for attribute in section["attributes"]:
         attribute_type = None
         enum_literals = None
@@ -158,7 +178,12 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
             type = attribute_type,
             enum_literals = enum_literals,
             updatable = True, # TODO: frontend management of updatable attributes
-            derived = attribute["derived"]
+            derived = attribute["derived"],
+            ai_managed = attribute_is_ai_managed(
+                metadata_json,
+                section.get("class"),
+                attribute.get("name")
+            )
         )
         out.append(att)
 

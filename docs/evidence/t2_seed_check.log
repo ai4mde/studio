@@ -1,0 +1,14 @@
+time="2026-07-06T07:39:07+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+User count: 2
+Author count: 3
+Book count: 6
+Customer count: 2
+Loan count: 5
+BookLoan count: 5
+demo_librarian password valid: True
+demo_member password valid: True
+demo_librarian is_librarian: True
+BookLoan late_risk values: ['LOW', 'LOW', 'MEDIUM', 'LOW', 'HIGH']
+Seeded BookLoan late_risk all populated: True
+Seeded BookLoan late_risk distribution: {'HIGH': 1, 'LOW': 3, 'MEDIUM': 1}
+PASS T2 seed check

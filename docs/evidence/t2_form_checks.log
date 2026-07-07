@@ -1,0 +1,13 @@
+time="2026-07-06T07:45:07+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+BookLoan create fields excludes late_risk: True
+BookLoan update fields excludes late_risk: True
+demo_librarian login: True
+loans create page status 200: True
+create form present: True
+late_risk input absent: True
+late_risk table header present: True
+seeded LOW visible: True
+seeded MEDIUM visible: True
+seeded HIGH visible: True
+BookLoan rows visible for HTML check: 6
+PASS T2 form source/html checks

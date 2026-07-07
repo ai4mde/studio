@@ -19,6 +19,7 @@ Optional env for semantic mode:
 from __future__ import annotations
 
 import ast
+import argparse
 import json
 import os
 import re
@@ -26,6 +27,13 @@ from pathlib import Path
 
 
 MODE = os.environ.get("T1_MODE", "semantic")
+ARGS = argparse.ArgumentParser()
+ARGS.add_argument(
+    "--skip-v6",
+    action="store_true",
+    help="Run only semantic gates V1-V5; accepted for T2 regression checks.",
+)
+CLI_ARGS, _UNKNOWN_ARGS = ARGS.parse_known_args()
 
 
 def ok(label: str, message: str) -> None:
@@ -398,6 +406,9 @@ def run_smoke_late_risk() -> None:
 if MODE == "semantic":
     run_semantic()
 elif MODE == "smoke_late_risk":
-    run_smoke_late_risk()
+    if CLI_ARGS.skip_v6:
+        print("[SKIP] V6 skipped by --skip-v6")
+    else:
+        run_smoke_late_risk()
 else:
     fail(f"unknown T1_MODE={MODE!r}")

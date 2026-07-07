@@ -120,6 +120,7 @@ run_migrations() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python "manage.py" "makemigrations"
     cp "${WORKDIR}/workflow_engine/0002_populate_workflow_engine.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/migrations"
+    cp "${WORKDIR}/demo_data/0002_library_demo_data.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/shared_models/migrations"
     python "manage.py" "migrate"
 }
 
