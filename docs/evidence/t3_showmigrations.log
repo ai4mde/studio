@@ -1,0 +1,7 @@
+time="2026-07-07T03:56:23+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+shared_models
+ [X] 0001_initial
+ [X] 0002_library_demo_data
+workflow_engine
+ [X] 0001_initial
+ [X] 0002_populate_workflow_engine

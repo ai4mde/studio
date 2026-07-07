@@ -1,0 +1,75 @@
+time="2026-07-07T03:55:46+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.03, 172.18.0.2:58198]
+studio-api-1  | HTTP GET /api/v1/metadata/interfaces/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.03, 172.18.0.2:58176]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/ 200 [0.03, 172.18.0.2:58220]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.03, 172.18.0.2:58208]
+studio-api-1  | HTTP GET /api/v1/diagram/system/7d735a07-b6cd-409d-9cc7-f3a07cbec983/ 200 [0.06, 172.18.0.2:58186]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/classes/ 200 [0.02, 172.18.0.2:58176]
+studio-api-1  | HTTP GET /api/v1/metadata/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/classifier-relations/ 200 [0.02, 172.18.0.2:58220]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.02, 172.18.0.2:58208]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/ab8b594fe0a0b350060315e621f269ddf6050744db67cec2d8c2fd19e962dbdf 200 [0.01, 172.18.0.2:58220]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.01, 172.18.0.2:58208]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/active_prototype/ 200 [0.01, 172.18.0.2:58208]
+studio-api-1  | HTTP OPTIONS /api/v1/generator/prototypes/?database_prototype_name= 200 [0.00, 172.18.0.2:58208]
+studio-api-1  | HTTP OPTIONS /api/v1/generator/prototypes/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.00, 172.18.0.2:58220]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/?system=7d735a07-b6cd-409d-9cc7-f3a07cbec983 200 [0.01, 172.18.0.2:58220]
+studio-api-1  | HTTP OPTIONS /api/v1/generator/prototypes/ee40bbac-ca04-4e42-83a6-589b24f8d8e0/meta/ 200 [0.00, 172.18.0.2:58220]
+studio-api-1  | HTTP GET /api/v1/generator/prototypes/ee40bbac-ca04-4e42-83a6-589b24f8d8e0/meta/ 200 [0.01, 172.18.0.2:58220]
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 01:54:01] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 01:54:01] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 01:54:01] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 01:54:06] "GET /active_prototype HTTP/1.1" 200 -
+studio-prototypes-1  | [AI4MDE][ai_config] model=Customer attribute=reading_plan trigger={'type': 'user_action', 'class': 'Customer'} model_profile=strong write_back=reading_plan version=1.0
+studio-prototypes-1  | [AI4MDE][ai_config] model=BookLoan attribute=late_risk trigger={'type': 'post_save', 'class': 'BookLoan'} model_profile=cheap write_back=late_risk version=1.0
+studio-prototypes-1  | [AI4MDE][ai_config] detected 2 AI-managed attribute(s)
+studio-prototypes-1  | Migrations for 'shared_models':
+studio-prototypes-1  |   shared_models/migrations/0001_initial.py
+studio-prototypes-1  |     - Create model Author
+studio-prototypes-1  |     - Create model Customer
+studio-prototypes-1  |     - Create model User
+studio-prototypes-1  |     - Create model Book
+studio-prototypes-1  |     - Create model Loan
+studio-prototypes-1  |     - Create model BookLoan
+studio-prototypes-1  | Migrations for 'workflow_engine':
+studio-prototypes-1  |   workflow_engine/migrations/0001_initial.py
+studio-prototypes-1  |     - Create model ActionNode
+studio-prototypes-1  |     - Create model ActiveProcess
+studio-prototypes-1  |     - Create model ConvergencePoint
+studio-prototypes-1  |     - Create model Rule
+studio-prototypes-1  |     - Create model ActiveConvergencePoint
+studio-prototypes-1  |     - Create model ActionLog
+studio-prototypes-1  |     - Create model ActiveProcessNode
+studio-prototypes-1  |     - Add field active_nodes to activeprocess
+studio-prototypes-1  |     - Create model AssociatedModelInstance
+studio-prototypes-1  |     - Add field active_convergence_points to activeprocess
+studio-prototypes-1  |     - Create model Process
+studio-prototypes-1  |     - Add field process to convergencepoint
+studio-prototypes-1  |     - Add field process to activeprocess
+studio-prototypes-1  |     - Add field process to actionnode
+studio-prototypes-1  |     - Add field next_node_rule to actionnode
+studio-prototypes-1  | Operations to perform:
+studio-prototypes-1  |   Apply all migrations: admin, auth, contenttypes, sessions, shared_models, workflow_engine
+studio-prototypes-1  | Running migrations:
+studio-prototypes-1  |   Applying contenttypes.0001_initial... OK
+studio-prototypes-1  |   Applying contenttypes.0002_remove_content_type_name... OK
+studio-prototypes-1  |   Applying auth.0001_initial... OK
+studio-prototypes-1  |   Applying auth.0002_alter_permission_name_max_length... OK
+studio-prototypes-1  |   Applying auth.0003_alter_user_email_max_length... OK
+studio-prototypes-1  |   Applying auth.0004_alter_user_username_opts... OK
+studio-prototypes-1  |   Applying auth.0005_alter_user_last_login_null... OK
+studio-prototypes-1  |   Applying auth.0006_require_contenttypes_0002... OK
+studio-prototypes-1  |   Applying auth.0007_alter_validators_add_error_messages... OK
+studio-prototypes-1  |   Applying auth.0008_alter_user_username_max_length... OK
+studio-prototypes-1  |   Applying auth.0009_alter_user_last_name_max_length... OK
+studio-prototypes-1  |   Applying auth.0010_alter_group_name_max_length... OK
+studio-prototypes-1  |   Applying auth.0011_update_proxy_permissions... OK
+studio-prototypes-1  |   Applying auth.0012_alter_user_first_name_max_length... OK
+studio-prototypes-1  |   Applying shared_models.0001_initial... OK
+studio-prototypes-1  |   Applying admin.0001_initial... OK
+studio-prototypes-1  |   Applying admin.0002_logentry_remove_auto_add... OK
+studio-prototypes-1  |   Applying admin.0003_logentry_add_action_flag_choices... OK
+studio-prototypes-1  |   Applying sessions.0001_initial... OK
+studio-prototypes-1  |   Applying shared_models.0002_library_demo_data... OK
+studio-prototypes-1  |   Applying workflow_engine.0001_initial... OK
+studio-prototypes-1  |   Applying workflow_engine.0002_populate_workflow_engine... OK
+studio-prototypes-1  | 172.18.0.5 - - [07/Jul/2026 01:54:08] "POST /generate HTTP/1.1" 200 -

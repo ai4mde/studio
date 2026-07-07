@@ -1,0 +1,24 @@
+{
+  "studioUrl": "http://ai4mde.localhost/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/prototypes",
+  "prototypeUrl": "http://prototype.ai4mde.localhost",
+  "prototypeName": "LibraryT3A",
+  "prototypeId": "ee40bbac-ca04-4e42-83a6-589b24f8d8e0",
+  "preRunState": "LibraryT3A\n\tNot running\t\t\nMetadata\nRun",
+  "killClicked": false,
+  "runClicked": true,
+  "active": {
+    "ip": "172.18.0.6",
+    "pid": 97,
+    "port": "8020",
+    "prototype_id": "ee40bbac-ca04-4e42-83a6-589b24f8d8e0",
+    "running": true
+  },
+  "loginPage": {
+    "href": "http://prototype.ai4mde.localhost/",
+    "title": "Welcome!",
+    "hasLibraryT3A": true,
+    "hasMemberRadio": true,
+    "bodyText": "LibraryT3A prototype\nLogin\n\n\n\n\n\n\t\n\nRegister\n\n\n librarian\t member\n\n\n\t\n"
+  },
+  "screenshotPath": "docs/evidence/t3_browser_run_login.png"
+}

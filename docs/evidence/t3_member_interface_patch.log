@@ -1,0 +1,182 @@
+time="2026-07-07T03:52:25+02:00" level=warning msg="/Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+[INFO] no member actor classifier exists; using existing actor for Interface.actor FK
+[INFO] actor id=c8078430-ab2c-4a37-83c1-4c4149460165 name=librarian
+[INFO] member interface id=c7a2acd3-1e1d-5cbe-a0fa-4ac850a2e5ff
+[INFO] member page id=4f934d64-a4c0-5692-b913-78acdfe03624
+[INFO] member section id=330f864f-410b-5e12-b20c-a81c20ce1594
+[INFO] update endpoint (metadata API uses PUT for interface updates):
+http://localhost:8000/api/v1/metadata/interfaces/c7a2acd3-1e1d-5cbe-a0fa-4ac850a2e5ff/
+[INFO] update body:
+{
+  "actor": "c8078430-ab2c-4a37-83c1-4c4149460165",
+  "data": {
+    "categories": [],
+    "pages": [
+      {
+        "action": null,
+        "category": null,
+        "id": "4f934d64-a4c0-5692-b913-78acdfe03624",
+        "name": "customers",
+        "sections": [
+          {
+            "label": "customers",
+            "value": "330f864f-410b-5e12-b20c-a81c20ce1594"
+          }
+        ],
+        "type": {
+          "label": "Normal",
+          "value": "normal"
+        }
+      }
+    ],
+    "sections": [
+      {
+        "attributes": [
+          {
+            "body": null,
+            "derived": false,
+            "description": null,
+            "enum": null,
+            "name": "name",
+            "type": "str"
+          },
+          {
+            "body": null,
+            "derived": false,
+            "description": null,
+            "enum": null,
+            "name": "email",
+            "type": "str"
+          },
+          {
+            "body": null,
+            "derived": false,
+            "description": "AI-generated compact personalized reading plan.",
+            "enum": null,
+            "name": "reading_plan",
+            "type": "str"
+          }
+        ],
+        "class": "fb0ceaeb-ba1c-4b0b-87cb-f16e1977f06a",
+        "id": "330f864f-410b-5e12-b20c-a81c20ce1594",
+        "methods": [
+          {
+            "body": "def generate_reading_plan(self):\n    pass",
+            "name": "generate_reading_plan"
+          }
+        ],
+        "name": "customers",
+        "operations": {
+          "create": false,
+          "delete": false,
+          "update": false
+        },
+        "text": "Customers"
+      }
+    ],
+    "settings": {
+      "managerAccess": false
+    },
+    "styling": {
+      "accentColor": "#F5F5F4",
+      "backgroundColor": "#FFFFFF",
+      "radius": 0,
+      "selectedStyle": "modern",
+      "textColor": "#000000"
+    }
+  },
+  "description": "member application",
+  "id": "c7a2acd3-1e1d-5cbe-a0fa-4ac850a2e5ff",
+  "name": "member",
+  "system": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+  "system_id": "7d735a07-b6cd-409d-9cc7-f3a07cbec983"
+}
+[INFO] update response status=200
+true
+[INFO] before/after diff:
+--- before/member
++++ after/member
+@@ -2,9 +2,79 @@
+   "actor": "c8078430-ab2c-4a37-83c1-4c4149460165",
+   "data": {
+     "categories": [],
+-    "pages": [],
+-    "sections": [],
+-    "styling": {}
++    "pages": [
++      {
++        "action": null,
++        "category": null,
++        "id": "4f934d64-a4c0-5692-b913-78acdfe03624",
++        "name": "customers",
++        "sections": [
++          {
++            "label": "customers",
++            "value": "330f864f-410b-5e12-b20c-a81c20ce1594"
++          }
++        ],
++        "type": {
++          "label": "Normal",
++          "value": "normal"
++        }
++      }
++    ],
++    "sections": [
++      {
++        "attributes": [
++          {
++            "body": null,
++            "derived": false,
++            "description": null,
++            "enum": null,
++            "name": "name",
++            "type": "str"
++          },
++          {
++            "body": null,
++            "derived": false,
++            "description": null,
++            "enum": null,
++            "name": "email",
++            "type": "str"
++          },
++          {
++            "body": null,
++            "derived": false,
++            "description": "AI-generated compact personalized reading plan.",
++            "enum": null,
++            "name": "reading_plan",
++            "type": "str"
++          }
++        ],
++        "class": "fb0ceaeb-ba1c-4b0b-87cb-f16e1977f06a",
++        "id": "330f864f-410b-5e12-b20c-a81c20ce1594",
++        "methods": [
++          {
++            "body": "def generate_reading_plan(self):\n    pass",
++            "name": "generate_reading_plan"
++          }
++        ],
++        "name": "customers",
++        "operations": {
++          "create": false,
++          "delete": false,
++          "update": false
++        },
++        "text": "Customers"
++      }
++    ],
++    "settings": {
++      "managerAccess": false
++    },
++    "styling": {
++      "accentColor": "#F5F5F4",
++      "backgroundColor": "#FFFFFF",
++      "radius": 0,
++      "selectedStyle": "modern",
++      "textColor": "#000000"
++    }
+   },
+   "description": "member application",
+   "id": "c7a2acd3-1e1d-5cbe-a0fa-4ac850a2e5ff",
+[PASS] member interface contains Customer.reading_plan and method name+body

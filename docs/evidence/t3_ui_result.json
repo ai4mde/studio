@@ -1,0 +1,29 @@
+{
+  "targetUrl": "http://ai4mde.localhost/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/prototypes",
+  "prototypeName": "LibraryT3A",
+  "prototypeId": "ee40bbac-ca04-4e42-83a6-589b24f8d8e0",
+  "systemId": "7d735a07-b6cd-409d-9cc7-f3a07cbec983",
+  "postStatus": 200,
+  "bodyReadError": "{\"code\":-32000,\"message\":\"No resource with given identifier found\"}",
+  "generationStartedAt": "2026-07-07T01:54:06.670Z",
+  "generationFinishedAt": "2026-07-07T01:54:07.068Z",
+  "generationDurationSeconds": 0.398,
+  "metadataPath": "docs/evidence/t3_metadata_from_ui.json",
+  "screenshotPath": "docs/evidence/t3_ui_create_done.png",
+  "page": {
+    "href": "http://ai4mde.localhost/systems/7d735a07-b6cd-409d-9cc7-f3a07cbec983/prototypes",
+    "title": "AI4MDE - Editor",
+    "bodyText": "AI4MDE\nStudio\nDashboard\nBuild\nProjects\nLogout\nDiagrams\nInterfaces\nPrototypes\nPrototypes\n\tStatus\tURL\t\nDelete all\n\n\nLibraryT2A\n\tNot running\t\t\nMetadata\nRun\n\n\nLibraryT1A\n\tNot running\t\t\nMetadata\nRun\n\n\nLibraryStep1\nThesis Step 1 Library prototype\n\tNot running\t\t\nMetadata\nRun\nGenerate new prototype\nAI4MDE\n\nGenerating..."
+  },
+  "defaultInterfaceObservation": "librarian visible before submit; selector was not changed",
+  "consoleErrors": [
+    {
+      "source": "console",
+      "text": "Warning: Each child in a list should have a unique \"key\" prop.%s%s See https://reactjs.org/link/warning-keys for more information.%s \n\nCheck the render method of `TopNavigation`.  \n    at TopNavigation (http://ai4mde.localhost/src/lib/shared/components/TopNavigation.tsx:20:33)\n    at div\n    at div\n    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)\n    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/prototypes/index.tsx:26:24)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4097:5)\n    at Suspense\n    at main\n    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)\n    at App (http://ai4mde.localhost/src/main.tsx:48:3)\n    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4582:15)\n    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=609bcc47:559:5)\n    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-7G4Y6YMR.js?v=609bcc47:2892:3)"
+    },
+    {
+      "source": "console",
+      "text": "Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <h1> p \n    at h1\n    at p\n    at http://ai4mde.localhost/node_modules/.vite/deps/chunk-PYOOSLXC.js?v=609bcc47:1544:45\n    at Typography2 (http://ai4mde.localhost/node_modules/.vite/deps/@mui_joy.js?v=609bcc47:6790:26)\n    at div\n    at http://ai4mde.localhost/node_modules/.vite/deps/chunk-PYOOSLXC.js?v=609bcc47:1544:45\n    at ModalDialog2 (http://ai4mde.localhost/node_modules/.vite/deps/@mui_joy.js?v=609bcc47:12492:17)\n    at FocusTrap (http://ai4mde.localhost/node_modules/.vite/deps/chunk-DW3ZPDZP.js?v=609bcc47:7664:5)\n    at div\n    at http://ai4mde.localhost/node_modules/.vite/deps/chunk-PYOOSLXC.js?v=609bcc47:1544:45\n    at Portal2 (http://ai4mde.localhost/node_modules/.vite/deps/chunk-DW3ZPDZP.js?v=609bcc47:9709:5)\n    at Modal2 (http://ai4mde.localhost/node_modules/.vite/deps/@mui_joy.js?v=609bcc47:9570:17)\n    at CreatePrototype (http://ai4mde.localhost/src/lib/features/prototypes/components/CreatePrototype.tsx:42:27)\n    at div\n    at div\n    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)\n    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/prototypes/index.tsx:26:24)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4097:5)\n    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4097:5)\n    at Suspense\n    at main\n    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)\n    at App (http://ai4mde.localhost/src/main.tsx:48:3)\n    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=609bcc47:4582:15)\n    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=609bcc47:559:5)\n    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-7G4Y6YMR.js?v=609bcc47:2892:3)"
+    }
+  ]
+}
