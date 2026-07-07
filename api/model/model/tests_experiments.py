@@ -4,10 +4,12 @@ from uuid import uuid4
 from django.test import TestCase
 from llm.converter import convert_to_ai4mde
 from metadata.models import (
+    Classifier,
     Project,
     System,
     SystemGenerationArtifacts,
     SystemRevision,
+    create_system_revision,
     get_current_revision,
     get_semantic_sketch_plan,
     get_topology_artifact,
@@ -26,6 +28,47 @@ class ExperimentEndpointTests(TestCase):
             project=self.project,
             description="Initial candidate imported into the project.",
         )
+
+    def _import_linear_system_and_create_baseline_revision(
+        self,
+        *,
+        action_name: str = "Review Request",
+    ):
+        clean_model = {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": action_name},
+                {"id": "n3", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2", "type": "control"},
+                {"source": "n2", "target": "n3", "type": "control"},
+            ],
+        }
+        exported = convert_to_ai4mde(
+            clean_model=clean_model,
+            system_id=str(self.system.id),
+            diagram_id=str(uuid4()),
+            name=str(self.system.name),
+            description=str(self.system.description),
+            project_id=str(self.project.id),
+        )
+        self.project.import_systems_from_json(exported)
+        self.system.refresh_from_db()
+        revision = create_system_revision(
+            system_id=str(self.system.id),
+            process_text="Receive request, review it, then finish.",
+            pipeline_profile="semantic_deterministic",
+            activity_graph=clean_model,
+            ai4mde_export=exported,
+            topology_artifact={"structures": []},
+            semantic_sketch_plan={
+                "root_actions": [{"slot_id": "ROOT_START", "action": action_name}],
+                "branch_plans": [],
+            },
+            revision_origin=SystemRevision.REVISION_ORIGIN_BASELINE,
+        )
+        return revision
 
     def test_refine_model_endpoint_updates_selected_system(self):
         refined_export = convert_to_ai4mde(
@@ -584,6 +627,7 @@ class ExperimentEndpointTests(TestCase):
         self.assertEqual(current_revision.revision_index, 1)
         self.assertEqual(current_revision.parent_revision.revision_index, 0)
         self.assertEqual(current_revision.topology_artifact, updated_topology)
+        self.assertEqual(current_revision.revision_origin, SystemRevision.REVISION_ORIGIN_AI_REFINEMENT)
 
     def test_refine_model_endpoint_supports_hitl_shape_without_process_text(self):
         persist_semantic_generation_artifacts(
@@ -662,6 +706,75 @@ class ExperimentEndpointTests(TestCase):
         args, kwargs = mock_planner.call_args
         self.assertEqual(args[0], "Receive request, review it, then finish.")
         self.assertEqual(payload["revision_index"], 1)
+        self.assertEqual(payload["revision_origin"], SystemRevision.REVISION_ORIGIN_AI_REFINEMENT)
+
+    def test_synchronize_human_edit_endpoint_creates_human_sync_revision(self):
+        baseline_revision = self._import_linear_system_and_create_baseline_revision()
+        action_classifier = self.system.classifiers.get(data__type="action")
+        action_classifier.data["name"] = "Validate Request"
+        action_classifier.save(update_fields=["data"])
+
+        response = self.client.post(
+            "/api/v1/synchronize-human-edit",
+            data={"system_id": str(self.system.id)},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["system_id"], str(self.system.id))
+        self.assertEqual(payload["revision_origin"], SystemRevision.REVISION_ORIGIN_HUMAN_SYNC)
+        self.assertEqual(payload["revision_index"], 1)
+        self.assertEqual(payload["parent_revision_id"], str(baseline_revision.id))
+        self.assertEqual(
+            payload["semantic_sketch_plan"]["root_actions"],
+            [{"slot_id": "ROOT_START", "action": "Validate Request"}],
+        )
+        self.assertFalse(payload["synchronization_diagnostics"]["reused_current_revision_artifacts"])
+
+        self.system.refresh_from_db()
+        self.assertIsNotNone(self.system.current_revision_id)
+        self.assertNotEqual(self.system.current_revision_id, baseline_revision.id)
+        current_revision = get_current_revision(str(self.system.id))
+        self.assertEqual(current_revision.revision_index, 1)
+        self.assertEqual(current_revision.revision_origin, SystemRevision.REVISION_ORIGIN_HUMAN_SYNC)
+        self.assertEqual(
+            current_revision.semantic_sketch_plan["root_actions"],
+            [{"slot_id": "ROOT_START", "action": "Validate Request"}],
+        )
+
+    def test_synchronize_human_edit_endpoint_returns_diagnostics_for_invalid_graph(self):
+        from diagram.models import Node
+
+        baseline_revision = self._import_linear_system_and_create_baseline_revision()
+        diagram = self.system.diagrams.get()
+        classifier = Classifier.objects.create(
+            project=self.project,
+            system=self.system,
+            data={"name": "Detached Review", "type": "action"},
+        )
+        Node.objects.create(
+            diagram=diagram,
+            cls=classifier,
+            data={"position": {"x": 240, "y": 80}},
+        )
+
+        response = self.client.post(
+            "/api/v1/synchronize-human-edit",
+            data={"system_id": str(self.system.id)},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 422)
+        payload = response.json()
+        self.assertEqual(
+            payload["summary"],
+            "The edited Studio model is not structurally valid enough to synchronize into semantic-deterministic artifacts.",
+        )
+        self.assertGreater(payload["topology_report"]["metrics"]["disconnected_node_count"], 0)
+        self.system.refresh_from_db()
+        self.assertEqual(self.system.current_revision_id, baseline_revision.id)
+        self.assertEqual(self.system.revisions.count(), 1)
 
     def test_system_revisions_endpoint_lists_revision_history(self):
         persist_semantic_generation_artifacts(
@@ -684,6 +797,10 @@ class ExperimentEndpointTests(TestCase):
         self.assertEqual(payload["current_revision_id"], str(current_revision.id))
         self.assertEqual(len(payload["revisions"]), 1)
         self.assertEqual(payload["revisions"][0]["revision_index"], 0)
+        self.assertEqual(
+            payload["revisions"][0]["revision_origin"],
+            SystemRevision.REVISION_ORIGIN_BASELINE,
+        )
         self.assertTrue(payload["revisions"][0]["is_current"])
 
     def test_restore_revision_endpoint_switches_current_revision(self):
@@ -789,6 +906,7 @@ class ExperimentEndpointTests(TestCase):
         payload = response.json()
         self.assertEqual(payload["current_revision_id"], str(baseline_revision.id))
         self.assertEqual(payload["revision_index"], 0)
+        self.assertEqual(payload["revision_origin"], SystemRevision.REVISION_ORIGIN_BASELINE)
         self.system.refresh_from_db()
         self.assertEqual(self.system.current_revision_id, baseline_revision.id)
         mock_import.assert_called_once_with(self.project, baseline_export)
@@ -894,6 +1012,7 @@ class ExperimentPipelineCompilerTests(TestCase):
                     "revision_id": "rev-1",
                     "revision_index": 0,
                     "parent_revision_id": None,
+                    "revision_origin": SystemRevision.REVISION_ORIGIN_BASELINE,
                 },
             ):
                 from model.experiment_pipeline import run_pipeline
@@ -913,6 +1032,10 @@ class ExperimentPipelineCompilerTests(TestCase):
         self.assertEqual(payload["systems"][0]["topology_artifact"], topology_artifact)
         self.assertEqual(payload["systems"][0]["semantic_sketch_plan"], semantic_plan)
         self.assertEqual(payload["systems"][0]["revision_index"], 0)
+        self.assertEqual(
+            payload["systems"][0]["revision_origin"],
+            SystemRevision.REVISION_ORIGIN_BASELINE,
+        )
         mock_generate.assert_called_once()
         _, kwargs = mock_generate.call_args
         self.assertTrue(kwargs["debug"])
@@ -985,6 +1108,7 @@ class ExperimentPipelineCompilerTests(TestCase):
         current_revision = get_current_revision(system_id)
         self.assertEqual(current_revision.revision_index, 0)
         self.assertEqual(current_revision.activity_graph, clean_model)
+        self.assertEqual(current_revision.revision_origin, SystemRevision.REVISION_ORIGIN_BASELINE)
 
     def test_run_pipeline_persists_semantic_artifacts_for_candidate_generation(self):
         clean_model = {
@@ -1056,6 +1180,7 @@ class ExperimentPipelineCompilerTests(TestCase):
         self.assertEqual(get_semantic_sketch_plan(generated_system_id), semantic_plan)
         current_revision = get_current_revision(generated_system_id)
         self.assertEqual(current_revision.revision_index, 0)
+        self.assertEqual(current_revision.revision_origin, SystemRevision.REVISION_ORIGIN_AI_REFINEMENT)
 
     def test_run_pipeline_supports_direct_semantic_refinement(self):
         current_topology_artifact = {"structures": []}

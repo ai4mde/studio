@@ -54,6 +54,10 @@ class RestoreRevisionRequest(Schema):
     revision_id: str
 
 
+class SynchronizeHumanEditRequest(Schema):
+    system_id: str
+
+
 class GetTokenSchema(Schema):
     username: str
     password: str
@@ -179,6 +183,28 @@ def restore_revision(request, body: RestoreRevisionRequest):
     except Exception as exc:  # noqa: BLE001
         return JsonResponse(
             {"error": "restore_revision_failed", "detail": str(exc)},
+            status=502,
+        )
+
+
+@api.post("/synchronize-human-edit", auth=None, tags=["experiments"])
+def synchronize_human_edit(request, body: SynchronizeHumanEditRequest):
+    from llm.human_edit_synchronizer import HumanEditSynchronizationError
+    from model.experiment_pipeline import synchronize_human_edit as synchronize_human_edit_pipeline
+
+    try:
+        return JsonResponse(
+            synchronize_human_edit_pipeline(system_id=body.system_id)
+        )
+    except HumanEditSynchronizationError as exc:
+        payload = {"error": str(exc)}
+        payload.update(exc.diagnostics)
+        return JsonResponse(payload, status=422)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": "synchronize_human_edit_failed", "detail": str(exc)},
             status=502,
         )
 

@@ -182,6 +182,15 @@ class System(ImportMixin):
 
 
 class SystemRevision(models.Model):
+    REVISION_ORIGIN_BASELINE = "baseline"
+    REVISION_ORIGIN_HUMAN_SYNC = "human_sync"
+    REVISION_ORIGIN_AI_REFINEMENT = "ai_refinement"
+    REVISION_ORIGIN_CHOICES = [
+        (REVISION_ORIGIN_BASELINE, "Baseline"),
+        (REVISION_ORIGIN_HUMAN_SYNC, "Human Sync"),
+        (REVISION_ORIGIN_AI_REFINEMENT, "AI Refinement"),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     system = models.ForeignKey(
         System,
@@ -204,6 +213,11 @@ class SystemRevision(models.Model):
     ai4mde_export = models.JSONField()
     refinement_trace = models.JSONField(null=True, blank=True)
     refinement_instruction = models.TextField(null=True, blank=True)
+    revision_origin = models.CharField(
+        max_length=32,
+        choices=REVISION_ORIGIN_CHOICES,
+        default=REVISION_ORIGIN_BASELINE,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -341,6 +355,7 @@ def create_system_revision(
     semantic_sketch_plan: Optional[dict[str, Any]] = None,
     refinement_trace: Optional[dict[str, Any]] = None,
     refinement_instruction: Optional[str] = None,
+    revision_origin: str = SystemRevision.REVISION_ORIGIN_BASELINE,
     parent_revision_id: Optional[str] = None,
     set_as_current: bool = True,
 ) -> SystemRevision:
@@ -358,6 +373,7 @@ def create_system_revision(
         ai4mde_export=ai4mde_export,
         refinement_trace=refinement_trace,
         refinement_instruction=refinement_instruction,
+        revision_origin=revision_origin,
     )
     if set_as_current:
         system.current_revision = revision
@@ -405,6 +421,7 @@ def _backfill_revision_from_legacy_sidecar(
         ai4mde_export=ai4mde_export,
         refinement_trace=None,
         refinement_instruction=None,
+        revision_origin=SystemRevision.REVISION_ORIGIN_BASELINE,
     )
     system.current_revision = revision
     system.save(update_fields=["current_revision"])

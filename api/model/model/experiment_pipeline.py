@@ -17,6 +17,7 @@ from metadata.api.schemas import ExportSingleSystem
 from metadata.models import (
     Project,
     System,
+    SystemRevision,
     create_system_revision,
     get_current_revision,
     get_generation_process_text,
@@ -29,6 +30,9 @@ from metadata.models import (
 
 from llm.baseline_generator import generate_activity_model
 from llm.experimental_compiler import compile_activity_sketch
+from llm.human_edit_synchronizer import (
+    synchronize_persisted_human_edit,
+)
 from llm.refinement_planner import generate_refinement_plan
 from llm.sketch_repair import repair_activity_sketch
 from llm.topology_to_sketch_compiler import compile_topology_and_semantics_to_activity_sketch
@@ -204,6 +208,7 @@ def _create_revision_snapshot(
     semantic_sketch_plan: Optional[Dict[str, Any]] = None,
     refinement_trace: Optional[Dict[str, Any]] = None,
     refinement_instruction: Optional[str] = None,
+    revision_origin: str = SystemRevision.REVISION_ORIGIN_BASELINE,
     parent_revision_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     revision = create_system_revision(
@@ -216,6 +221,7 @@ def _create_revision_snapshot(
         ai4mde_export=ai4mde_export,
         refinement_trace=refinement_trace,
         refinement_instruction=refinement_instruction,
+        revision_origin=revision_origin,
         parent_revision_id=parent_revision_id,
         set_as_current=True,
     )
@@ -231,6 +237,7 @@ def _create_revision_snapshot(
         "revision_id": str(revision.id),
         "revision_index": revision.revision_index,
         "parent_revision_id": str(revision.parent_revision_id) if revision.parent_revision_id else None,
+        "revision_origin": revision.revision_origin,
     }
 
 
@@ -508,6 +515,11 @@ def run_pipeline(
                 ai4mde_export=systems_export,
                 refinement_trace=entry.get("refinement_trace"),
                 refinement_instruction=refinement_instruction if direct_refinement_requested else None,
+                revision_origin=(
+                    SystemRevision.REVISION_ORIGIN_AI_REFINEMENT
+                    if direct_refinement_requested
+                    else SystemRevision.REVISION_ORIGIN_BASELINE
+                ),
                 parent_revision_id=None,
             )
             entry.update(revision_meta)
@@ -653,6 +665,7 @@ def refine_selected_model(
         ai4mde_export=refined_export,
         refinement_trace=updated_artifacts.get("refinement_trace"),
         refinement_instruction=refinement_instruction,
+        revision_origin=SystemRevision.REVISION_ORIGIN_AI_REFINEMENT,
         parent_revision_id=str(source_revision.id) if source_revision is not None else None,
     )
 
@@ -670,6 +683,7 @@ def refine_selected_model(
     }
     response.update(revision_meta)
     response["current_revision_id"] = revision_meta["revision_id"]
+    response["revision_origin"] = revision_meta["revision_origin"]
     if pipeline_config["pipeline_profile"] == "semantic_deterministic":
         response["process_text"] = resolved_process_text
         response["activity_graph"] = clean_graph
@@ -722,6 +736,7 @@ def restore_revision(*, system_id: str, revision_id: str) -> Dict[str, Any]:
         "current_revision_id": str(revision.id),
         "revision_id": str(revision.id),
         "revision_index": revision.revision_index,
+        "revision_origin": revision.revision_origin,
         "parent_revision_id": (
             str(revision.parent_revision_id) if revision.parent_revision_id else None
         ),
@@ -752,10 +767,72 @@ def get_system_revisions(system_id: str) -> Dict[str, Any]:
                     str(revision.parent_revision_id) if revision.parent_revision_id else None
                 ),
                 "pipeline_profile": revision.pipeline_profile,
+                "revision_origin": revision.revision_origin,
                 "refinement_instruction": revision.refinement_instruction,
                 "created_at": revision.created_at.isoformat(),
                 "is_current": bool(current_revision and current_revision.id == revision.id),
             }
             for revision in revisions
         ],
+    }
+
+
+def synchronize_human_edit(*, system_id: str) -> Dict[str, Any]:
+    if not system_id or not str(system_id).strip():
+        raise ValueError("system_id must be non-empty")
+
+    try:
+        system = System.objects.select_related("project").prefetch_related("diagrams").get(pk=system_id)
+    except System.DoesNotExist as exc:
+        raise ValueError(f"System {system_id!r} does not exist.") from exc
+
+    current_revision = get_current_revision(str(system.id))
+    if current_revision is None:
+        raise ValueError("human edit synchronization requires an existing canonical revision")
+    if current_revision.pipeline_profile != "semantic_deterministic":
+        raise ValueError("human edit synchronization currently supports only semantic_deterministic revisions")
+
+    exported_current_model = ExportSingleSystem.model_validate(system).model_dump(mode="json")
+    sync_result = synchronize_persisted_human_edit(
+        exported_current_model,
+        current_revision=current_revision,
+    )
+
+    revision_meta = _create_revision_snapshot(
+        system_id=str(system.id),
+        process_text=current_revision.process_text,
+        pipeline_profile=current_revision.pipeline_profile,
+        topology_artifact=sync_result["topology_artifact"],
+        semantic_sketch_plan=sync_result["semantic_sketch_plan"],
+        activity_graph=sync_result["activity_graph"],
+        ai4mde_export=[exported_current_model],
+        refinement_trace={
+            "event": "human_sync",
+            "source_revision_id": str(current_revision.id),
+        },
+        refinement_instruction=None,
+        revision_origin=SystemRevision.REVISION_ORIGIN_HUMAN_SYNC,
+        parent_revision_id=str(current_revision.id),
+    )
+    artifact_diff = _build_artifact_diff(
+        before_topology_artifact=current_revision.topology_artifact,
+        after_topology_artifact=sync_result["topology_artifact"],
+        before_semantic_sketch_plan=current_revision.semantic_sketch_plan,
+        after_semantic_sketch_plan=sync_result["semantic_sketch_plan"],
+    )
+
+    return {
+        "project_id": str(system.project_id),
+        "system_id": str(system.id),
+        "name": str(system.name),
+        "process_text": current_revision.process_text,
+        "pipeline_profile": current_revision.pipeline_profile,
+        "activity_graph": sync_result["activity_graph"],
+        "topology_artifact": sync_result["topology_artifact"],
+        "semantic_sketch_plan": sync_result["semantic_sketch_plan"],
+        "ai4mde": [exported_current_model],
+        "artifact_diff": artifact_diff,
+        "synchronization_diagnostics": sync_result["diagnostics"],
+        "current_revision_id": revision_meta["revision_id"],
+        **revision_meta,
     }
