@@ -27,8 +27,10 @@ from .handler import call_openai
 from .refinement_generator import _prepare_json_payload
 from .semantic_sketch_plan_model import (
     SemanticSketchPlan,
+    apply_semantic_branch_plan_schema_constraints,
 )
 from .topology_artifact_model import TopologyArtifact, TopologyStructure
+from .topology_to_sketch_compiler import validate_semantic_plan_against_topology
 
 _TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 _env = Environment(
@@ -113,7 +115,9 @@ class RefinementPlannerResult(BaseModel):
         return self
 
 
-REFINEMENT_PLANNER_SCHEMA: Dict[str, Any] = RefinementPlannerResult.model_json_schema()
+REFINEMENT_PLANNER_SCHEMA: Dict[str, Any] = apply_semantic_branch_plan_schema_constraints(
+    RefinementPlannerResult.model_json_schema()
+)
 
 
 class RefinementPlannerError(Exception):
@@ -326,26 +330,38 @@ def _normalize_updated_topology_artifact(
     return payload
 
 
-def _normalize_updated_root_action_entries(entries: Any) -> List[Dict[str, str]]:
-    normalized_entries: List[Dict[str, str]] = []
-    seen_entries: set[tuple[str, str]] = set()
+def _normalize_updated_root_action_entries(entries: Any) -> List[Dict[str, Any]]:
+    normalized_entries: List[Dict[str, Any]] = []
+    seen_entries: set[tuple[str, tuple[str, ...]]] = set()
     if not isinstance(entries, list):
         return normalized_entries
     for entry in entries:
         if not isinstance(entry, dict):
             continue
         slot_id = str(entry.get("slot_id") or "").strip()
-        action = str(entry.get("action") or "").strip()
-        if not slot_id or not action:
+        if not slot_id:
             continue
-        entry_key = (slot_id, action)
+        actions_payload = entry.get("actions")
+        normalized_actions: List[Dict[str, str]] = []
+        if isinstance(actions_payload, list):
+            for step in actions_payload:
+                if not isinstance(step, dict):
+                    continue
+                action = str(step.get("action") or "").strip()
+                if action:
+                    normalized_actions.append({"action": action})
+        elif entry.get("action") is not None:
+            action = str(entry.get("action") or "").strip()
+            if action:
+                normalized_actions.append({"action": action})
+        entry_key = (slot_id, tuple(step["action"] for step in normalized_actions))
         if entry_key in seen_entries:
             continue
         seen_entries.add(entry_key)
         normalized_entries.append(
             {
                 "slot_id": slot_id,
-                "action": action,
+                "actions": normalized_actions,
             }
         )
     return normalized_entries
@@ -355,18 +371,18 @@ def _current_root_action_sequence(
     *,
     expected_root_slot_ids: List[str],
     current_semantic_sketch_plan: SemanticSketchPlan,
-) -> List[str]:
+) -> List[List[str]]:
     current_root_action_map = {
-        entry.slot_id.strip(): entry.action.strip()
+        entry.slot_id.strip(): [step.action.strip() for step in entry.actions if step.action.strip()]
         for entry in current_semantic_sketch_plan.root_actions
     }
-    return [current_root_action_map.get(slot_id, "").strip() for slot_id in expected_root_slot_ids]
+    return [current_root_action_map.get(slot_id, []) for slot_id in expected_root_slot_ids]
 
 
 def _planner_root_action_hints(
     *,
     expected_root_slot_ids: List[str],
-    updated_root_action_entries: List[Dict[str, str]],
+    updated_root_action_entries: List[Dict[str, Any]],
 ) -> List[int | None]:
     slot_index_map = {
         slot_id: index
@@ -390,8 +406,8 @@ def _planner_root_action_hints(
 
 def _planner_actions_match_current_sequence(
     *,
-    planner_actions: List[str],
-    current_root_actions: List[str],
+    planner_actions: List[Tuple[str, ...]],
+    current_root_actions: List[Tuple[str, ...]],
 ) -> bool:
     if len(planner_actions) != len(current_root_actions):
         return False
@@ -400,8 +416,8 @@ def _planner_actions_match_current_sequence(
 
 def _planner_actions_match_current_prefix(
     *,
-    planner_actions: List[str],
-    current_root_actions: List[str],
+    planner_actions: List[Tuple[str, ...]],
+    current_root_actions: List[Tuple[str, ...]],
 ) -> bool:
     if not planner_actions or len(planner_actions) >= len(current_root_actions):
         return False
@@ -419,16 +435,16 @@ def _instruction_requests_action_removal(instruction: str) -> bool:
 def _assign_planner_root_actions_to_slots(
     *,
     expected_root_slot_ids: List[str],
-    planner_actions: List[str],
+    planner_actions: List[Tuple[str, ...]],
     planner_slot_hints: List[int | None],
-    current_root_actions: List[str],
-) -> List[str]:
+    current_root_actions: List[Tuple[str, ...]],
+) -> List[Tuple[str, ...]]:
     slot_count = len(expected_root_slot_ids)
     action_count = len(planner_actions)
     if slot_count == 0:
         return []
     if action_count == 0:
-        return [""] * slot_count
+        return [tuple() for _ in range(slot_count)]
 
     best_score_by_state: Dict[Tuple[int, int], int] = {}
     best_choice_by_state: Dict[Tuple[int, int], int] = {}
@@ -477,7 +493,7 @@ def _assign_planner_root_actions_to_slots(
         return best_score
 
     _best_score(0, 0)
-    assigned_actions = [""] * slot_count
+    assigned_actions: List[Tuple[str, ...]] = [tuple() for _ in range(slot_count)]
     action_index = 0
     next_slot_index = 0
     while action_index < action_count:
@@ -494,29 +510,41 @@ def _assign_planner_root_actions_to_slots(
 def _reconcile_root_action_sequence(
     *,
     expected_root_slot_ids: List[str],
-    updated_root_action_entries: List[Dict[str, str]],
-    current_root_actions: List[str],
+    updated_root_action_entries: List[Dict[str, Any]],
+    current_root_actions: List[List[str]],
     instruction: str,
-) -> List[Dict[str, str]]:
+) -> List[Dict[str, Any]]:
     if not expected_root_slot_ids:
         return []
     normalized_current_actions = list(current_root_actions[: len(expected_root_slot_ids)])
     if len(normalized_current_actions) < len(expected_root_slot_ids):
-        normalized_current_actions.extend([""] * (len(expected_root_slot_ids) - len(normalized_current_actions)))
-    planner_actions = [entry["action"] for entry in updated_root_action_entries]
+        normalized_current_actions.extend([[] for _ in range(len(expected_root_slot_ids) - len(normalized_current_actions))])
+
+    exact_slot_ids = [entry["slot_id"] for entry in updated_root_action_entries]
+    if exact_slot_ids == expected_root_slot_ids and len(set(exact_slot_ids)) == len(expected_root_slot_ids):
+        return [
+            {
+                "slot_id": entry["slot_id"],
+                "actions": entry["actions"],
+            }
+            for entry in updated_root_action_entries
+        ]
+
+    planner_actions = [tuple(step["action"] for step in entry["actions"]) for entry in updated_root_action_entries]
+    normalized_current_action_tuples = [tuple(actions) for actions in normalized_current_actions]
     if _planner_actions_match_current_sequence(
         planner_actions=planner_actions,
-        current_root_actions=normalized_current_actions,
+        current_root_actions=normalized_current_action_tuples,
     ):
-        reconciled_actions = list(normalized_current_actions)
+        reconciled_actions = list(normalized_current_action_tuples)
     elif (
         not _instruction_requests_action_removal(instruction)
         and _planner_actions_match_current_prefix(
             planner_actions=planner_actions,
-            current_root_actions=normalized_current_actions,
+            current_root_actions=normalized_current_action_tuples,
         )
     ):
-        reconciled_actions = list(normalized_current_actions)
+        reconciled_actions = list(normalized_current_action_tuples)
     else:
         planner_slot_hints = _planner_root_action_hints(
             expected_root_slot_ids=expected_root_slot_ids,
@@ -526,18 +554,27 @@ def _reconcile_root_action_sequence(
             expected_root_slot_ids=expected_root_slot_ids,
             planner_actions=planner_actions,
             planner_slot_hints=planner_slot_hints,
-            current_root_actions=normalized_current_actions,
+            current_root_actions=normalized_current_action_tuples,
+        )
+
+    missing_slot_ids = [
+        slot_id
+        for slot_id, actions in zip(expected_root_slot_ids, reconciled_actions)
+        if not actions
+    ]
+    if missing_slot_ids:
+        raise ValueError(
+            "Refinement planner produced an incomplete or misplaced root action sequence for the updated topology. "
+            f"missing_root_slots={missing_slot_ids}, "
+            f"missing_root_structures={[slot_id[len('AFTER_'):] for slot_id in missing_slot_ids if slot_id.startswith('AFTER_')]}"
         )
 
     return [
         {
             "slot_id": slot_id,
-            "action": action.strip() or f"root_scope_{index}",
+            "actions": [{"action": action} for action in actions],
         }
-        for index, (slot_id, action) in enumerate(
-            zip(expected_root_slot_ids, reconciled_actions),
-            start=1,
-        )
+        for slot_id, actions in zip(expected_root_slot_ids, reconciled_actions)
     ]
 
 
@@ -597,13 +634,14 @@ def _existing_target_node_map(
     node_map: Dict[str, str] = {}
 
     for root_action in semantics.root_actions:
-        action_name = str(root_action.action or "").strip()
-        if not action_name:
-            continue
-        node_map[action_name] = root_action.slot_id
-        normalized = _normalize_reconnect_text(action_name)
-        if normalized:
-            node_map.setdefault(normalized, root_action.slot_id)
+        for step in root_action.actions:
+            action_name = str(step.action or "").strip()
+            if not action_name:
+                continue
+            node_map[action_name] = root_action.slot_id
+            normalized = _normalize_reconnect_text(action_name)
+            if normalized:
+                node_map.setdefault(normalized, root_action.slot_id)
 
     entry_slot_by_structure = _root_structure_entry_slot_map(topology)
     for structure in _root_structures(topology):
@@ -796,7 +834,10 @@ def _reconcile_semantic_plan_to_topology(
             "branch_plans": reconciled_branch_plans,
         }
     )
-    return reconciled.model_dump(mode="json")
+    return validate_semantic_plan_against_topology(
+        topology,
+        reconciled,
+    ).model_dump(mode="json")
 
 
 def _reconcile_refinement_planner_payload(

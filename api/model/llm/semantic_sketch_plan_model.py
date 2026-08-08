@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, model_serializer, model_validator
 
@@ -12,7 +12,20 @@ class SemanticRootAction(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     slot_id: str
-    action: str
+    actions: List["SemanticBranchStep"] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_legacy_action_shape(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        normalized = dict(data)
+        if "actions" not in normalized:
+            action = str(normalized.pop("action", "") or "").strip()
+            normalized["actions"] = [{"action": action}] if action else []
+        else:
+            normalized.pop("action", None)
+        return normalized
 
 
 class SemanticBranchStep(BaseModel):
@@ -76,7 +89,97 @@ class SemanticSketchPlan(BaseModel):
         return self
 
 
+_REQUIRED_BRANCH_STEP_CONDITIONAL: Dict[str, Any] = {
+    "if": {
+        "properties": {
+            "intent": {
+                "enum": ["terminate", "loop_back"],
+            }
+        },
+        "required": ["intent"],
+    },
+    "then": {
+        "properties": {
+            "steps": {
+                "minItems": 1,
+            }
+        },
+        "required": ["steps"],
+    },
+}
+
+
+def apply_semantic_branch_plan_schema_constraints(schema: Dict[str, Any]) -> Dict[str, Any]:
+    defs = schema.get("$defs")
+    if not isinstance(defs, dict):
+        return schema
+    branch_plan_schema = defs.get("SemanticBranchPlan")
+    if not isinstance(branch_plan_schema, dict):
+        return schema
+
+    properties = branch_plan_schema.setdefault("properties", {})
+    steps_schema = properties.get("steps")
+    if isinstance(steps_schema, dict):
+        steps_schema.setdefault("default", [])
+
+    required_fields = branch_plan_schema.setdefault("required", [])
+    if "steps" not in required_fields:
+        required_fields.append("steps")
+
+    all_of = branch_plan_schema.setdefault("allOf", [])
+    if _REQUIRED_BRANCH_STEP_CONDITIONAL not in all_of:
+        all_of.append(_REQUIRED_BRANCH_STEP_CONDITIONAL)
+    return schema
+
+
+def find_invalid_semantic_branch_plans(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    invalid_branch_plans: List[Dict[str, Any]] = []
+    branch_plans = payload.get("branch_plans")
+    if not isinstance(branch_plans, list):
+        return invalid_branch_plans
+
+    for entry in branch_plans:
+        if not isinstance(entry, dict):
+            continue
+        structure_id = str(entry.get("structure_id") or "").strip()
+        branch = str(entry.get("branch") or "").strip()
+        intent = str(entry.get("intent") or "").strip()
+        raw_steps = entry.get("steps")
+        normalized_steps: List[Dict[str, str]] = []
+        if isinstance(raw_steps, list):
+            for step in raw_steps:
+                if not isinstance(step, dict):
+                    continue
+                action = str(step.get("action") or "").strip()
+                if action:
+                    normalized_steps.append({"action": action})
+
+        parsed_branch_plan: Dict[str, Any] = {
+            "structure_id": structure_id,
+            "branch": branch,
+            "intent": intent,
+            "steps": normalized_steps,
+        }
+        target_slot_id = str(entry.get("target_slot_id") or "").strip()
+        if target_slot_id:
+            parsed_branch_plan["target_slot_id"] = target_slot_id
+
+        if intent in {"terminate", "loop_back"} and not normalized_steps:
+            invalid_branch_plans.append(
+                {
+                    "structure_id": structure_id,
+                    "branch": branch,
+                    "intent": intent,
+                    "parsed_branch_plan": parsed_branch_plan,
+                }
+            )
+
+    return invalid_branch_plans
+
+
 __all__ = [
+    "apply_semantic_branch_plan_schema_constraints",
+    "find_invalid_semantic_branch_plans",
     "SemanticBranchIntent",
     "SemanticBranchPlan",
     "SemanticBranchStep",

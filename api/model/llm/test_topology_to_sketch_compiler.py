@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
 from llm.topology_to_sketch_compiler import (
+    SemanticPlanTopologyValidationError,
     compare_topology_artifact_to_activity_sketch,
     compile_topology_and_semantics_to_activity_sketch,
     compile_topology_artifact_to_activity_sketch,
@@ -205,6 +208,18 @@ def test_compile_topology_and_semantics_to_activity_sketch_uses_semantic_actions
         ],
         "branch_plans": [
             {
+                "structure_id": "T1",
+                "branch": "budget_review",
+                "intent": "continue",
+                "steps": [{"action": "collect budget review results"}],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "supplier_review",
+                "intent": "continue",
+                "steps": [{"action": "collect supplier review results"}],
+            },
+            {
                 "structure_id": "T2",
                 "branch": "retry",
                 "intent": "loop_back",
@@ -363,3 +378,278 @@ def test_compile_topology_and_semantics_to_activity_sketch_preserves_output_when
             }
         ],
     }
+
+
+def test_compile_topology_and_semantics_to_activity_sketch_rejects_missing_required_root_slot() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["infrastructure", "security"],
+                "purpose": "run deployment tracks concurrently",
+            },
+            {
+                "id": "T4",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["cancelled", "approved"],
+                "purpose": "decide if the deployment request is approved",
+            },
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T4", "action": "conduct compliance review"},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "infrastructure", "intent": "continue", "steps": [{"action": "provision servers"}]},
+            {"structure_id": "T1", "branch": "security", "intent": "continue", "steps": [{"action": "validate security policies"}]},
+            {"structure_id": "T4", "branch": "cancelled", "intent": "terminate", "steps": [{"action": "cancel deployment request"}]},
+            {"structure_id": "T4", "branch": "approved", "intent": "continue", "steps": []},
+        ],
+    }
+
+    with pytest.raises(SemanticPlanTopologyValidationError, match="missing_root_slots"):
+        compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+
+
+def test_compile_topology_and_semantics_to_activity_sketch_allows_empty_slot_between_root_controls() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+                "purpose": "first decision",
+            },
+            {
+                "id": "T2",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["ready", "blocked"],
+                "purpose": "second decision",
+            },
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+            {"slot_id": "AFTER_T2", "actions": [{"action": "archive request"}]},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+            {"structure_id": "T2", "branch": "ready", "intent": "continue", "steps": []},
+            {"structure_id": "T2", "branch": "blocked", "intent": "terminate", "steps": [{"action": "hold request"}]},
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+    control_blocks = {block["block_id"]: block for block in sketch["control_blocks"]}
+
+    assert sketch["main_flow"] == [
+        {"step_id": "S1", "action": "review request"},
+        {"step_id": "S2", "action": "archive request"},
+    ]
+    assert control_blocks["T1"]["exit_to"] == "second decision"
+    assert control_blocks["T1"]["exit_to_step_id"] is None
+    assert control_blocks["T2"]["entry_after"] == "first decision"
+    assert control_blocks["T2"]["entry_after_step_id"] is None
+
+
+def test_compile_topology_and_semantics_to_activity_sketch_allows_empty_terminal_slot_after_root_control() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+                "purpose": "final approval",
+            }
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+
+    assert sketch["main_flow"] == [{"step_id": "S1", "action": "review request"}]
+    assert sketch["control_blocks"][0]["exit_to"] is None
+    assert sketch["control_blocks"][0]["exit_to_step_id"] is None
+
+
+def test_compile_topology_and_semantics_to_activity_sketch_preserves_single_action_root_slot() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+                "purpose": "first decision",
+            },
+            {
+                "id": "T2",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["ready", "blocked"],
+                "purpose": "second decision",
+            },
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "submit request"}]},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "archive request"}]},
+            {"slot_id": "AFTER_T2", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+            {"structure_id": "T2", "branch": "ready", "intent": "continue", "steps": []},
+            {"structure_id": "T2", "branch": "blocked", "intent": "terminate", "steps": [{"action": "hold request"}]},
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+
+    assert sketch["main_flow"] == [
+        {"step_id": "S1", "action": "submit request"},
+        {"step_id": "S2", "action": "archive request"},
+    ]
+
+
+def test_compile_topology_and_semantics_to_activity_sketch_preserves_multiple_ordered_actions_in_root_slot() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+                "purpose": "first decision",
+            },
+            {
+                "id": "T2",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["ready", "blocked"],
+                "purpose": "second decision",
+            },
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "submit request"}]},
+            {
+                "slot_id": "AFTER_T1",
+                "actions": [{"action": "record result"}, {"action": "notify manager"}],
+            },
+            {"slot_id": "AFTER_T2", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+            {"structure_id": "T2", "branch": "ready", "intent": "continue", "steps": []},
+            {"structure_id": "T2", "branch": "blocked", "intent": "terminate", "steps": [{"action": "hold request"}]},
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+    control_blocks = {block["block_id"]: block for block in sketch["control_blocks"]}
+
+    assert sketch["main_flow"] == [
+        {"step_id": "S1", "action": "submit request"},
+        {"step_id": "S2", "action": "record result"},
+        {"step_id": "S3", "action": "notify manager"},
+    ]
+    assert control_blocks["T1"]["exit_to"] == "record result"
+    assert control_blocks["T1"]["exit_to_step_id"] == "S2"
+    assert control_blocks["T2"]["entry_after"] == "notify manager"
+    assert control_blocks["T2"]["entry_after_step_id"] == "S3"
+
+
+def test_validate_semantic_plan_against_topology_still_rejects_missing_empty_slot() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+            },
+            {
+                "id": "T2",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["ready", "blocked"],
+            },
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "submit request"}]},
+            {"slot_id": "AFTER_T2", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+            {"structure_id": "T2", "branch": "ready", "intent": "continue", "steps": []},
+            {"structure_id": "T2", "branch": "blocked", "intent": "terminate", "steps": [{"action": "hold request"}]},
+        ],
+    }
+
+    with pytest.raises(SemanticPlanTopologyValidationError, match="missing_root_slots"):
+        compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+
+
+def test_validate_semantic_plan_against_topology_rejects_placeholder_root_actions_in_any_slot_action() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+            }
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "submit request"}]},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "root_scope_2"}]},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]},
+        ],
+    }
+
+    with pytest.raises(SemanticPlanTopologyValidationError, match="placeholder_root_actions"):
+        compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)

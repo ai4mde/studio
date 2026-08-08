@@ -1099,6 +1099,109 @@ def test_model_activity_semantic_deterministic_profile_routes_through_semantic_b
     ]
 
 
+def test_model_activity_semantic_deterministic_profile_fails_for_missing_required_root_slot() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["infrastructure", "security"],
+                "purpose": "run deployment tracks concurrently",
+            },
+            {
+                "id": "T4",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["cancelled", "approved"],
+                "purpose": "decide if the deployment request is approved",
+            },
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "submit deployment request"},
+            {"slot_id": "AFTER_T4", "action": "conduct compliance review"},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "infrastructure", "intent": "continue", "steps": [{"action": "provision servers"}]},
+            {"structure_id": "T1", "branch": "security", "intent": "continue", "steps": [{"action": "validate security policies"}]},
+            {"structure_id": "T4", "branch": "cancelled", "intent": "terminate", "steps": [{"action": "cancel deployment request"}]},
+            {"structure_id": "T4", "branch": "approved", "intent": "continue", "steps": []},
+        ],
+    }
+
+    with patch("llm.refinement_generator.generate_topology_artifact", return_value={"artifact": topology_artifact, "prompt": "topo prompt", "raw_output": "{}", "keyword_hints": {}, "response_mode": "fallback_json_mode", "fallback_reason": "x"}), patch(
+        "llm.refinement_generator.generate_semantic_sketch_plan",
+        return_value={"artifact": semantic_plan, "prompt": "semantic prompt", "raw_output": "{}", "keyword_hints": {}, "response_mode": "fallback_json_mode", "fallback_reason": "x"},
+    ):
+        with pytest.raises(Exception, match="missing_root_slots"):
+            debug_model_activity(
+                "A customer submits a cloud deployment request. After both activities have been completed successfully, the deployment manager reviews the deployment request and decides whether to approve it.",
+                pipeline_profile="semantic_deterministic",
+            )
+
+
+def test_model_activity_semantic_deterministic_profile_recovers_after_semantic_retry() -> None:
+    topology_raw_output = """
+    {
+      "structures": [
+        {
+          "id": "T1",
+          "type": "decision",
+          "parent": "ROOT",
+          "parent_branch": null,
+          "branches": ["approved", "rejected"],
+          "purpose": "approval decision"
+        }
+      ]
+    }
+    """
+    invalid_semantic_output = """
+    {
+      "root_actions": [
+        {"slot_id": "ROOT_START", "action": "review request"}
+      ],
+      "branch_plans": [
+        {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+        {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]}
+      ]
+    }
+    """
+    corrected_semantic_output = """
+    {
+      "root_actions": [
+        {"slot_id": "ROOT_START", "action": "review request"},
+        {"slot_id": "AFTER_T1", "action": "finalize request"}
+      ],
+      "branch_plans": [
+        {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+        {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject request"}]}
+      ]
+    }
+    """
+
+    with patch("llm.topology_experiment.call_openai", return_value=topology_raw_output), patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[invalid_semantic_output, corrected_semantic_output],
+    ):
+        bundle = debug_model_activity(
+            "Review request. If rejected, reject it. If approved, finalize it.",
+            pipeline_profile="semantic_deterministic",
+        )
+
+    graph_action_names = [node.get("name", "") for node in bundle["model"]["nodes"] if node.get("type") == "action"]
+    assert "review request" in graph_action_names
+    assert "finalize request" in graph_action_names
+    assert all("root_scope_" not in name for name in graph_action_names)
+    semantic_attempts = bundle["stage_artifacts"]["semantic_planner_attempts"]
+    assert len(semantic_attempts) == 2
+    assert semantic_attempts[0]["validation_error"] is not None
+    assert semantic_attempts[1]["validation_error"] is None
+
+
 def test_parse_rejects_invalid_json() -> None:
     from llm.refinement_generator import _parse_and_validate_activity_graph_json
 

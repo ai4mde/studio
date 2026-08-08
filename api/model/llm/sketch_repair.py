@@ -105,6 +105,30 @@ def _block_ids(sketch: Dict[str, Any]) -> Set[str]:
     return ids
 
 
+def _structural_reference_texts(sketch: Dict[str, Any]) -> Set[str]:
+    references: Set[str] = set()
+    for block in sketch.get("control_blocks") or []:
+        if not isinstance(block, dict):
+            continue
+        block_id = str(block.get("block_id") or "").strip()
+        purpose = _normalize_text(block.get("notes"))
+        if purpose:
+            references.add(purpose)
+        for branch in block.get("branches") or []:
+            if not isinstance(branch, dict):
+                continue
+            branch_label = str(branch.get("label") or "").strip()
+            if block_id and branch_label:
+                references.add(_normalize_text(f"scope_{block_id}_{branch_label}"))
+            for step in branch.get("steps") or []:
+                if not isinstance(step, dict):
+                    continue
+                action = _normalize_text(step.get("action"))
+                if action:
+                    references.add(action)
+    return references
+
+
 def _coerce_reference_to_valid_step_id(
     block: Dict[str, Any],
     *,
@@ -112,6 +136,7 @@ def _coerce_reference_to_valid_step_id(
     step_id_key: str,
     valid_step_ids: Set[str],
     text_lookup: Dict[str, str],
+    valid_text_references: Set[str],
 ) -> bool:
     step_id = str(block.get(step_id_key) or "").strip()
     if step_id and step_id in valid_step_ids:
@@ -121,6 +146,10 @@ def _coerce_reference_to_valid_step_id(
     mapped_step_id = text_lookup.get(text_value)
     if mapped_step_id and mapped_step_id in valid_step_ids:
         block[step_id_key] = mapped_step_id
+        return True
+
+    if text_value and text_value in valid_text_references:
+        block.pop(step_id_key, None)
         return True
 
     block.pop(step_id_key, None)
@@ -136,33 +165,6 @@ def _classify_branch_label(label: Any) -> str:
     if any(term in normalized for term in _APPROVAL_TERMS):
         return "approval"
     return "other"
-
-
-def _branch_has_valid_continuation(
-    branch: Dict[str, Any],
-    *,
-    block: Dict[str, Any],
-    valid_block_ids: Set[str],
-    valid_step_ids: Set[str],
-) -> bool:
-    next_block_id = str(branch.get("next_block_id") or "").strip()
-    if next_block_id and next_block_id in valid_block_ids:
-        return True
-    child_block_ids = [
-        str(block_id).strip()
-        for block_id in (branch.get("child_block_ids") or [])
-        if str(block_id).strip()
-    ]
-    if any(block_id in valid_block_ids for block_id in child_block_ids):
-        return True
-    reconnect_step_id = str(branch.get("reconnect_to_step_id") or "").strip()
-    if reconnect_step_id and reconnect_step_id in valid_step_ids:
-        return True
-    if block.get("type") == "loop" and str(block.get("loop_back_to_step_id") or "").strip():
-        return True
-    if str(block.get("exit_to_step_id") or "").strip():
-        return True
-    return False
 
 
 def repair_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Tuple[Optional[Dict[str, Any]], SketchRepairReport]:
@@ -189,6 +191,7 @@ def repair_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Tuple[Optional[D
     step_text_lookup = _step_text_to_id(main_flow)
     step_id_text_lookup = _step_id_to_text(main_flow)
     valid_block_ids = _block_ids(repaired)
+    structural_reference_texts = _structural_reference_texts(repaired)
 
     invalid_reference_count = 0
     reconnect_repair_count = 0
@@ -222,6 +225,7 @@ def repair_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Tuple[Optional[D
             step_id_key="entry_after_step_id",
             valid_step_ids=main_flow_step_id_set,
             text_lookup=step_text_lookup,
+            valid_text_references=structural_reference_texts,
         ):
             if had_entry_reference:
                 invalid_reference_count += 1
@@ -235,6 +239,7 @@ def repair_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Tuple[Optional[D
             step_id_key="exit_to_step_id",
             valid_step_ids=main_flow_step_id_set,
             text_lookup=step_text_lookup,
+            valid_text_references=structural_reference_texts,
         ):
             if had_exit_reference:
                 invalid_reference_count += 1
@@ -300,20 +305,8 @@ def repair_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Tuple[Optional[D
                     branch.pop("reconnect_to_step_id", None)
                     repairs.append(f"{block_id or 'block'}:removed_invalid_reconnect_to_step")
 
-            if bool(branch.get("returns_to_main_flow")) and not _branch_has_valid_continuation(
-                branch,
-                block=block,
-                valid_block_ids=valid_block_ids,
-                valid_step_ids=all_step_ids,
-            ):
-                replacement_step_id = str(block.get("exit_to_step_id") or "").strip()
-                if replacement_step_id:
-                    reconnect_repair_count += 1
-                    repairs.append(f"{block_id or 'block'}:branch_return_uses_exit_to")
-                else:
-                    branch["returns_to_main_flow"] = False
-                    dead_end_repair_count += 1
-                    repairs.append(f"{block_id or 'block'}:branch_return_marked_false")
+            # Continuation is semantic intent, not proof of a direct local target.
+            # Invalid references can be removed without converting that intent to termination.
 
         if "rework" in branch_categories and "approval" in branch_categories:
             critical_defects.append(f"{block_id or 'block'}:mixed_decision_semantics")

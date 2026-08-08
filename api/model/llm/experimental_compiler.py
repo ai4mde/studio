@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections import defaultdict
 import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -8,6 +7,8 @@ from .activity_model import ActivityModel
 
 
 TerminalRef = Tuple[str, Optional[str]]
+BlockRefs = Dict[str, List[TerminalRef]]
+_FINAL_EDGE_KIND = "_final_edge_kind"
 
 
 class _GraphBuilder:
@@ -27,7 +28,14 @@ class _GraphBuilder:
         self._nodes.append(node)
         return node_id
 
-    def add_edge(self, source: str, target: str, *, label: Optional[str] = None) -> None:
+    def add_edge(
+        self,
+        source: str,
+        target: str,
+        *,
+        label: Optional[str] = None,
+        final_edge_kind: Optional[str] = None,
+    ) -> None:
         normalized_label = str(label).strip() if label is not None else ""
         signature = (source, target, normalized_label)
         if signature in self._seen_edges:
@@ -40,14 +48,35 @@ class _GraphBuilder:
         }
         if normalized_label:
             edge["label"] = normalized_label
+        if final_edge_kind:
+            edge[_FINAL_EDGE_KIND] = final_edge_kind
         self._edges.append(edge)
 
-    def build(self) -> Dict[str, Any]:
+    def export(self) -> Dict[str, Any]:
         graph = {
             "nodes": self._nodes,
             "edges": self._edges,
         }
-        return ActivityModel.model_validate(graph).model_dump(exclude_none=True)
+        return graph
+
+    def build(self) -> Dict[str, Any]:
+        graph = self.export()
+        return _sanitize_graph(graph)
+
+
+def _sanitize_graph(graph: Dict[str, Any]) -> Dict[str, Any]:
+    sanitized_graph = {
+        "nodes": [dict(node) for node in graph.get("nodes") or []],
+        "edges": [],
+    }
+    for edge in graph.get("edges") or []:
+        sanitized_edge = {
+            key: value
+            for key, value in dict(edge).items()
+            if key != _FINAL_EDGE_KIND
+        }
+        sanitized_graph["edges"].append(sanitized_edge)
+    return ActivityModel.model_validate(sanitized_graph).model_dump(exclude_none=True)
 
 
 def _main_flow_step_name(entry: Any) -> str:
@@ -215,22 +244,35 @@ def _canonicalize_merge_chains(graph: Dict[str, Any]) -> Dict[str, Any]:
             final_id = str(final_nodes[0].get("id") or "")
             incoming_to_final = _incoming_edges(edges, final_id)
             if len(incoming_to_final) > 1:
-                merge_id = _next_node_id(nodes)
-                nodes.append({"id": merge_id, "type": "merge"})
-                redirected_to_merge: List[Dict[str, Any]] = []
-                for edge in incoming_to_final:
-                    redirected_edge = dict(edge)
-                    redirected_edge["target"] = merge_id
-                    redirected_to_merge.append(redirected_edge)
-                edges = [
-                    edge
-                    for edge in edges
-                    if str(edge.get("target") or "") != final_id
-                ]
-                edges.extend(redirected_to_merge)
-                edges.append({"source": merge_id, "target": final_id, "type": "control"})
-                edges = _dedupe_edges(edges)
-                changed = True
+                final_edge_kinds = {
+                    str(edge.get(_FINAL_EDGE_KIND) or "").strip()
+                    for edge in incoming_to_final
+                }
+                if len(final_edge_kinds) <= 1:
+                    merge_id = _next_node_id(nodes)
+                    nodes.append({"id": merge_id, "type": "merge"})
+                    redirected_to_merge: List[Dict[str, Any]] = []
+                    for edge in incoming_to_final:
+                        redirected_edge = dict(edge)
+                        redirected_edge["target"] = merge_id
+                        redirected_to_merge.append(redirected_edge)
+                    edges = [
+                        edge
+                        for edge in edges
+                        if str(edge.get("target") or "") != final_id
+                    ]
+                    edges.extend(redirected_to_merge)
+                    merge_edge: Dict[str, Any] = {
+                        "source": merge_id,
+                        "target": final_id,
+                        "type": "control",
+                    }
+                    only_kind = next(iter(final_edge_kinds), "")
+                    if only_kind:
+                        merge_edge[_FINAL_EDGE_KIND] = only_kind
+                    edges.append(merge_edge)
+                    edges = _dedupe_edges(edges)
+                    changed = True
 
         if not changed:
             break
@@ -239,7 +281,7 @@ def _canonicalize_merge_chains(graph: Dict[str, Any]) -> Dict[str, Any]:
         "nodes": nodes,
         "edges": edges,
     }
-    return ActivityModel.model_validate(canonical_graph).model_dump(exclude_none=True)
+    return _sanitize_graph(canonical_graph)
 
 
 def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -288,20 +330,21 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
                     referenced_block_ids.add(child_id)
 
     root_block_ids = [block_id for block_id in block_sequence if block_id not in referenced_block_ids]
-    roots_by_entry: Dict[str, List[str]] = defaultdict(list)
-    for block_id in root_block_ids:
-        entry_step_id = str(block_by_id[block_id].get("entry_after_step_id") or "").strip()
-        if entry_step_id:
-            roots_by_entry[entry_step_id].append(block_id)
-
     compiled_blocks: set[str] = set()
     active_stack: set[str] = set()
     entry_attach_nodes_by_block: Dict[str, str] = {}
-    terminal_refs_by_block: Dict[str, List[TerminalRef]] = {}
+    terminal_refs_by_block: Dict[str, BlockRefs] = {}
+
+    def empty_block_refs() -> BlockRefs:
+        return {"continuation": [], "terminal": []}
 
     def connect_refs(refs: Iterable[TerminalRef], target_id: str) -> None:
         for source_id, label in refs:
             builder.add_edge(source_id, target_id, label=label)
+
+    def connect_refs_to_final(refs: Iterable[TerminalRef], kind: str, final_id: str) -> None:
+        for source_id, label in refs:
+            builder.add_edge(source_id, final_id, label=label, final_edge_kind=kind)
 
     def ensure_branch_step_node(step: Any, fallback_key: str) -> str:
         step_id = _branch_step_id(step, fallback_key)
@@ -359,14 +402,17 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         incoming_refs: List[TerminalRef],
         *,
         reference_kind: str,
-    ) -> List[TerminalRef]:
+    ) -> BlockRefs:
         if block_id in compiled_blocks:
             attach_node_id = entry_attach_nodes_by_block.get(block_id)
             if attach_node_id is not None:
                 connect_refs(incoming_refs, attach_node_id)
-            return terminal_refs_by_block.get(block_id, incoming_refs)
+            return terminal_refs_by_block.get(
+                block_id,
+                {"continuation": incoming_refs, "terminal": []},
+            )
         if block_id in active_stack or block_id not in block_by_id:
-            return incoming_refs
+            return {"continuation": incoming_refs, "terminal": []}
 
         block = block_by_id[block_id]
         active_stack.add(block_id)
@@ -384,9 +430,11 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         entry_attach_nodes_by_block[block_id] = local_anchor_id or entry_node_id
 
         branch_outputs: List[List[TerminalRef]] = []
+        terminal_branch_outputs: List[List[TerminalRef]] = []
         for branch_index, branch in enumerate(block.get("branches") or [], start=1):
             branch_label = None if block_type == "parallel" else (str(branch.get("label") or "").strip() or None)
             refs: List[TerminalRef] = [(entry_node_id, branch_label)]
+            branch_terminal_refs: List[TerminalRef] = []
 
             steps = branch.get("steps") or []
             for step_index, step in enumerate(steps, start=1):
@@ -397,7 +445,9 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
             next_block_id = str(branch.get("next_block_id") or "").strip()
             if next_block_id:
-                refs = realize_block(next_block_id, refs, reference_kind="next")
+                next_block_refs = realize_block(next_block_id, refs, reference_kind="next")
+                refs = next_block_refs["continuation"]
+                branch_terminal_refs.extend(next_block_refs["terminal"])
 
             child_block_ids = [
                 str(child_block_id).strip()
@@ -408,13 +458,16 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
                 normalized_child_id = str(child_block_id).strip()
                 if not normalized_child_id:
                     continue
-                refs = realize_block(normalized_child_id, refs, reference_kind="child")
+                child_block_refs = realize_block(normalized_child_id, refs, reference_kind="child")
+                refs = child_block_refs["continuation"]
+                branch_terminal_refs.extend(child_block_refs["terminal"])
 
             reconnect_step_id = str(branch.get("reconnect_to_step_id") or "").strip()
             if reconnect_step_id:
                 reconnect_target_id = step_lookup_node(reconnect_step_id, None)
                 if reconnect_target_id is not None:
                     connect_refs(refs, reconnect_target_id)
+                    terminal_branch_outputs.append(branch_terminal_refs)
                     continue
 
             has_explicit_continuation = bool(next_block_id or child_block_ids)
@@ -429,84 +482,84 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
                 )
                 if loop_target_id is not None:
                     connect_refs(refs, loop_target_id)
+                terminal_branch_outputs.append(branch_terminal_refs)
                 continue
 
-            branch_outputs.append(refs)
+            if not bool(branch.get("returns_to_main_flow", True)) and not has_explicit_continuation:
+                terminal_branch_outputs.append(branch_terminal_refs + refs)
+                continue
+
+            if refs:
+                branch_outputs.append(refs)
+            terminal_branch_outputs.append(branch_terminal_refs)
 
         requires_merge = bool(block.get("requires_merge", False))
-        if block_type == "decision" and requires_merge and branch_outputs:
+        realized_branch_outputs = [refs for refs in branch_outputs if refs]
+        if block_type == "decision" and requires_merge and realized_branch_outputs:
             merge_id = builder.add_node("merge", origin_block_id=block_id)
-            for refs in branch_outputs:
+            for refs in realized_branch_outputs:
                 connect_refs(refs, merge_id)
-            terminal_refs = [(merge_id, None)]
-        elif block_type == "parallel" and requires_merge and branch_outputs:
+            continuation_refs = [(merge_id, None)]
+        elif block_type == "parallel" and requires_merge and realized_branch_outputs:
             join_id = builder.add_node("join", origin_block_id=block_id)
-            for refs in branch_outputs:
+            for refs in realized_branch_outputs:
                 connect_refs(refs, join_id)
-            terminal_refs = [(join_id, None)]
+            continuation_refs = [(join_id, None)]
         else:
-            terminal_refs = [ref for refs in branch_outputs for ref in refs]
+            continuation_refs = [ref for refs in realized_branch_outputs for ref in refs]
 
-        terminal_refs_by_block[block_id] = terminal_refs
+        block_refs = {
+            "continuation": continuation_refs,
+            "terminal": [ref for refs in terminal_branch_outputs for ref in refs],
+        }
+        terminal_refs_by_block[block_id] = block_refs
         compiled_blocks.add(block_id)
         active_stack.remove(block_id)
-        return terminal_refs
+        return block_refs
 
     initial_id = builder.add_node("initial")
     final_id = builder.add_node("final")
 
-    if not main_flow:
+    if not main_flow and not root_block_ids:
         builder.add_edge(initial_id, final_id)
         return builder.build()
 
     ordered_step_ids = list(main_step_nodes.keys())
-    builder.add_edge(initial_id, main_step_nodes[ordered_step_ids[0]])
+    step_index_by_node = {
+        node_id: index
+        for index, step_id in enumerate(ordered_step_ids)
+        for node_id in [main_step_nodes[step_id]]
+    }
+    next_step_index = 0
+    root_refs: List[TerminalRef] = [(initial_id, None)]
 
-    for step_id, next_step_id in zip(ordered_step_ids, ordered_step_ids[1:]):
-        if roots_by_entry.get(step_id):
-            continue
-        builder.add_edge(main_step_nodes[step_id], main_step_nodes[next_step_id])
+    def connect_main_steps_through(end_index: int) -> None:
+        nonlocal next_step_index, root_refs
+        for index in range(next_step_index, end_index + 1):
+            step_node_id = main_step_nodes[ordered_step_ids[index]]
+            connect_refs(root_refs, step_node_id)
+            root_refs = [(step_node_id, None)]
+        next_step_index = max(next_step_index, end_index + 1)
 
-    for step_id, block_ids in roots_by_entry.items():
-        source_refs: List[TerminalRef] = [(main_step_nodes[step_id], None)]
-        for block_id in block_ids:
-            exit_refs = realize_block(block_id, source_refs, reference_kind="root")
-            exit_step_id = str(block_by_id[block_id].get("exit_to_step_id") or "").strip()
-            exit_target_id = step_lookup_node(exit_step_id, block_by_id[block_id].get("exit_to"))
-            if exit_target_id is not None:
-                connect_refs(exit_refs, exit_target_id)
-            elif exit_refs:
-                connect_refs(exit_refs, final_id)
-
-    for block_id in block_sequence:
-        if block_id in compiled_blocks:
-            continue
+    for block_id in root_block_ids:
         block = block_by_id[block_id]
         entry_step_id = str(block.get("entry_after_step_id") or "").strip()
         entry_target_id = step_lookup_node(entry_step_id, block.get("entry_after"))
-        source_refs = [(entry_target_id, None)] if entry_target_id is not None else [(initial_id, None)]
-        exit_refs = realize_block(block_id, source_refs, reference_kind="root")
-        exit_step_id = str(block.get("exit_to_step_id") or "").strip()
-        exit_target_id = step_lookup_node(exit_step_id, block.get("exit_to"))
-        if exit_target_id is not None:
-            connect_refs(exit_refs, exit_target_id)
-        elif exit_refs:
-            connect_refs(exit_refs, final_id)
+        entry_step_index = step_index_by_node.get(entry_target_id or "")
+        if entry_step_index is not None and entry_step_index >= next_step_index:
+            connect_main_steps_through(entry_step_index)
 
-    outgoing_by_source: Dict[str, int] = defaultdict(int)
-    for edge in builder._edges:
-        outgoing_by_source[str(edge.get("source"))] += 1
+        block_refs = realize_block(block_id, root_refs, reference_kind="root")
+        root_refs = block_refs["continuation"]
+        if block_refs["terminal"]:
+            connect_refs_to_final(block_refs["terminal"], "terminal", final_id)
 
-    for index, step_id in enumerate(ordered_step_ids):
-        node_id = main_step_nodes[step_id]
-        if outgoing_by_source.get(node_id, 0) > 0:
-            continue
-        if index + 1 < len(ordered_step_ids):
-            builder.add_edge(node_id, main_step_nodes[ordered_step_ids[index + 1]])
-        else:
-            builder.add_edge(node_id, final_id)
+    if next_step_index < len(ordered_step_ids):
+        connect_main_steps_through(len(ordered_step_ids) - 1)
+    if root_refs:
+        connect_refs_to_final(root_refs, "continuation", final_id)
 
-    return _canonicalize_merge_chains(builder.build())
+    return _canonicalize_merge_chains(builder.export())
 
 
 __all__ = ["compile_activity_sketch"]

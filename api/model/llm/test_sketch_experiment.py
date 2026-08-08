@@ -9,6 +9,7 @@ if str(MODEL_ROOT) not in sys.path:
     sys.path.insert(0, str(MODEL_ROOT))
 
 from llm.activity_sketch_model import ActivitySketch
+from llm.experimental_compiler import compile_activity_sketch
 from llm.keyword_hints import extract_keyword_hints
 from llm.prompt_builder import build_activity_sketch_prompt_with_hints
 from llm.refinement_generator import _parse_and_validate_activity_sketch_json
@@ -17,6 +18,35 @@ from llm.sketch_repair import repair_activity_sketch, sketch_requires_retry
 from llm.sketch_experiment import compare_sketch_generation
 from llm.sketch_alignment import validate_graph_against_sketch
 from llm.topology_analysis import analyze_activity_graph
+
+
+def _reachable_graph_node_ids(graph: dict) -> set[str]:
+    initial_ids = {
+        str(node["id"])
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "initial"
+    }
+    reachable = set(initial_ids)
+    pending = list(initial_ids)
+    while pending:
+        source = pending.pop()
+        for edge in graph["edges"]:
+            if str(edge.get("source") or "") != source:
+                continue
+            target = str(edge.get("target") or "")
+            if target and target not in reachable:
+                reachable.add(target)
+                pending.append(target)
+    return reachable
+
+
+def _graph_node_id(graph: dict, *, node_type: str, origin_block_id: str) -> str:
+    return next(
+        str(node["id"])
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == node_type
+        and str(node.get("origin_block_id") or "") == origin_block_id
+    )
 
 
 def test_topology_analysis_flags_missing_merge_and_branch_labels() -> None:
@@ -640,7 +670,7 @@ def test_repair_activity_sketch_preserves_valid_reconnect_to_step_id() -> None:
     assert "B1:removed_invalid_reconnect_to_step" not in report["repairs"]
 
 
-def test_repair_activity_sketch_removes_invalid_reconnect_to_step_id_deterministically() -> None:
+def test_repair_activity_sketch_removes_invalid_reconnect_without_changing_continuation() -> None:
     sketch, report = repair_activity_sketch(
         {
             "main_flow": [
@@ -671,11 +701,11 @@ def test_repair_activity_sketch_removes_invalid_reconnect_to_step_id_determinist
 
     branch = sketch["control_blocks"][0]["branches"][0]
     assert "reconnect_to_step_id" not in branch
-    assert branch["returns_to_main_flow"] is False
+    assert branch["returns_to_main_flow"] is True
     assert "B1:removed_invalid_reconnect_to_step" in report["repairs"]
     assert report["metrics"]["invalid_reference_count"] >= 1
     assert report["metrics"]["reconnect_repair_count"] >= 1
-    assert report["metrics"]["dead_end_repair_count"] >= 1
+    assert report["metrics"]["dead_end_repair_count"] == 0
 
 
 def test_repair_activity_sketch_treats_reconnect_as_valid_branch_continuation_without_exit_to() -> None:
@@ -712,6 +742,250 @@ def test_repair_activity_sketch_treats_reconnect_as_valid_branch_continuation_wi
     assert branch["reconnect_to_step_id"] == "S1"
     assert report["metrics"]["dead_end_repair_count"] == 0
     assert "B1:branch_return_marked_false" not in report["repairs"]
+
+
+def test_repair_activity_sketch_preserves_nested_parallel_continuations_and_later_root_control() -> None:
+    original = {
+        "main_flow": [
+            {"step_id": "S1", "action": "locate and distribute designs"},
+            {"step_id": "S2", "action": "send designs to manufacturing"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "T1",
+                "type": "parallel",
+                "entry_after": "locate and distribute designs",
+                "entry_after_step_id": "S1",
+                "branches": [
+                    {
+                        "label": "electrical",
+                        "returns_to_main_flow": False,
+                        "steps": [{"action": "test electrical design"}],
+                        "next_block_id": None,
+                        "child_block_ids": ["T2"],
+                    },
+                    {
+                        "label": "physical",
+                        "returns_to_main_flow": False,
+                        "steps": [{"action": "test physical design"}],
+                        "next_block_id": None,
+                        "child_block_ids": ["T3"],
+                    },
+                ],
+                "requires_merge": True,
+                "exit_to": "test combined designs",
+                "exit_to_step_id": None,
+                "notes": "design electrical and physical systems in parallel",
+            },
+            {
+                "block_id": "T2",
+                "type": "decision",
+                "entry_after": "test electrical design",
+                "entry_after_step_id": None,
+                "branches": [
+                    {"label": "retry", "returns_to_main_flow": False, "steps": [{"action": "redesign electrical system"}], "next_block_id": None, "child_block_ids": []},
+                    {"label": "successful", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                ],
+                "requires_merge": True,
+                "exit_to": "test combined designs",
+                "exit_to_step_id": None,
+                "notes": "electrical design passes",
+            },
+            {
+                "block_id": "T3",
+                "type": "decision",
+                "entry_after": "test physical design",
+                "entry_after_step_id": None,
+                "branches": [
+                    {"label": "retry", "returns_to_main_flow": False, "steps": [{"action": "redesign physical system"}], "next_block_id": None, "child_block_ids": []},
+                    {"label": "successful", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                ],
+                "requires_merge": True,
+                "exit_to": "test combined designs",
+                "exit_to_step_id": None,
+                "notes": "physical design passes",
+            },
+            {
+                "block_id": "T4",
+                "type": "decision",
+                "entry_after": "design electrical and physical systems in parallel",
+                "entry_after_step_id": None,
+                "branches": [
+                    {"label": "retry", "returns_to_main_flow": False, "steps": [{"action": "revise combined designs"}], "next_block_id": None, "child_block_ids": []},
+                    {"label": "successful", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                ],
+                "requires_merge": True,
+                "exit_to": "send designs to manufacturing",
+                "exit_to_step_id": "S2",
+                "notes": "test combined designs",
+            },
+        ],
+    }
+
+    repaired, report = repair_activity_sketch(original)
+
+    by_id = {block["block_id"]: block for block in repaired["control_blocks"]}
+    assert by_id["T1"]["exit_to"] == "test combined designs"
+    assert "exit_to_step_id" not in by_id["T1"] or by_id["T1"]["exit_to_step_id"] is None
+    assert by_id["T2"]["branches"][1]["returns_to_main_flow"] is True
+    assert by_id["T3"]["branches"][1]["returns_to_main_flow"] is True
+    assert report["metrics"]["dead_end_repair_count"] == 0
+
+    graph = compile_activity_sketch(repaired)
+    reachable = _reachable_graph_node_ids(graph)
+    assert _graph_node_id(graph, node_type="join", origin_block_id="T1") in reachable
+    assert _graph_node_id(graph, node_type="decision", origin_block_id="T4") in reachable
+    initial_id = next(str(node["id"]) for node in graph["nodes"] if node["type"] == "initial")
+    t4_id = _graph_node_id(graph, node_type="decision", origin_block_id="T4")
+    assert not any(edge["source"] == initial_id and edge["target"] == t4_id for edge in graph["edges"])
+
+
+def test_repair_activity_sketch_preserves_root_control_continuation_across_empty_slot() -> None:
+    repaired, report = repair_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "archive request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T5",
+                    "type": "decision",
+                    "entry_after": "review request",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {"label": "confirmed", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "rejected", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "coordinate parallel checks",
+                    "exit_to_step_id": None,
+                    "notes": "request confirmed",
+                },
+                {
+                    "block_id": "T6",
+                    "type": "parallel",
+                    "entry_after": "request confirmed",
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {"label": "first", "returns_to_main_flow": True, "steps": [{"action": "perform first check"}], "next_block_id": None, "child_block_ids": []},
+                        {"label": "second", "returns_to_main_flow": True, "steps": [{"action": "perform second check"}], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "archive request",
+                    "exit_to_step_id": "S2",
+                    "notes": "coordinate parallel checks",
+                },
+            ],
+        }
+    )
+
+    t5, _ = repaired["control_blocks"]
+    assert t5["exit_to"] == "coordinate parallel checks"
+    assert t5["branches"][0]["returns_to_main_flow"] is True
+    assert t5["branches"][1]["returns_to_main_flow"] is False
+    assert report["metrics"]["dead_end_repair_count"] == 0
+    graph = compile_activity_sketch(repaired)
+    assert _graph_node_id(graph, node_type="fork", origin_block_id="T6") in _reachable_graph_node_ids(graph)
+
+
+def test_repair_activity_sketch_preserves_true_after_invalid_reference_cleanup() -> None:
+    repaired, report = repair_activity_sketch(
+        {
+            "main_flow": [{"step_id": "S1", "action": "review request"}],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after": "review request",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {
+                            "label": "continue",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "reconnect_to_step_id": "S9",
+                            "next_block_id": None,
+                            "child_block_ids": ["B9"],
+                        },
+                        {"label": "terminate", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "unknown target",
+                    "exit_to_step_id": "S8",
+                    "notes": "request valid",
+                }
+            ],
+        }
+    )
+
+    continuing, terminating = repaired["control_blocks"][0]["branches"]
+    assert "reconnect_to_step_id" not in continuing
+    assert continuing["child_block_ids"] == []
+    assert continuing["returns_to_main_flow"] is True
+    assert terminating["returns_to_main_flow"] is False
+    assert "exit_to" not in repaired["control_blocks"][0]
+    assert report["metrics"]["invalid_reference_count"] >= 3
+    assert report["metrics"]["dead_end_repair_count"] == 0
+
+
+def test_repair_activity_sketch_preserves_loop_back_and_success_semantics() -> None:
+    repaired, _ = repair_activity_sketch(
+        {
+            "main_flow": [{"step_id": "S1", "action": "test design"}],
+            "control_blocks": [
+                {
+                    "block_id": "L1",
+                    "type": "loop",
+                    "entry_after": "test design",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {"label": "retry", "returns_to_main_flow": False, "steps": [{"action": "update design"}], "next_block_id": None, "child_block_ids": []},
+                        {"label": "successful", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": False,
+                    "loop_back_to": "test design",
+                    "loop_back_to_step_id": "S1",
+                    "notes": "design passes",
+                }
+            ],
+        }
+    )
+
+    retry, successful = repaired["control_blocks"][0]["branches"]
+    assert retry["returns_to_main_flow"] is False
+    assert successful["returns_to_main_flow"] is True
+
+
+def test_repair_activity_sketch_leaves_valid_sketch_semantically_unchanged() -> None:
+    original = {
+        "main_flow": [
+            {"step_id": "S1", "action": "review request"},
+            {"step_id": "S2", "action": "archive request"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "B1",
+                "type": "decision",
+                "entry_after": "review request",
+                "entry_after_step_id": "S1",
+                "branches": [
+                    {"label": "approved", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    {"label": "rejected", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                ],
+                "requires_merge": True,
+                "exit_to": "archive request",
+                "exit_to_step_id": "S2",
+                "notes": "request approved",
+            }
+        ],
+    }
+
+    repaired, report = repair_activity_sketch(original)
+
+    assert repaired == original
+    assert report["metrics"]["invalid_reference_count"] == 0
+    assert report["metrics"]["dead_end_repair_count"] == 0
 
 
 def test_sketch_requires_retry_for_mixed_decision_semantics() -> None:

@@ -56,13 +56,16 @@ Planner generation rules:
   - `branches`
 - For local insertions such as `Add a compliance review before approval`, keep unrelated structures, branches, and branch intents identical
 - For unchanged root slots, preserve the existing root action text exactly instead of regenerating or paraphrasing it
-- Treat `updated_semantic_sketch_plan.root_actions` as an ordered root-scope sequence aligned to the updated root slots in root order:
+- Treat `updated_semantic_sketch_plan.root_actions` as an ordered root-slot sequence aligned to the updated root slots in root order:
   - `ROOT_START`
   - `AFTER_<first root structure>`
   - `AFTER_<second root structure>`
   - and so on
+- Each `root_actions` entry must use `actions` to represent zero, one, or multiple ordered root-scope business actions for that slot
+- An explicitly empty slot is valid and must be represented as `"actions": []`
 - When a root-level action is inserted, removed, or replaced, recompute the full ordered `root_actions` sequence for the updated root slots instead of editing one slot in isolation
 - `updated_semantic_sketch_plan.root_actions` must contain exactly one entry for each required root slot, and each `slot_id` may appear only once
+- Root slots are fixed by the updated topology; do not omit a required slot, do not move a root action to a later slot to compensate for a missing earlier slot, and do not invent neutral fallback actions such as `complete request handling`
 - `updated_topology_artifact.structures[*].type` must always be exactly one of:
   - `decision`
   - `loop`
@@ -78,11 +81,16 @@ Planner generation rules:
   - `terminate`
   - `loop_back`
 - Put semantic meaning in `branch_plans.steps`, not in `branch_plans.intent`
+- Decide the branch-local business action text first and set `intent` second
+- Never use `terminate` or `loop_back` as a shorthand for the business action itself
+- Any `terminate` or `loop_back` branch must include at least one branch-local business action in `steps`
 - Never place action descriptions such as `conduct compliance review`, `approve`, `rework request`, or `finalize task` into `branch_plans.intent`
 - Good example:
   - `intent: "continue"` with `steps: [{"action": "conduct compliance review"}]`
 - Bad example:
   - `intent: "conduct compliance review"`
+- Bad example:
+  - `intent: "loop_back"` with `steps: []` when the branch retries, revises, reworks, corrects, or updates something
 
 Current process description:
 {{ process_text }}
@@ -119,6 +127,7 @@ Output requirements:
   - the updated root slots implied by the updated topology are fully covered by `updated_semantic_sketch_plan.root_actions`
   - `updated_semantic_sketch_plan.root_actions` contains exactly one entry per required root slot and no duplicate `slot_id` values
   - every updated topology branch has exactly one branch plan in `updated_semantic_sketch_plan.branch_plans`
+  - every `terminate` or `loop_back` branch in `updated_semantic_sketch_plan.branch_plans` includes at least one branch-local business action in `steps`
   - every `updated_topology_artifact.structures[*].type` value is exactly one of `decision`, `loop`, or `parallel`
   - obsolete semantic entries from removed topology are not present
   - every unchanged structure preserved its original `id`, `type`, `parent`, `parent_branch`, and `branches`

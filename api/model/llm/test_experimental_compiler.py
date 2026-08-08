@@ -13,6 +13,35 @@ from llm.experimental_compiler import compile_activity_sketch
 from llm.refinement_generator import debug_model_activity_with_experimental_compiler
 
 
+def _reachable_node_ids(graph: dict) -> set[str]:
+    outgoing: dict[str, list[str]] = {}
+    for edge in graph["edges"]:
+        outgoing.setdefault(str(edge["source"]), []).append(str(edge["target"]))
+    pending = [
+        str(node["id"])
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "initial"
+    ]
+    reachable = set(pending)
+    while pending:
+        source = pending.pop()
+        for target in outgoing.get(source, []):
+            if target not in reachable:
+                reachable.add(target)
+                pending.append(target)
+    return reachable
+
+
+def _unreachable_convergence_nodes(graph: dict) -> list[dict]:
+    reachable = _reachable_node_ids(graph)
+    return [
+        node
+        for node in graph["nodes"]
+        if str(node.get("type") or "") in {"merge", "join"}
+        and str(node["id"]) not in reachable
+    ]
+
+
 def test_experimental_compiler_realizes_reconnect_to_existing_step_without_duplication() -> None:
     graph = compile_activity_sketch(
         {
@@ -738,28 +767,1150 @@ def test_experimental_compiler_collapses_redundant_terminal_merge_chain() -> Non
         }
     )
 
-    merge_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "merge"]
-    final_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "final"]
-    completion_nodes = [
-        node
+    nodes_by_name = {
+        str(node.get("name") or ""): node["id"]
         for node in graph["nodes"]
         if str(node.get("type") or "") == "action"
-        and str(node.get("name") or "") == "complete deployment process"
-    ]
+    }
+    final_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "final"]
     assert len(final_nodes) == 1
-    assert len(merge_nodes) == 1
-    assert len(completion_nodes) == 1
-    completion_incoming = [
+
+    completion_id = nodes_by_name["complete deployment process"]
+    cancel_id = nodes_by_name["cancel deployment request"]
+    reject_id = nodes_by_name["reject deployment request"]
+
+    incoming_to_completion = [
         edge for edge in graph["edges"]
-        if edge["target"] == completion_nodes[0]["id"] and edge["type"] == "control"
+        if edge["target"] == completion_id and edge["type"] == "control"
     ]
-    assert any(edge["source"] == merge_nodes[0]["id"] for edge in completion_incoming)
+    incoming_sources = {edge["source"] for edge in incoming_to_completion}
+
+    assert cancel_id not in incoming_sources
+    assert reject_id not in incoming_sources
+    outgoing_from_completion = [
+        edge for edge in graph["edges"]
+        if edge["source"] == completion_id and edge["type"] == "control"
+    ]
+    assert len(outgoing_from_completion) == 1
+    final_merge_id = outgoing_from_completion[0]["target"]
+
     final_incoming = [
         edge for edge in graph["edges"]
         if edge["target"] == final_nodes[0]["id"] and edge["type"] == "control"
     ]
-    assert len(final_incoming) == 1
-    assert final_incoming[0]["source"] == completion_nodes[0]["id"]
+    final_incoming_sources = {edge["source"] for edge in final_incoming}
+
+    assert completion_id in final_incoming_sources
+    assert cancel_id in final_incoming_sources
+    assert reject_id in final_incoming_sources
+
+
+def test_experimental_compiler_excludes_terminating_branch_from_shared_continuation() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "continue processing"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "approve request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "continue processing",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request approved",
+                }
+            ],
+        }
+    )
+
+    node_ids = {
+        str(node.get("name") or ""): node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+    }
+    continue_id = node_ids["continue processing"]
+    reject_id = node_ids["reject request"]
+    merge = next(
+        node
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "merge"
+        and str(node.get("origin_block_id") or "") == "T1"
+    )
+    merge_incoming = [edge for edge in graph["edges"] if edge["target"] == merge["id"]]
+
+    assert not any(edge["source"] == reject_id and edge["target"] == continue_id for edge in graph["edges"])
+    assert not any(edge["target"] == continue_id and edge["source"] == reject_id for edge in graph["edges"])
+    assert merge["id"] in _reachable_node_ids(graph)
+    assert len(merge_incoming) == 1
+    assert merge_incoming[0]["source"] != reject_id
+
+
+def test_experimental_compiler_terminating_branch_does_not_reach_downstream_root_activity() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "archive request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "valid",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "validate request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "invalid",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "terminate request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "archive request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request valid",
+                }
+            ],
+        }
+    )
+
+    node_ids = {
+        str(node.get("name") or ""): node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+    }
+    invalid_id = node_ids["terminate request"]
+    archive_id = node_ids["archive request"]
+
+    assert not any(edge["source"] == invalid_id and edge["target"] == archive_id for edge in graph["edges"])
+
+
+def test_experimental_compiler_preserves_merge_for_two_continuing_branches() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "archive request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "issue order"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "send rejection"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "archive request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request approved",
+                }
+            ],
+        }
+    )
+
+    merge_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "merge"]
+    assert merge_nodes
+    merge = next(node for node in merge_nodes if str(node.get("origin_block_id") or "") == "T1")
+    incoming = [edge for edge in graph["edges"] if edge["target"] == merge["id"]]
+    assert len(incoming) == 2
+    assert merge["id"] in _reachable_node_ids(graph)
+
+
+def test_experimental_compiler_all_terminating_branches_do_not_invent_shared_continuation() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [{"step_id": "S1", "action": "review request"}],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "close request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request approved",
+                }
+            ],
+        }
+    )
+
+    action_names = {
+        str(node.get("name") or "")
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+    }
+    assert "close request" in action_names
+    assert "reject request" in action_names
+    assert "root_scope_" not in " ".join(action_names)
+
+
+def test_experimental_compiler_nested_all_terminal_child_does_not_create_orphan_merge() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review expense"},
+                {"step_id": "S2", "action": "archive expense"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review expense",
+                    "branches": [
+                        {
+                            "label": "needs_receipt_review",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject expense"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "archive expense",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "expense approved",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after_step_id": None,
+                    "entry_after": None,
+                    "branches": [
+                        {
+                            "label": "valid",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "close receipt review"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "invalid",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject receipt"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "receipts valid",
+                },
+            ],
+        }
+    )
+
+    assert _unreachable_convergence_nodes(graph) == []
+    assert not any(
+        str(node.get("type") or "") == "merge"
+        and str(node.get("origin_block_id") or "") == "T1"
+        for node in graph["nodes"]
+    )
+
+
+def test_experimental_compiler_parallel_children_without_continuations_do_not_create_orphan_join() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "start design"},
+                {"step_id": "S2", "action": "send design"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "parallel",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start design",
+                    "branches": [
+                        {
+                            "label": "electrical",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "test electrical design"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "physical",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "test physical design"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["T3"],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "send design",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "design tracks",
+                },
+                *[
+                    {
+                        "block_id": block_id,
+                        "type": "decision",
+                        "entry_after_step_id": None,
+                        "entry_after": None,
+                        "branches": [
+                            {
+                                "label": "restart",
+                                "returns_to_main_flow": False,
+                                "steps": [{"action": f"restart {track} design"}],
+                                "next_block_id": None,
+                                "child_block_ids": [],
+                            },
+                            {
+                                "label": "stop",
+                                "returns_to_main_flow": False,
+                                "steps": [],
+                                "next_block_id": None,
+                                "child_block_ids": [],
+                            },
+                        ],
+                        "requires_merge": True,
+                        "exit_to_step_id": None,
+                        "exit_to": None,
+                        "loop_back_to_step_id": None,
+                        "loop_back_to": None,
+                        "notes": f"{track} design accepted",
+                    }
+                    for block_id, track in (("T2", "electrical"), ("T3", "physical"))
+                ],
+            ],
+        }
+    )
+
+    assert _unreachable_convergence_nodes(graph) == []
+    assert not any(str(node.get("type") or "") == "join" for node in graph["nodes"])
+
+
+def test_experimental_compiler_nested_terminating_branch_does_not_rejoin_inner_or_outer_continuation() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "archive request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "archive request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request approved",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": "scope_T1_approved",
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "needs_review",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "review compliance"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "blocked",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "block request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "archive request",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "compliance approved",
+                },
+            ],
+        }
+    )
+
+    node_ids = {
+        str(node.get("name") or ""): node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+    }
+    blocked_id = node_ids["block request"]
+    archive_id = node_ids["archive request"]
+    assert not any(edge["source"] == blocked_id and edge["target"] == archive_id for edge in graph["edges"])
+
+
+def test_experimental_compiler_final_node_normalization_keeps_terminating_paths_out_of_shared_business_flow() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "complete processing"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "approve request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "complete processing",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request approved",
+                }
+            ],
+        }
+    )
+
+    node_ids = {
+        str(node.get("name") or ""): node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+    }
+    reject_id = node_ids["reject request"]
+    complete_id = node_ids["complete processing"]
+    assert not any(edge["source"] == reject_id and edge["target"] == complete_id for edge in graph["edges"])
+
+
+def test_experimental_compiler_mixed_terminal_and_continuing_final_paths_do_not_collapse_into_shared_pre_final_merge() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "complete processing"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "approve request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "complete processing",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request approved",
+                }
+            ],
+        }
+    )
+
+    node_ids = {
+        str(node.get("name") or ""): node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+    }
+    final_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "final")
+
+    reject_id = node_ids["reject request"]
+    complete_id = node_ids["complete processing"]
+    incoming_to_final = [edge for edge in graph["edges"] if edge["target"] == final_id]
+    incoming_sources = {edge["source"] for edge in incoming_to_final}
+
+    assert reject_id in incoming_sources
+    assert complete_id in incoming_sources
+    assert not any(
+        edge["source"] == reject_id and str(edge.get("target") or "") != final_id
+        for edge in graph["edges"]
+    )
+
+
+def test_experimental_compiler_friedrich_10_7_fixture_preserves_terminal_and_continuing_endings() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "MSPN registers measurement at GO"},
+                {"step_id": "S2", "action": "GO examines MSPN application"},
+                {"step_id": "S3", "action": "GO assigns the MSPN"},
+                {"step_id": "S4", "action": "GO informs MSPO about the assignment of MSPN"},
+                {"step_id": "S5", "action": "GO informs MPO about the assignment of MSPN"},
+                {"step_id": "S6", "action": "GO informs SP about the assignment of MSPN"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S2",
+                    "entry_after": "GO examines MSPN application",
+                    "branches": [
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "GO rejects MSPN application"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "confirmed",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "GO confirms MSPN application"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S3",
+                    "exit_to": "GO assigns the MSPN",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "determine whether to reject or confirm the MSPN application",
+                }
+            ],
+        }
+    )
+
+    node_ids = {
+        str(node.get("name") or ""): node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+    }
+    final_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "final")
+    reject_id = node_ids["GO rejects MSPN application"]
+    confirm_id = node_ids["GO confirms MSPN application"]
+    assign_id = node_ids["GO assigns the MSPN"]
+    last_inform_id = node_ids["GO informs SP about the assignment of MSPN"]
+
+    merge_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "merge")
+
+    assert any(edge["source"] == confirm_id and edge["target"] == merge_id for edge in graph["edges"])
+    assert any(edge["source"] == merge_id and edge["target"] == assign_id for edge in graph["edges"])
+    assert not any(edge["source"] == reject_id and edge["target"] == assign_id for edge in graph["edges"])
+
+    incoming_to_final = [edge for edge in graph["edges"] if edge["target"] == final_id]
+    incoming_sources = {edge["source"] for edge in incoming_to_final}
+    assert reject_id in incoming_sources
+    assert last_inform_id in incoming_sources
+
+
+def test_experimental_compiler_enters_root_decision_when_main_flow_is_empty() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "approve request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "request approved",
+                }
+            ],
+        }
+    )
+
+    initial_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "initial")
+    final_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "final")
+    decision_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "decision")
+
+    assert any(edge["source"] == initial_id and edge["target"] == decision_id for edge in graph["edges"])
+    assert not (
+        len(graph["nodes"]) == 2
+        and any(edge["source"] == initial_id and edge["target"] == final_id for edge in graph["edges"])
+    )
+
+
+def test_experimental_compiler_enters_root_loop_when_main_flow_is_empty() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [],
+            "control_blocks": [
+                {
+                    "block_id": "L1",
+                    "type": "loop",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "correct form"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "success",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "repeat form correction until it succeeds",
+                }
+            ],
+        }
+    )
+
+    initial_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "initial")
+    decision_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "decision")
+    correct_id = next(
+        node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action" and str(node.get("name") or "") == "correct form"
+    )
+
+    assert any(edge["source"] == initial_id and edge["target"] == decision_id for edge in graph["edges"])
+    assert any(edge["source"] == decision_id and edge["target"] == correct_id for edge in graph["edges"])
+
+
+def test_experimental_compiler_enters_root_parallel_when_main_flow_is_empty() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [],
+            "control_blocks": [
+                {
+                    "block_id": "P1",
+                    "type": "parallel",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "infrastructure",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "provision servers"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "security",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "validate policies"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "deployment tracks",
+                }
+            ],
+        }
+    )
+
+    initial_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "initial")
+    fork_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "fork")
+    join_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "join"]
+
+    assert any(edge["source"] == initial_id and edge["target"] == fork_id for edge in graph["edges"])
+    assert len(join_nodes) == 1
+
+
+def test_experimental_compiler_preserves_consecutive_root_control_structures_without_root_actions() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": "T2",
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "first decision",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "ready",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "archive request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "blocked",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "hold request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "second decision",
+                },
+            ],
+        }
+    )
+
+    decision_labels = {
+        str(node.get("label") or "")
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "decision"
+    }
+
+    assert "first decision?" in decision_labels
+    assert "second decision?" in decision_labels
+    assert all("root_scope_" not in str(node.get("name") or "") for node in graph["nodes"])
+
+
+def test_experimental_compiler_preserves_truly_empty_process_behavior() -> None:
+    graph = compile_activity_sketch({"main_flow": [], "control_blocks": []})
+
+    assert graph == {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2", "type": "control"},
+        ],
+    }
+
+
+def test_experimental_compiler_uses_root_structure_instead_of_nested_child_as_entry_when_main_flow_is_empty() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "root decision",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "ready",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "finalize request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "blocked",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "hold request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "nested decision",
+                },
+            ],
+        }
+    )
+
+    initial_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "initial")
+    root_decision_id = next(
+        node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "decision" and str(node.get("label") or "") == "root decision?"
+    )
+    nested_decision_id = next(
+        node["id"]
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "decision" and str(node.get("label") or "") == "nested decision?"
+    )
+
+    assert any(edge["source"] == initial_id and edge["target"] == root_decision_id for edge in graph["edges"])
+    assert not any(edge["source"] == initial_id and edge["target"] == nested_decision_id for edge in graph["edges"])
+
+
+def test_experimental_compiler_friedrich_3_6_fixture_does_not_collapse_when_main_flow_is_empty() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "insured",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "not_insured",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "inform claimant of rejection"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "check claimant's insurance status",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "simple_claim",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "send simple forms to claimant"}],
+                            "next_block_id": "T3",
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "complex_claim",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "send complex forms to claimant"}],
+                            "next_block_id": "T3",
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "evaluate claim severity",
+                },
+                {
+                    "block_id": "T3",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "complete",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "register claim in Claims Management system"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "incomplete",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "inform claimant to update forms"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["T4"],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "check forms for completeness after return",
+                },
+                {
+                    "block_id": "T4",
+                    "type": "loop",
+                    "entry_after": "inform claimant to update forms",
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "check updated forms for completeness"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "success",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": "inform claimant to update forms",
+                    "loop_back_to_step_id": None,
+                    "notes": "recheck forms until complete",
+                },
+            ],
+        }
+    )
+
+    decision_labels = {
+        str(node.get("label") or "")
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "decision"
+    }
+    action_names = {
+        str(node.get("name") or "")
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+    }
+
+    assert "check claimant's insurance status?" in decision_labels
+    assert "evaluate claim severity?" in decision_labels
+    assert "check forms for completeness after return?" in decision_labels
+    assert "inform claimant to update forms" in action_names
+    assert "check updated forms for completeness" in action_names
+    assert _unreachable_convergence_nodes(graph) == []
+
+
+def test_experimental_compiler_type_b_empty_slot_fixture_keeps_following_control_without_placeholder() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "loop",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "request additional information"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "complete",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "repeat review until all requirements are satisfied",
+                }
+            ],
+        }
+    )
+
+    assert any(str(node.get("type") or "") == "decision" for node in graph["nodes"])
+    assert all("root_scope_" not in str(node.get("name") or "") for node in graph["nodes"])
 
 
 def test_experimental_compiler_preserves_merges_separated_by_intervening_actions() -> None:
@@ -1000,3 +2151,501 @@ def test_experimental_compiler_preserves_retry_loop_back_edges_after_merge_canon
     ]
 
     assert loop_edges
+
+
+def test_experimental_compiler_does_not_hide_unreachable_business_activities() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "unreachable follow-up"},
+                {"step_id": "S3", "action": "unreachable archive"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "closed",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "close request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "cancelled",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "cancel request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": None,
+                    "exit_to": None,
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": "request closed",
+                }
+            ],
+        }
+    )
+
+    reachable = _reachable_node_ids(graph)
+    unreachable_business_names = {
+        str(node.get("name") or "")
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "action"
+        and str(node["id"]) not in reachable
+    }
+
+    assert unreachable_business_names == {"unreachable follow-up", "unreachable archive"}
+
+
+def _initial_targets(graph: dict) -> list[dict]:
+    initial_id = next(
+        str(node["id"])
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "initial"
+    )
+    node_by_id = {str(node["id"]): node for node in graph["nodes"]}
+    return [
+        node_by_id[str(edge["target"])]
+        for edge in graph["edges"]
+        if str(edge["source"]) == initial_id
+    ]
+
+
+def _node_id(graph: dict, *, node_type: str, text: str) -> str:
+    return next(
+        str(node["id"])
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == node_type
+        and str(node.get("name") or node.get("label") or "") == text
+    )
+
+
+def test_experimental_compiler_root_decision_precedes_post_control_action() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [{"step_id": "S1", "action": "register claim"}],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "insured",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "review claim"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "not_insured",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject claim"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "register claim",
+                    "exit_to_step_id": "S1",
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "claimant insured",
+                }
+            ],
+        }
+    )
+
+    assert [target["type"] for target in _initial_targets(graph)] == ["decision"]
+    register_id = _node_id(graph, node_type="action", text="register claim")
+    decision_id = _node_id(graph, node_type="decision", text="claimant insured?")
+    assert not any(
+        edge["source"] in {
+            node["id"] for node in graph["nodes"] if node["type"] == "initial"
+        }
+        and edge["target"] == register_id
+        for edge in graph["edges"]
+    )
+    assert decision_id in _reachable_node_ids(graph)
+    assert register_id in _reachable_node_ids(graph)
+
+
+def test_experimental_compiler_root_loop_precedes_post_loop_continuation() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [{"step_id": "S1", "action": "archive request"}],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "loop",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "correct request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "complete",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to": "archive request",
+                    "exit_to_step_id": "S1",
+                    "loop_back_to": "correct request",
+                    "loop_back_to_step_id": None,
+                    "notes": "request complete",
+                }
+            ],
+        }
+    )
+
+    assert [target["type"] for target in _initial_targets(graph)] == ["decision"]
+    assert str(_initial_targets(graph)[0].get("label") or "") == "request complete?"
+
+
+def test_experimental_compiler_root_parallel_precedes_post_join_continuation() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [{"step_id": "S1", "action": "release deployment"}],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "parallel",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "infrastructure",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "provision servers"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "security",
+                            "returns_to_main_flow": True,
+                            "steps": [{"action": "validate policies"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "release deployment",
+                    "exit_to_step_id": "S1",
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "deployment tracks",
+                }
+            ],
+        }
+    )
+
+    assert [target["type"] for target in _initial_targets(graph)] == ["fork"]
+    release_id = _node_id(graph, node_type="action", text="release deployment")
+    join_id = next(
+        str(node["id"])
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "join"
+    )
+    assert any(
+        edge["source"] == join_id and edge["target"] == release_id
+        for edge in graph["edges"]
+    )
+
+
+def test_experimental_compiler_chains_root_controls_across_empty_slot() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "submit request"},
+                {"step_id": "S2", "action": "archive request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after": "submit request",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {
+                            "label": "accepted",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "reject request"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "archive request",
+                    "exit_to_step_id": "S2",
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "request accepted",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "complete",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "incomplete",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "request update"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "archive request",
+                    "exit_to_step_id": "S2",
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "request complete",
+                },
+            ],
+        }
+    )
+
+    assert [
+        (target["type"], target.get("name"))
+        for target in _initial_targets(graph)
+    ] == [("action", "submit request")]
+    first_merge_id = next(
+        str(node["id"])
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "merge"
+        and str(node.get("origin_block_id") or "") == "T1"
+    )
+    second_decision_id = _node_id(
+        graph,
+        node_type="decision",
+        text="request complete?",
+    )
+    assert any(
+        edge["source"] == first_merge_id and edge["target"] == second_decision_id
+        for edge in graph["edges"]
+    )
+
+
+def test_experimental_compiler_chains_root_controls_through_interstitial_action() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "submit request"},
+                {"step_id": "S2", "action": "prepare review"},
+                {"step_id": "S3", "action": "archive request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after": "submit request",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {"label": "yes", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "no", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "prepare review",
+                    "exit_to_step_id": "S2",
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "request valid",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": "prepare review",
+                    "entry_after_step_id": "S2",
+                    "branches": [
+                        {"label": "yes", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "no", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "archive request",
+                    "exit_to_step_id": "S3",
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "review approved",
+                },
+            ],
+        }
+    )
+
+    assert len(_initial_targets(graph)) == 1
+    prepare_id = _node_id(graph, node_type="action", text="prepare review")
+    second_decision_id = _node_id(graph, node_type="decision", text="review approved?")
+    assert any(
+        edge["source"] == prepare_id and edge["target"] == second_decision_id
+        for edge in graph["edges"]
+    )
+
+
+def test_experimental_compiler_friedrich_3_6_root_entry_has_no_registration_bypass() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [{"step_id": "S1", "action": "register claim"}],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after": None,
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "insured",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "not_insured",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "inform claimant of rejection"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "register claim",
+                    "exit_to_step_id": "S1",
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "claimant insured",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": "scope_T1_insured",
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "simple",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "send simple forms"}],
+                            "next_block_id": "T3",
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "complex",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "send complex forms"}],
+                            "next_block_id": "T3",
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to": None,
+                    "exit_to_step_id": None,
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "claim severity",
+                },
+                {
+                    "block_id": "T3",
+                    "type": "decision",
+                    "entry_after": "scope_T1_insured",
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "complete",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "incomplete",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "request form update"}],
+                            "next_block_id": None,
+                            "child_block_ids": ["T4"],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "register claim",
+                    "exit_to_step_id": "S1",
+                    "loop_back_to": None,
+                    "loop_back_to_step_id": None,
+                    "notes": "forms complete",
+                },
+                {
+                    "block_id": "T4",
+                    "type": "loop",
+                    "entry_after": "request form update",
+                    "entry_after_step_id": None,
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "check forms again"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "complete",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to": "register claim",
+                    "exit_to_step_id": "S1",
+                    "loop_back_to": "request form update",
+                    "loop_back_to_step_id": None,
+                    "notes": "updated forms complete",
+                },
+            ],
+        }
+    )
+
+    initial_targets = _initial_targets(graph)
+    assert [target["type"] for target in initial_targets] == ["decision"]
+    assert str(initial_targets[0].get("label") or "") == "claimant insured?"
+
+    register_id = _node_id(graph, node_type="action", text="register claim")
+    initial_id = next(
+        str(node["id"])
+        for node in graph["nodes"]
+        if str(node.get("type") or "") == "initial"
+    )
+    assert not any(
+        edge["source"] == initial_id and edge["target"] == register_id
+        for edge in graph["edges"]
+    )
+    assert register_id in _reachable_node_ids(graph)
