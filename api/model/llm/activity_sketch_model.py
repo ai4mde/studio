@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_serializer, model_validator
 
 
 ControlBlockType = Literal["decision", "loop", "parallel"]
@@ -30,6 +30,14 @@ class Branch(BaseModel):
     steps: List[BranchStep] = Field(default_factory=list)
     next_block_id: Optional[str] = None
     child_block_ids: List[str] = Field(default_factory=list)
+    reconnect_to_step_id: Optional[str] = None
+
+    @model_serializer(mode="wrap")
+    def serialize_without_unset_reconnect(self, handler):
+        data = handler(self)
+        if data.get("reconnect_to_step_id") is None:
+            data.pop("reconnect_to_step_id", None)
+        return data
 
 
 class ControlBlock(BaseModel):

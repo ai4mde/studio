@@ -117,6 +117,7 @@ def build_activity_sketch_prompt_with_hints(
     process_text: str,
     *,
     keyword_hints: Optional[Dict[str, Any]] = None,
+    topology_artifact: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Build a lightweight TopologyPlan prompt augmented with soft keyword hints.
@@ -128,6 +129,7 @@ def build_activity_sketch_prompt_with_hints(
     return template.render(
         process_text=process_text,
         keyword_hints=keyword_hints,
+        topology_artifact=topology_artifact,
     ).rstrip() + "\n"
 
 

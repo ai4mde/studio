@@ -165,13 +165,16 @@ def _extract_clean_from_ai4mde(ai4mde: dict) -> dict:
         data = classifiers.get(cls_id, {})
         node_type = data.get("type", "action")
         node_name = data.get("name", "")
+        node_label = data.get("label", "")
 
         clean_id = f"n{i + 1}"
         cls_id_to_clean[cls_id] = clean_id
 
         clean_node: Dict[str, Any] = {"id": clean_id, "type": node_type}
-        if node_type == "action" and node_name:
+        if node_name:
             clean_node["name"] = node_name
+        if node_label:
+            clean_node["label"] = node_label
         clean_nodes.append(clean_node)
 
     clean_edges: list = []
@@ -187,6 +190,9 @@ def _extract_clean_from_ai4mde(ai4mde: dict) -> dict:
             cond = (rel_data.get("data") or {}).get("condition")
             if cond:
                 edge_data["condition"] = cond
+            edge_label = (rel_data.get("data") or {}).get("label")
+            if edge_label:
+                edge_data["label"] = edge_label
             edge_type = (rel_data.get("data") or {}).get("type")
             if edge_type:
                 edge_data["type"] = edge_type
@@ -1124,11 +1130,13 @@ def debug_model_activity_with_semantic_deterministic_profile(
         "topology_artifact_raw_output": topology_result.get("raw_output"),
         "topology_artifact_response_mode": topology_result.get("response_mode"),
         "topology_artifact_fallback_reason": topology_result.get("fallback_reason"),
+        "topology_artifact_planner_attempts": topology_result.get("planner_attempts"),
         "semantic_plan": semantic_plan,
         "semantic_prompt": semantic_result.get("prompt"),
         "semantic_raw_output": semantic_result.get("raw_output"),
         "semantic_response_mode": semantic_result.get("response_mode"),
         "semantic_fallback_reason": semantic_result.get("fallback_reason"),
+        "semantic_planner_attempts": semantic_result.get("planner_attempts"),
         "sketch_prompt": semantic_result.get("prompt"),
         "sketch_raw_output": json.dumps(deterministic_sketch, ensure_ascii=False),
         "original_sketch": deterministic_sketch,

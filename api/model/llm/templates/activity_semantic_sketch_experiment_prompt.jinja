@@ -36,12 +36,51 @@ Do not include:
 - graph nodes or edges
 
 Produce only:
-- root-level action names for the fixed root slots below
+- root-level action sequences for the fixed root slots below
 - branch-local action steps for the fixed topology branches below
 - semantic continuation intent for each topology branch
 
+Semantic preservation rules:
+- Every business action mentioned in the process text must appear exactly once somewhere in the semantic plan
+- Represent each business action either in `root_actions` or in `branch_plans.steps`
+- Business actions must never silently disappear
+- `branch_plans.intent` is control-flow only; it must never replace a business action
+- `continue`, `terminate`, and `loop_back` describe only branch behavior after the listed branch steps
+- If a branch performs a business action such as approve, reject, cancel, deploy, notify, review, revise, update, or retry, that action must appear in `branch_plans.steps` even when the branch intent is `continue`, `terminate`, or `loop_back`
+- For every branch plan, decide the branch-local business action text first and set `intent` second
+- Never use `intent="terminate"` or `intent="loop_back"` as a shorthand for the business action itself
+- Correct example: `steps=[{"action": "cancel deployment request"}]` with `intent="terminate"`
+- Incorrect example: `steps=[]` with `intent="terminate"` when the process text says the branch cancels the request
+- Incorrect example: `{"branch": "retry", "intent": "loop_back", "steps": []}` when the process text says the branch revises, corrects, updates, retries, or resubmits something
+- Root slots are fixed by the topology; you must not decide which root slots exist
+- Each listed root slot must appear exactly once in `root_actions` using its provided `slot_id`
+- Each root slot may contain zero, one, or multiple ordered root-scope business actions in `actions`
+- Root actions may contain only real shared root-scope business actions that every path described as reaching that slot must execute
+- Do not invent neutral coordination actions such as `complete request handling`, `continue process`, or similar fallback wording just to satisfy the output structure
+- If no real shared root-scope business action exists for a listed root slot, return `"actions": []` for that slot
+- Do not move a branch-specific action into an empty root slot and do not shift a later root action backward or forward to fill it
+- If an action belongs only to one branch or one subset of branches, keep it inside those branch `steps`
+- Do not move branch-specific business actions into shared `root_actions`
+- Do not summarize multiple branch-specific actions into a single shared root action
+- Preserve semantic granularity whenever an action belongs to only one execution path
+- Example:
+  - If one branch says `issue payment` and another branch says `reject request`, then `issue payment` must stay in that branch's `steps` and `reject request` must stay in the rejecting branch's `steps`
+  - The shared root slot after that decision must not be `issue payment`, `reject request`, or `issue payment and reject request`
+- If a slot has no real shared root-scope business action in the source text, leave branch-specific actions inside their branches rather than inventing a shared root action
+
+Shared-continuation ownership:
+- Classify ownership by execution scope and process order, not by the action verb alone
+- An action stated after a decision or other structured region belongs in the post-structure root slot when the process text says it applies after the outcomes converge or applies to every affected outcome
+- Treat phrases such as `in either case`, `in any case`, `regardless of outcome`, `after both`, `once completed`, and an unqualified later `then` or `finally` as semantic evidence only; use the full process meaning to decide whether the later action is shared
+- When explicit later shared behavior applies to a branch, keep every affected branch on `intent="continue"` so it can reach that behavior, even if its branch-local action rejects, cancels, or closes something
+- A branch is `terminate` only when no later shared business behavior applies to that path; a rejection or cancellation verb alone does not prove termination
+- True termination remains `intent="terminate"` when the text ends that path and describes no later shared action for it
+- Retry success must reconnect to the same shared post-structure actions as the ordinary successful path; keep the retry/rework branch local and let its successful exit continue
+- For shared behavior after nested controls, use the available post-structure root slot after the enclosing root structure when that slot is reached only by the surviving paths described in the text
+- Do not duplicate the shared action into branch steps; represent it once in the appropriate post-structure root slot
+
 Root semantic slots:
-These slots are already determined by the topology order. Provide one action for each slot.
+These slots are already determined by the topology order. Provide one root slot entry for each slot, and use `actions` to hold zero, one, or multiple ordered actions for that slot.
 
 {{ root_slots | tojson(indent=2) }}
 
@@ -59,13 +98,21 @@ Rules:
 - Keep topology authoritative; do not restate or redesign it
 - Use the exact topology `structure_id` and `branch` handles provided above
 - Keep root actions in process order using the provided `slot_id` values
-- Root actions should name only major actions that occur at root scope
-- Branch steps should include only actions that occur on that branch before it continues, terminates, or loops back
+- Root actions should name only real shared root-scope business actions that occur at the listed slot position in process order
+- Branch steps should include every business action that occurs on that branch before it continues, terminates, or loops back
 - Use empty `steps` when no explicit branch-local action is described
+- An empty `steps` list is valid only when that branch genuinely performs no business action of its own in the process text
+- A `terminate` or `loop_back` branch must not return `steps=[]`; if the process text describes reject, cancel, close, archive, retry, revise, rework, correct, update, or resubmit behavior on that branch, put that action in `steps`
 - Use concise action names derived from the process text
-- If a branch is a rejection/cancellation/closure path, use `intent="terminate"`
+- If a branch is a rejection/cancellation/closure path and no later shared behavior applies to it, use `intent="terminate"`
 - If a branch is a retry/rework path inside a loop, use `intent="loop_back"`
 - Otherwise, use `intent="continue"`
+- Before returning JSON, verify internally that every business action from the process text appears exactly once in either `root_actions` or `branch_plans.steps`
+- Before returning JSON, verify internally that every terminating or loop-back branch with business meaning has at least one action in `steps`
+- Before returning JSON, verify internally that each `terminate` or `loop_back` branch names at least one explicit branch-local business action copied or closely derived from the process text
+- Before returning JSON, verify internally that no branch-specific action has been moved into a shared root slot
+- Before returning JSON, verify internally that every listed root slot appears exactly once in `root_actions`
+- Before returning JSON, verify internally that no root action has been shifted to a later or earlier slot to compensate for a missing slot
 - Do not generate notes, topology annotations, or ownership explanations
 - Do not explain the answer
 - Do not use markdown
@@ -76,7 +123,11 @@ Return a JSON object with this structure:
   "root_actions": [
     {
       "slot_id": "ROOT_START",
-      "action": "major root-level action"
+      "actions": [
+        {
+          "action": "submit request"
+        }
+      ]
     }
   ],
   "branch_plans": [

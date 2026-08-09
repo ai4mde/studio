@@ -86,14 +86,29 @@ Rules:
 - Use sequential identifiers such as `T1`, `T2`, `T3`
 - Keep structures ordered by first appearance in the process narrative
 - Use short stable branch handles such as `approved`, `rejected`, `retry`, `success`, `track_a`, `track_b`
+- Create a decision only when the source text clearly expresses conditional meaning, alternative paths, branching, routing, approval/rejection alternatives, or another explicit split in execution
+- Treat a sentence-level exclusive disjunction such as "rejects ... or confirms ..." as explicit branching evidence for a decision, even when the alternatives appear inside one sentence rather than in separate `if` / `otherwise` clauses
+- Do not infer a decision from a single terminal status word such as `approved`, `rejected`, `archived`, `ready`, `blocked`, or similar outcome vocabulary when the text does not actually describe alternative paths
+- Do not invent branch labels, branch alternatives, or extra control structures that are not supported by the source text
+- If the process text is linear, keep the topology linear and return `structures: []`
 - A structure may be nested only when the process text clearly places it inside a branch-local scope
 - If a structure belongs to a branch of a decision, loop, or parallel block, express that with `parent_branch`
+- If a decision first introduces branch-specific actions and the text later describes one shared continuation using wording such as `based on the outcome`, `once`, `after`, `when`, or `upon`, model the later control structure after convergence rather than duplicating it inside each branch
+- A phrase such as `based on the outcome (A or B)` is itself branching evidence for a decision between those alternatives
+- If that branch-specific region later converges into one shared continuation, keep the later shared structure as a sibling of that earlier decision inside the same enclosing parent scope
+- In that situation, reuse the earlier decision's `parent` and `parent_branch`; do not attach the later shared structure to one of the earlier decision's branch handles
+- If the shared continuation later says `if` / `otherwise` or another explicit conditional, model that shared continuation as its own decision after convergence
+- If that shared decision includes retry, recheck, update, or repeat behavior, nest the loop inside the retry/incomplete branch of that shared decision rather than replacing the decision with a single loop
 - If two structures are siblings in the main flow, give both `parent="ROOT"` and `parent_branch=null`
 - If two structures are siblings inside the same branch, give them the same `parent` and `parent_branch`
 - For every nested structure, `parent_branch` must exactly match one of the branch handles listed in the parent structure's `branches`
 - For parallel blocks, do not promote a branch-local decision, loop, or nested control structure to `ROOT` unless the text explicitly moves execution to post-join scope
 - If the triggering condition for a structure is described only within one parallel branch narrative, attach that structure to that branch rather than to `ROOT`
 - Treat phrases like "when both tasks are completed", "after both reviews are completed", or equivalent join wording as the boundary between branch-local scope and post-join scope
+- Create a loop only when the text explicitly indicates repetition, retry, rework, correction, resubmission, or iteration with an exit condition
+- Create a parallel block only when the text explicitly indicates concurrent work, two-or-more simultaneous branches, or an explicit join boundary such as `after both` or `once all branches finish`
+- Compound concurrency evidence can include separate executable activities linked by `in the meantime`, a `while A does X, B does Y` construction, multiple named activities executed in arbitrary order before shared continuation, or several named outputs synchronized before later work
+- Do not infer parallelism from `while`, `in the meantime`, or `arbitrary order` alone; require separate executable activities and any stated synchronization or shared continuation
 - Do not infer detailed execution wiring beyond parent and parent_branch
 - Do not explain the answer
 - Do not use markdown

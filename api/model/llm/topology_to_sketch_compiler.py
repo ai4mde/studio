@@ -8,6 +8,10 @@ from .semantic_sketch_plan_model import SemanticSketchPlan
 from .topology_artifact_model import TopologyArtifact, TopologyStructure
 
 
+class SemanticPlanTopologyValidationError(ValueError):
+    """Raised when a semantic plan does not satisfy a topology contract."""
+
+
 def _normalize_artifact(topology_artifact: Dict[str, Any] | TopologyArtifact) -> TopologyArtifact:
     if isinstance(topology_artifact, TopologyArtifact):
         return topology_artifact
@@ -80,6 +84,140 @@ def _loop_branch_returns(label: str, branch_index: int, has_children: bool) -> b
 
 def _root_slot_ids(root_structures: List[TopologyStructure]) -> List[str]:
     return ["ROOT_START", *[f"AFTER_{structure.id}" for structure in root_structures]]
+
+
+def _slot_structure_id(slot_id: str) -> str | None:
+    normalized = str(slot_id or "").strip()
+    if normalized == "ROOT_START":
+        return None
+    if normalized.startswith("AFTER_") and len(normalized) > len("AFTER_"):
+        return normalized[len("AFTER_"):]
+    return None
+
+
+def _branch_key_set(artifact: TopologyArtifact) -> set[Tuple[str, str]]:
+    return {
+        (structure.id.strip(), branch.strip())
+        for structure in artifact.structures
+        for branch in structure.branches
+    }
+
+
+def _root_slot_actions(entry: Any) -> List[str]:
+    normalized_actions: List[str] = []
+    for step in getattr(entry, "actions", []) or []:
+        action = str(getattr(step, "action", "") or "").strip()
+        if action:
+            normalized_actions.append(action)
+    return normalized_actions
+
+
+def validate_semantic_plan_against_topology(
+    topology_artifact: Dict[str, Any] | TopologyArtifact,
+    semantic_plan: Dict[str, Any] | SemanticSketchPlan,
+) -> SemanticSketchPlan:
+    artifact = _normalize_artifact(topology_artifact)
+    semantics = _normalize_semantic_plan(semantic_plan)
+
+    ordered_structures = _preorder_structures(artifact)
+    root_structures = _root_structures(ordered_structures)
+    expected_root_slot_ids = _root_slot_ids(root_structures)
+    expected_root_slot_set = set(expected_root_slot_ids)
+
+    actual_root_slot_ids = [entry.slot_id.strip() for entry in semantics.root_actions if entry.slot_id.strip()]
+    actual_root_slot_set = set(actual_root_slot_ids)
+    duplicate_root_slot_ids = sorted(
+        {
+            slot_id
+            for slot_id in actual_root_slot_ids
+            if actual_root_slot_ids.count(slot_id) > 1
+        }
+    )
+    missing_root_slot_ids = [
+        slot_id
+        for slot_id in expected_root_slot_ids
+        if slot_id not in actual_root_slot_set
+    ]
+    extra_root_slot_ids = sorted(actual_root_slot_set - expected_root_slot_set)
+    placeholder_root_actions = [
+        {
+            "slot_id": entry.slot_id.strip(),
+            "actions": [{"action": action} for action in _root_slot_actions(entry)],
+        }
+        for entry in semantics.root_actions
+        if any(action.startswith("root_scope_") for action in _root_slot_actions(entry))
+    ]
+
+    misplaced_root_actions: List[Dict[str, str]] = []
+    first_missing_index = next(
+        (index for index, slot_id in enumerate(expected_root_slot_ids) if slot_id in missing_root_slot_ids),
+        None,
+    )
+    if first_missing_index is not None:
+        for later_slot_id in expected_root_slot_ids[first_missing_index + 1:]:
+            matching_entry = next(
+                (
+                    entry
+                    for entry in semantics.root_actions
+                    if entry.slot_id.strip() == later_slot_id and _root_slot_actions(entry)
+                ),
+                None,
+            )
+            if matching_entry is None:
+                continue
+            misplaced_root_actions.append(
+                {
+                    "slot_id": later_slot_id,
+                    "actions": [{"action": action} for action in _root_slot_actions(matching_entry)],
+                    "earliest_missing_slot_id": expected_root_slot_ids[first_missing_index],
+                }
+            )
+
+    expected_branch_keys = _branch_key_set(artifact)
+    actual_branch_key_list = [
+        (entry.structure_id.strip(), entry.branch.strip())
+        for entry in semantics.branch_plans
+    ]
+    actual_branch_keys = set(actual_branch_key_list)
+    duplicate_branch_plans = sorted(
+        {
+            branch_key
+            for branch_key in actual_branch_key_list
+            if actual_branch_key_list.count(branch_key) > 1
+        }
+    )
+    missing_branch_keys = sorted(expected_branch_keys - actual_branch_keys)
+    extra_branch_keys = sorted(actual_branch_keys - expected_branch_keys)
+
+    if (
+        missing_root_slot_ids
+        or extra_root_slot_ids
+        or duplicate_root_slot_ids
+        or placeholder_root_actions
+        or misplaced_root_actions
+        or missing_branch_keys
+        or extra_branch_keys
+        or duplicate_branch_plans
+    ):
+        missing_root_structures = [
+            structure_id
+            for structure_id in (_slot_structure_id(slot_id) for slot_id in missing_root_slot_ids)
+            if structure_id is not None
+        ]
+        raise SemanticPlanTopologyValidationError(
+            "SemanticSketchPlan does not satisfy the topology contract. "
+            f"missing_root_slots={missing_root_slot_ids}, "
+            f"missing_root_structures={missing_root_structures}, "
+            f"extra_root_slots={extra_root_slot_ids}, "
+            f"duplicate_root_slots={duplicate_root_slot_ids}, "
+            f"placeholder_root_actions={placeholder_root_actions}, "
+            f"misplaced_root_actions={misplaced_root_actions}, "
+            f"missing_branch_plans={missing_branch_keys}, "
+            f"extra_branch_plans={extra_branch_keys}, "
+            f"duplicate_branch_plans={duplicate_branch_plans}"
+        )
+
+    return semantics
 
 
 def compile_topology_artifact_to_activity_sketch(
@@ -169,17 +307,55 @@ def _normalize_semantic_plan(semantic_plan: Dict[str, Any] | SemanticSketchPlan)
 def _root_action_map(
     semantic_plan: SemanticSketchPlan,
     root_structures: List[TopologyStructure],
-) -> Dict[str, str]:
+) -> Dict[str, List[str]]:
     slot_ids = _root_slot_ids(root_structures)
     provided = {
-        entry.slot_id: entry.action.strip()
+        entry.slot_id: _root_slot_actions(entry)
         for entry in semantic_plan.root_actions
-        if entry.action.strip()
     }
+    missing_slot_ids = [slot_id for slot_id in slot_ids if slot_id not in provided]
+    if missing_slot_ids:
+        raise SemanticPlanTopologyValidationError(
+            "SemanticSketchPlan is incomplete for the topology contract. "
+            f"missing_root_slots={missing_slot_ids}, "
+            f"missing_root_structures={[slot_id[len('AFTER_'):] for slot_id in missing_slot_ids if slot_id.startswith('AFTER_')]}"
+        )
     return {
-        slot_id: provided.get(slot_id, f"root_scope_{index + 1}")
-        for index, slot_id in enumerate(slot_ids)
+        slot_id: provided[slot_id]
+        for slot_id in slot_ids
     }
+
+
+def _slot_entry_anchor(
+    *,
+    slot_id: str,
+    slot_step_bounds: Dict[str, Dict[str, str | None]],
+    root_slot_ids: List[str],
+    root_structures: List[TopologyStructure],
+) -> Tuple[str | None, str | None]:
+    bounds = slot_step_bounds[slot_id]
+    if bounds["last_action"] is not None:
+        return bounds["last_action"], bounds["last_step_id"]
+    slot_index = root_slot_ids.index(slot_id)
+    if slot_index == 0:
+        return None, None
+    return root_structures[slot_index - 1].purpose, None
+
+
+def _slot_exit_anchor(
+    *,
+    slot_id: str,
+    slot_step_bounds: Dict[str, Dict[str, str | None]],
+    root_slot_ids: List[str],
+    root_structures: List[TopologyStructure],
+) -> Tuple[str | None, str | None]:
+    bounds = slot_step_bounds[slot_id]
+    if bounds["first_action"] is not None:
+        return bounds["first_action"], bounds["first_step_id"]
+    slot_index = root_slot_ids.index(slot_id)
+    if slot_index >= len(root_structures):
+        return None, None
+    return root_structures[slot_index].purpose, None
 
 
 def _branch_plan_map(semantic_plan: SemanticSketchPlan) -> Dict[Tuple[str, str], Any]:
@@ -205,7 +381,7 @@ def compile_topology_and_semantics_to_activity_sketch(
     semantic_plan: Dict[str, Any] | SemanticSketchPlan,
 ) -> Dict[str, Any]:
     artifact = _normalize_artifact(topology_artifact)
-    semantics = _normalize_semantic_plan(semantic_plan)
+    semantics = validate_semantic_plan_against_topology(artifact, semantic_plan)
     ordered_structures = _preorder_structures(artifact)
     root_structures = _root_structures(ordered_structures)
     nested_children = _branch_children(ordered_structures)
@@ -213,17 +389,25 @@ def compile_topology_and_semantics_to_activity_sketch(
 
     root_action_lookup = _root_action_map(semantics, root_structures)
     root_slot_ids = _root_slot_ids(root_structures)
-    main_flow = [
-        {
-            "step_id": f"S{index + 1}",
-            "action": root_action_lookup[slot_id],
+    main_flow: List[Dict[str, str]] = []
+    slot_step_bounds: Dict[str, Dict[str, str | None]] = {}
+    step_index = 1
+    for slot_id in root_slot_ids:
+        slot_actions = root_action_lookup[slot_id]
+        slot_step_bounds[slot_id] = {
+            "first_action": slot_actions[0] if slot_actions else None,
+            "first_step_id": f"S{step_index}" if slot_actions else None,
+            "last_action": slot_actions[-1] if slot_actions else None,
+            "last_step_id": f"S{step_index + len(slot_actions) - 1}" if slot_actions else None,
         }
-        for index, slot_id in enumerate(root_slot_ids)
-    ]
-    step_by_slot = {
-        slot_id: main_flow[index]
-        for index, slot_id in enumerate(root_slot_ids)
-    }
+        for action in slot_actions:
+            main_flow.append(
+                {
+                    "step_id": f"S{step_index}",
+                    "action": action,
+                }
+            )
+            step_index += 1
     branch_plans = _branch_plan_map(semantics)
     root_index_by_structure = {
         structure.id: index
@@ -242,10 +426,18 @@ def compile_topology_and_semantics_to_activity_sketch(
             root_index = root_index_by_structure[structure.id]
             entry_slot = root_slot_ids[root_index]
             exit_slot = root_slot_ids[root_index + 1]
-            entry_after = step_by_slot[entry_slot]["action"]
-            entry_after_step_id = step_by_slot[entry_slot]["step_id"]
-            exit_to = step_by_slot[exit_slot]["action"]
-            exit_to_step_id = step_by_slot[exit_slot]["step_id"]
+            entry_after, entry_after_step_id = _slot_entry_anchor(
+                slot_id=entry_slot,
+                slot_step_bounds=slot_step_bounds,
+                root_slot_ids=root_slot_ids,
+                root_structures=root_structures,
+            )
+            exit_to, exit_to_step_id = _slot_exit_anchor(
+                slot_id=exit_slot,
+                slot_step_bounds=slot_step_bounds,
+                root_slot_ids=root_slot_ids,
+                root_structures=root_structures,
+            )
         else:
             parent_branch_plan = branch_plans.get((structure.parent, structure.parent_branch or ""))
             if parent_branch_plan and parent_branch_plan.steps:
@@ -255,14 +447,23 @@ def compile_topology_and_semantics_to_activity_sketch(
             entry_after_step_id = None
             root_ancestor = root_ancestors[structure.id]
             exit_slot = f"AFTER_{root_ancestor}"
-            exit_to = step_by_slot[exit_slot]["action"]
-            exit_to_step_id = step_by_slot[exit_slot]["step_id"]
+            exit_to, exit_to_step_id = _slot_exit_anchor(
+                slot_id=exit_slot,
+                slot_step_bounds=slot_step_bounds,
+                root_slot_ids=root_slot_ids,
+                root_structures=root_structures,
+            )
 
         branches: List[Dict[str, Any]] = []
         for branch_label in structure.branches:
             plan = branch_plans.get((structure.id, branch_label))
             direct_children = direct_children_by_branch[branch_label]
             intent = plan.intent if plan is not None else "continue"
+            reconnect_target = (
+                slot_step_bounds.get(plan.target_slot_id)
+                if plan is not None and plan.target_slot_id
+                else None
+            )
             steps = [
                 {"action": step.action}
                 for step in (plan.steps if plan is not None else [])
@@ -274,6 +475,8 @@ def compile_topology_and_semantics_to_activity_sketch(
                 "next_block_id": None,
                 "child_block_ids": [direct_children[0].id] if direct_children else [],
             }
+            if reconnect_target is not None and reconnect_target["first_step_id"] is not None:
+                branch_payload["reconnect_to_step_id"] = reconnect_target["first_step_id"]
             if intent in {"terminate", "loop_back"}:
                 branch_payload["returns_to_main_flow"] = False
             if direct_children:
