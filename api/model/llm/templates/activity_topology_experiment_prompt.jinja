@@ -1,0 +1,161 @@
+Purpose:
+Extract only the control-topology structure of a process description.
+
+This is an experiment artifact, not an ActivitySketch.
+
+Process description:
+
+{{ process_text }}
+
+{% if keyword_hints %}
+Keyword hints:
+These are soft topology signals extracted from the process text. Use them only when they match the text.
+
+{{ keyword_hints | tojson(indent=2) }}
+
+Keyword guidance:
+- decision hints suggest business questions with distinct outcomes
+- loop and retry hints suggest repetition with an exit path
+- parallelism hints suggest concurrent work streams
+
+{% endif %}
+Output goal:
+Return only the major control structures and their containment hierarchy.
+
+Do not include:
+- ActivitySketch fields
+- main flow steps
+- entry_after
+- exit_to
+- next_block_id
+- child_block_ids
+- loop_back_to
+- graph nodes or edges
+- reconnection wiring details
+
+Capture only:
+- what control structures exist
+- which structure encloses which other structure
+- which exact parent branch contains each nested structure
+- the local branch handles exposed by each structure
+
+Internal workflow:
+1. Identify each major decision, loop, and parallel block.
+2. For each block, determine its enclosing control structure, if any.
+3. For each nested block, determine the exact branch within the parent structure that contains it.
+4. Emit the final topology artifact only after parent and parent_branch are resolved.
+
+Parallel-scope discipline:
+For every parallel structure, reason about scope in this order before emitting later structures:
+1. Enumerate each parallel branch separately.
+2. Identify all control structures that occur inside each branch before that branch completes.
+3. Distinguish branch-local scope from post-join scope.
+4. Before creating any `ROOT`-level structure after a parallel block, verify whether its triggering condition appears only inside one branch narrative.
+5. If a structure is triggered only by events described within one parallel branch, it must remain attached to that branch.
+6. Promote a structure outside the parallel block only when the process text explicitly indicates branch completion or synchronization, such as:
+   - after both tasks complete
+   - once all branches finish
+   - when both branches succeed
+   - when both reviews are completed
+   - equivalent join wording
+
+Return a JSON object with this structure:
+
+{
+  "structures": [
+    {
+      "id": "T1",
+      "type": "parallel | decision | loop",
+      "parent": "ROOT or enclosing structure id",
+      "parent_branch": "null for ROOT-level structures, otherwise exact branch handle from the parent structure",
+      "branches": ["branch_handle_a", "branch_handle_b"],
+      "purpose": "short description of why this control structure exists"
+    }
+  ]
+}
+
+Field semantics:
+- `parent` is the enclosing control structure id, or `ROOT` for top-level structures
+- `parent_branch` is the exact branch handle of the parent structure that contains this nested structure
+- root-level structures must use `parent="ROOT"` and `parent_branch=null`
+- nested structures must use `parent="<structure id>"` and `parent_branch="<branch_handle_from_parent>"`
+- `branches` lists the local branch handles that other nested structures may refer to
+
+Rules:
+- Keep the artifact minimal and include only major control structures
+- Use sequential identifiers such as `T1`, `T2`, `T3`
+- Keep structures ordered by first appearance in the process narrative
+- Use short stable branch handles such as `approved`, `rejected`, `retry`, `success`, `track_a`, `track_b`
+- Create a decision only when the source text clearly expresses conditional meaning, alternative paths, branching, routing, approval/rejection alternatives, or another explicit split in execution
+- Treat a sentence-level exclusive disjunction such as "rejects ... or confirms ..." as explicit branching evidence for a decision, even when the alternatives appear inside one sentence rather than in separate `if` / `otherwise` clauses
+- Do not infer a decision from a single terminal status word such as `approved`, `rejected`, `archived`, `ready`, `blocked`, or similar outcome vocabulary when the text does not actually describe alternative paths
+- Do not invent branch labels, branch alternatives, or extra control structures that are not supported by the source text
+- If the process text is linear, keep the topology linear and return `structures: []`
+- A structure may be nested only when the process text clearly places it inside a branch-local scope
+- If a structure belongs to a branch of a decision, loop, or parallel block, express that with `parent_branch`
+- If a decision first introduces branch-specific actions and the text later describes one shared continuation using wording such as `based on the outcome`, `once`, `after`, `when`, or `upon`, model the later control structure after convergence rather than duplicating it inside each branch
+- A phrase such as `based on the outcome (A or B)` is itself branching evidence for a decision between those alternatives
+- If that branch-specific region later converges into one shared continuation, keep the later shared structure as a sibling of that earlier decision inside the same enclosing parent scope
+- In that situation, reuse the earlier decision's `parent` and `parent_branch`; do not attach the later shared structure to one of the earlier decision's branch handles
+- If the shared continuation later says `if` / `otherwise` or another explicit conditional, model that shared continuation as its own decision after convergence
+- If that shared decision includes retry, recheck, update, or repeat behavior, nest the loop inside the retry/incomplete branch of that shared decision rather than replacing the decision with a single loop
+- If two structures are siblings in the main flow, give both `parent="ROOT"` and `parent_branch=null`
+- If two structures are siblings inside the same branch, give them the same `parent` and `parent_branch`
+- For every nested structure, `parent_branch` must exactly match one of the branch handles listed in the parent structure's `branches`
+- For parallel blocks, do not promote a branch-local decision, loop, or nested control structure to `ROOT` unless the text explicitly moves execution to post-join scope
+- If the triggering condition for a structure is described only within one parallel branch narrative, attach that structure to that branch rather than to `ROOT`
+- Treat phrases like "when both tasks are completed", "after both reviews are completed", or equivalent join wording as the boundary between branch-local scope and post-join scope
+- Create a loop only when the text explicitly indicates repetition, retry, rework, correction, resubmission, or iteration with an exit condition
+- Create a parallel block only when the text explicitly indicates concurrent work, two-or-more simultaneous branches, or an explicit join boundary such as `after both` or `once all branches finish`
+- Compound concurrency evidence can include separate executable activities linked by `in the meantime`, a `while A does X, B does Y` construction, multiple named activities executed in arbitrary order before shared continuation, or several named outputs synchronized before later work
+- Do not infer parallelism from `while`, `in the meantime`, or `arbitrary order` alone; require separate executable activities and any stated synchronization or shared continuation
+- Do not infer detailed execution wiring beyond parent and parent_branch
+- Do not explain the answer
+- Do not use markdown
+
+Reference example:
+
+{
+  "structures": [
+    {
+      "id": "T1",
+      "type": "parallel",
+      "parent": "ROOT",
+      "parent_branch": null,
+      "branches": ["infrastructure", "security"],
+      "purpose": "run deployment tracks concurrently"
+    },
+    {
+      "id": "T2",
+      "type": "loop",
+      "parent": "T1",
+      "parent_branch": "infrastructure",
+      "branches": ["retry", "success"],
+      "purpose": "retry provisioning until it succeeds"
+    },
+    {
+      "id": "T3",
+      "type": "loop",
+      "parent": "T1",
+      "parent_branch": "security",
+      "branches": ["retry", "success"],
+      "purpose": "repeat security fixes until validation passes"
+    },
+    {
+      "id": "T4",
+      "type": "decision",
+      "parent": "ROOT",
+      "parent_branch": null,
+      "branches": ["approved", "needs_review"],
+      "purpose": "choose whether the request can proceed directly"
+    },
+    {
+      "id": "T5",
+      "type": "decision",
+      "parent": "T4",
+      "parent_branch": "approved",
+      "branches": ["compliant", "non_compliant"],
+      "purpose": "evaluate compliance only on the approved path"
+    }
+  ]
+}

@@ -6,6 +6,8 @@ from typing import Annotated, Union, Literal
 class Decision(BaseModel):
     type: Literal["decision"] = "decision"
     role: Literal["control"] = "control"
+    name: str = ""
+    label: str = ""
     decisionInput: str = ""
     decisionInputFlow: str = ""
     page: str = ""  # TODO: In reality a page is more complex than just a string
@@ -14,12 +16,16 @@ class Decision(BaseModel):
 class Final(BaseModel):
     type: Literal["final"] = "final"
     role: Literal["control"] = "control"
+    name: str = ""
+    label: str = ""
     activity_scope: Literal["flow", "activity"] = "activity"
 
 
 class Fork(BaseModel):
     type: Literal["fork"] = "fork"
     role: Literal["control"] = "control"
+    name: str = ""
+    label: str = ""
     height: int = 8
     width: int = 56
 
@@ -27,6 +33,8 @@ class Fork(BaseModel):
 class Initial(BaseModel):
     type: Literal["initial"] = "initial"
     role: Literal["control"] = "control"
+    name: str = ""
+    label: str = ""
     activity_scope: Literal["flow", "activity"] = "activity"
     scheduled: bool = False
     schedule: str = ""
@@ -35,6 +43,8 @@ class Initial(BaseModel):
 class Join(BaseModel):
     type: Literal["join"] = "join"
     role: Literal["control"] = "control"
+    name: str = ""
+    label: str = ""
     join_spec: str = ""
     height: int = 8
     width: int = 56
@@ -44,6 +54,8 @@ class Join(BaseModel):
 class Merge(BaseModel):
     type: Literal["merge"] = "merge"
     role: Literal["control"] = "control"
+    name: str = ""
+    label: str = ""
     merge_spec: str = ""
     is_combine_duplicate: bool = False
     page: str = ""  # TODO: In reality a page is more complex than just a string

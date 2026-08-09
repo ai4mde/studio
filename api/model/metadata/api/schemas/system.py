@@ -111,7 +111,10 @@ class ImportSystem(Schema):
     classifiers: List[ImportClassifier] = []
     relations: List[ImportRelation] = []
     interfaces: List[ImportInterface] = []
+    imported_classifiers: List[ImportClassifier] = []
 
 
 class ImportSingleSystem(ImportSystem):
-    imported_classifiers: List[ImportClassifier]
+    """Alias for release import payloads; same fields as ImportSystem."""
+
+    pass

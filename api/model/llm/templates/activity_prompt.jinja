@@ -1,0 +1,5 @@
+{% if current_model is not none and instruction %}
+{% include "activity_refinement_prompt.jinja" %}
+{% else %}
+{% include "activity_baseline_prompt.jinja" %}
+{% endif %}

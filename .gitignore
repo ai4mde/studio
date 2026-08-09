@@ -2,3 +2,13 @@ site/
 docs/backend/build/
 docs/guides/build/
 docs/backend/source/api/
+# Repository root virtualenvs and local secrets (subfolders have their own .gitignore).
+.venv/
+.venv-*
+venv/
+env/
+ENV/
+__pycache__/
+*.pyc
+.env
+.DS_Store
