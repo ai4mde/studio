@@ -4,11 +4,11 @@ from uuid import uuid4
 from django.test import TestCase
 from llm.converter import convert_to_ai4mde
 from metadata.models import (
+    ProvisionalCandidate,
     Project,
     System,
     SystemGenerationArtifacts,
     SystemRevision,
-    create_system_revision,
     get_current_revision,
     get_semantic_sketch_plan,
     get_topology_artifact,
@@ -875,7 +875,9 @@ class ExperimentPipelineCompilerTests(TestCase):
             ]
         }
         semantic_plan = {
-            "root_actions": [{"slot_id": "ROOT_START", "action": "review request"}],
+            "root_actions": [
+                {"slot_id": "ROOT_START", "actions": [{"action": "review request"}]}
+            ],
             "branch_plans": [{"structure_id": "T2", "branch": "retry", "intent": "loop_back", "steps": []}],
         }
         system_id = str(uuid4())
@@ -913,14 +915,27 @@ class ExperimentPipelineCompilerTests(TestCase):
                 pipeline_profile="semantic_deterministic",
             )
 
-        generated_system_id = payload["systems"][0]["system_id"]
+        candidate_entry = payload["candidates"][0]
+        generated_system_id = candidate_entry["system_id"]
+        self.assertTrue(candidate_entry["provisional"])
+        self.assertFalse(System.objects.filter(pk=generated_system_id).exists())
+        self.assertFalse(SystemRevision.objects.filter(system_id=generated_system_id).exists())
+        self.assertTrue(
+            ProvisionalCandidate.objects.filter(pk=candidate_entry["candidate_id"]).exists()
+        )
+
+        from model.experiment_pipeline import select_provisional_candidate
+
+        selected = select_provisional_candidate(candidate_id=candidate_entry["candidate_id"])
+
+        self.assertEqual(selected["system_id"], generated_system_id)
         persisted = SystemGenerationArtifacts.objects.get(system_id=generated_system_id)
         self.assertEqual(persisted.pipeline_profile, "semantic_deterministic")
         self.assertEqual(get_topology_artifact(generated_system_id), topology_artifact)
         self.assertEqual(get_semantic_sketch_plan(generated_system_id), semantic_plan)
         current_revision = get_current_revision(generated_system_id)
         self.assertEqual(current_revision.revision_index, 0)
-        self.assertEqual(current_revision.revision_origin, SystemRevision.REVISION_ORIGIN_AI_REFINEMENT)
+        self.assertEqual(current_revision.revision_origin, SystemRevision.REVISION_ORIGIN_BASELINE)
 
     def test_run_pipeline_supports_direct_semantic_refinement(self):
         current_topology_artifact = {"structures": []}

@@ -13,8 +13,11 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict, List, Literal, Optional
 
+from django.db import transaction
+from django.utils import timezone
 from metadata.api.schemas import ExportSingleSystem
 from metadata.models import (
+    ProvisionalCandidate,
     Project,
     System,
     SystemRevision,
@@ -23,11 +26,16 @@ from metadata.models import (
     get_generation_process_text,
     get_semantic_sketch_plan,
     get_topology_artifact,
+    list_system_revisions,
     persist_semantic_generation_artifacts,
+    set_current_revision,
 )
 
 from llm.baseline_generator import generate_activity_model
 from llm.experimental_compiler import compile_activity_sketch
+from llm.human_edit_synchronizer import (
+    synchronize_persisted_human_edit,
+)
 from llm.refinement_planner import generate_refinement_plan
 from llm.sketch_repair import repair_activity_sketch
 from llm.topology_to_sketch_compiler import compile_topology_and_semantics_to_activity_sketch
@@ -192,6 +200,7 @@ def _persist_semantic_artifacts_if_present(
     )
 
 
+@transaction.atomic
 def _create_revision_snapshot(
     *,
     system_id: str,
@@ -203,6 +212,8 @@ def _create_revision_snapshot(
     semantic_sketch_plan: Optional[Dict[str, Any]] = None,
     refinement_trace: Optional[Dict[str, Any]] = None,
     refinement_instruction: Optional[str] = None,
+    candidate_index: Optional[int] = None,
+    candidate_count: Optional[int] = None,
     revision_origin: str = SystemRevision.REVISION_ORIGIN_BASELINE,
     parent_revision_id: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -216,6 +227,8 @@ def _create_revision_snapshot(
         ai4mde_export=ai4mde_export,
         refinement_trace=refinement_trace,
         refinement_instruction=refinement_instruction,
+        candidate_index=candidate_index,
+        candidate_count=candidate_count,
         revision_origin=revision_origin,
         parent_revision_id=parent_revision_id,
         set_as_current=True,
@@ -233,6 +246,8 @@ def _create_revision_snapshot(
         "revision_index": revision.revision_index,
         "parent_revision_id": str(revision.parent_revision_id) if revision.parent_revision_id else None,
         "revision_origin": revision.revision_origin,
+        "candidate_index": revision.candidate_index,
+        "candidate_count": revision.candidate_count,
     }
 
 
@@ -368,6 +383,7 @@ def run_pipeline(
             refinement_instruction,
         )
     )
+    provisional_candidate_generation = mode == "refinement" and not direct_refinement_requested
 
     if mode == "baseline":
         if use_experimental_compiler:
@@ -475,9 +491,10 @@ def run_pipeline(
             "activity_graph": candidate["clean"],
             "ai4mde": systems_export,
         }
-        if mode == "baseline" and not use_experimental_compiler and debug_bundle is not None:
-            entry["executed_stages"] = debug_bundle.get("executed_stages") or []
-            stage_artifacts = debug_bundle.get("stage_artifacts") or {}
+        candidate_debug_bundle = candidate.get("debug_bundle")
+        if candidate_debug_bundle is not None:
+            entry["executed_stages"] = candidate_debug_bundle.get("executed_stages") or []
+            stage_artifacts = candidate_debug_bundle.get("stage_artifacts") or {}
             if stage_artifacts.get("topology_artifact") is not None:
                 entry["topology_artifact"] = stage_artifacts["topology_artifact"]
             if stage_artifacts.get("semantic_plan") is not None:
@@ -491,34 +508,53 @@ def run_pipeline(
         if candidate.get("refinement_trace") is not None:
             entry["refinement_trace"] = candidate["refinement_trace"]
         try:
-            import_to_ai4mde(project, systems_export)
-            _persist_semantic_artifacts_if_present(
-                system_id=system_json["id"],
-                process_text=process_text,
-                pipeline_profile=pipeline_config["pipeline_profile"],
-                debug_bundle=candidate.get("debug_bundle"),
-            )
             topology_artifact = entry.get("topology_artifact")
             semantic_sketch_plan = entry.get("semantic_sketch_plan")
-            revision_meta = _create_revision_snapshot(
-                system_id=system_json["id"],
-                process_text=process_text,
-                pipeline_profile=pipeline_config["pipeline_profile"],
-                topology_artifact=topology_artifact,
-                semantic_sketch_plan=semantic_sketch_plan,
-                activity_graph=candidate["clean"],
-                ai4mde_export=systems_export,
-                refinement_trace=entry.get("refinement_trace"),
-                refinement_instruction=refinement_instruction if direct_refinement_requested else None,
-                revision_origin=(
-                    SystemRevision.REVISION_ORIGIN_AI_REFINEMENT
-                    if direct_refinement_requested
-                    else SystemRevision.REVISION_ORIGIN_BASELINE
-                ),
-                parent_revision_id=None,
-            )
-            entry.update(revision_meta)
-            entry["current_revision_id"] = revision_meta["revision_id"]
+            if provisional_candidate_generation:
+                candidate_index = len(results) + 1
+                provisional_candidate = ProvisionalCandidate.objects.create(
+                    project=project,
+                    session_id=session_id,
+                    candidate_index=candidate_index,
+                    candidate_count=len(candidate_exports),
+                    process_text=process_text,
+                    pipeline_profile=pipeline_config["pipeline_profile"],
+                    activity_graph=candidate["clean"],
+                    ai4mde_export=systems_export,
+                    topology_artifact=topology_artifact,
+                    semantic_sketch_plan=semantic_sketch_plan,
+                )
+                entry.update(
+                    {
+                        "candidate_id": str(provisional_candidate.id),
+                        "candidate_index": candidate_index,
+                        "candidate_count": len(candidate_exports),
+                        "provisional": True,
+                    }
+                )
+            else:
+                with transaction.atomic():
+                    import_to_ai4mde(project, systems_export)
+                    revision_meta = _create_revision_snapshot(
+                        system_id=system_json["id"],
+                        process_text=process_text,
+                        pipeline_profile=pipeline_config["pipeline_profile"],
+                        topology_artifact=topology_artifact,
+                        semantic_sketch_plan=semantic_sketch_plan,
+                        activity_graph=candidate["clean"],
+                        ai4mde_export=systems_export,
+                        refinement_trace=entry.get("refinement_trace"),
+                        refinement_instruction=refinement_instruction if direct_refinement_requested else None,
+                        revision_origin=(
+                            SystemRevision.REVISION_ORIGIN_AI_REFINEMENT
+                            if direct_refinement_requested
+                            else SystemRevision.REVISION_ORIGIN_BASELINE
+                        ),
+                        parent_revision_id=None,
+                    )
+                entry.update(revision_meta)
+                entry["current_revision_id"] = revision_meta["revision_id"]
+                entry["provisional"] = False
         except Exception as exc:  # noqa: BLE001 — surface any import failure to client
             entry["import_error"] = str(exc)
         results.append(entry)
@@ -526,7 +562,7 @@ def run_pipeline(
         # Keep the exported ids visible to the caller for debugging/UI linkage.
         entry["export_system_id"] = system_json["id"]
         entry["export_name"] = system_json["name"]
-        if entry.get("diagram_id"):
+        if entry.get("diagram_id") and not entry.get("provisional"):
             entry["ui_path"] = f"/diagram/{entry['diagram_id']}"
 
     return {
@@ -538,8 +574,99 @@ def run_pipeline(
         "enable_sketch_review_agent": pipeline_config["enable_sketch_review_agent"],
         "enable_prompted_sketch_repair_agent": pipeline_config["enable_prompted_sketch_repair_agent"],
         "enable_graph_repair_agent": pipeline_config["enable_graph_repair_agent"],
+        "candidates": results if provisional_candidate_generation else [],
         "systems": results,
     }
+
+
+@transaction.atomic
+def select_provisional_candidate(*, candidate_id: str) -> Dict[str, Any]:
+    if not candidate_id or not str(candidate_id).strip():
+        raise ValueError("candidate_id must be non-empty")
+
+    try:
+        candidate_project_id = ProvisionalCandidate.objects.values_list(
+            "project_id", flat=True
+        ).get(pk=candidate_id)
+    except ProvisionalCandidate.DoesNotExist as exc:
+        raise ValueError(f"Provisional candidate {candidate_id!r} does not exist.") from exc
+
+    # All selections within a project serialize on the same stable row.
+    Project.objects.select_for_update().get(pk=candidate_project_id)
+    candidate = ProvisionalCandidate.objects.select_for_update().select_related("project").get(
+        pk=candidate_id
+    )
+    session_candidates = ProvisionalCandidate.objects.filter(
+        project=candidate.project,
+        session_id=candidate.session_id,
+    )
+    selected_candidate = session_candidates.filter(selected_system__isnull=False).first()
+    if selected_candidate is not None:
+        if selected_candidate.id != candidate.id:
+            raise ValueError("a different candidate has already been selected for this session")
+        revision = SystemRevision.objects.filter(
+            system_id=selected_candidate.selected_system_id,
+            revision_index=0,
+            revision_origin=SystemRevision.REVISION_ORIGIN_BASELINE,
+        ).first()
+        if revision is None:
+            raise ValueError("selected candidate is missing its official Revision 0")
+        return _selected_candidate_response(selected_candidate, revision)
+
+    system_json = unwrap_ai4mde_systems_export(candidate.ai4mde_export)
+    import_to_ai4mde(candidate.project, candidate.ai4mde_export)
+    revision_meta = _create_revision_snapshot(
+        system_id=system_json["id"],
+        process_text=candidate.process_text,
+        pipeline_profile=candidate.pipeline_profile,
+        topology_artifact=candidate.topology_artifact,
+        semantic_sketch_plan=candidate.semantic_sketch_plan,
+        activity_graph=candidate.activity_graph,
+        ai4mde_export=candidate.ai4mde_export,
+        candidate_index=candidate.candidate_index,
+        candidate_count=candidate.candidate_count,
+        revision_origin=SystemRevision.REVISION_ORIGIN_BASELINE,
+        parent_revision_id=None,
+    )
+    candidate.selected_system_id = system_json["id"]
+    candidate.selected_at = timezone.now()
+    candidate.save(update_fields=["selected_system", "selected_at"])
+    revision = SystemRevision.objects.get(pk=revision_meta["revision_id"])
+    return _selected_candidate_response(candidate, revision)
+
+
+def _selected_candidate_response(
+    candidate: ProvisionalCandidate,
+    revision: SystemRevision,
+) -> Dict[str, Any]:
+    system_json = unwrap_ai4mde_systems_export(candidate.ai4mde_export)
+    diagrams = system_json.get("diagrams") or []
+    diagram_id = str(diagrams[0].get("id")) if diagrams else None
+    response = {
+        "candidate_id": str(candidate.id),
+        "candidate_index": candidate.candidate_index,
+        "candidate_count": candidate.candidate_count,
+        "session_id": candidate.session_id,
+        "project_id": str(candidate.project_id),
+        "system_id": str(candidate.selected_system_id),
+        "diagram_id": diagram_id,
+        "name": system_json["name"],
+        "process_text": candidate.process_text,
+        "pipeline_profile": candidate.pipeline_profile,
+        "activity_graph": candidate.activity_graph,
+        "topology_artifact": candidate.topology_artifact,
+        "semantic_sketch_plan": candidate.semantic_sketch_plan,
+        "ai4mde": candidate.ai4mde_export,
+        "provisional": False,
+        "current_revision_id": str(revision.id),
+        "revision_id": str(revision.id),
+        "revision_index": revision.revision_index,
+        "revision_origin": revision.revision_origin,
+        "parent_revision_id": None,
+    }
+    if diagram_id:
+        response["ui_path"] = f"/diagram/{diagram_id}"
+    return response
 
 
 def refine_selected_model(
@@ -586,6 +713,14 @@ def refine_selected_model(
         fallback_process_text=process_text,
         fallback_pipeline_profile=pipeline_config["pipeline_profile"],
     )
+    has_human_sync_history = SystemRevision.objects.filter(
+        system=system,
+        revision_origin=SystemRevision.REVISION_ORIGIN_HUMAN_SYNC,
+    ).exists()
+    if has_human_sync_history and pipeline_config["pipeline_profile"] != "semantic_deterministic":
+        raise ValueError(
+            "systems with synchronized human edits require pipeline_profile='semantic_deterministic'"
+        )
     resolved_process_text = str(process_text).strip() if process_text and str(process_text).strip() else None
     if pipeline_config["pipeline_profile"] == "semantic_deterministic":
         if resolved_process_text is None:
@@ -649,20 +784,21 @@ def refine_selected_model(
         }
         artifact_diff = None
 
-    import_to_ai4mde(system.project, refined_export)
-    revision_meta = _create_revision_snapshot(
-        system_id=str(system.id),
-        process_text=resolved_process_text,
-        pipeline_profile=pipeline_config["pipeline_profile"],
-        topology_artifact=updated_artifacts["updated_topology_artifact"],
-        semantic_sketch_plan=updated_artifacts["updated_semantic_sketch_plan"],
-        activity_graph=clean_graph,
-        ai4mde_export=refined_export,
-        refinement_trace=updated_artifacts.get("refinement_trace"),
-        refinement_instruction=refinement_instruction,
-        revision_origin=SystemRevision.REVISION_ORIGIN_AI_REFINEMENT,
-        parent_revision_id=str(source_revision.id) if source_revision is not None else None,
-    )
+    with transaction.atomic():
+        import_to_ai4mde(system.project, refined_export)
+        revision_meta = _create_revision_snapshot(
+            system_id=str(system.id),
+            process_text=resolved_process_text,
+            pipeline_profile=pipeline_config["pipeline_profile"],
+            topology_artifact=updated_artifacts["updated_topology_artifact"],
+            semantic_sketch_plan=updated_artifacts["updated_semantic_sketch_plan"],
+            activity_graph=clean_graph,
+            ai4mde_export=refined_export,
+            refinement_trace=updated_artifacts.get("refinement_trace"),
+            refinement_instruction=refinement_instruction,
+            revision_origin=SystemRevision.REVISION_ORIGIN_AI_REFINEMENT,
+            parent_revision_id=str(source_revision.id) if source_revision is not None else None,
+        )
 
     refined_system_json = unwrap_ai4mde_systems_export(refined_export)
     response = {
@@ -694,3 +830,143 @@ def refine_selected_model(
         response["artifact_diff"] = None
         response["refinement_trace"] = updated_artifacts.get("refinement_trace")
     return response
+
+
+@transaction.atomic
+def restore_revision(*, system_id: str, revision_id: str) -> Dict[str, Any]:
+    if not system_id or not str(system_id).strip():
+        raise ValueError("system_id must be non-empty")
+    if not revision_id or not str(revision_id).strip():
+        raise ValueError("revision_id must be non-empty")
+
+    try:
+        system = System.objects.select_for_update().select_related("project").get(pk=system_id)
+    except System.DoesNotExist as exc:
+        raise ValueError(f"System {system_id!r} does not exist.") from exc
+
+    revisions = {
+        str(revision.id): revision
+        for revision in list_system_revisions(system_id)
+    }
+    revision = revisions.get(str(revision_id))
+    if revision is None:
+        raise ValueError(f"Revision {revision_id!r} does not exist for system {system_id!r}.")
+    import_to_ai4mde(system.project, revision.ai4mde_export)
+    set_current_revision(system_id, revision_id)
+    if revision.topology_artifact is not None and revision.semantic_sketch_plan is not None:
+        persist_semantic_generation_artifacts(
+            system_id=system_id,
+            process_text=revision.process_text,
+            pipeline_profile=revision.pipeline_profile,
+            topology_artifact=revision.topology_artifact,
+            semantic_sketch_plan=revision.semantic_sketch_plan,
+        )
+
+    return {
+        "project_id": str(system.project_id),
+        "system_id": str(system.id),
+        "current_revision_id": str(revision.id),
+        "revision_id": str(revision.id),
+        "revision_index": revision.revision_index,
+        "revision_origin": revision.revision_origin,
+        "parent_revision_id": (
+            str(revision.parent_revision_id) if revision.parent_revision_id else None
+        ),
+        "process_text": revision.process_text,
+        "pipeline_profile": revision.pipeline_profile,
+        "activity_graph": revision.activity_graph,
+        "topology_artifact": revision.topology_artifact,
+        "semantic_sketch_plan": revision.semantic_sketch_plan,
+        "refinement_trace": revision.refinement_trace,
+        "refinement_instruction": revision.refinement_instruction,
+        "ai4mde": revision.ai4mde_export,
+    }
+
+
+def get_system_revisions(system_id: str) -> Dict[str, Any]:
+    if not system_id or not str(system_id).strip():
+        raise ValueError("system_id must be non-empty")
+    revisions = list_system_revisions(system_id)
+    current_revision = get_current_revision(system_id)
+    return {
+        "system_id": system_id,
+        "current_revision_id": str(current_revision.id) if current_revision is not None else None,
+        "revisions": [
+            {
+                "revision_id": str(revision.id),
+                "revision_index": revision.revision_index,
+                "parent_revision_id": (
+                    str(revision.parent_revision_id) if revision.parent_revision_id else None
+                ),
+                "pipeline_profile": revision.pipeline_profile,
+                "revision_origin": revision.revision_origin,
+                "candidate_index": revision.candidate_index,
+                "candidate_count": revision.candidate_count,
+                "refinement_instruction": revision.refinement_instruction,
+                "created_at": revision.created_at.isoformat(),
+                "is_current": bool(current_revision and current_revision.id == revision.id),
+            }
+            for revision in revisions
+        ],
+    }
+
+
+def synchronize_human_edit(*, system_id: str) -> Dict[str, Any]:
+    if not system_id or not str(system_id).strip():
+        raise ValueError("system_id must be non-empty")
+
+    try:
+        system = System.objects.select_related("project").prefetch_related("diagrams").get(pk=system_id)
+    except System.DoesNotExist as exc:
+        raise ValueError(f"System {system_id!r} does not exist.") from exc
+
+    current_revision = get_current_revision(str(system.id))
+    if current_revision is None:
+        raise ValueError("human edit synchronization requires an existing canonical revision")
+    if current_revision.pipeline_profile != "semantic_deterministic":
+        raise ValueError("human edit synchronization currently supports only semantic_deterministic revisions")
+
+    exported_current_model = ExportSingleSystem.model_validate(system).model_dump(mode="json")
+    sync_result = synchronize_persisted_human_edit(
+        exported_current_model,
+        current_revision=current_revision,
+    )
+
+    revision_meta = _create_revision_snapshot(
+        system_id=str(system.id),
+        process_text=current_revision.process_text,
+        pipeline_profile=current_revision.pipeline_profile,
+        topology_artifact=sync_result["topology_artifact"],
+        semantic_sketch_plan=sync_result["semantic_sketch_plan"],
+        activity_graph=sync_result["activity_graph"],
+        ai4mde_export=[exported_current_model],
+        refinement_trace={
+            "event": "human_sync",
+            "source_revision_id": str(current_revision.id),
+        },
+        refinement_instruction=None,
+        revision_origin=SystemRevision.REVISION_ORIGIN_HUMAN_SYNC,
+        parent_revision_id=str(current_revision.id),
+    )
+    artifact_diff = _build_artifact_diff(
+        before_topology_artifact=current_revision.topology_artifact,
+        after_topology_artifact=sync_result["topology_artifact"],
+        before_semantic_sketch_plan=current_revision.semantic_sketch_plan,
+        after_semantic_sketch_plan=sync_result["semantic_sketch_plan"],
+    )
+
+    return {
+        "project_id": str(system.project_id),
+        "system_id": str(system.id),
+        "name": str(system.name),
+        "process_text": current_revision.process_text,
+        "pipeline_profile": current_revision.pipeline_profile,
+        "activity_graph": sync_result["activity_graph"],
+        "topology_artifact": sync_result["topology_artifact"],
+        "semantic_sketch_plan": sync_result["semantic_sketch_plan"],
+        "ai4mde": [exported_current_model],
+        "artifact_diff": artifact_diff,
+        "synchronization_diagnostics": sync_result["diagnostics"],
+        "current_revision_id": revision_meta["revision_id"],
+        **revision_meta,
+    }

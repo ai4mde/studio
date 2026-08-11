@@ -49,6 +49,19 @@ class RefineModelRequest(Schema):
     enable_graph_repair_agent: Optional[bool] = None
 
 
+class RestoreRevisionRequest(Schema):
+    system_id: str
+    revision_id: str
+
+
+class SynchronizeHumanEditRequest(Schema):
+    system_id: str
+
+
+class SelectCandidateRequest(Schema):
+    candidate_id: str
+
+
 class GetTokenSchema(Schema):
     username: str
     password: str
@@ -139,6 +152,80 @@ def refine_model(request, body: RefineModelRequest):
     except Exception as exc:  # noqa: BLE001
         return JsonResponse(
             {"error": "refinement_or_import_failed", "detail": str(exc)},
+            status=502,
+        )
+
+
+@api.post("/select-candidate", tags=["experiments"])
+def select_candidate(request, body: SelectCandidateRequest):
+    from model.experiment_pipeline import select_provisional_candidate
+
+    try:
+        return JsonResponse(
+            select_provisional_candidate(candidate_id=body.candidate_id)
+        )
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": "candidate_selection_failed", "detail": str(exc)},
+            status=502,
+        )
+
+
+@api.get("/system-revisions/{system_id}", auth=None, tags=["experiments"])
+def system_revisions(request, system_id: str):
+    from model.experiment_pipeline import get_system_revisions
+
+    try:
+        return JsonResponse(get_system_revisions(system_id))
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": "revision_history_failed", "detail": str(exc)},
+            status=502,
+        )
+
+
+@api.post("/restore-revision", auth=None, tags=["experiments"])
+def restore_revision(request, body: RestoreRevisionRequest):
+    from model.experiment_pipeline import restore_revision as restore_revision_pipeline
+
+    try:
+        return JsonResponse(
+            restore_revision_pipeline(
+                system_id=body.system_id,
+                revision_id=body.revision_id,
+            )
+        )
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": "restore_revision_failed", "detail": str(exc)},
+            status=502,
+        )
+
+
+@api.post("/synchronize-human-edit", auth=None, tags=["experiments"])
+def synchronize_human_edit(request, body: SynchronizeHumanEditRequest):
+    from llm.human_edit_synchronizer import HumanEditSynchronizationError
+    from model.experiment_pipeline import synchronize_human_edit as synchronize_human_edit_pipeline
+
+    try:
+        return JsonResponse(
+            synchronize_human_edit_pipeline(system_id=body.system_id)
+        )
+    except HumanEditSynchronizationError as exc:
+        payload = {"error": str(exc)}
+        payload.update(exc.diagnostics)
+        return JsonResponse(payload, status=422)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": "synchronize_human_edit_failed", "detail": str(exc)},
             status=502,
         )
 

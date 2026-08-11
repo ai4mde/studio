@@ -183,9 +183,11 @@ class System(ImportMixin):
 
 class SystemRevision(models.Model):
     REVISION_ORIGIN_BASELINE = "baseline"
+    REVISION_ORIGIN_HUMAN_SYNC = "human_sync"
     REVISION_ORIGIN_AI_REFINEMENT = "ai_refinement"
     REVISION_ORIGIN_CHOICES = [
         (REVISION_ORIGIN_BASELINE, "Baseline"),
+        (REVISION_ORIGIN_HUMAN_SYNC, "Human Sync"),
         (REVISION_ORIGIN_AI_REFINEMENT, "AI Refinement"),
     ]
 
@@ -211,6 +213,8 @@ class SystemRevision(models.Model):
     ai4mde_export = models.JSONField()
     refinement_trace = models.JSONField(null=True, blank=True)
     refinement_instruction = models.TextField(null=True, blank=True)
+    candidate_index = models.PositiveIntegerField(null=True, blank=True)
+    candidate_count = models.PositiveIntegerField(null=True, blank=True)
     revision_origin = models.CharField(
         max_length=32,
         choices=REVISION_ORIGIN_CHOICES,
@@ -224,6 +228,42 @@ class SystemRevision(models.Model):
             models.UniqueConstraint(
                 fields=["system", "revision_index"],
                 name="unique_revision_index_per_system",
+            ),
+        ]
+
+
+class ProvisionalCandidate(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="provisional_candidates",
+    )
+    session_id = models.CharField(max_length=64)
+    candidate_index = models.PositiveIntegerField()
+    candidate_count = models.PositiveIntegerField()
+    process_text = models.TextField()
+    pipeline_profile = models.CharField(max_length=64)
+    activity_graph = models.JSONField()
+    ai4mde_export = models.JSONField()
+    topology_artifact = models.JSONField(null=True, blank=True)
+    semantic_sketch_plan = models.JSONField(null=True, blank=True)
+    selected_system = models.OneToOneField(
+        System,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="selected_provisional_candidate",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    selected_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["candidate_index"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["project", "session_id", "candidate_index"],
+                name="unique_provisional_candidate_per_session_index",
             ),
         ]
 
@@ -353,6 +393,8 @@ def create_system_revision(
     semantic_sketch_plan: Optional[dict[str, Any]] = None,
     refinement_trace: Optional[dict[str, Any]] = None,
     refinement_instruction: Optional[str] = None,
+    candidate_index: Optional[int] = None,
+    candidate_count: Optional[int] = None,
     revision_origin: str = SystemRevision.REVISION_ORIGIN_BASELINE,
     parent_revision_id: Optional[str] = None,
     set_as_current: bool = True,
@@ -371,6 +413,8 @@ def create_system_revision(
         ai4mde_export=ai4mde_export,
         refinement_trace=refinement_trace,
         refinement_instruction=refinement_instruction,
+        candidate_index=candidate_index,
+        candidate_count=candidate_count,
         revision_origin=revision_origin,
     )
     if set_as_current:
@@ -440,6 +484,21 @@ def get_current_revision(
         fallback_process_text=fallback_process_text,
         fallback_pipeline_profile=fallback_pipeline_profile,
     )
+
+
+def list_system_revisions(system_id: str) -> list[SystemRevision]:
+    get_current_revision(system_id)
+    return list(
+        SystemRevision.objects.filter(system_id=system_id).order_by("revision_index", "created_at")
+    )
+
+
+def set_current_revision(system_id: str, revision_id: str) -> SystemRevision:
+    revision = SystemRevision.objects.select_related("system").get(pk=revision_id, system_id=system_id)
+    system = revision.system
+    system.current_revision = revision
+    system.save(update_fields=["current_revision"])
+    return revision
 
 
 def get_topology_artifact(system_id: str) -> Optional[dict[str, Any]]:
