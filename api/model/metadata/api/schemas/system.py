@@ -67,7 +67,7 @@ class ExportSystem(ModelSchema):
 
     class Meta:
         model = System
-        fields = "__all__"
+        fields = ["id", "name", "description", "project"]
 
     @staticmethod
     def resolve_diagrams(obj):

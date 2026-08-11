@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from diagram.api import diagram_router
 from django.http import HttpResponse, JsonResponse
@@ -7,7 +7,7 @@ from metadata.api import metadata_router
 from ninja import NinjaAPI, Schema
 from prose.api import prose_router
 
-from model.auth import auth, create_token, resolve_request_user
+from model.auth import auth, create_token
 
 api = NinjaAPI(
     title="AI4MDE Studio",
@@ -28,6 +28,9 @@ class GenerateModelRequest(Schema):
     project_id: Optional[str] = None
     pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "semantic_deterministic"
     response_mode: Literal["full", "summary"] = "full"
+    current_topology_artifact: Optional[dict[str, Any]] = None
+    current_semantic_sketch_plan: Optional[dict[str, Any]] = None
+    instruction: Optional[str] = None
     use_experimental_compiler: bool = False
     enable_sketch_review_agent: Optional[bool] = None
     enable_prompted_sketch_repair_agent: Optional[bool] = None
@@ -35,10 +38,12 @@ class GenerateModelRequest(Schema):
 
 
 class RefineModelRequest(Schema):
-    process_text: str
-    selected_system_id: str
-    refinement_instruction: str
-    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "stable"
+    process_text: Optional[str] = None
+    selected_system_id: Optional[str] = None
+    refinement_instruction: Optional[str] = None
+    system_id: Optional[str] = None
+    instruction: Optional[str] = None
+    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents", "semantic_deterministic"] = "semantic_deterministic"
     enable_sketch_review_agent: Optional[bool] = None
     enable_prompted_sketch_repair_agent: Optional[bool] = None
     enable_graph_repair_agent: Optional[bool] = None
@@ -82,6 +87,9 @@ def generate_model(request, body: GenerateModelRequest):
             body.mode,
             project_id=body.project_id,
             pipeline_profile=body.pipeline_profile,
+            current_topology_artifact=body.current_topology_artifact,
+            current_semantic_sketch_plan=body.current_semantic_sketch_plan,
+            refinement_instruction=body.instruction,
             use_experimental_compiler=body.use_experimental_compiler,
             enable_sketch_review_agent=body.enable_sketch_review_agent,
             enable_prompted_sketch_repair_agent=body.enable_prompted_sketch_repair_agent,
@@ -118,8 +126,8 @@ def refine_model(request, body: RefineModelRequest):
         return JsonResponse(
             refine_selected_model(
                 body.process_text,
-                selected_system_id=body.selected_system_id,
-                refinement_instruction=body.refinement_instruction,
+                selected_system_id=body.selected_system_id or body.system_id,
+                refinement_instruction=body.refinement_instruction or body.instruction,
                 pipeline_profile=body.pipeline_profile,
                 enable_sketch_review_agent=body.enable_sketch_review_agent,
                 enable_prompted_sketch_repair_agent=body.enable_prompted_sketch_repair_agent,
@@ -142,9 +150,9 @@ def logout(request):
     return resp
 
 
-@api.get("/auth/status", auth=None, tags=["authentication"])
+@api.get("/auth/status", tags=["authentication"])
 def get_auth(request):
-    user = resolve_request_user(request)
+    user = request.auth
     if user:
         return JsonResponse(
             {
