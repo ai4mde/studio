@@ -399,7 +399,7 @@ def create_system_revision(
     parent_revision_id: Optional[str] = None,
     set_as_current: bool = True,
 ) -> SystemRevision:
-    system = System.objects.select_related("current_revision").get(pk=system_id)
+    system = System.objects.select_for_update().get(pk=system_id)
     max_index = system.revisions.aggregate(max_revision_index=Max("revision_index"))["max_revision_index"]
     revision = SystemRevision.objects.create(
         system=system,

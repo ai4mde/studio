@@ -1,4 +1,4 @@
-import { ListPipelines } from "$lib/features/ai/components/ListPipelines";
+import { InitialGenerationFlow } from "$lib/features/ai/components/InitialGenerationFlow";
 import { Steps } from "$lib/features/ai/components/Steps";
 import React from "react";
 
@@ -18,7 +18,7 @@ export const BuildIndex: React.FC<Props> = () => {
                     <Steps step={1} />
                 </div>
             </div>
-            <ListPipelines />
+            <InitialGenerationFlow />
         </div>
     );
 };

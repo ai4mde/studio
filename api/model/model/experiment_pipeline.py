@@ -10,6 +10,7 @@ Session model
   same project; this module only handles the initial candidate generation step.
 """
 from __future__ import annotations
+from copy import deepcopy
 import uuid
 from typing import Any, Dict, List, Literal, Optional
 
@@ -580,7 +581,11 @@ def run_pipeline(
 
 
 @transaction.atomic
-def select_provisional_candidate(*, candidate_id: str) -> Dict[str, Any]:
+def select_provisional_candidate(
+    *,
+    candidate_id: str,
+    node_positions: Optional[Dict[str, Dict[str, int]]] = None,
+) -> Dict[str, Any]:
     if not candidate_id or not str(candidate_id).strip():
         raise ValueError("candidate_id must be non-empty")
 
@@ -613,8 +618,12 @@ def select_provisional_candidate(*, candidate_id: str) -> Dict[str, Any]:
             raise ValueError("selected candidate is missing its official Revision 0")
         return _selected_candidate_response(selected_candidate, revision)
 
-    system_json = unwrap_ai4mde_systems_export(candidate.ai4mde_export)
-    import_to_ai4mde(candidate.project, candidate.ai4mde_export)
+    selected_export = _apply_candidate_node_positions(
+        candidate.ai4mde_export,
+        node_positions,
+    )
+    system_json = unwrap_ai4mde_systems_export(selected_export)
+    import_to_ai4mde(candidate.project, selected_export)
     revision_meta = _create_revision_snapshot(
         system_id=system_json["id"],
         process_text=candidate.process_text,
@@ -622,17 +631,47 @@ def select_provisional_candidate(*, candidate_id: str) -> Dict[str, Any]:
         topology_artifact=candidate.topology_artifact,
         semantic_sketch_plan=candidate.semantic_sketch_plan,
         activity_graph=candidate.activity_graph,
-        ai4mde_export=candidate.ai4mde_export,
+        ai4mde_export=selected_export,
         candidate_index=candidate.candidate_index,
         candidate_count=candidate.candidate_count,
         revision_origin=SystemRevision.REVISION_ORIGIN_BASELINE,
         parent_revision_id=None,
     )
+    candidate.ai4mde_export = selected_export
     candidate.selected_system_id = system_json["id"]
     candidate.selected_at = timezone.now()
-    candidate.save(update_fields=["selected_system", "selected_at"])
+    candidate.save(update_fields=["ai4mde_export", "selected_system", "selected_at"])
     revision = SystemRevision.objects.get(pk=revision_meta["revision_id"])
     return _selected_candidate_response(candidate, revision)
+
+
+def _apply_candidate_node_positions(
+    ai4mde_export: List[Dict[str, Any]] | Dict[str, Any],
+    node_positions: Optional[Dict[str, Dict[str, int]]],
+) -> List[Dict[str, Any]] | Dict[str, Any]:
+    if not node_positions:
+        return ai4mde_export
+
+    arranged_export = deepcopy(ai4mde_export)
+    system_json = unwrap_ai4mde_systems_export(arranged_export)
+    exported_nodes = {
+        str(node["id"]): node
+        for diagram in system_json.get("diagrams") or []
+        for node in diagram.get("nodes") or []
+    }
+    unknown_node_ids = sorted(set(node_positions) - set(exported_nodes))
+    if unknown_node_ids:
+        raise ValueError(
+            "candidate layout references unknown node ids: "
+            + ", ".join(unknown_node_ids)
+        )
+
+    for node_id, position in node_positions.items():
+        exported_nodes[node_id].setdefault("data", {})["position"] = {
+            "x": int(position["x"]),
+            "y": int(position["y"]),
+        }
+    return arranged_export
 
 
 def _selected_candidate_response(
@@ -888,8 +927,10 @@ def get_system_revisions(system_id: str) -> Dict[str, Any]:
         raise ValueError("system_id must be non-empty")
     revisions = list_system_revisions(system_id)
     current_revision = get_current_revision(system_id)
+    original_revision = revisions[0] if revisions else None
     return {
         "system_id": system_id,
+        "process_text": original_revision.process_text if original_revision is not None else None,
         "current_revision_id": str(current_revision.id) if current_revision is not None else None,
         "revisions": [
             {

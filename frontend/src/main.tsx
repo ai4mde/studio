@@ -10,8 +10,12 @@ import { BrowserRouter as Router, useRoutes } from "react-router-dom";
 import * as Sentry from "@sentry/browser";
 
 import routes from "~react-pages";
+import "reactflow/dist/style.css";
 import "./index.css";
 import { useAuthEffect } from "$auth/hooks/authEffect";
+import { installEditorPersistenceTracking } from "$diagram/editorPersistence";
+
+installEditorPersistenceTracking();
 
 Sentry.init({
     dsn: import.meta.env.AI4MDE_SENTRY_DSN,

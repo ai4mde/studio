@@ -1,9 +1,11 @@
 import { authAxios } from "$auth/state/auth";
+import { HitlCandidateWorkflow } from "$lib/features/ai/components/HitlCandidateWorkflow";
 import { AddToDiagram } from "$lib/features/ai/components/AddToDiagram";
 import { RunModel } from "$lib/features/ai/components/RunModel";
 import { SelectModel } from "$lib/features/ai/components/SelectModel";
 import { Steps } from "$lib/features/ai/components/Steps";
 import { UploadRequirements } from "$lib/features/ai/components/UploadRequirements";
+import { clearHitlPipeline, isHitlPipeline } from "$lib/features/ai/hitlStorage";
 import { usePipeline } from "$lib/features/ai/queries";
 import { Button, IconButton, LinearProgress } from "@mui/joy";
 import { useMutation } from "@tanstack/react-query";
@@ -20,6 +22,7 @@ export const PipelineIndex: React.FC<Props> = () => {
     const deletePipeline = useMutation({
         mutationFn: async () => {
             await authAxios.delete(`/v1/prose/pipelines/${pipelineId}/`);
+            clearHitlPipeline(pipelineId ?? "");
             navigate("/build/");
         },
     });
@@ -31,6 +34,25 @@ export const PipelineIndex: React.FC<Props> = () => {
     if (!isSuccess) {
         return <LinearProgress />;
     }
+
+    const hitlWorkflow = isHitlPipeline(data.id);
+    const currentStep = hitlWorkflow && data.step >= 3 ? 3 : data.step;
+
+    const workflow = hitlWorkflow ? (
+        data.step < 3 ? (
+            <UploadRequirements pipeline={data} />
+        ) : (
+            <HitlCandidateWorkflow pipeline={data} />
+        )
+    ) : data.step < 3 ? (
+        <UploadRequirements pipeline={data} />
+    ) : data.step === 3 ? (
+        <SelectModel pipeline={data} />
+    ) : data.step === 4 ? (
+        <RunModel pipeline={data} />
+    ) : (
+        <AddToDiagram pipeline={data} />
+    );
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-4">
@@ -59,13 +81,10 @@ export const PipelineIndex: React.FC<Props> = () => {
 
             <div className="w-full rounded-md bg-gray-100 p-4">
                 <div className="p-1">
-                    <Steps step={data.step} />
+                    <Steps step={currentStep} variant={hitlWorkflow ? "hitl" : "legacy"} />
                 </div>
             </div>
-            {data.step < 3 && <UploadRequirements pipeline={data} />}
-            {data.step == 3 && <SelectModel pipeline={data} />}
-            {data.step == 4 && <RunModel pipeline={data} />}
-            {data.step == 5 && <AddToDiagram pipeline={data} />}
+            {workflow}
         </div>
     );
 };

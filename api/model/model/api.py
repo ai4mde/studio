@@ -58,8 +58,14 @@ class SynchronizeHumanEditRequest(Schema):
     system_id: str
 
 
+class CandidateNodePosition(Schema):
+    x: int
+    y: int
+
+
 class SelectCandidateRequest(Schema):
     candidate_id: str
+    node_positions: Optional[dict[str, CandidateNodePosition]] = None
 
 
 class GetTokenSchema(Schema):
@@ -162,7 +168,17 @@ def select_candidate(request, body: SelectCandidateRequest):
 
     try:
         return JsonResponse(
-            select_provisional_candidate(candidate_id=body.candidate_id)
+            select_provisional_candidate(
+                candidate_id=body.candidate_id,
+                node_positions=(
+                    {
+                        node_id: position.model_dump()
+                        for node_id, position in body.node_positions.items()
+                    }
+                    if body.node_positions is not None
+                    else None
+                ),
+            )
         )
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)

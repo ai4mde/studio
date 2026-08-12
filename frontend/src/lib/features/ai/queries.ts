@@ -1,6 +1,6 @@
 import { authAxios } from "$auth/state/auth";
 import { useQuery } from "@tanstack/react-query";
-import { Pipeline } from "./types";
+import { HitlRevisionHistoryResponse, Pipeline } from "./types";
 
 export const usePipelines = () =>
     useQuery({
@@ -21,4 +21,16 @@ export const usePipeline = (pipelineId?: string) =>
             return res.data;
         },
         enabled: !!pipelineId,
+    });
+
+export const useSystemRevisions = (systemId?: string) =>
+    useQuery({
+        queryKey: ["system-revisions", systemId],
+        queryFn: async () => {
+            const res = await authAxios.get<HitlRevisionHistoryResponse>(
+                `/v1/system-revisions/${systemId}`,
+            );
+            return res.data;
+        },
+        enabled: !!systemId,
     });

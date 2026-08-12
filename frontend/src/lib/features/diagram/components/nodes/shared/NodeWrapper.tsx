@@ -9,11 +9,56 @@ const NodeWrapper: React.FC<{
     node: NodeProps;
 }> = ({ node, children, selected }) => {
     const { connecting } = useDiagramStore();
+    const isPreview = node.data?._preview === true;
 
     const nodeName = node.type.charAt(0)?.toUpperCase() + node.type.slice(1);
 
-    if (node.data?._preview) {
-        return <div className="relative z-0">{children}</div>;
+    const handles = (
+        <>
+            <Handle
+                type="source"
+                id="glob"
+                style={{
+                    width: "auto",
+                    height: "auto",
+                    position: "fixed",
+                    inset: "0",
+                    transform: "none",
+                    borderRadius: "none",
+                    background: "none",
+                    border: "none",
+                    pointerEvents: isPreview ? "none" : undefined,
+                    zIndex: connecting ? -10 : 0,
+                }}
+                position={Position.Top}
+            />
+            <Handle
+                type="target"
+                id="glob"
+                style={{
+                    width: "auto",
+                    height: "auto",
+                    position: "fixed",
+                    inset: "0",
+                    transform: "none",
+                    borderRadius: "0",
+                    background: "none",
+                    border: "none",
+                    pointerEvents: isPreview ? "none" : undefined,
+                    zIndex: connecting ? 10 : -10,
+                }}
+                position={Position.Top}
+            />
+        </>
+    );
+
+    if (isPreview) {
+        return (
+            <div className="relative z-0">
+                {handles}
+                {children}
+            </div>
+        );
     }
 
     return (
@@ -27,38 +72,7 @@ const NodeWrapper: React.FC<{
                     .filter(Boolean)
                     .join(" ")}
             >
-                <Handle
-                    type="source"
-                    id="glob"
-                    style={{
-                        width: "auto",
-                        height: "auto",
-                        position: "fixed",
-                        inset: "0",
-                        transform: "none",
-                        borderRadius: "none",
-                        background: "none",
-                        border: "none",
-                        zIndex: connecting ? -10 : 0,
-                    }}
-                    position={Position.Top}
-                />
-                <Handle
-                    type="target"
-                    id="glob"
-                    style={{
-                        width: "auto",
-                        height: "auto",
-                        position: "fixed",
-                        inset: "0",
-                        transform: "none",
-                        borderRadius: "0",
-                        background: "none",
-                        border: "none",
-                        zIndex: connecting ? 10 : -10,
-                    }}
-                    position={Position.Top}
-                />
+                {handles}
                 <div className="relative z-0">{children}</div>
             </div>
         </Tooltip>

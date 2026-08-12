@@ -3,9 +3,26 @@ import React from "react";
 
 type Props = {
     step: number;
+    variant?: "hitl" | "legacy";
 };
 
-export const Steps: React.FC<Props> = ({ step }) => {
+export const Steps: React.FC<Props> = ({ step, variant = "hitl" }) => {
+    const labels =
+        variant === "hitl"
+            ? [
+                  "Select workflow",
+                  "Enter process text",
+                  "Generate candidates",
+                  "Select candidate",
+                  "Edit and refine",
+              ]
+            : [
+                  "Select pipeline",
+                  "Upload requirements",
+                  "Select model",
+                  "Run model",
+                  "Add to diagram",
+              ];
     return (
         <Stepper>
             <Step
@@ -24,7 +41,7 @@ export const Steps: React.FC<Props> = ({ step }) => {
                     </StepIndicator>
                 }
             >
-                Select pipeline
+                {labels[0]}
             </Step>
             <Step
                 indicator={
@@ -42,7 +59,7 @@ export const Steps: React.FC<Props> = ({ step }) => {
                     </StepIndicator>
                 }
             >
-                Upload requirements
+                {labels[1]}
             </Step>
             <Step
                 indicator={
@@ -60,7 +77,7 @@ export const Steps: React.FC<Props> = ({ step }) => {
                     </StepIndicator>
                 }
             >
-                Select model
+                {labels[2]}
             </Step>
             <Step
                 indicator={
@@ -78,7 +95,7 @@ export const Steps: React.FC<Props> = ({ step }) => {
                     </StepIndicator>
                 }
             >
-                Run model
+                {labels[3]}
             </Step>
             <Step
                 indicator={
@@ -96,7 +113,7 @@ export const Steps: React.FC<Props> = ({ step }) => {
                     </StepIndicator>
                 }
             >
-                Add to diagram
+                {labels[4]}
             </Step>
         </Stepper>
     );

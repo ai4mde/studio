@@ -16,6 +16,7 @@ from metadata.models import (
     create_system_revision,
 )
 from model.experiment_pipeline import (
+    get_system_revisions,
     import_to_ai4mde,
     refine_selected_model,
     restore_revision,
@@ -131,8 +132,20 @@ class CandidateSelectionContractTests(TestCase):
         revision = SystemRevision.objects.get()
         self.assertEqual(revision.revision_index, 0)
         self.assertEqual(revision.revision_origin, SystemRevision.REVISION_ORIGIN_BASELINE)
+        self.assertEqual(revision.process_text, PROCESS_TEXT)
+        self.assertEqual(revision.topology_artifact, TOPOLOGY)
+        self.assertEqual(
+            revision.semantic_sketch_plan,
+            generated[1]["debug_bundle"]["stage_artifacts"]["semantic_plan"],
+        )
+        self.assertEqual(revision.activity_graph, generated[1]["clean"])
+        self.assertEqual(revision.ai4mde_export, generated[1]["ai4mde"])
         self.assertEqual(revision.candidate_index, 2)
         self.assertEqual(revision.candidate_count, 3)
+        self.assertEqual(
+            System.objects.get(pk=selected["system_id"]).current_revision_id,
+            revision.id,
+        )
         self.assertEqual(selected["candidate_index"], 2)
         self.assertEqual(selected["candidate_count"], 3)
         self.assertEqual(
@@ -168,6 +181,169 @@ class CandidateSelectionContractTests(TestCase):
 
         with self.assertRaisesMessage(ValueError, "a different candidate has already been selected"):
             select_provisional_candidate(candidate_id=payload["candidates"][0]["candidate_id"])
+
+    def test_selected_candidate_can_be_refined_immediately_without_human_sync(self):
+        generated = [_candidate(self.project, index) for index in range(1, 4)]
+        with patch(
+            "model.experiment_pipeline.generate_and_convert_candidates",
+            return_value=generated,
+        ):
+            payload = run_pipeline(
+                PROCESS_TEXT,
+                "refinement",
+                project_id=str(self.project.id),
+                pipeline_profile="semantic_deterministic",
+            )
+
+        selected = select_provisional_candidate(
+            candidate_id=payload["candidates"][1]["candidate_id"]
+        )
+        baseline = SystemRevision.objects.get(
+            system_id=selected["system_id"],
+            revision_index=0,
+        )
+        updated_graph = {
+            **baseline.activity_graph,
+            "nodes": [dict(node) for node in baseline.activity_graph["nodes"]],
+            "edges": [dict(edge) for edge in baseline.activity_graph["edges"]],
+        }
+        updated_graph["nodes"][2]["name"] = "approve request"
+        updated_semantics = {
+            "root_actions": [
+                {
+                    "slot_id": "ROOT_START",
+                    "actions": [
+                        {"action": "receive request"},
+                        {"action": "approve request"},
+                        {"action": "archive request"},
+                    ],
+                }
+            ],
+            "branch_plans": [],
+        }
+        refinement_result = {
+            "artifact_diff": {},
+            "updated_artifacts": {
+                "updated_topology_artifact": TOPOLOGY,
+                "updated_semantic_sketch_plan": updated_semantics,
+                "refinement_trace": {"user_instruction": "approve the request"},
+            },
+            "clean_graph": updated_graph,
+        }
+
+        with patch(
+            "model.experiment_pipeline._run_semantic_refinement_from_artifacts",
+            return_value=refinement_result,
+        ) as semantic_refine:
+            refined = refine_selected_model(
+                None,
+                selected_system_id=selected["system_id"],
+                refinement_instruction="approve the request",
+            )
+
+        semantic_refine.assert_called_once_with(
+            PROCESS_TEXT,
+            current_topology_artifact=baseline.topology_artifact,
+            current_semantic_sketch_plan=baseline.semantic_sketch_plan,
+            refinement_instruction="approve the request",
+        )
+        self.assertEqual(
+            refined["revision_origin"],
+            SystemRevision.REVISION_ORIGIN_AI_REFINEMENT,
+        )
+        self.assertEqual(refined["parent_revision_id"], str(baseline.id))
+        self.assertEqual(
+            SystemRevision.objects.filter(
+                system_id=selected["system_id"],
+                revision_origin=SystemRevision.REVISION_ORIGIN_HUMAN_SYNC,
+            ).count(),
+            0,
+        )
+
+    def test_selected_candidate_layout_is_persisted_in_baseline_revision(self):
+        generated = [_candidate(self.project, index) for index in range(1, 4)]
+        with patch(
+            "model.experiment_pipeline.generate_and_convert_candidates",
+            return_value=generated,
+        ):
+            payload = run_pipeline(
+                PROCESS_TEXT,
+                "refinement",
+                project_id=str(self.project.id),
+                pipeline_profile="semantic_deterministic",
+            )
+
+        selected_candidate = generated[1]
+        exported_system = selected_candidate["ai4mde"][0]
+        exported_nodes = exported_system["diagrams"][0]["nodes"]
+        arranged_positions = {
+            str(node["id"]): {"x": 120 + index * 80, "y": 90 + index * 60}
+            for index, node in enumerate(exported_nodes)
+        }
+
+        selected = select_provisional_candidate(
+            candidate_id=payload["candidates"][1]["candidate_id"],
+            node_positions=arranged_positions,
+        )
+
+        revision = SystemRevision.objects.get(
+            system_id=selected["system_id"],
+            revision_index=0,
+        )
+        revision_nodes = revision.ai4mde_export[0]["diagrams"][0]["nodes"]
+        self.assertEqual(
+            {
+                str(node["id"]): node["data"]["position"]
+                for node in revision_nodes
+            },
+            arranged_positions,
+        )
+        official_nodes = System.objects.get(pk=selected["system_id"]).diagrams.get(
+            type="activity"
+        ).nodes.all()
+        self.assertEqual(
+            {str(node.id): node.data["position"] for node in official_nodes},
+            arranged_positions,
+        )
+        self.assertEqual(revision.revision_origin, SystemRevision.REVISION_ORIGIN_BASELINE)
+        self.assertEqual(revision.activity_graph, selected_candidate["clean"])
+        self.assertEqual(revision.topology_artifact, TOPOLOGY)
+        self.assertEqual(
+            revision.semantic_sketch_plan,
+            selected_candidate["debug_bundle"]["stage_artifacts"]["semantic_plan"],
+        )
+        self.assertEqual(SystemRevision.objects.filter(system_id=selected["system_id"]).count(), 1)
+        self.assertFalse(
+            SystemRevision.objects.filter(
+                system_id=selected["system_id"],
+                revision_origin=SystemRevision.REVISION_ORIGIN_HUMAN_SYNC,
+            ).exists()
+        )
+
+    def test_candidate_layout_rejects_unknown_nodes_before_promotion(self):
+        generated = [_candidate(self.project, index) for index in range(1, 4)]
+        with patch(
+            "model.experiment_pipeline.generate_and_convert_candidates",
+            return_value=generated,
+        ):
+            payload = run_pipeline(
+                PROCESS_TEXT,
+                "refinement",
+                project_id=str(self.project.id),
+                pipeline_profile="semantic_deterministic",
+            )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "candidate layout references unknown node ids",
+        ):
+            select_provisional_candidate(
+                candidate_id=payload["candidates"][1]["candidate_id"],
+                node_positions={str(uuid4()): {"x": 10, "y": 20}},
+            )
+
+        self.assertEqual(System.objects.filter(project=self.project).count(), 0)
+        self.assertEqual(SystemRevision.objects.count(), 0)
 
 
 class CandidateSelectionConcurrencyTests(TransactionTestCase):
@@ -255,6 +431,13 @@ class HitlRevisionFlowTests(TestCase):
             ai4mde_export=self.exported,
             revision_origin=SystemRevision.REVISION_ORIGIN_BASELINE,
         )
+
+    def test_revision_history_exposes_original_process_text(self):
+        synchronize_human_edit(system_id=self.system_id)
+
+        history = get_system_revisions(self.system_id)
+
+        self.assertEqual(history["process_text"], PROCESS_TEXT)
 
     def test_synchronize_human_edit_endpoint_creates_human_sync_revision(self):
         action_classifier = System.objects.get(pk=self.system_id).classifiers.get(
