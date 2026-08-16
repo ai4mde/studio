@@ -1,0 +1,8 @@
+sentence-transformers==5.7.0
+torch==2.13.0
+transformers==5.15.0
+numpy==2.5.2
+scipy==1.18.0
+spacy==3.8.14
+nltk==3.10.0
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl

@@ -1,0 +1,44 @@
+{
+  "purpose": "Diagnostic regression on the frozen final untouched sample; human annotations were not changed or used for tuning",
+  "historical_inputs": {
+    "raw_results_sha256": "081f021482c40f30941a12541f97cd11989477735b170551672f52fcf0285931",
+    "manual_review_sha256": "887ab0113a28487a4ab06ac469be3097a24068fdfe9b1381a4ef5a95928c67c6"
+  },
+  "matcher_sha256": "ab604fafbd51b679af7c1fb6de1c96302c07bc9c08a1051b89f3e800b8e3dde7",
+  "temporary_regression_raw_results_sha256": "63f789b2f1fa5876e278f84120e439159893ca12d61609cf0e1acc09cd4de83e",
+  "comparison": {
+    "correct_matches_before": 33,
+    "correct_matches_after": 33,
+    "false_matches_before": 14,
+    "false_matches_after": 10,
+    "missed_true_matches_before": 9,
+    "missed_true_matches_after": 9,
+    "unmatched_reference_before": 15,
+    "unmatched_reference_after": 19,
+    "unmatched_generated_before": 17,
+    "unmatched_generated_after": 21,
+    "unresolved_components_after": 1,
+    "topology_decisions_before": 5,
+    "topology_decisions_after": 5
+  },
+  "removed_false_correspondences": [
+    ["2-1", "2120553610", "n27"],
+    ["2-1", "2120553642", "n23"],
+    ["2-1", "2120553653", "n24"],
+    ["2-1", "2120553794", "n28"]
+  ],
+  "unresolved_component": {
+    "case_id": "2-1",
+    "reference_nodes": [
+      "2120553590",
+      "2120553606",
+      "2120553610",
+      "2120553632",
+      "2120553642",
+      "2120553653",
+      "2120553794"
+    ],
+    "generated_nodes": ["n23", "n24", "n27", "n28"],
+    "reason": "multiple_numerically_equivalent_optimal_assignments"
+  }
+}

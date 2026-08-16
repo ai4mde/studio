@@ -1,0 +1,5 @@
+case_id,reference_id,reference_label,generated_id,generated_label,cosine_similarity,reason
+10-7,16734412,registration,n1,mspn registers the measurement at the go,0.2195189,Nominal registration and verbal registers are equivalent in context but fall below 0.44.
+10-7,16734397,examination,n2,go examines the application of the mspn,0.1550567,Nominal examination and verbal examines are equivalent in context but fall below 0.44.
+10-7,16734401,rejection of registration,n10,go rejects the application of the mspn,0.27853218,Nominal rejection and verbal rejects are equivalent in context but fall below 0.44.
+10-7,16734403,confirmation of registration,n11,go confirms the application of the mspn,0.2922532,Nominal confirmation and verbal confirms are equivalent in context but fall below 0.44.

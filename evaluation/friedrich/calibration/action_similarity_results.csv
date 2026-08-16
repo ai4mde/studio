@@ -1,0 +1,30 @@
+pair_id,case_id,reference_label,generated_label,reference_normalized,generated_normalized,annotation_category,cosine_similarity,predicted_category,classification_outcome
+P001,6-2,Process Order,process order,process order,process order,equivalent,1.0,equivalent,tp
+P002,6-2,Send Invoice,send invoice,send invoice,send invoice,equivalent,1.0,equivalent,tp
+P003,6-2,Receive Invoice,receive invoice,receive invoice,receive invoice,equivalent,1.0,equivalent,tp
+P004,5-2,Approve Vacation Request,approve request,approve vacation request,approve request,equivalent,0.64694583,equivalent,tp
+P005,3-3,Register Claim,register claim,register claim,register claim,equivalent,1.0,equivalent,tp
+P006,3-3,Examine Claim,examine claim,examine claim,examine claim,equivalent,1.00000012,equivalent,tp
+P007,3-3,Write Recommendation,write settlement recommendation,write recommendation,write settlement recommendation,equivalent,0.45036453,equivalent,tp
+P008,6-3,"Determine Parts, Amounts and Delivery Date",determine necessary parts and quantities,determine parts amounts and delivery date,determine necessary parts and quantities,equivalent,0.57619625,equivalent,tp
+P009,6-3,Transfer Data to PPS,enter data into PPS,transfer data to pps,enter data into pps,equivalent,0.82278848,equivalent,tp
+P010,6-3,Procure Parts,procure missing parts,procure parts,procure missing parts,equivalent,0.82412428,equivalent,tp
+P011,9-6,Locate and Re-use Designs,locate and distribute relevant existing designs,locate and re use designs,locate and distribute relevant existing designs,equivalent,0.7994988,equivalent,tp
+P012,9-6,Update Electrical Design,revise electrical design,update electrical design,revise electrical design,equivalent,0.80936038,equivalent,tp
+P013,9-6,Test Electrical Design,test revised electrical design,test electrical design,test revised electrical design,equivalent,0.84386027,equivalent,tp
+P014,9-6,Update Physical Design,revise physical design,update physical design,revise physical design,equivalent,0.83395916,equivalent,tp
+P015,9-6,Test Physical Design,test revised physical design,test physical design,test revised physical design,equivalent,0.81745982,equivalent,tp
+P016,4-1,Create patient file,create patient file for new patients,create patient file,create patient file for new patients,equivalent,0.94019049,equivalent,tp
+P017,9-5,Create Account,create new account if employee does not have one,create account,create new account if employee does not have one,equivalent,0.67349786,equivalent,tp
+P018,6-2,Send Invoice,receive invoice,send invoice,receive invoice,different,0.91661161,equivalent,fp
+P019,5-2,Approve Vacation Request,reject request,approve vacation request,reject request,different,0.42260495,different,tn
+P020,3-3,Check Recommendation,revise settlement recommendation,check recommendation,revise settlement recommendation,different,0.26748541,different,tn
+P021,6-3,Transfer Data to PPS,recheck order quality,transfer data to pps,recheck order quality,different,0.03146042,different,tn
+P022,9-6,Test Complete Design,locate and distribute relevant existing designs,test complete design,locate and distribute relevant existing designs,different,0.3599917,different,tn
+P023,4-1,Assign intakers,create patient file for new patients,assign intakers,create patient file for new patients,different,0.08968277,different,tn
+P024,9-5,Supervisor Review,reimburse to direct deposit,supervisor review,reimburse to direct deposit,different,0.11045597,different,tn
+P025,6-2,Create Order,send order to supplier,create order,send order to supplier,different,0.56491393,equivalent,fp
+P026,5-2,Register Vacation Request,submit vacation request,register vacation request,submit vacation request,equivalent,0.84047937,equivalent,tp
+P027,3-3,Write Recommendation,revise settlement recommendation,write recommendation,revise settlement recommendation,different,0.24573573,different,tn
+P028,6-3,Produce Order,schedule production start,produce order,schedule production start,different,0.41228306,different,tn
+P029,6-3,Review Quality,recheck order quality,review quality,recheck order quality,equivalent,0.48092666,equivalent,tp

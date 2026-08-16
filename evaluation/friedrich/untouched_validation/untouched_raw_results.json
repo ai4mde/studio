@@ -1,0 +1,1197 @@
+{
+  "scope": {
+    "selected_cases": [
+      "8-1",
+      "1-1",
+      "2-2",
+      "3-8",
+      "10-9"
+    ],
+    "excluded_prior_cases": [
+      "1-2",
+      "10-6",
+      "10-7",
+      "10-8",
+      "3-1",
+      "3-2",
+      "3-3",
+      "3-4",
+      "3-6",
+      "4-1",
+      "5-2",
+      "5-4",
+      "6-2",
+      "6-3",
+      "8-2",
+      "9-5",
+      "9-6"
+    ],
+    "overlap": []
+  },
+  "frozen_matcher": {
+    "semantic_threshold": 0.44,
+    "operation_threshold": null,
+    "action_matching_sha256": "9bab1ea7ed3c6eeb143c812bd1bb661eae875471295428649e32f1936422d164",
+    "linguistic_operations_sha256": "83549846323b9d2216d590165f51836484e7bf099458149e5eece6fda4b5cd63",
+    "revised_action_matching_sha256": "bb24d5a1f338052b8a8585c0f128cb7d0913aba34b58108413ccba3a5ce52e22",
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "model_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+  },
+  "topology_decisions": [
+    {
+      "reference_node": "16734600",
+      "selected_candidate": "n7",
+      "candidate_nodes": [
+        "n7"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "16734589",
+          "generated_anchor": "n1",
+          "reference_distance": 2,
+          "generated_distance": 2
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.7187755703926086,
+      "rejected_alternatives": [],
+      "case_id": "10-9"
+    },
+    {
+      "reference_node": "16734612",
+      "selected_candidate": "n2",
+      "candidate_nodes": [
+        "n2"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "successor",
+          "reference_anchor": "16734627",
+          "generated_anchor": "n10",
+          "reference_distance": 2,
+          "generated_distance": 2
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.8716373443603516,
+      "rejected_alternatives": [],
+      "case_id": "10-9"
+    },
+    {
+      "reference_node": "16734622",
+      "selected_candidate": "n11",
+      "candidate_nodes": [
+        "n11"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "16734612",
+          "generated_anchor": "n2",
+          "reference_distance": 2,
+          "generated_distance": 2
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.6567538976669312,
+      "rejected_alternatives": [],
+      "case_id": "10-9"
+    },
+    {
+      "reference_node": "26",
+      "selected_candidate": "n1",
+      "candidate_nodes": [
+        "n1",
+        "n3"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "successor",
+          "reference_anchor": "43",
+          "generated_anchor": "n2",
+          "reference_distance": 2,
+          "generated_distance": 3
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 1,
+      "semantic_similarity": 0.4432991147041321,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n3",
+          "rank": [
+            0,
+            0,
+            0.5061812400817871
+          ]
+        }
+      ],
+      "case_id": "2-2"
+    },
+    {
+      "reference_node": "54",
+      "selected_candidate": "n12",
+      "candidate_nodes": [
+        "n12",
+        "n14"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "successor",
+          "reference_anchor": "43",
+          "generated_anchor": "n2",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.5468933582305908,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n14",
+          "rank": [
+            0,
+            0,
+            0.4923105239868164
+          ]
+        }
+      ],
+      "case_id": "2-2"
+    },
+    {
+      "reference_node": "457",
+      "selected_candidate": "n2",
+      "candidate_nodes": [
+        "n1",
+        "n2"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "successor",
+          "reference_anchor": "467",
+          "generated_anchor": "n3",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.8997831344604492,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n1",
+          "rank": [
+            0,
+            0,
+            0.6565370559692383
+          ]
+        }
+      ],
+      "case_id": "3-8"
+    },
+    {
+      "reference_node": "479",
+      "selected_candidate": "n9",
+      "candidate_nodes": [
+        "n9"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "469",
+          "generated_anchor": "n4",
+          "reference_distance": 2,
+          "generated_distance": 2
+        },
+        {
+          "direction": "successor",
+          "reference_anchor": "483",
+          "generated_anchor": "n10",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 2,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.7672314643859863,
+      "rejected_alternatives": [],
+      "case_id": "3-8"
+    },
+    {
+      "reference_node": "495",
+      "selected_candidate": "n5",
+      "candidate_nodes": [
+        "n5"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "483",
+          "generated_anchor": "n10",
+          "reference_distance": 2,
+          "generated_distance": 2
+        },
+        {
+          "direction": "predecessor",
+          "reference_anchor": "491",
+          "generated_anchor": "n11",
+          "reference_distance": 2,
+          "generated_distance": 2
+        }
+      ],
+      "anchor_count": 2,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.6072614192962646,
+      "rejected_alternatives": [],
+      "case_id": "3-8"
+    },
+    {
+      "reference_node": "2120552562",
+      "selected_candidate": "n3",
+      "candidate_nodes": [
+        "n3"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "2120552557",
+          "generated_anchor": "n2",
+          "reference_distance": 1,
+          "generated_distance": 1
+        },
+        {
+          "direction": "successor",
+          "reference_anchor": "2120552565",
+          "generated_anchor": "n4",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 2,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.5111363530158997,
+      "rejected_alternatives": [],
+      "case_id": "8-1"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "8-1",
+      "case_name": "150 - Simple HR-Process - eng",
+      "selection_rationale": "simple sequential HR process",
+      "catalog_pattern": "sequential/unclear",
+      "has_decision": "unclear",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Practical handbook/_Solutions/PH BPMN 4.2-150.diagram.zip",
+      "reference_sha256": "a12fb45fef76fa0189c7f1d6a3643a26519b7acaa4d679924bd33bd5ea08888c",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/8-1/run_1.json",
+      "generated_sha256": "b0b7cb4efc89d316f7cc3532f1f60f05f22ae824e8e59f8c88dc67ea0e47daed",
+      "reference_action_count": 5,
+      "generated_action_count": 6,
+      "selected_matches": [
+        {
+          "reference_id": "2120552557",
+          "reference_label": "advertise post",
+          "generated_id": "n2",
+          "generated_label": "advertise the post",
+          "semantic_similarity": 0.94025135,
+          "reference_operation": "advertise",
+          "generated_operation": "advertise",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120552562",
+          "reference_label": "apply",
+          "generated_id": "n3",
+          "generated_label": "receive applications",
+          "semantic_similarity": 0.51113635,
+          "reference_operation": "apply",
+          "generated_operation": "application",
+          "operation_similarity": 0.51113635,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "2120552562",
+            "selected_candidate": "n3",
+            "candidate_nodes": [
+              "n3"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "2120552557",
+                "generated_anchor": "n2",
+                "reference_distance": 1,
+                "generated_distance": 1
+              },
+              {
+                "direction": "successor",
+                "reference_anchor": "2120552565",
+                "generated_anchor": "n4",
+                "reference_distance": 1,
+                "generated_distance": 1
+              }
+            ],
+            "anchor_count": 2,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.5111363530158997,
+            "rejected_alternatives": [],
+            "case_id": "8-1"
+          }
+        },
+        {
+          "reference_id": "2120552565",
+          "reference_label": "check application",
+          "generated_id": "n4",
+          "generated_label": "check the applications",
+          "semantic_similarity": 0.72953939,
+          "reference_operation": "check",
+          "generated_operation": "check",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120552568",
+          "reference_label": "fill post",
+          "generated_id": "n5",
+          "generated_label": "fill the post",
+          "semantic_similarity": 0.91246629,
+          "reference_operation": "fill",
+          "generated_operation": "fill",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "2120552556",
+          "label": "report vacancy"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n1",
+          "label": "trigger process by demand to fill a post"
+        },
+        {
+          "id": "n6",
+          "label": "conclude contract of employment"
+        }
+      ]
+    },
+    {
+      "case_id": "1-1",
+      "case_name": "Ex1 - bycicle manufacturing",
+      "selection_rationale": "nested decision and loop in bicycle manufacturing",
+      "catalog_pattern": "decision+loop nested",
+      "has_decision": "yes",
+      "has_loop": "yes",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/_Solutions/HU Ex1.diagram.zip",
+      "reference_sha256": "581d24a3c39b4a0d07b3182eb033d137483441559d85eb77f01740f8754f6abd",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/1-1/run_1.json",
+      "generated_sha256": "397f8f6aaf96fad5bcd35a3c23487f50d5ca42d953942daae3e27020b9e8530b",
+      "reference_action_count": 9,
+      "generated_action_count": 5,
+      "selected_matches": [
+        {
+          "reference_id": "2120553001",
+          "reference_label": "receive order",
+          "generated_id": "n9",
+          "generated_label": "reject order",
+          "semantic_similarity": 0.49399942,
+          "reference_operation": "receive",
+          "generated_operation": "reject",
+          "operation_similarity": 0.40200275,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553011",
+          "reference_label": "inform storehouse and egineering department",
+          "generated_id": "n5",
+          "generated_label": "inform storehouse and engineering department",
+          "semantic_similarity": 0.81573457,
+          "reference_operation": "inform",
+          "generated_operation": "inform",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553033",
+          "reference_label": "reserve part",
+          "generated_id": "n7",
+          "generated_label": "reserve in house parts",
+          "semantic_similarity": 0.76015157,
+          "reference_operation": "reserve",
+          "generated_operation": "reserve",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553035",
+          "reference_label": "back order part",
+          "generated_id": "n8",
+          "generated_label": "back order unavailable parts",
+          "semantic_similarity": 0.6885702,
+          "reference_operation": "back",
+          "generated_operation": "back",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "2120553021",
+          "label": "check part quantitiy"
+        },
+        {
+          "id": "2120553041",
+          "label": "select unchecked part"
+        },
+        {
+          "id": "2120553051",
+          "label": "assemble bicycle"
+        },
+        {
+          "id": "2120553063",
+          "label": "ship bicycle to customer"
+        },
+        {
+          "id": "2120553043",
+          "label": "prepare for assembling"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n1",
+          "label": "create process instance"
+        }
+      ]
+    },
+    {
+      "case_id": "2-2",
+      "case_name": "TU Berlin - Supplier Switch",
+      "selection_rationale": "decision, loop, and explicit parallel structure in supplier switching",
+      "catalog_pattern": "decision+loop+parallel",
+      "has_decision": "yes",
+      "has_loop": "yes",
+      "has_parallel": "yes",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/_solutions/TU-Berlin - Supplier Switch.diagram.zip",
+      "reference_sha256": "8eb969aabd829099ebada9c0484b9924ac1473cb83e190a9c01c049b3105a595",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/2-2/run_1.json",
+      "generated_sha256": "60e2866a1381acbcacfc04772376cf05710a13a99ca2574d4931c1cfe7bb573d",
+      "reference_action_count": 20,
+      "generated_action_count": 12,
+      "selected_matches": [
+        {
+          "reference_id": "161",
+          "reference_label": "import meter data",
+          "generated_id": "n5",
+          "generated_label": "import meter data",
+          "semantic_similarity": 1.0,
+          "reference_operation": "import",
+          "generated_operation": "import",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "168",
+          "reference_label": "create cis contract",
+          "generated_id": "n15",
+          "generated_label": "create cis contract",
+          "semantic_similarity": 1.0,
+          "reference_operation": "create",
+          "generated_operation": "create",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "183",
+          "reference_label": "withdraw from switch contract",
+          "generated_id": "n21",
+          "generated_label": "withdraw from contract",
+          "semantic_similarity": 0.83660597,
+          "reference_operation": "withdraw",
+          "generated_operation": "withdraw",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "187",
+          "reference_label": "confirm switch contract",
+          "generated_id": "n3",
+          "generated_label": "send confirmation to customer",
+          "semantic_similarity": 0.58956385,
+          "reference_operation": "confirm",
+          "generated_operation": "send",
+          "operation_similarity": 0.39943582,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "208",
+          "reference_label": "check for supplier concurrence",
+          "generated_id": "n14",
+          "generated_label": "resolve supplier conflict",
+          "semantic_similarity": 0.6146028,
+          "reference_operation": "check",
+          "generated_operation": "resolve",
+          "operation_similarity": 0.28859332,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "231",
+          "reference_label": "compute final billing",
+          "generated_id": "n23",
+          "generated_label": "compute and send final billing",
+          "semantic_similarity": 0.89256334,
+          "reference_operation": "compute",
+          "generated_operation": "compute",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "25",
+          "reference_label": "error handling",
+          "generated_id": "n9",
+          "generated_label": "correct errors",
+          "semantic_similarity": 0.53561664,
+          "reference_operation": "handle",
+          "generated_operation": "correct",
+          "operation_similarity": 0.188115,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "26",
+          "reference_label": "check customer s first registration",
+          "generated_id": "n1",
+          "generated_label": "receive customer data",
+          "semantic_similarity": 0.44329911,
+          "reference_operation": "check",
+          "generated_operation": "receive",
+          "operation_similarity": 0.32682651,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "26",
+            "selected_candidate": "n1",
+            "candidate_nodes": [
+              "n1",
+              "n3"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "successor",
+                "reference_anchor": "43",
+                "generated_anchor": "n2",
+                "reference_distance": 2,
+                "generated_distance": 3
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 1,
+            "semantic_similarity": 0.4432991147041321,
+            "rejected_alternatives": [
+              {
+                "generated_node": "n3",
+                "rank": [
+                  0,
+                  0,
+                  0.5061812400817871
+                ]
+              }
+            ],
+            "case_id": "2-2"
+          }
+        },
+        {
+          "reference_id": "35",
+          "reference_label": "create customer",
+          "generated_id": "n18",
+          "generated_label": "create new customer object",
+          "semantic_similarity": 0.84054124,
+          "reference_operation": "create",
+          "generated_operation": "create",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "43",
+          "reference_label": "prepare contract documents",
+          "generated_id": "n2",
+          "generated_label": "prepare contract documents",
+          "semantic_similarity": 1.00000024,
+          "reference_operation": "prepare",
+          "generated_operation": "prepare",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "5",
+          "reference_label": "request switch over",
+          "generated_id": "n4",
+          "generated_label": "request grid operator concurrence",
+          "semantic_similarity": 0.46398848,
+          "reference_operation": "request",
+          "generated_operation": "request",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "54",
+          "reference_label": "resolve issues",
+          "generated_id": "n12",
+          "generated_label": "analyze and resolve document issues",
+          "semantic_similarity": 0.54689336,
+          "reference_operation": "resolve",
+          "generated_operation": "analyze",
+          "operation_similarity": 0.24497397,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "54",
+            "selected_candidate": "n12",
+            "candidate_nodes": [
+              "n12",
+              "n14"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "successor",
+                "reference_anchor": "43",
+                "generated_anchor": "n2",
+                "reference_distance": 1,
+                "generated_distance": 1
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.5468933582305908,
+            "rejected_alternatives": [
+              {
+                "generated_node": "n14",
+                "rank": [
+                  0,
+                  0,
+                  0.4923105239868164
+                ]
+              }
+            ],
+            "case_id": "2-2"
+          }
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "74",
+          "label": "send documents"
+        },
+        {
+          "id": "17",
+          "label": "enter customer data object"
+        },
+        {
+          "id": "18",
+          "label": "check customer data"
+        },
+        {
+          "id": "105",
+          "label": "check outcome of supplier concurrence check"
+        },
+        {
+          "id": "131",
+          "label": "send switch offer"
+        },
+        {
+          "id": "226",
+          "label": "send meter data"
+        },
+        {
+          "id": "181",
+          "label": "check offered switch contract"
+        },
+        {
+          "id": "52",
+          "label": "check contract documents"
+        }
+      ],
+      "unmatched_generated_actions": []
+    },
+    {
+      "case_id": "3-8",
+      "case_name": "2010-3 Claims handling process",
+      "selection_rationale": "decision-oriented claims-handling process",
+      "catalog_pattern": "decision",
+      "has_decision": "yes",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2010-3.diagram.zip",
+      "reference_sha256": "632d3b9c1ce27f70074b1766ca8977206babc79a824e94bfa2c00e6562faa0ea",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-8/run_1.json",
+      "generated_sha256": "c9731cc3a33f65783e96e51c3a9fff78f21880c8ef7a8f62172cf81357eafc89",
+      "reference_action_count": 8,
+      "generated_action_count": 8,
+      "selected_matches": [
+        {
+          "reference_id": "457",
+          "reference_label": "register claim",
+          "generated_id": "n2",
+          "generated_label": "check documents and register claim",
+          "semantic_similarity": 0.89978313,
+          "reference_operation": "register",
+          "generated_operation": "document",
+          "operation_similarity": 0.31029233,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "457",
+            "selected_candidate": "n2",
+            "candidate_nodes": [
+              "n1",
+              "n2"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "successor",
+                "reference_anchor": "467",
+                "generated_anchor": "n3",
+                "reference_distance": 1,
+                "generated_distance": 1
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.8997831344604492,
+            "rejected_alternatives": [
+              {
+                "generated_node": "n1",
+                "rank": [
+                  0,
+                  0,
+                  0.6565370559692383
+                ]
+              }
+            ],
+            "case_id": "3-8"
+          }
+        },
+        {
+          "reference_id": "467",
+          "reference_label": "check insurance",
+          "generated_id": "n3",
+          "generated_label": "check insurance",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "check",
+          "generated_operation": "check",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "469",
+          "reference_label": "perform assessment",
+          "generated_id": "n4",
+          "generated_label": "perform assessment",
+          "semantic_similarity": 1.0,
+          "reference_operation": "perform",
+          "generated_operation": "perform",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "479",
+          "reference_label": "arrange repair",
+          "generated_id": "n9",
+          "generated_label": "authorize repairs",
+          "semantic_similarity": 0.76723146,
+          "reference_operation": "arrange",
+          "generated_operation": "repair",
+          "operation_similarity": 0.27032864,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "479",
+            "selected_candidate": "n9",
+            "candidate_nodes": [
+              "n9"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "469",
+                "generated_anchor": "n4",
+                "reference_distance": 2,
+                "generated_distance": 2
+              },
+              {
+                "direction": "successor",
+                "reference_anchor": "483",
+                "generated_anchor": "n10",
+                "reference_distance": 1,
+                "generated_distance": 1
+              }
+            ],
+            "anchor_count": 2,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.7672314643859863,
+            "rejected_alternatives": [],
+            "case_id": "3-8"
+          }
+        },
+        {
+          "reference_id": "483",
+          "reference_label": "schedule payment",
+          "generated_id": "n10",
+          "generated_label": "schedule payment",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "schedule",
+          "generated_operation": "schedule",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "491",
+          "reference_label": "reject claim",
+          "generated_id": "n11",
+          "generated_label": "reject claim",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "reject",
+          "generated_operation": "reject",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "495",
+          "reference_label": "notify customer",
+          "generated_id": "n5",
+          "generated_label": "send letter to customer",
+          "semantic_similarity": 0.60726142,
+          "reference_operation": "notify",
+          "generated_operation": "send",
+          "operation_similarity": 0.40594003,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "495",
+            "selected_candidate": "n5",
+            "candidate_nodes": [
+              "n5"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "483",
+                "generated_anchor": "n10",
+                "reference_distance": 2,
+                "generated_distance": 2
+              },
+              {
+                "direction": "predecessor",
+                "reference_anchor": "491",
+                "generated_anchor": "n11",
+                "reference_distance": 2,
+                "generated_distance": 2
+              }
+            ],
+            "anchor_count": 2,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.6072614192962646,
+            "rejected_alternatives": [],
+            "case_id": "3-8"
+          }
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "456",
+          "label": "check documentation"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n1",
+          "label": "submit claim documentation"
+        }
+      ]
+    },
+    {
+      "case_id": "10-9",
+      "case_name": "C1 - eng",
+      "selection_rationale": "nested decision process from the Messwesen collection",
+      "catalog_pattern": "decision nested",
+      "has_decision": "yes",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/C1-eng.diagram.zip",
+      "reference_sha256": "7915bc3c64589e5ff7aabb2a735c169030a9465bac620ef6c72d0b0dae1a004f",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-9/run_1.json",
+      "generated_sha256": "0ac29cc01de83f10238409384eb341f37e043bcff2a74a25c524d07bb11f8680",
+      "reference_action_count": 8,
+      "generated_action_count": 6,
+      "selected_matches": [
+        {
+          "reference_id": "16734589",
+          "reference_label": "review",
+          "generated_id": "n1",
+          "generated_label": "review change request",
+          "semantic_similarity": 0.66010368,
+          "reference_operation": "review",
+          "generated_operation": "review",
+          "operation_similarity": 0.99999982,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16734599",
+          "reference_label": "rejection of the change",
+          "generated_id": "n6",
+          "generated_label": "reject change request",
+          "semantic_similarity": 0.82028466,
+          "reference_operation": "reject",
+          "generated_operation": "reject",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16734600",
+          "reference_label": "confirmation of the request",
+          "generated_id": "n7",
+          "generated_label": "confirm change request",
+          "semantic_similarity": 0.71877557,
+          "reference_operation": "confirm",
+          "generated_operation": "confirm",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "16734600",
+            "selected_candidate": "n7",
+            "candidate_nodes": [
+              "n7"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "16734589",
+                "generated_anchor": "n1",
+                "reference_distance": 2,
+                "generated_distance": 2
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.7187755703926086,
+            "rejected_alternatives": [],
+            "case_id": "10-9"
+          }
+        },
+        {
+          "reference_id": "16734612",
+          "reference_label": "performance of the measuring point change",
+          "generated_id": "n2",
+          "generated_label": "perform measuring point change",
+          "semantic_similarity": 0.87163734,
+          "reference_operation": "perform",
+          "generated_operation": "measure",
+          "operation_similarity": 0.29143086,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "16734612",
+            "selected_candidate": "n2",
+            "candidate_nodes": [
+              "n2"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "successor",
+                "reference_anchor": "16734627",
+                "generated_anchor": "n10",
+                "reference_distance": 2,
+                "generated_distance": 2
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.8716373443603516,
+            "rejected_alternatives": [],
+            "case_id": "10-9"
+          }
+        },
+        {
+          "reference_id": "16734622",
+          "reference_label": "failure of the changes",
+          "generated_id": "n11",
+          "generated_label": "notify failure of changes",
+          "semantic_similarity": 0.6567539,
+          "reference_operation": "fail",
+          "generated_operation": "notify",
+          "operation_similarity": 0.2382572,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "16734622",
+            "selected_candidate": "n11",
+            "candidate_nodes": [
+              "n11"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "16734612",
+                "generated_anchor": "n2",
+                "reference_distance": 2,
+                "generated_distance": 2
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.6567538976669312,
+            "rejected_alternatives": [],
+            "case_id": "10-9"
+          }
+        },
+        {
+          "reference_id": "16734627",
+          "reference_label": "implementation report",
+          "generated_id": "n10",
+          "generated_label": "report implementation success",
+          "semantic_similarity": 0.8094902,
+          "reference_operation": "report",
+          "generated_operation": "report",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "16734582",
+          "label": "causes a change by itself"
+        },
+        {
+          "id": "2120552612",
+          "label": "change request"
+        }
+      ],
+      "unmatched_generated_actions": []
+    }
+  ]
+}

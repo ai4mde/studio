@@ -1,0 +1,1392 @@
+{
+  "scope": {
+    "selected_cases": [
+      "9-3",
+      "6-1",
+      "2-1",
+      "9-4",
+      "5-3"
+    ],
+    "excluded_prior_cases": [
+      "1-1",
+      "1-2",
+      "10-6",
+      "10-7",
+      "10-8",
+      "10-9",
+      "2-2",
+      "3-1",
+      "3-2",
+      "3-3",
+      "3-4",
+      "3-6",
+      "3-8",
+      "4-1",
+      "5-2",
+      "5-4",
+      "6-2",
+      "6-3",
+      "8-1",
+      "8-2",
+      "9-5",
+      "9-6"
+    ],
+    "overlap": []
+  },
+  "frozen_matcher": {
+    "semantic_threshold": 0.44,
+    "operation_threshold": null,
+    "action_matching_sha256": "9bab1ea7ed3c6eeb143c812bd1bb661eae875471295428649e32f1936422d164",
+    "linguistic_operations_sha256": "83549846323b9d2216d590165f51836484e7bf099458149e5eece6fda4b5cd63",
+    "revised_action_matching_sha256": "89175d1297ed8ad6e2a79eda04b6109e2cc6321b384d2f02cb31f1990ade8386",
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "model_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+  },
+  "topology_decisions": [
+    {
+      "reference_node": "2120553699",
+      "selected_candidate": "n34",
+      "ambiguity_sides": [
+        "reference",
+        "generated"
+      ],
+      "reference_candidate_count": 2,
+      "candidate_nodes": [
+        "n34",
+        "n38"
+      ],
+      "generated_competitor_count": 2,
+      "competing_reference_nodes": [
+        "2120553699",
+        "2120553780"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "2120553673",
+          "generated_anchor": "n10",
+          "reference_distance": 2,
+          "generated_distance": 2
+        },
+        {
+          "direction": "successor",
+          "reference_anchor": "2120553746",
+          "generated_anchor": "n35",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 2,
+      "path_distance_difference": 0,
+      "semantic_similarity": 1.0000001192092896,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n38",
+          "rank": [
+            0,
+            0,
+            1.0000001192092896
+          ]
+        }
+      ],
+      "case_id": "2-1"
+    },
+    {
+      "reference_node": "2120553780",
+      "selected_candidate": "n38",
+      "ambiguity_sides": [
+        "reference",
+        "generated"
+      ],
+      "reference_candidate_count": 2,
+      "candidate_nodes": [
+        "n34",
+        "n38"
+      ],
+      "generated_competitor_count": 2,
+      "competing_reference_nodes": [
+        "2120553699",
+        "2120553780"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "2120553779",
+          "generated_anchor": "n37",
+          "reference_distance": 1,
+          "generated_distance": 1
+        },
+        {
+          "direction": "successor",
+          "reference_anchor": "2120553783",
+          "generated_anchor": "n39",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 2,
+      "path_distance_difference": 0,
+      "semantic_similarity": 1.0000001192092896,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n34",
+          "rank": [
+            0,
+            0,
+            1.0000001192092896
+          ]
+        }
+      ],
+      "case_id": "2-1"
+    },
+    {
+      "reference_node": "2120553955",
+      "selected_candidate": "n9",
+      "ambiguity_sides": [
+        "generated"
+      ],
+      "reference_candidate_count": 1,
+      "candidate_nodes": [
+        "n9"
+      ],
+      "generated_competitor_count": 3,
+      "competing_reference_nodes": [
+        "2120553925",
+        "2120553955",
+        "2120553958"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "2120553952",
+          "generated_anchor": "n8",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.4622865915298462,
+      "rejected_alternatives": [],
+      "case_id": "5-3"
+    },
+    {
+      "reference_node": "407",
+      "selected_candidate": "n5",
+      "ambiguity_sides": [
+        "generated"
+      ],
+      "reference_candidate_count": 1,
+      "candidate_nodes": [
+        "n5"
+      ],
+      "generated_competitor_count": 2,
+      "competing_reference_nodes": [
+        "407",
+        "408"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "406",
+          "generated_anchor": "n4",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.6320428848266602,
+      "rejected_alternatives": [],
+      "case_id": "6-1"
+    },
+    {
+      "reference_node": "408",
+      "selected_candidate": "n6",
+      "ambiguity_sides": [
+        "reference",
+        "generated"
+      ],
+      "reference_candidate_count": 2,
+      "candidate_nodes": [
+        "n1",
+        "n6"
+      ],
+      "generated_competitor_count": 2,
+      "competing_reference_nodes": [
+        "408",
+        "415"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "407",
+          "generated_anchor": "n5",
+          "reference_distance": 2,
+          "generated_distance": 2
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.4881645441055298,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n1",
+          "rank": [
+            0,
+            0,
+            0.5576759576797485
+          ]
+        }
+      ],
+      "case_id": "6-1"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "9-3",
+      "case_name": "Ex3a",
+      "selection_rationale": "sequential process from the BPMN modeling reference guide",
+      "catalog_pattern": "sequential/unclear",
+      "has_decision": "unclear",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/_solution/BPMN MRG Ex3a.diagram.zip",
+      "reference_sha256": "7dc9140e2ef1282df11d1767fa8608bc670fe37e8246a3b3e3f1ee359c1593c5",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/9-3/run_1.json",
+      "generated_sha256": "c276f0e24dad54276997126da34eec68e99472efedbd370cf473127eba736344",
+      "reference_action_count": 6,
+      "generated_action_count": 5,
+      "selected_matches": [
+        {
+          "reference_id": "16733499",
+          "reference_label": "draft dates",
+          "generated_id": "n1",
+          "generated_label": "draft schedule of meetings",
+          "semantic_similarity": 0.72484463,
+          "reference_operation": "draft",
+          "generated_operation": "draft",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733500",
+          "reference_label": "enter onto next years calendar",
+          "generated_id": "n2",
+          "generated_label": "add draft dates to calendars",
+          "semantic_similarity": 0.49696988,
+          "reference_operation": "enter",
+          "generated_operation": "add",
+          "operation_similarity": 0.50045991,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733503",
+          "reference_label": "check suggests updates",
+          "generated_id": "n3",
+          "generated_label": "support officer checks and suggests modifications",
+          "semantic_similarity": 0.45547873,
+          "reference_operation": "suggest",
+          "generated_operation": "support",
+          "operation_similarity": 0.22064616,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733509",
+          "reference_label": "finalize calendar schedule",
+          "generated_id": "n5",
+          "generated_label": "send final schedule to committee members",
+          "semantic_similarity": 0.69273543,
+          "reference_operation": "finalize",
+          "generated_operation": "send",
+          "operation_similarity": 0.20180812,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733537",
+          "reference_label": "check for conflicts",
+          "generated_id": "n4",
+          "generated_label": "recheck dates for conflicts",
+          "semantic_similarity": 0.60723126,
+          "reference_operation": "check",
+          "generated_operation": "date",
+          "operation_similarity": 0.37472507,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "16733520",
+          "label": "updates group calendars"
+        }
+      ],
+      "unmatched_generated_actions": []
+    },
+    {
+      "case_id": "6-1",
+      "case_name": "ACME - eng",
+      "selection_rationale": "nested decision and loop in the ACME process",
+      "catalog_pattern": "decision+loop nested",
+      "has_decision": "yes",
+      "has_loop": "yes",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/_Solutions/inubit ACME.diagram.zip",
+      "reference_sha256": "7cf7043167e8e16f66953f90523748b22d1f82ad4449803a1206a8ec396fbdfe",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/6-1/run_1.json",
+      "generated_sha256": "d40152684b8905785dc79b45164470b617253d9aedb1a99bc4685a36a9afb536",
+      "reference_action_count": 15,
+      "generated_action_count": 14,
+      "selected_matches": [
+        {
+          "reference_id": "404",
+          "reference_label": "identify charging supplier",
+          "generated_id": "n17",
+          "generated_label": "resolve complaints with supplier",
+          "semantic_similarity": 0.61361378,
+          "reference_operation": "charge",
+          "generated_operation": "complaint",
+          "operation_similarity": 0.38984317,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "405",
+          "reference_label": "create instance",
+          "generated_id": "n3",
+          "generated_label": "create invoice instance",
+          "semantic_similarity": 0.60755193,
+          "reference_operation": "create",
+          "generated_operation": "create",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "406",
+          "reference_label": "check invoice items",
+          "generated_id": "n4",
+          "generated_label": "check invoice items",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "check",
+          "generated_operation": "check",
+          "operation_similarity": 0.99999994,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "407",
+          "reference_label": "create docket",
+          "generated_id": "n5",
+          "generated_label": "prepare docket with cost centers",
+          "semantic_similarity": 0.63204288,
+          "reference_operation": "create",
+          "generated_operation": "prepare",
+          "operation_similarity": 0.36425418,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "407",
+            "selected_candidate": "n5",
+            "ambiguity_sides": [
+              "generated"
+            ],
+            "reference_candidate_count": 1,
+            "candidate_nodes": [
+              "n5"
+            ],
+            "generated_competitor_count": 2,
+            "competing_reference_nodes": [
+              "407",
+              "408"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "406",
+                "generated_anchor": "n4",
+                "reference_distance": 1,
+                "generated_distance": 1
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.6320428848266602,
+            "rejected_alternatives": [],
+            "case_id": "6-1"
+          }
+        },
+        {
+          "reference_id": "408",
+          "reference_label": "deliver copy of the invoice docket",
+          "generated_id": "n6",
+          "generated_label": "forward invoice to commercial manager",
+          "semantic_similarity": 0.48816454,
+          "reference_operation": "deliver",
+          "generated_operation": "invoice",
+          "operation_similarity": 0.46466601,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "408",
+            "selected_candidate": "n6",
+            "ambiguity_sides": [
+              "reference",
+              "generated"
+            ],
+            "reference_candidate_count": 2,
+            "candidate_nodes": [
+              "n1",
+              "n6"
+            ],
+            "generated_competitor_count": 2,
+            "competing_reference_nodes": [
+              "408",
+              "415"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "407",
+                "generated_anchor": "n5",
+                "reference_distance": 2,
+                "generated_distance": 2
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.4881645441055298,
+            "rejected_alternatives": [
+              {
+                "generated_node": "n1",
+                "rank": [
+                  0,
+                  0,
+                  0.5576759576797485
+                ]
+              }
+            ],
+            "case_id": "6-1"
+          }
+        },
+        {
+          "reference_id": "415",
+          "reference_label": "forward copy of the invoice",
+          "generated_id": "n2",
+          "generated_label": "forward to accounting",
+          "semantic_similarity": 0.52010596,
+          "reference_operation": "copy",
+          "generated_operation": "forward",
+          "operation_similarity": 0.27168295,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "417",
+          "reference_label": "commercial audit",
+          "generated_id": "n15",
+          "generated_label": "conduct commercial audit",
+          "semantic_similarity": 0.9358629,
+          "reference_operation": "audit",
+          "generated_operation": "conduct",
+          "operation_similarity": 0.30996445,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "424",
+          "reference_label": "issure the approval for payment",
+          "generated_id": "n16",
+          "generated_label": "approve payment",
+          "semantic_similarity": 0.88649786,
+          "reference_operation": "issure",
+          "generated_operation": "approve",
+          "operation_similarity": 0.26480985,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "426",
+          "reference_label": "give payment instructions",
+          "generated_id": "n7",
+          "generated_label": "give payment instructions",
+          "semantic_similarity": 0.99999988,
+          "reference_operation": "give",
+          "generated_operation": "give",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "427",
+          "reference_label": "close instance",
+          "generated_id": "n8",
+          "generated_label": "close invoice instance",
+          "semantic_similarity": 0.68101823,
+          "reference_operation": "close",
+          "generated_operation": "close",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "413",
+          "label": "ap"
+        },
+        {
+          "id": "411",
+          "label": "rejection note explanatory statement"
+        },
+        {
+          "id": "409",
+          "label": "conduct check"
+        },
+        {
+          "id": "403",
+          "label": "conduct visual inspection"
+        },
+        {
+          "id": "422",
+          "label": "conduct check"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n1",
+          "label": "receive invoices"
+        },
+        {
+          "id": "n12",
+          "label": "resolve inconsistencies with vendors"
+        },
+        {
+          "id": "n13",
+          "label": "consult cost center managers"
+        },
+        {
+          "id": "n20",
+          "label": "perform board review"
+        }
+      ]
+    },
+    {
+      "case_id": "2-1",
+      "case_name": "TU Berlin - SLA Violation",
+      "selection_rationale": "nested decision process for SLA violation handling",
+      "catalog_pattern": "decision nested",
+      "has_decision": "yes",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/_solutions/TU-Berlin - SLA Violation.diagram.zip",
+      "reference_sha256": "155e9c9f277cd75591c6d7931d174f08b94b32749955fc329db18e2089087c3c",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/2-1/run_1.json",
+      "generated_sha256": "2db03d7e103fe66acce6fdb58e5000d5a11307094c70907e17d48a5ce2480635",
+      "reference_action_count": 26,
+      "generated_action_count": 28,
+      "selected_matches": [
+        {
+          "reference_id": "2120553456",
+          "reference_label": "send list of problem parameters",
+          "generated_id": "n2",
+          "generated_label": "send problem parameters to customer service",
+          "semantic_similarity": 0.81026018,
+          "reference_operation": "send",
+          "generated_operation": "send",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553462",
+          "reference_label": "enter problem report",
+          "generated_id": "n3",
+          "generated_label": "enter problem report into system t",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "enter",
+          "generated_operation": "enter",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553507",
+          "reference_label": "determine significance of the customer based on customer data in the problem report",
+          "generated_id": "n6",
+          "generated_label": "determine customer significance",
+          "semantic_similarity": 0.84530818,
+          "reference_operation": "determine",
+          "generated_operation": "determine",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553576",
+          "reference_label": "compare customer sla and problem report",
+          "generated_id": "n4",
+          "generated_label": "compare problem report to sla",
+          "semantic_similarity": 0.8677271,
+          "reference_operation": "compare",
+          "generated_operation": "compare",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553589",
+          "reference_label": "determine counter measures inclu priorities",
+          "generated_id": "n5",
+          "generated_label": "determine counter measures and priorities",
+          "semantic_similarity": 0.92430627,
+          "reference_operation": "determine",
+          "generated_operation": "determine",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553610",
+          "reference_label": "perform problem analysis",
+          "generated_id": "n27",
+          "generated_label": "analyze problem",
+          "semantic_similarity": 0.69734472,
+          "reference_operation": "perform",
+          "generated_operation": "analyze",
+          "operation_similarity": 0.2742233,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553636",
+          "reference_label": "create notification of normal service execution",
+          "generated_id": "n29",
+          "generated_label": "create notification of normal service execution",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "create",
+          "generated_operation": "create",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553642",
+          "reference_label": "analyze in detail problem cause",
+          "generated_id": "n23",
+          "generated_label": "analyze problem",
+          "semantic_similarity": 0.83172005,
+          "reference_operation": "analyze",
+          "generated_operation": "analyze",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553653",
+          "reference_label": "create trouble report",
+          "generated_id": "n24",
+          "generated_label": "create trouble report",
+          "semantic_similarity": 1.0,
+          "reference_operation": "create",
+          "generated_operation": "create",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553664",
+          "reference_label": "create trouble report indicating the type of problem",
+          "generated_id": "n17",
+          "generated_label": "link to extra problem fix process",
+          "semantic_similarity": 0.47327268,
+          "reference_operation": "create",
+          "generated_operation": "link",
+          "operation_similarity": 0.26037395,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553672",
+          "reference_label": "prepare final status report",
+          "generated_id": "n9",
+          "generated_label": "prepare final status report",
+          "semantic_similarity": 1.0,
+          "reference_operation": "prepare",
+          "generated_operation": "prepare",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553673",
+          "reference_label": "determine counter measures based on the final status report",
+          "generated_id": "n10",
+          "generated_label": "determine counter measures",
+          "semantic_similarity": 0.69937634,
+          "reference_operation": "determine",
+          "generated_operation": "determine",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553694",
+          "reference_label": "send out actual service performance",
+          "generated_id": "n33",
+          "generated_label": "send actual service performance to customer service",
+          "semantic_similarity": 0.99999988,
+          "reference_operation": "send",
+          "generated_operation": "send",
+          "operation_similarity": 1.00000024,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553699",
+          "reference_label": "undertake corrective actions",
+          "generated_id": "n34",
+          "generated_label": "undertake corrective actions",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "undertake",
+          "generated_operation": "undertake",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "2120553699",
+            "selected_candidate": "n34",
+            "ambiguity_sides": [
+              "reference",
+              "generated"
+            ],
+            "reference_candidate_count": 2,
+            "candidate_nodes": [
+              "n34",
+              "n38"
+            ],
+            "generated_competitor_count": 2,
+            "competing_reference_nodes": [
+              "2120553699",
+              "2120553780"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "2120553673",
+                "generated_anchor": "n10",
+                "reference_distance": 2,
+                "generated_distance": 2
+              },
+              {
+                "direction": "successor",
+                "reference_anchor": "2120553746",
+                "generated_anchor": "n35",
+                "reference_distance": 1,
+                "generated_distance": 1
+              }
+            ],
+            "anchor_count": 2,
+            "path_distance_difference": 0,
+            "semantic_similarity": 1.0000001192092896,
+            "rejected_alternatives": [
+              {
+                "generated_node": "n38",
+                "rank": [
+                  0,
+                  0,
+                  1.0000001192092896
+                ]
+              }
+            ],
+            "case_id": "2-1"
+          }
+        },
+        {
+          "reference_id": "2120553701",
+          "reference_label": "create request for automtaic resource restoration",
+          "generated_id": "n36",
+          "generated_label": "request automatic resource restoration",
+          "semantic_similarity": 0.83556771,
+          "reference_operation": "create",
+          "generated_operation": "request",
+          "operation_similarity": 0.30693588,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553719",
+          "reference_label": "report sla violation rebate to billing collections for billing adjustment",
+          "generated_id": "n13",
+          "generated_label": "report rebate to billing collections",
+          "semantic_similarity": 0.72247165,
+          "reference_operation": "report",
+          "generated_operation": "rebate",
+          "operation_similarity": 0.1395053,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553722",
+          "reference_label": "create report for customer about performance and problem resolution",
+          "generated_id": "n7",
+          "generated_label": "create detailed problem report",
+          "semantic_similarity": 0.70436168,
+          "reference_operation": "create",
+          "generated_operation": "detail",
+          "operation_similarity": 0.30167997,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553746",
+          "reference_label": "create problem resolution report",
+          "generated_id": "n35",
+          "generated_label": "create problem resolution report",
+          "semantic_similarity": 0.99999988,
+          "reference_operation": "create",
+          "generated_operation": "create",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553779",
+          "reference_label": "track errors",
+          "generated_id": "n37",
+          "generated_label": "track errors",
+          "semantic_similarity": 1.0,
+          "reference_operation": "track",
+          "generated_operation": "track",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553780",
+          "reference_label": "undertake corrective actions",
+          "generated_id": "n38",
+          "generated_label": "undertake corrective actions",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "undertake",
+          "generated_operation": "undertake",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "2120553780",
+            "selected_candidate": "n38",
+            "ambiguity_sides": [
+              "reference",
+              "generated"
+            ],
+            "reference_candidate_count": 2,
+            "candidate_nodes": [
+              "n34",
+              "n38"
+            ],
+            "generated_competitor_count": 2,
+            "competing_reference_nodes": [
+              "2120553699",
+              "2120553780"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "2120553779",
+                "generated_anchor": "n37",
+                "reference_distance": 1,
+                "generated_distance": 1
+              },
+              {
+                "direction": "successor",
+                "reference_anchor": "2120553783",
+                "generated_anchor": "n39",
+                "reference_distance": 1,
+                "generated_distance": 1
+              }
+            ],
+            "anchor_count": 2,
+            "path_distance_difference": 0,
+            "semantic_similarity": 1.0000001192092896,
+            "rejected_alternatives": [
+              {
+                "generated_node": "n34",
+                "rank": [
+                  0,
+                  0,
+                  1.0000001192092896
+                ]
+              }
+            ],
+            "case_id": "2-1"
+          }
+        },
+        {
+          "reference_id": "2120553783",
+          "reference_label": "create troubleshooting report",
+          "generated_id": "n39",
+          "generated_label": "create troubleshooting report",
+          "semantic_similarity": 1.00000012,
+          "reference_operation": "troubleshoot",
+          "generated_operation": "troubleshoot",
+          "operation_similarity": 1.00000012,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553794",
+          "reference_label": "create status report",
+          "generated_id": "n28",
+          "generated_label": "create trouble report",
+          "semantic_similarity": 0.56087935,
+          "reference_operation": "create",
+          "generated_operation": "create",
+          "operation_similarity": 0.99999988,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "2120553590",
+          "label": "create detailed problem report incl contract commitment data prioritized actions"
+        },
+        {
+          "id": "2120553606",
+          "label": "investigate whether problem is analyzable at this level"
+        },
+        {
+          "id": "2120553543",
+          "label": "perform plausibility check"
+        },
+        {
+          "id": "2120553632",
+          "label": "check for possible problems"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n1",
+          "label": "customer perceives service degradation"
+        },
+        {
+          "id": "n8",
+          "label": "send report to service management"
+        },
+        {
+          "id": "n11",
+          "label": "send report to customer service"
+        },
+        {
+          "id": "n12",
+          "label": "send report to customer"
+        },
+        {
+          "id": "n20",
+          "label": "re prioritize counter measures"
+        },
+        {
+          "id": "n25",
+          "label": "send report to resource provisioning"
+        }
+      ]
+    },
+    {
+      "case_id": "9-4",
+      "case_name": "Ex3b",
+      "selection_rationale": "second sequential process from the BPMN modeling reference guide",
+      "catalog_pattern": "sequential/unclear",
+      "has_decision": "unclear",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/_solution/BPMN MRG Ex3b.diagram.zip",
+      "reference_sha256": "307a4a4ca63b0efaa310c3664947eecedc8bd1faf7010012f54472dfc3303696",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/9-4/run_1.json",
+      "generated_sha256": "f13f07fea1c6c9a77a35292a06d653f9aa25460efe4dbe837f500ec0091bea72",
+      "reference_action_count": 7,
+      "generated_action_count": 10,
+      "selected_matches": [
+        {
+          "reference_id": "16733499",
+          "reference_label": "create meeting folder",
+          "generated_id": "n3",
+          "generated_label": "create meeting folders",
+          "semantic_similarity": 0.97651881,
+          "reference_operation": "meet",
+          "generated_operation": "meet",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733500",
+          "reference_label": "upload all relevant documents",
+          "generated_id": "n4",
+          "generated_label": "upload documents to system",
+          "semantic_similarity": 0.72249728,
+          "reference_operation": "upload",
+          "generated_operation": "document",
+          "operation_similarity": 0.43411559,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733520",
+          "reference_label": "attends meeting",
+          "generated_id": "n6",
+          "generated_label": "hold meeting",
+          "semantic_similarity": 0.72368717,
+          "reference_operation": "attend",
+          "generated_operation": "meet",
+          "operation_similarity": 0.45543963,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733537",
+          "reference_label": "meeting takes place",
+          "generated_id": "n1",
+          "generated_label": "finalize meeting dates",
+          "semantic_similarity": 0.56980443,
+          "reference_operation": "take",
+          "generated_operation": "finalize",
+          "operation_similarity": 0.26550442,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733588",
+          "reference_label": "prepare meeting minutes",
+          "generated_id": "n9",
+          "generated_label": "send minutes to committee members",
+          "semantic_similarity": 0.68043792,
+          "reference_operation": "meet",
+          "generated_operation": "minute",
+          "operation_similarity": 0.308626,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16733589",
+          "reference_label": "qa check",
+          "generated_id": "n8",
+          "generated_label": "conduct qa check on minutes",
+          "semantic_similarity": 0.86638731,
+          "reference_operation": "qa",
+          "generated_operation": "conduct",
+          "operation_similarity": 0.30042458,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "16733600",
+          "label": "remind coordination unit"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n2",
+          "label": "update group calendars"
+        },
+        {
+          "id": "n5",
+          "label": "advise committee members to read documents"
+        },
+        {
+          "id": "n7",
+          "label": "produce minutes with action points"
+        },
+        {
+          "id": "n10",
+          "label": "update departmental records"
+        }
+      ]
+    },
+    {
+      "case_id": "5-3",
+      "case_name": "BizAgi - tutorial2",
+      "selection_rationale": "nested decision process from a vendor tutorial",
+      "catalog_pattern": "decision nested",
+      "has_decision": "yes",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/_SOlutions/BizAgi2.diagram.zip",
+      "reference_sha256": "31fdc1168fb8378f5926bd06d02742a2ca242c24b90b1d83943b19e5108f1c04",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/5-3/run_1.json",
+      "generated_sha256": "643f3f4dcf57037bdc9d2d4f8403b6691b58d03f17bd40e37e0e23fb5f686d9e",
+      "reference_action_count": 9,
+      "generated_action_count": 8,
+      "selected_matches": [
+        {
+          "reference_id": "2120553925",
+          "reference_label": "register office supply request",
+          "generated_id": "n1",
+          "generated_label": "submit office supply request",
+          "semantic_similarity": 0.86465943,
+          "reference_operation": "register",
+          "generated_operation": "submit",
+          "operation_similarity": 0.40680236,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553926",
+          "reference_label": "approve office supply request",
+          "generated_id": "n6",
+          "generated_label": "send to purchase department",
+          "semantic_similarity": 0.49624753,
+          "reference_operation": "approve",
+          "generated_operation": "send",
+          "operation_similarity": 0.43495047,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "global_assignment",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553952",
+          "reference_label": "generate purchase order",
+          "generated_id": "n8",
+          "generated_label": "generate and send purchase order",
+          "semantic_similarity": 0.93457222,
+          "reference_operation": "generate",
+          "generated_operation": "generate",
+          "operation_similarity": 1.0,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553955",
+          "reference_label": "receive products",
+          "generated_id": "n9",
+          "generated_label": "wait for product delivery and invoice",
+          "semantic_similarity": 0.46228659,
+          "reference_operation": "product",
+          "generated_operation": "wait",
+          "operation_similarity": 0.3121348,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "topology_tie_break",
+          "topology_used": true,
+          "topology_evidence": {
+            "reference_node": "2120553955",
+            "selected_candidate": "n9",
+            "ambiguity_sides": [
+              "generated"
+            ],
+            "reference_candidate_count": 1,
+            "candidate_nodes": [
+              "n9"
+            ],
+            "generated_competitor_count": 3,
+            "competing_reference_nodes": [
+              "2120553925",
+              "2120553955",
+              "2120553958"
+            ],
+            "anchor_evidence": [
+              {
+                "direction": "predecessor",
+                "reference_anchor": "2120553952",
+                "generated_anchor": "n8",
+                "reference_distance": 1,
+                "generated_distance": 1
+              }
+            ],
+            "anchor_count": 1,
+            "path_distance_difference": 0,
+            "semantic_similarity": 0.4622865915298462,
+            "rejected_alternatives": [],
+            "case_id": "5-3"
+          }
+        },
+        {
+          "reference_id": "2120553961",
+          "reference_label": "notify rejection",
+          "generated_id": "n12",
+          "generated_label": "notify rejection",
+          "semantic_similarity": 1.0,
+          "reference_operation": "notify",
+          "generated_operation": "notify",
+          "operation_similarity": 0.99999994,
+          "operation_compatible": true,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "selection_stage": "unambiguous_semantic_anchor",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "2120553934",
+          "label": "notify change required"
+        },
+        {
+          "id": "2120553946",
+          "label": "notify approval"
+        },
+        {
+          "id": "2120553958",
+          "label": "process invoice"
+        },
+        {
+          "id": "2120553947",
+          "label": "quotations"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n2",
+          "label": "receive request by supervisor"
+        },
+        {
+          "id": "n10",
+          "label": "choose a different vendor"
+        },
+        {
+          "id": "n11",
+          "label": "return to employee for changes"
+        }
+      ]
+    }
+  ]
+}

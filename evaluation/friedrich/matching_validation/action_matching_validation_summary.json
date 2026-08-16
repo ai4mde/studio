@@ -1,0 +1,113 @@
+{
+  "frozen_pilot_sha256": "5d0b01e8ed28032f7904c72d6a4e5517e82fc276f73f0d617f5d680b348494a1",
+  "threshold": 0.44,
+  "candidate_rule": "cosine_similarity >= threshold",
+  "operation_rule": {
+    "families": {
+      "accept": "approval",
+      "approve": "approval",
+      "check": "inspection",
+      "create": "creation",
+      "decline": "rejection",
+      "dispatch": "transmission",
+      "edit": "modification",
+      "examine": "inspection",
+      "forward": "transmission",
+      "generate": "creation",
+      "inspect": "inspection",
+      "modify": "modification",
+      "produce": "creation",
+      "receive": "reception",
+      "recheck": "inspection",
+      "reject": "rejection",
+      "review": "inspection",
+      "revise": "modification",
+      "send": "transmission",
+      "test": "inspection",
+      "update": "modification",
+      "write": "creation"
+    },
+    "incompatible_family_pairs": [
+      [
+        "approval",
+        "rejection"
+      ],
+      [
+        "creation",
+        "reception"
+      ],
+      [
+        "creation",
+        "transmission"
+      ],
+      [
+        "inspection",
+        "modification"
+      ],
+      [
+        "reception",
+        "transmission"
+      ]
+    ],
+    "unclassified_policy": "compatible; defer to semantic similarity"
+  },
+  "assignment": "per-case maximum-weight bipartite assignment over compatible threshold candidates; sorted node IDs; each node used at most once",
+  "metrics": {
+    "threshold_only": {
+      "tp": 19,
+      "fp": 2,
+      "fn": 0,
+      "tn": 8,
+      "precision": 0.9047619,
+      "recall": 1.0,
+      "f1": 0.95,
+      "accuracy": 0.93103448
+    },
+    "after_operation_compatibility": {
+      "tp": 19,
+      "fp": 0,
+      "fn": 0,
+      "tn": 10,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "after_one_to_one_assignment": {
+      "tp": 19,
+      "fp": 0,
+      "fn": 0,
+      "tn": 10,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    }
+  },
+  "changed_decisions": [
+    {
+      "pair_id": "P018",
+      "reference_label": "Send Invoice",
+      "generated_label": "receive invoice",
+      "cosine_similarity": 0.91661161,
+      "human_annotation": "different",
+      "old_prediction": "equivalent",
+      "new_prediction": "different",
+      "change_source": "operation_compatibility",
+      "reason": "operation_conflict:transmission(send)_vs_reception(receive)"
+    },
+    {
+      "pair_id": "P025",
+      "reference_label": "Create Order",
+      "generated_label": "send order to supplier",
+      "cosine_similarity": 0.56491393,
+      "human_annotation": "different",
+      "old_prediction": "equivalent",
+      "new_prediction": "different",
+      "change_source": "operation_compatibility",
+      "reason": "operation_conflict:creation(create)_vs_transmission(send)"
+    }
+  ],
+  "operation_compatibility_changes": 2,
+  "one_to_one_assignment_changes": 0
+}

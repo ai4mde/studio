@@ -1,0 +1,36 @@
+review_id,case_id,reference_id,reference_label,generated_id,generated_label,matcher_selected,manual_classification,topology_used,reviewer_notes
+U001,8-1,2120552557,advertise post,n2,advertise the post,yes,correct_match,no,Same advertising activity.
+U002,8-1,2120552562,apply,n3,receive applications,yes,correct_match,yes,Same application handoff viewed from applicant and employer perspectives; immediate predecessor and successor also correspond.
+U003,8-1,2120552565,check application,n4,check the applications,yes,correct_match,no,Trivial number and article variation.
+U004,8-1,2120552568,fill post,n5,fill the post,yes,correct_match,no,Same activity.
+U005,8-1,2120552556,report vacancy,n1,trigger process by demand to fill a post,no,missed_true_match,no,Both represent the initiating vacancy or demand-to-fill event; the semantic score did not reach the threshold.
+U006,1-1,2120553001,receive order,n9,reject order,yes,false_match,no,Receiving an order and rejecting it are distinct lifecycle stages.
+U007,1-1,2120553011,inform storehouse and egineering department,n5,inform storehouse and engineering department,yes,correct_match,no,Same notification activity with a source spelling error.
+U008,1-1,2120553033,reserve part,n7,reserve in house parts,yes,correct_match,no,Same in-house reservation activity.
+U009,1-1,2120553035,back order part,n8,back order unavailable parts,yes,correct_match,no,Same unavailable-part ordering activity.
+U010,2-2,161,import meter data,n5,import meter data,yes,correct_match,no,Exact activity.
+U011,2-2,168,create cis contract,n15,create cis contract,yes,correct_match,no,Exact activity.
+U012,2-2,183,withdraw from switch contract,n21,withdraw from contract,yes,correct_match,no,Same contract withdrawal.
+U013,2-2,187,confirm switch contract,n3,send confirmation to customer,yes,false_match,no,Customer confirmation of the offered contract is distinct from the earlier confirmation document sent to the customer.
+U014,2-2,208,check for supplier concurrence,n14,resolve supplier conflict,yes,false_match,no,Checking concurrence precedes and is distinct from resolving a detected supplier conflict.
+U015,2-2,231,compute final billing,n23,compute and send final billing,yes,granularity_mismatch,no,Generated action combines computation with the subsequent sending activity.
+U016,2-2,25,error handling,n9,correct errors,yes,correct_match,no,The generic reference label denotes the source-described correction of detected customer-data errors.
+U017,2-2,26,check customer s first registration,n1,receive customer data,yes,false_match,yes,Receiving customer data is distinct from checking whether the customer is already registered; topology selected the wrong lifecycle stage.
+U018,2-2,35,create customer,n18,create new customer object,yes,correct_match,no,Same customer-object creation activity.
+U019,2-2,43,prepare contract documents,n2,prepare contract documents,yes,correct_match,no,Exact activity.
+U020,2-2,5,request switch over,n4,request grid operator concurrence,yes,false_match,no,The customer's initial switch-over request is distinct from the later concurrence request sent to the grid operator.
+U021,2-2,54,resolve issues,n12,analyze and resolve document issues,yes,granularity_mismatch,yes,Generated action combines analysis and resolution while the reference contains only resolution.
+U022,2-2,74,send documents,n3,send confirmation to customer,no,missed_true_match,no,The generated confirmation-document sending activity corresponds here; it was consumed by the false confirmation-of-contract assignment.
+U023,3-8,457,register claim,n2,check documents and register claim,yes,granularity_mismatch,yes,Generated action combines reference actions check documentation and register claim.
+U024,3-8,467,check insurance,n3,check insurance,yes,correct_match,no,Exact activity.
+U025,3-8,469,perform assessment,n4,perform assessment,yes,correct_match,no,Exact activity.
+U026,3-8,479,arrange repair,n9,authorize repairs,yes,correct_match,yes,Same garage-repair authorization activity in the positive branch.
+U027,3-8,483,schedule payment,n10,schedule payment,yes,correct_match,no,Exact activity.
+U028,3-8,491,reject claim,n11,reject claim,yes,correct_match,no,Exact activity.
+U029,3-8,495,notify customer,n5,send letter to customer,yes,correct_match,yes,Same final customer-notification activity across both assessment outcomes.
+U030,10-9,16734589,review,n1,review change request,yes,correct_match,no,Same review activity with the object made explicit.
+U031,10-9,16734599,rejection of the change,n6,reject change request,yes,correct_match,no,Noun and verb forms of the same rejection activity.
+U032,10-9,16734600,confirmation of the request,n7,confirm change request,yes,correct_match,yes,Noun and verb forms of the same confirmation activity.
+U033,10-9,16734612,performance of the measuring point change,n2,perform measuring point change,yes,correct_match,yes,Noun and verb forms of the same change activity.
+U034,10-9,16734622,failure of the changes,n11,notify failure of changes,yes,correct_match,yes,Same failure-branch notification described by the source text.
+U035,10-9,16734627,implementation report,n10,report implementation success,yes,correct_match,no,Same successful implementation-report activity.

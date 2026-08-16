@@ -1,0 +1,415 @@
+{
+  "method": {
+    "normalization": "evaluation.friedrich.eval_graph.normalize_label",
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "model_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "dimensions": 384,
+    "threshold": 0.44,
+    "operation_compatibility": "evaluation.friedrich.action_matching",
+    "assignment": "per-case maximum-weight bipartite assignment",
+    "topology_policy": "tie-breaker only; not applied automatically in this run",
+    "sentence_transformers_version": "5.7.0",
+    "scipy_version": "1.18.0",
+    "torch_version": "2.13.0",
+    "numpy_version": "2.5.2",
+    "python_version": "3.12.13"
+  },
+  "pilot_case_ids": [
+    "3-3",
+    "4-1",
+    "5-2",
+    "6-2",
+    "6-3",
+    "9-5",
+    "9-6"
+  ],
+  "held_out_case_ids": [
+    "3-1",
+    "3-4",
+    "8-2",
+    "10-7",
+    "1-2"
+  ],
+  "cases": [
+    {
+      "case_id": "3-1",
+      "case_name": "2009-1 MC Finalise SCT Warrant Possession",
+      "selection_rationale": "clean simple sequence with repeated store/retrieve activities",
+      "source_pattern": "sequential/unclear",
+      "has_decision": "unclear",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2009-1.diagram.zip",
+      "reference_sha256": "0faf3c1fea4b068468cf99a92b742fd2e8b2d5490474337a8984e7f1bcf74142",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-1/run_1.json",
+      "generated_sha256": "b02935d3b33534efb16a1e37ee3ac44c6ceaa122274f7f25c96bdcf95abfd4a8",
+      "reference_action_count": 6,
+      "generated_action_count": 7,
+      "candidate_pair_count": 42,
+      "selected_matches": [
+        {
+          "reference_id": "64",
+          "reference_label": "retrieve sct file",
+          "generated_id": "n5",
+          "generated_label": "retrieve respective sct file",
+          "cosine_similarity": 0.93696886,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "69",
+          "reference_label": "distribute sct warrant possession",
+          "generated_id": "n3",
+          "generated_label": "forward sct warrant possession to queensland police",
+          "cosine_similarity": 0.75011492,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "81",
+          "reference_label": "store sct physical file",
+          "generated_id": "n4",
+          "generated_label": "store sct physical file",
+          "cosine_similarity": 1.00000012,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "86",
+          "reference_label": "retrieve sct file",
+          "generated_id": "n2",
+          "generated_label": "receive request and retrieve sct file",
+          "cosine_similarity": 0.82147849,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "93",
+          "reference_label": "attach new sct document",
+          "generated_id": "n6",
+          "generated_label": "attach new sct document",
+          "cosine_similarity": 1.00000012,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "97",
+          "reference_label": "store sct physical file",
+          "generated_id": "n7",
+          "generated_label": "store expanded sct physical file",
+          "cosine_similarity": 0.90586066,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [],
+      "unmatched_generated_actions": [
+        {
+          "id": "n1",
+          "label": "send warrant possession request"
+        }
+      ],
+      "compatibility_rejections_above_threshold": []
+    },
+    {
+      "case_id": "3-4",
+      "case_name": "2009-4 event based gateways",
+      "selection_rationale": "loop with questionnaire and repeated reminders",
+      "source_pattern": "loop",
+      "has_decision": "yes",
+      "has_loop": "yes",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2009-4.diagram.zip",
+      "reference_sha256": "71a858a7d18c66506950ac39a3666ea8da439a8ef489e2ec99145f1a84a81eb8",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-4/run_1.json",
+      "generated_sha256": "fa6a54aa5d26192cd6aacdc34f1c673be06b6f77e43e05b597b22633e18b25bb",
+      "reference_action_count": 2,
+      "generated_action_count": 2,
+      "candidate_pair_count": 4,
+      "selected_matches": [
+        {
+          "reference_id": "213",
+          "reference_label": "send reminder",
+          "generated_id": "n5",
+          "generated_label": "send reminder to claimant",
+          "cosine_similarity": 0.6834833,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "218",
+          "reference_label": "send questionnaire",
+          "generated_id": "n1",
+          "generated_label": "send questionnaire to the claimant",
+          "cosine_similarity": 0.79761714,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [],
+      "unmatched_generated_actions": [],
+      "compatibility_rejections_above_threshold": []
+    },
+    {
+      "case_id": "8-2",
+      "case_name": "153 - HR Process - HR department - eng",
+      "selection_rationale": "decision loop with correction and resubmission",
+      "source_pattern": "decision+loop nested",
+      "has_decision": "yes",
+      "has_loop": "yes",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Practical handbook/_Solutions/PH BPMN 4.3-153.diagram.zip",
+      "reference_sha256": "fd209ff7d0e50ea2f5a5a7c65c689bc4ac2697f2e844f12a31ad0324de6e7108",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/8-2/run_1.json",
+      "generated_sha256": "ee13a09129053b4a241d8fb4a0d56cbb7e4eae54f103a22e1ce7049301d82104",
+      "reference_action_count": 5,
+      "generated_action_count": 5,
+      "candidate_pair_count": 25,
+      "selected_matches": [
+        {
+          "reference_id": "2120552606",
+          "reference_label": "communicate tasks and requirements",
+          "generated_id": "n2",
+          "generated_label": "submit job description for consideration",
+          "cosine_similarity": 0.49157387,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120552624",
+          "reference_label": "review job description",
+          "generated_id": "n8",
+          "generated_label": "correct job description",
+          "cosine_similarity": 0.65362006,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120552640",
+          "reference_label": "approve job description",
+          "generated_id": "n1",
+          "generated_label": "create job description",
+          "cosine_similarity": 0.71556532,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "2120552590",
+          "label": "report vacancy"
+        },
+        {
+          "id": "2120552627",
+          "label": "ask for corrections"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n6",
+          "label": "post job"
+        },
+        {
+          "id": "n9",
+          "label": "resubmit job description for consideration"
+        }
+      ],
+      "compatibility_rejections_above_threshold": []
+    },
+    {
+      "case_id": "10-7",
+      "case_name": "B7 - eng",
+      "selection_rationale": "decision with three repeated assignment-information activities",
+      "source_pattern": "decision",
+      "has_decision": "yes",
+      "has_loop": "unclear",
+      "has_parallel": "unclear",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B7-eng.diagram.zip",
+      "reference_sha256": "2b1c7375d4c9a2efbfee10cecff8eaf48206fddca7b1784ade57eb3006a05126",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-7/run_1.json",
+      "generated_sha256": "4eea6897a185083389007728c592d1f97ea0acf7640306581c9927bc403f28d8",
+      "reference_action_count": 8,
+      "generated_action_count": 8,
+      "candidate_pair_count": 64,
+      "selected_matches": [
+        {
+          "reference_id": "16734423",
+          "reference_label": "assignment of the mspn",
+          "generated_id": "n3",
+          "generated_label": "go assigns the mspn",
+          "cosine_similarity": 0.77691245,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16734426",
+          "reference_label": "information about the assignment of the mspn",
+          "generated_id": "n6",
+          "generated_label": "go informs the sp about the assignment of mspn",
+          "cosine_similarity": 0.84144491,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16734427",
+          "reference_label": "information about the assignment of the mspn",
+          "generated_id": "n4",
+          "generated_label": "go informs the mspo about the assignment of mspn",
+          "cosine_similarity": 0.7963922,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "16734428",
+          "reference_label": "information about the assignment of the mspn",
+          "generated_id": "n2",
+          "generated_label": "go examines the application of the mspn",
+          "cosine_similarity": 0.77462006,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "16734397",
+          "label": "examination"
+        },
+        {
+          "id": "16734401",
+          "label": "rejection of registration"
+        },
+        {
+          "id": "16734403",
+          "label": "confirmation of registration"
+        },
+        {
+          "id": "16734412",
+          "label": "registration"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n1",
+          "label": "mspn registers the measurement at the go"
+        },
+        {
+          "id": "n10",
+          "label": "go rejects the application of the mspn"
+        },
+        {
+          "id": "n11",
+          "label": "go confirms the application of the mspn"
+        },
+        {
+          "id": "n5",
+          "label": "go informs the mpo about the assignment of the mspn"
+        }
+      ],
+      "compatibility_rejections_above_threshold": []
+    },
+    {
+      "case_id": "1-2",
+      "case_name": "Ex2 - Computer Repair",
+      "selection_rationale": "parallel repair activities, decisions, and repetition",
+      "source_pattern": "decision nested",
+      "has_decision": "yes",
+      "has_loop": "unclear",
+      "has_parallel": "yes",
+      "reference_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/_Solutions/HU Ex2.diagram.zip",
+      "reference_sha256": "4592aae4d05316ec1f95a0b309744b020fdd76db9b2e65b415849a60eac06122",
+      "generated_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/1-2/run_1.json",
+      "generated_sha256": "655e1b30099bea34b7691eb02f6f5bc2b6e59c6f98ef0357bd2797284d8b6704",
+      "reference_action_count": 8,
+      "generated_action_count": 6,
+      "candidate_pair_count": 48,
+      "selected_matches": [
+        {
+          "reference_id": "2120553092",
+          "reference_label": "bring in defective computer",
+          "generated_id": "n1",
+          "generated_label": "check computer defect",
+          "cosine_similarity": 0.7099942,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553104",
+          "reference_label": "take computer home",
+          "generated_id": "n10",
+          "generated_label": "return computer to customer unrepaired",
+          "cosine_similarity": 0.48826358,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553115",
+          "reference_label": "prepare repair cost calculation",
+          "generated_id": "n2",
+          "generated_label": "provide repair cost calculation",
+          "cosine_similarity": 0.89305723,
+          "compatibility_reason": "no_declared_conflict_unclassified_operation",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553131",
+          "reference_label": "check and repair hardware",
+          "generated_id": "n6",
+          "generated_label": "check and repair hardware",
+          "cosine_similarity": 1.0,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "topology_used": false,
+          "topology_evidence": null
+        },
+        {
+          "reference_id": "2120553136",
+          "reference_label": "check and configure software",
+          "generated_id": "n7",
+          "generated_label": "check and configure software",
+          "cosine_similarity": 1.0,
+          "compatibility_reason": "no_declared_operation_conflict",
+          "topology_used": false,
+          "topology_evidence": null
+        }
+      ],
+      "unmatched_reference_actions": [
+        {
+          "id": "2120553095",
+          "label": "receive repair cost calculation"
+        },
+        {
+          "id": "2120553106",
+          "label": "continue process"
+        },
+        {
+          "id": "2120553161",
+          "label": "test system functionality"
+        }
+      ],
+      "unmatched_generated_actions": [
+        {
+          "id": "n9",
+          "label": "execute another repair activity"
+        }
+      ],
+      "compatibility_rejections_above_threshold": []
+    }
+  ]
+}

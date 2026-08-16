@@ -1,0 +1,56 @@
+{
+  "frozen_pilot": {
+    "path": "/Users/queenie/Desktop/studio-friedrich-evaluation/evaluation/friedrich/action_matching_pilot_pairs.csv",
+    "sha256": "5d0b01e8ed28032f7904c72d6a4e5517e82fc276f73f0d617f5d680b348494a1",
+    "eligible_rule": "annotation_category in {equivalent,different} and used_topology == no",
+    "eligible_pairs": 29,
+    "positive_pairs": 19,
+    "negative_pairs": 10
+  },
+  "normalization": "Unicode NFKC; casefold; underscores/hyphens to spaces; non-word punctuation to spaces; collapse whitespace; trim; empty to null",
+  "embedding": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "dimensions": 384,
+    "device": "cpu",
+    "normalized_embeddings": true,
+    "similarity": "cosine (dot product of L2-normalized embeddings)",
+    "sentence_transformers_version": "5.7.0",
+    "transformers_version": "5.15.0",
+    "torch_version": "2.13.0",
+    "numpy_version": "2.5.2",
+    "python_version": "3.12.13"
+  },
+  "best_f1": 0.9500000000000001,
+  "best_plateaus": [
+    {
+      "threshold": 0.43648474,
+      "plateau_lower_exclusive": 0.42260495,
+      "plateau_upper_inclusive": 0.45036453,
+      "tp": 19,
+      "fp": 2,
+      "fn": 0,
+      "tn": 8,
+      "precision": 0.9047619,
+      "recall": 1.0,
+      "f1": 0.95,
+      "accuracy": 0.93103448
+    }
+  ],
+  "recommended_threshold": 0.44,
+  "recommended_threshold_metrics": {
+    "tp": 19,
+    "fp": 2,
+    "fn": 0,
+    "tn": 8,
+    "precision": 0.9047619,
+    "recall": 1.0,
+    "f1": 0.95,
+    "accuracy": 0.93103448
+  },
+  "false_positive_pair_ids": [
+    "P018",
+    "P025"
+  ],
+  "false_negative_pair_ids": []
+}

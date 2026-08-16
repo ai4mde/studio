@@ -1,0 +1,45 @@
+{
+  "protected_inputs": {
+    "pilot_sha256": "5d0b01e8ed28032f7904c72d6a4e5517e82fc276f73f0d617f5d680b348494a1",
+    "development_sha256": "4e5ea31e8d18690edb9891a35d1ecb4d4de748460e0d5128d23b245e1d989c6e",
+    "held_out_cases_used": []
+  },
+  "composition": {
+    "pairs": 55,
+    "positive": 34,
+    "negative": 21
+  },
+  "candidate_rule": "max(original full-label cosine, canonical operation+object cosine) >= 0.44; existing conflict filter; operation guard only when both operations are resolved",
+  "best_f1": 0.88311688,
+  "best_plateaus": [
+    {
+      "operation_threshold": 0.11415222,
+      "plateau_lower_exclusive": null,
+      "plateau_upper_inclusive": 0.11415222,
+      "tp": 34,
+      "fp": 9,
+      "fn": 0,
+      "tn": 12,
+      "precision": 0.79069767,
+      "recall": 1.0,
+      "f1": 0.88311688,
+      "accuracy": 0.83636364
+    },
+    {
+      "operation_threshold": 0.14063842,
+      "plateau_lower_exclusive": 0.11415222,
+      "plateau_upper_inclusive": 0.16712463,
+      "tp": 34,
+      "fp": 9,
+      "fn": 0,
+      "tn": 12,
+      "precision": 0.79069767,
+      "recall": 1.0,
+      "f1": 0.88311688,
+      "accuracy": 0.83636364
+    }
+  ],
+  "recommended_threshold": null,
+  "threshold_decision": "No additional operation threshold. The best-F1 plateau does not remove the remaining lifecycle negatives, while a higher cutoff rejects defensible cross-operation paraphrases. Operation similarity is retained as inspectable evidence; the frozen conflict map remains the compatibility guard.",
+  "recommended_metrics": null
+}

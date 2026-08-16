@@ -1,0 +1,60 @@
+review_id,case_id,reference_id,reference_label,generated_id,generated_label,matcher_selected,manual_classification,topology_used,reviewer_notes
+F001,9-3,16733499,draft dates,n1,draft schedule of meetings,yes,correct_match,no,Same annual meeting-schedule drafting activity.
+F002,9-3,16733500,enter onto next years calendar,n2,add draft dates to calendars,yes,correct_match,no,Same calendar-entry activity.
+F003,9-3,16733503,check suggests updates,n3,support officer checks and suggests modifications,yes,correct_match,no,Same checking and modification-suggestion activity.
+F004,9-3,16733509,finalize calendar schedule,n5,send final schedule to committee members,yes,false_match,no,Finalizing a schedule and distributing it are distinct lifecycle stages.
+F005,9-3,16733537,check for conflicts,n4,recheck dates for conflicts,yes,correct_match,no,Same conflict-checking activity.
+F006,6-1,404,identify charging supplier,n17,resolve complaints with supplier,yes,false_match,no,Identifying a supplier and resolving a later complaint with that supplier are distinct stages.
+F007,6-1,405,create instance,n3,create invoice instance,yes,correct_match,no,Same invoice-instance creation.
+F008,6-1,406,check invoice items,n4,check invoice items,yes,correct_match,no,Exact activity.
+F009,6-1,407,create docket,n5,prepare docket with cost centers,yes,correct_match,yes,Same docket creation and preparation; generated-side competition existed.
+F010,6-1,408,deliver copy of the invoice docket,n6,forward invoice to commercial manager,yes,false_match,yes,Reference delivery enters the cost-center-manager loop; generated forwarding goes directly to the later commercial audit.
+F011,6-1,415,forward copy of the invoice,n2,forward to accounting,yes,false_match,no,Reference forwarding precedes commercial audit; generated forwarding to accounting occurs before invoice-instance creation.
+F012,6-1,417,commercial audit,n15,conduct commercial audit,yes,correct_match,no,Same audit activity.
+F013,6-1,424,issure the approval for payment,n16,approve payment,yes,correct_match,no,Same payment approval despite source spelling.
+F014,6-1,426,give payment instructions,n7,give payment instructions,yes,correct_match,no,Exact activity.
+F015,6-1,427,close instance,n8,close invoice instance,yes,correct_match,no,Same closing activity.
+F016,6-1,415,forward copy of the invoice,n6,forward invoice to commercial manager,no,missed_true_match,no,Graph position immediately before commercial audit uniquely supports this correspondence.
+F017,6-1,422,conduct check,n20,perform board review,no,missed_true_match,no,Same optional board check after commercial audit for high-value invoices.
+F018,2-1,2120553456,send list of problem parameters,n2,send problem parameters to customer service,yes,correct_match,no,Same initial problem-parameter transmission.
+F019,2-1,2120553462,enter problem report,n3,enter problem report into system t,yes,correct_match,no,Same report-entry activity.
+F020,2-1,2120553507,determine significance of the customer based on customer data in the problem report,n6,determine customer significance,yes,correct_match,no,Same significance determination.
+F021,2-1,2120553576,compare customer sla and problem report,n4,compare problem report to sla,yes,correct_match,no,Same comparison.
+F022,2-1,2120553589,determine counter measures inclu priorities,n5,determine counter measures and priorities,yes,correct_match,no,Same prioritized-countermeasure determination.
+F023,2-1,2120553610,perform problem analysis,n27,analyze problem,yes,false_match,no,Reference analysis is in Service Management; generated n27 is the later Resource Provisioning analysis.
+F024,2-1,2120553636,create notification of normal service execution,n29,create notification of normal service execution,yes,correct_match,no,Exact activity.
+F025,2-1,2120553642,analyze in detail problem cause,n23,analyze problem,yes,false_match,no,Reference analysis is in Resource Provisioning; generated n23 is the earlier Service Management analysis.
+F026,2-1,2120553653,create trouble report,n24,create trouble report,yes,false_match,no,Reference report follows Resource Provisioning analysis; generated n24 follows Service Management analysis.
+F027,2-1,2120553664,create trouble report indicating the type of problem,n17,link to extra problem fix process,yes,false_match,no,Creating a trouble report and linking to a premium-customer subprocess are unrelated operations.
+F028,2-1,2120553672,prepare final status report,n9,prepare final status report,yes,correct_match,no,Exact activity.
+F029,2-1,2120553673,determine counter measures based on the final status report,n10,determine counter measures,yes,correct_match,no,Same post-status-report determination.
+F030,2-1,2120553694,send out actual service performance,n33,send actual service performance to customer service,yes,correct_match,no,Same transmission.
+F031,2-1,2120553699,undertake corrective actions,n34,undertake corrective actions,yes,correct_match,yes,Same Service Management corrective-action branch; genuine bilateral competition was resolved by anchors.
+F032,2-1,2120553701,create request for automtaic resource restoration,n36,request automatic resource restoration,yes,correct_match,no,Same restoration request.
+F033,2-1,2120553719,report sla violation rebate to billing collections for billing adjustment,n13,report rebate to billing collections,yes,correct_match,no,Same rebate report.
+F034,2-1,2120553722,create report for customer about performance and problem resolution,n7,create detailed problem report,yes,false_match,no,The early internal detailed report is distinct from the later customer report.
+F035,2-1,2120553746,create problem resolution report,n35,create problem resolution report,yes,correct_match,no,Exact activity.
+F036,2-1,2120553779,track errors,n37,track errors,yes,correct_match,no,Exact activity.
+F037,2-1,2120553780,undertake corrective actions,n38,undertake corrective actions,yes,correct_match,yes,Same Resource Provisioning corrective-action branch; genuine bilateral competition was resolved by anchors.
+F038,2-1,2120553783,create troubleshooting report,n39,create troubleshooting report,yes,correct_match,no,Exact activity.
+F039,2-1,2120553794,create status report,n28,create trouble report,yes,false_match,no,A status report and its preceding branch-specific trouble report are distinct artifacts and stages.
+F040,2-1,2120553590,create detailed problem report incl contract commitment data prioritized actions,n7,create detailed problem report,no,missed_true_match,no,Same early detailed problem-report creation.
+F041,2-1,2120553610,perform problem analysis,n23,analyze problem,no,missed_true_match,no,Graph position after the report reaches Service Management establishes the correspondence.
+F042,2-1,2120553664,create trouble report indicating the type of problem,n24,create trouble report,no,missed_true_match,no,Both follow the Service Management analysis branch.
+F043,2-1,2120553642,analyze in detail problem cause,n27,analyze problem,no,missed_true_match,no,Both occur in the Resource Provisioning branch.
+F044,2-1,2120553653,create trouble report,n28,create trouble report,no,missed_true_match,no,Both follow the Resource Provisioning analysis branch.
+F045,9-4,16733499,create meeting folder,n3,create meeting folders,yes,correct_match,no,Same folder creation.
+F046,9-4,16733500,upload all relevant documents,n4,upload documents to system,yes,correct_match,no,Same document upload.
+F047,9-4,16733520,attends meeting,n6,hold meeting,yes,correct_match,no,Same meeting occurrence viewed from participant and process perspectives.
+F048,9-4,16733537,meeting takes place,n1,finalize meeting dates,yes,false_match,no,Holding a meeting and finalizing its dates are distinct lifecycle stages.
+F049,9-4,16733588,prepare meeting minutes,n9,send minutes to committee members,yes,false_match,no,Preparing minutes and sending them are distinct stages.
+F050,9-4,16733589,qa check,n8,conduct qa check on minutes,yes,correct_match,no,Same QA activity.
+F051,9-4,16733588,prepare meeting minutes,n7,produce minutes with action points,no,missed_true_match,no,Same minutes-production activity; n7 was left unmatched while n9 was selected incorrectly.
+F052,9-4,16733537,meeting takes place,n6,hold meeting,no,granularity_mismatch,no,Reference models meeting occurrence separately from attendance while generated graph has one meeting action already matched to attendance.
+F053,9-4,16733600,remind coordination unit,n5,advise committee members to read documents,no,unresolved_ambiguous,no,The labels imply different recipients and disconnected reference topology does not uniquely establish equivalence.
+F054,5-3,2120553925,register office supply request,n1,submit office supply request,yes,false_match,no,Submission and subsequent registration are distinct stages in the source text.
+F055,5-3,2120553926,approve office supply request,n6,send to purchase department,yes,false_match,no,Approval and forwarding after approval are distinct operations.
+F056,5-3,2120553952,generate purchase order,n8,generate and send purchase order,yes,granularity_mismatch,no,Generated action combines purchase-order generation and sending.
+F057,5-3,2120553955,receive products,n9,wait for product delivery and invoice,yes,correct_match,yes,Same delivery-receipt stage with extra invoice detail; genuine generated-side competition existed.
+F058,5-3,2120553961,notify rejection,n12,notify rejection,yes,correct_match,no,Exact activity.
+F059,5-3,2120553934,notify change required,n11,return to employee for changes,no,missed_true_match,no,Same change-required branch handoff expressed as notification versus return.

@@ -1,0 +1,129 @@
+case_id,case_name,side,action_id,label,canonical_operation,operation_resolved,object_phrase,canonical_label
+9-3,Ex3a,reference,16733503,check suggests updates,suggest,True,updates,suggest updates
+9-3,Ex3a,reference,16733520,updates group calendars,update,True,group calendars,update group calendars
+9-3,Ex3a,reference,16733500,enter onto next years calendar,enter,True,next years calendar,enter next years calendar
+9-3,Ex3a,reference,16733537,check for conflicts,check,True,conflicts,check conflicts
+9-3,Ex3a,reference,16733509,finalize calendar schedule,finalize,True,calendar schedule,finalize calendar schedule
+9-3,Ex3a,reference,16733499,draft dates,draft,True,dates,draft dates
+9-3,Ex3a,generated,n1,draft schedule of meetings,draft,True,schedule meetings,draft schedule meetings
+9-3,Ex3a,generated,n2,add draft dates to calendars,add,True,draft dates calendars,add draft dates calendars
+9-3,Ex3a,generated,n3,support officer checks and suggests modifications,support,True,officer checks and suggests modifications,support officer checks and suggests modifications
+9-3,Ex3a,generated,n4,recheck dates for conflicts,date,True,conflicts,date conflicts
+9-3,Ex3a,generated,n5,send final schedule to committee members,send,True,final schedule,send final schedule
+6-1,ACME - eng,reference,417,commercial audit,audit,True,,audit
+6-1,ACME - eng,reference,415,forward copy of the invoice,copy,True,the invoice,copy the invoice
+6-1,ACME - eng,reference,413,ap,ap,False,,ap
+6-1,ACME - eng,reference,411,rejection note explanatory statement,note,True,explanatory statement,note explanatory statement
+6-1,ACME - eng,reference,427,close instance,close,True,instance,close instance
+6-1,ACME - eng,reference,409,conduct check,conduct,True,check,conduct check
+6-1,ACME - eng,reference,408,deliver copy of the invoice docket,deliver,True,copy of the invoice docket,deliver copy of the invoice docket
+6-1,ACME - eng,reference,426,give payment instructions,give,True,payment instructions,give payment instructions
+6-1,ACME - eng,reference,405,create instance,create,True,instance,create instance
+6-1,ACME - eng,reference,404,identify charging supplier,charge,True,supplier,charge supplier
+6-1,ACME - eng,reference,407,create docket,create,True,docket,create docket
+6-1,ACME - eng,reference,406,check invoice items,check,True,invoice items,check invoice items
+6-1,ACME - eng,reference,403,conduct visual inspection,conduct,True,visual inspection,conduct visual inspection
+6-1,ACME - eng,reference,422,conduct check,conduct,True,check,conduct check
+6-1,ACME - eng,reference,424,issure the approval for payment,issure,False,the approval for payment,issure the approval for payment
+6-1,ACME - eng,generated,n1,receive invoices,invoice,True,,invoice
+6-1,ACME - eng,generated,n2,forward to accounting,forward,True,accounting,forward accounting
+6-1,ACME - eng,generated,n3,create invoice instance,create,True,invoice instance,create invoice instance
+6-1,ACME - eng,generated,n4,check invoice items,check,True,invoice items,check invoice items
+6-1,ACME - eng,generated,n5,prepare docket with cost centers,prepare,True,docket with cost centers,prepare docket with cost centers
+6-1,ACME - eng,generated,n6,forward invoice to commercial manager,invoice,True,commercial manager,invoice commercial manager
+6-1,ACME - eng,generated,n7,give payment instructions,give,True,payment instructions,give payment instructions
+6-1,ACME - eng,generated,n8,close invoice instance,close,True,invoice instance,close invoice instance
+6-1,ACME - eng,generated,n12,resolve inconsistencies with vendors,inconsistencie,True,vendors,inconsistencie vendors
+6-1,ACME - eng,generated,n13,consult cost center managers,consult,True,cost center managers,consult cost center managers
+6-1,ACME - eng,generated,n15,conduct commercial audit,conduct,True,commercial audit,conduct commercial audit
+6-1,ACME - eng,generated,n16,approve payment,approve,True,payment,approve payment
+6-1,ACME - eng,generated,n17,resolve complaints with supplier,complaint,True,supplier,complaint supplier
+6-1,ACME - eng,generated,n20,perform board review,perform,True,board review,perform board review
+2-1,TU Berlin - SLA Violation,reference,2120553664,create trouble report indicating the type of problem,create,True,trouble report indicating the type of problem,create trouble report indicating the type of problem
+2-1,TU Berlin - SLA Violation,reference,2120553746,create problem resolution report,create,True,problem resolution report,create problem resolution report
+2-1,TU Berlin - SLA Violation,reference,2120553589,determine counter measures inclu priorities,determine,True,counter measures inclu priorities,determine counter measures inclu priorities
+2-1,TU Berlin - SLA Violation,reference,2120553701,create request for automtaic resource restoration,create,True,request for automtaic resource restoration,create request for automtaic resource restoration
+2-1,TU Berlin - SLA Violation,reference,2120553456,send list of problem parameters,send,True,list of problem parameters,send list of problem parameters
+2-1,TU Berlin - SLA Violation,reference,2120553590,create detailed problem report incl contract commitment data prioritized actions,detail,True,problem report incl contract commitment data prioritized actions,detail problem report incl contract commitment data prioritized actions
+2-1,TU Berlin - SLA Violation,reference,2120553694,send out actual service performance,send,True,actual service performance,send actual service performance
+2-1,TU Berlin - SLA Violation,reference,2120553699,undertake corrective actions,undertake,True,corrective actions,undertake corrective actions
+2-1,TU Berlin - SLA Violation,reference,2120553719,report sla violation rebate to billing collections for billing adjustment,report,True,sla violation rebate billing collections billing adjustment,report sla violation rebate billing collections billing adjustment
+2-1,TU Berlin - SLA Violation,reference,2120553653,create trouble report,create,True,trouble report,create trouble report
+2-1,TU Berlin - SLA Violation,reference,2120553794,create status report,create,True,status report,create status report
+2-1,TU Berlin - SLA Violation,reference,2120553610,perform problem analysis,perform,True,problem analysis,perform problem analysis
+2-1,TU Berlin - SLA Violation,reference,2120553462,enter problem report,enter,True,problem report,enter problem report
+2-1,TU Berlin - SLA Violation,reference,2120553606,investigate whether problem is analyzable at this level,investigate,True,whether problem analyzable level,investigate whether problem analyzable level
+2-1,TU Berlin - SLA Violation,reference,2120553507,determine significance of the customer based on customer data in the problem report,determine,True,significance of the customer based on customer data in the problem report,determine significance of the customer based on customer data in the problem report
+2-1,TU Berlin - SLA Violation,reference,2120553642,analyze in detail problem cause,analyze,True,detail problem cause,analyze detail problem cause
+2-1,TU Berlin - SLA Violation,reference,2120553543,perform plausibility check,perform,True,plausibility check,perform plausibility check
+2-1,TU Berlin - SLA Violation,reference,2120553722,create report for customer about performance and problem resolution,create,True,report for customer about performance and problem resolution,create report for customer about performance and problem resolution
+2-1,TU Berlin - SLA Violation,reference,2120553576,compare customer sla and problem report,compare,True,customer sla and problem,compare customer sla and problem
+2-1,TU Berlin - SLA Violation,reference,2120553636,create notification of normal service execution,create,True,notification of normal service execution,create notification of normal service execution
+2-1,TU Berlin - SLA Violation,reference,2120553673,determine counter measures based on the final status report,determine,True,counter measures based on the final status report,determine counter measures based on the final status report
+2-1,TU Berlin - SLA Violation,reference,2120553672,prepare final status report,prepare,True,final status report,prepare final status report
+2-1,TU Berlin - SLA Violation,reference,2120553779,track errors,track,True,errors,track errors
+2-1,TU Berlin - SLA Violation,reference,2120553632,check for possible problems,check,True,possible problems,check possible problems
+2-1,TU Berlin - SLA Violation,reference,2120553783,create troubleshooting report,troubleshoot,True,report,troubleshoot report
+2-1,TU Berlin - SLA Violation,reference,2120553780,undertake corrective actions,undertake,True,corrective actions,undertake corrective actions
+2-1,TU Berlin - SLA Violation,generated,n1,customer perceives service degradation,perceive,True,service degradation,perceive service degradation
+2-1,TU Berlin - SLA Violation,generated,n2,send problem parameters to customer service,send,True,problem parameters,send problem parameters
+2-1,TU Berlin - SLA Violation,generated,n3,enter problem report into system t,enter,True,problem report,enter problem report
+2-1,TU Berlin - SLA Violation,generated,n4,compare problem report to sla,compare,True,problem report sla,compare problem report sla
+2-1,TU Berlin - SLA Violation,generated,n5,determine counter measures and priorities,determine,True,counter measures and priorities,determine counter measures and priorities
+2-1,TU Berlin - SLA Violation,generated,n6,determine customer significance,determine,True,customer significance,determine customer significance
+2-1,TU Berlin - SLA Violation,generated,n7,create detailed problem report,detail,True,problem report,detail problem report
+2-1,TU Berlin - SLA Violation,generated,n8,send report to service management,send,True,report,send report
+2-1,TU Berlin - SLA Violation,generated,n9,prepare final status report,prepare,True,final status report,prepare final status report
+2-1,TU Berlin - SLA Violation,generated,n10,determine counter measures,determine,True,counter measures,determine counter measures
+2-1,TU Berlin - SLA Violation,generated,n11,send report to customer service,send,True,report customer service,send report customer service
+2-1,TU Berlin - SLA Violation,generated,n12,send report to customer,send,True,report,send report
+2-1,TU Berlin - SLA Violation,generated,n13,report rebate to billing collections,rebate,True,billing collections,rebate billing collections
+2-1,TU Berlin - SLA Violation,generated,n17,link to extra problem fix process,link,True,extra problem fix process,link extra problem fix process
+2-1,TU Berlin - SLA Violation,generated,n20,re prioritize counter measures,prioritize,True,counter measures,prioritize counter measures
+2-1,TU Berlin - SLA Violation,generated,n23,analyze problem,analyze,True,problem,analyze problem
+2-1,TU Berlin - SLA Violation,generated,n24,create trouble report,create,True,trouble report,create trouble report
+2-1,TU Berlin - SLA Violation,generated,n25,send report to resource provisioning,send,True,report provisioning,send report provisioning
+2-1,TU Berlin - SLA Violation,generated,n27,analyze problem,analyze,True,problem,analyze problem
+2-1,TU Berlin - SLA Violation,generated,n28,create trouble report,create,True,trouble report,create trouble report
+2-1,TU Berlin - SLA Violation,generated,n29,create notification of normal service execution,create,True,notification of normal service execution,create notification of normal service execution
+2-1,TU Berlin - SLA Violation,generated,n33,send actual service performance to customer service,send,True,actual service performance,send actual service performance
+2-1,TU Berlin - SLA Violation,generated,n34,undertake corrective actions,undertake,True,corrective actions,undertake corrective actions
+2-1,TU Berlin - SLA Violation,generated,n35,create problem resolution report,create,True,problem resolution report,create problem resolution report
+2-1,TU Berlin - SLA Violation,generated,n36,request automatic resource restoration,request,True,automatic resource restoration,request automatic resource restoration
+2-1,TU Berlin - SLA Violation,generated,n37,track errors,track,True,errors,track errors
+2-1,TU Berlin - SLA Violation,generated,n38,undertake corrective actions,undertake,True,corrective actions,undertake corrective actions
+2-1,TU Berlin - SLA Violation,generated,n39,create troubleshooting report,troubleshoot,True,report,troubleshoot report
+9-4,Ex3b,reference,16733520,attends meeting,attend,True,meeting,attend meeting
+9-4,Ex3b,reference,16733500,upload all relevant documents,upload,True,all relevant documents,upload all relevant documents
+9-4,Ex3b,reference,16733537,meeting takes place,take,True,place,take place
+9-4,Ex3b,reference,16733600,remind coordination unit,remind,True,coordination unit,remind coordination unit
+9-4,Ex3b,reference,16733499,create meeting folder,meet,True,folder,meet folder
+9-4,Ex3b,reference,16733588,prepare meeting minutes,meet,True,minutes,meet minutes
+9-4,Ex3b,reference,16733589,qa check,qa,True,check,qa check
+9-4,Ex3b,generated,n1,finalize meeting dates,finalize,True,meeting dates,finalize meeting dates
+9-4,Ex3b,generated,n2,update group calendars,update,True,group calendars,update group calendars
+9-4,Ex3b,generated,n3,create meeting folders,meet,True,folders,meet folders
+9-4,Ex3b,generated,n4,upload documents to system,document,True,system,document system
+9-4,Ex3b,generated,n5,advise committee members to read documents,advise,True,committee members,advise committee members
+9-4,Ex3b,generated,n6,hold meeting,meet,True,,meet
+9-4,Ex3b,generated,n7,produce minutes with action points,minute,True,action points,minute action points
+9-4,Ex3b,generated,n8,conduct qa check on minutes,conduct,True,qa check,conduct qa check
+9-4,Ex3b,generated,n9,send minutes to committee members,minute,True,committee members,minute committee members
+9-4,Ex3b,generated,n10,update departmental records,update,True,departmental records,update departmental records
+5-3,BizAgi - tutorial2,reference,2120553925,register office supply request,register,True,office supply request,register office supply request
+5-3,BizAgi - tutorial2,reference,2120553934,notify change required,notify,True,change required,notify change required
+5-3,BizAgi - tutorial2,reference,2120553926,approve office supply request,approve,True,office supply request,approve office supply request
+5-3,BizAgi - tutorial2,reference,2120553961,notify rejection,notify,True,rejection,notify rejection
+5-3,BizAgi - tutorial2,reference,2120553955,receive products,product,True,,product
+5-3,BizAgi - tutorial2,reference,2120553952,generate purchase order,generate,True,purchase order,generate purchase order
+5-3,BizAgi - tutorial2,reference,2120553946,notify approval,notify,True,approval,notify approval
+5-3,BizAgi - tutorial2,reference,2120553958,process invoice,process,True,invoice,process invoice
+5-3,BizAgi - tutorial2,reference,2120553947,quotations,quote,True,,quote
+5-3,BizAgi - tutorial2,generated,n1,submit office supply request,submit,True,office supply request,submit office supply request
+5-3,BizAgi - tutorial2,generated,n2,receive request by supervisor,receive,True,request,receive request
+5-3,BizAgi - tutorial2,generated,n6,send to purchase department,send,True,purchase department,send purchase department
+5-3,BizAgi - tutorial2,generated,n8,generate and send purchase order,generate,True,and send purchase order,generate and send purchase order
+5-3,BizAgi - tutorial2,generated,n9,wait for product delivery and invoice,wait,True,product delivery and,wait product delivery and
+5-3,BizAgi - tutorial2,generated,n10,choose a different vendor,choose,True,a different vendor,choose a different vendor
+5-3,BizAgi - tutorial2,generated,n11,return to employee for changes,return,True,employee changes,return employee changes
+5-3,BizAgi - tutorial2,generated,n12,notify rejection,notify,True,rejection,notify rejection

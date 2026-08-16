@@ -1,0 +1,58 @@
+case_id,case_name,side,action_id,label
+3-1,2009-1 MC Finalise SCT Warrant Possession,reference,64,retrieve sct file
+3-1,2009-1 MC Finalise SCT Warrant Possession,reference,69,distribute sct warrant possession
+3-1,2009-1 MC Finalise SCT Warrant Possession,reference,81,store sct physical file
+3-1,2009-1 MC Finalise SCT Warrant Possession,reference,86,retrieve sct file
+3-1,2009-1 MC Finalise SCT Warrant Possession,reference,93,attach new sct document
+3-1,2009-1 MC Finalise SCT Warrant Possession,reference,97,store sct physical file
+3-1,2009-1 MC Finalise SCT Warrant Possession,generated,n1,send warrant possession request
+3-1,2009-1 MC Finalise SCT Warrant Possession,generated,n2,receive request and retrieve sct file
+3-1,2009-1 MC Finalise SCT Warrant Possession,generated,n3,forward sct warrant possession to queensland police
+3-1,2009-1 MC Finalise SCT Warrant Possession,generated,n4,store sct physical file
+3-1,2009-1 MC Finalise SCT Warrant Possession,generated,n5,retrieve respective sct file
+3-1,2009-1 MC Finalise SCT Warrant Possession,generated,n6,attach new sct document
+3-1,2009-1 MC Finalise SCT Warrant Possession,generated,n7,store expanded sct physical file
+3-4,2009-4 event based gateways,reference,213,send reminder
+3-4,2009-4 event based gateways,reference,218,send questionnaire
+3-4,2009-4 event based gateways,generated,n1,send questionnaire to the claimant
+3-4,2009-4 event based gateways,generated,n5,send reminder to claimant
+8-2,153 - HR Process - HR department - eng,reference,2120552590,report vacancy
+8-2,153 - HR Process - HR department - eng,reference,2120552606,communicate tasks and requirements
+8-2,153 - HR Process - HR department - eng,reference,2120552624,review job description
+8-2,153 - HR Process - HR department - eng,reference,2120552627,ask for corrections
+8-2,153 - HR Process - HR department - eng,reference,2120552640,approve job description
+8-2,153 - HR Process - HR department - eng,generated,n1,create job description
+8-2,153 - HR Process - HR department - eng,generated,n2,submit job description for consideration
+8-2,153 - HR Process - HR department - eng,generated,n6,post job
+8-2,153 - HR Process - HR department - eng,generated,n8,correct job description
+8-2,153 - HR Process - HR department - eng,generated,n9,resubmit job description for consideration
+10-7,B7 - eng,reference,16734397,examination
+10-7,B7 - eng,reference,16734401,rejection of registration
+10-7,B7 - eng,reference,16734403,confirmation of registration
+10-7,B7 - eng,reference,16734412,registration
+10-7,B7 - eng,reference,16734423,assignment of the mspn
+10-7,B7 - eng,reference,16734426,information about the assignment of the mspn
+10-7,B7 - eng,reference,16734427,information about the assignment of the mspn
+10-7,B7 - eng,reference,16734428,information about the assignment of the mspn
+10-7,B7 - eng,generated,n1,mspn registers the measurement at the go
+10-7,B7 - eng,generated,n10,go rejects the application of the mspn
+10-7,B7 - eng,generated,n11,go confirms the application of the mspn
+10-7,B7 - eng,generated,n2,go examines the application of the mspn
+10-7,B7 - eng,generated,n3,go assigns the mspn
+10-7,B7 - eng,generated,n4,go informs the mspo about the assignment of mspn
+10-7,B7 - eng,generated,n5,go informs the mpo about the assignment of the mspn
+10-7,B7 - eng,generated,n6,go informs the sp about the assignment of mspn
+1-2,Ex2 - Computer Repair,reference,2120553092,bring in defective computer
+1-2,Ex2 - Computer Repair,reference,2120553095,receive repair cost calculation
+1-2,Ex2 - Computer Repair,reference,2120553104,take computer home
+1-2,Ex2 - Computer Repair,reference,2120553106,continue process
+1-2,Ex2 - Computer Repair,reference,2120553115,prepare repair cost calculation
+1-2,Ex2 - Computer Repair,reference,2120553131,check and repair hardware
+1-2,Ex2 - Computer Repair,reference,2120553136,check and configure software
+1-2,Ex2 - Computer Repair,reference,2120553161,test system functionality
+1-2,Ex2 - Computer Repair,generated,n1,check computer defect
+1-2,Ex2 - Computer Repair,generated,n10,return computer to customer unrepaired
+1-2,Ex2 - Computer Repair,generated,n2,provide repair cost calculation
+1-2,Ex2 - Computer Repair,generated,n6,check and repair hardware
+1-2,Ex2 - Computer Repair,generated,n7,check and configure software
+1-2,Ex2 - Computer Repair,generated,n9,execute another repair activity

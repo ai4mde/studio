@@ -1,0 +1,21 @@
+case_id,reference_id,reference_label,generated_id,generated_label,cosine_similarity,raw_assignment_selected,topology_used,topology_basis,human_assessment,reviewer_notes
+3-1,64,retrieve sct file,n2,receive request and retrieve sct file,0.82147849,no,yes,nearest_matched_successor,correct_match,First reference retrieval precedes the matched warrant distribution; n2 precedes the matched forwarding action.
+3-1,69,distribute sct warrant possession,n3,forward sct warrant possession to queensland police,0.75011492,yes,no,,correct_match,Distribute and forward describe the same warrant transmission.
+3-1,81,store sct physical file,n4,store sct physical file,1.00000012,yes,no,,correct_match,Exact activity and first storage occurrence.
+3-1,86,retrieve sct file,n5,retrieve respective sct file,0.93696886,no,yes,nearest_matched_predecessor|nearest_matched_successor,correct_match,Second reference retrieval follows the first matched storage and precedes document attachment; n5 has the same neighbors.
+3-1,93,attach new sct document,n6,attach new sct document,1.00000012,yes,no,,correct_match,Exact activity.
+3-1,97,store sct physical file,n7,store expanded sct physical file,0.90586066,yes,no,,correct_match,Second storage occurrence after the matched attachment; expanded is an omitted-detail difference.
+3-4,213,send reminder,n5,send reminder to claimant,0.6834833,yes,no,,correct_match,Same reminder action in the loop.
+3-4,218,send questionnaire,n1,send questionnaire to the claimant,0.79761714,yes,no,,correct_match,Same questionnaire transmission.
+8-2,2120552606,communicate tasks and requirements,n2,submit job description for consideration,0.49157387,yes,no,,false_match,Clarifying or communicating requirements is not submitting the completed description.
+8-2,2120552624,review job description,n8,correct job description,0.65362006,yes,no,,false_match,Reviewing and correcting are different lifecycle operations.
+8-2,2120552640,approve job description,n1,create job description,0.71556532,yes,no,,false_match,Approval and creation are different lifecycle operations.
+10-7,16734423,assignment of the mspn,n3,go assigns the mspn,0.77691245,yes,no,,correct_match,Nominal and verbal forms describe the same assignment.
+10-7,16734426,information about the assignment of the mspn,n4,go informs the mspo about the assignment of mspn,0.7963922,no,yes,nearest_matched_predecessor,correct_match,First reference notification immediately follows assignment; n4 is the first generated notification after matched n3.
+10-7,16734428,information about the assignment of the mspn,n5,go informs the mpo about the assignment of the mspn,0.7706753,no,yes,nearest_matched_predecessor|nearest_matched_successor,correct_match,Middle reference notification lies between the first and last notifications; n5 has the same sequence position.
+10-7,16734427,information about the assignment of the mspn,n6,go informs the sp about the assignment of mspn,0.84144491,no,yes,nearest_matched_predecessor,correct_match,Last reference notification follows the middle notification and ends the sequence; n6 occupies the same position.
+1-2,2120553092,bring in defective computer,n1,check computer defect,0.7099942,yes,no,,false_match,Bringing in the computer and checking its defect are adjacent but different operations.
+1-2,2120553104,take computer home,n10,return computer to customer unrepaired,0.48826358,yes,no,,correct_match,Both describe the same unrepaired terminal outcome from different actor perspectives.
+1-2,2120553115,prepare repair cost calculation,n2,provide repair cost calculation,0.89305723,yes,no,,granularity_mismatch,Generated provision combines preparation and handing over or receipt represented separately by the reference.
+1-2,2120553131,check and repair hardware,n6,check and repair hardware,1.0,yes,no,,correct_match,Exact activity.
+1-2,2120553136,check and configure software,n7,check and configure software,1.0,yes,no,,correct_match,Exact activity.

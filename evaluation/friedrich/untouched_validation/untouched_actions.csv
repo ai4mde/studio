@@ -1,0 +1,88 @@
+case_id,case_name,side,action_id,label,canonical_operation,operation_resolved,object_phrase,canonical_label
+8-1,150 - Simple HR-Process - eng,reference,2120552568,fill post,fill,True,post,fill post
+8-1,150 - Simple HR-Process - eng,reference,2120552556,report vacancy,report,True,vacancy,report vacancy
+8-1,150 - Simple HR-Process - eng,reference,2120552557,advertise post,advertise,True,post,advertise post
+8-1,150 - Simple HR-Process - eng,reference,2120552562,apply,apply,True,,apply
+8-1,150 - Simple HR-Process - eng,reference,2120552565,check application,check,True,application,check application
+8-1,150 - Simple HR-Process - eng,generated,n1,trigger process by demand to fill a post,trigger,True,process demand fill post,trigger process demand fill post
+8-1,150 - Simple HR-Process - eng,generated,n2,advertise the post,advertise,True,the post,advertise the post
+8-1,150 - Simple HR-Process - eng,generated,n3,receive applications,application,True,,application
+8-1,150 - Simple HR-Process - eng,generated,n4,check the applications,check,True,the applications,check the applications
+8-1,150 - Simple HR-Process - eng,generated,n5,fill the post,fill,True,the post,fill the post
+8-1,150 - Simple HR-Process - eng,generated,n6,conclude contract of employment,conclude,True,contract of employment,conclude contract of employment
+1-1,Ex1 - bycicle manufacturing,reference,2120553021,check part quantitiy,check,True,part quantitiy,check part quantitiy
+1-1,Ex1 - bycicle manufacturing,reference,2120553011,inform storehouse and egineering department,inform,True,storehouse and egineering department,inform storehouse and egineering department
+1-1,Ex1 - bycicle manufacturing,reference,2120553001,receive order,receive,True,order,receive order
+1-1,Ex1 - bycicle manufacturing,reference,2120553041,select unchecked part,select,True,unchecked part,select unchecked part
+1-1,Ex1 - bycicle manufacturing,reference,2120553051,assemble bicycle,assemble,True,bicycle,assemble bicycle
+1-1,Ex1 - bycicle manufacturing,reference,2120553063,ship bicycle to customer,ship,True,bicycle customer,ship bicycle customer
+1-1,Ex1 - bycicle manufacturing,reference,2120553035,back order part,back,True,order part,back order part
+1-1,Ex1 - bycicle manufacturing,reference,2120553033,reserve part,reserve,True,part,reserve part
+1-1,Ex1 - bycicle manufacturing,reference,2120553043,prepare for assembling,prepare,True,assembling,prepare assembling
+1-1,Ex1 - bycicle manufacturing,generated,n1,create process instance,create,True,process instance,create process instance
+1-1,Ex1 - bycicle manufacturing,generated,n5,inform storehouse and engineering department,inform,True,storehouse and engineering department,inform storehouse and engineering department
+1-1,Ex1 - bycicle manufacturing,generated,n7,reserve in house parts,reserve,True,house parts,reserve house parts
+1-1,Ex1 - bycicle manufacturing,generated,n8,back order unavailable parts,back,True,order unavailable parts,back order unavailable parts
+1-1,Ex1 - bycicle manufacturing,generated,n9,reject order,reject,True,order,reject order
+2-2,TU Berlin - Supplier Switch,reference,35,create customer,create,True,customer,create customer
+2-2,TU Berlin - Supplier Switch,reference,43,prepare contract documents,prepare,True,contract documents,prepare contract documents
+2-2,TU Berlin - Supplier Switch,reference,25,error handling,handle,True,,handle
+2-2,TU Berlin - Supplier Switch,reference,26,check customer s first registration,check,True,customer s first registration,check customer s first registration
+2-2,TU Berlin - Supplier Switch,reference,208,check for supplier concurrence,check,True,supplier concurrence,check supplier concurrence
+2-2,TU Berlin - Supplier Switch,reference,168,create cis contract,create,True,cis contract,create cis contract
+2-2,TU Berlin - Supplier Switch,reference,161,import meter data,import,True,meter data,import meter data
+2-2,TU Berlin - Supplier Switch,reference,5,request switch over,request,True,switch,request switch
+2-2,TU Berlin - Supplier Switch,reference,231,compute final billing,compute,True,final billing,compute final billing
+2-2,TU Berlin - Supplier Switch,reference,74,send documents,document,True,,document
+2-2,TU Berlin - Supplier Switch,reference,17,enter customer data object,enter,True,customer data object,enter customer data object
+2-2,TU Berlin - Supplier Switch,reference,18,check customer data,check,True,customer data,check customer data
+2-2,TU Berlin - Supplier Switch,reference,105,check outcome of supplier concurrence check,check,True,outcome of supplier concurrence check,check outcome of supplier concurrence check
+2-2,TU Berlin - Supplier Switch,reference,131,send switch offer,send,True,switch offer,send switch offer
+2-2,TU Berlin - Supplier Switch,reference,226,send meter data,send,True,meter data,send meter data
+2-2,TU Berlin - Supplier Switch,reference,187,confirm switch contract,confirm,True,switch contract,confirm switch contract
+2-2,TU Berlin - Supplier Switch,reference,181,check offered switch contract,check,True,offered switch contract,check offered switch contract
+2-2,TU Berlin - Supplier Switch,reference,183,withdraw from switch contract,withdraw,True,switch contract,withdraw switch contract
+2-2,TU Berlin - Supplier Switch,reference,52,check contract documents,check,True,contract documents,check contract documents
+2-2,TU Berlin - Supplier Switch,reference,54,resolve issues,resolve,True,issues,resolve issues
+2-2,TU Berlin - Supplier Switch,generated,n1,receive customer data,receive,True,customer data,receive customer data
+2-2,TU Berlin - Supplier Switch,generated,n2,prepare contract documents,prepare,True,contract documents,prepare contract documents
+2-2,TU Berlin - Supplier Switch,generated,n3,send confirmation to customer,send,True,confirmation,send confirmation
+2-2,TU Berlin - Supplier Switch,generated,n4,request grid operator concurrence,request,True,grid operator concurrence,request grid operator concurrence
+2-2,TU Berlin - Supplier Switch,generated,n5,import meter data,import,True,meter data,import meter data
+2-2,TU Berlin - Supplier Switch,generated,n9,correct errors,correct,True,errors,correct errors
+2-2,TU Berlin - Supplier Switch,generated,n12,analyze and resolve document issues,analyze,True,and resolve document issues,analyze and resolve document issues
+2-2,TU Berlin - Supplier Switch,generated,n14,resolve supplier conflict,resolve,True,supplier conflict,resolve supplier conflict
+2-2,TU Berlin - Supplier Switch,generated,n15,create cis contract,create,True,cis contract,create cis contract
+2-2,TU Berlin - Supplier Switch,generated,n18,create new customer object,create,True,new customer object,create new customer object
+2-2,TU Berlin - Supplier Switch,generated,n21,withdraw from contract,withdraw,True,contract,withdraw contract
+2-2,TU Berlin - Supplier Switch,generated,n23,compute and send final billing,compute,True,and send final billing,compute and send final billing
+3-8,2010-3 Claims handling process,reference,495,notify customer,notify,True,customer,notify customer
+3-8,2010-3 Claims handling process,reference,479,arrange repair,arrange,True,repair,arrange repair
+3-8,2010-3 Claims handling process,reference,491,reject claim,reject,True,claim,reject claim
+3-8,2010-3 Claims handling process,reference,457,register claim,register,True,claim,register claim
+3-8,2010-3 Claims handling process,reference,483,schedule payment,schedule,True,payment,schedule payment
+3-8,2010-3 Claims handling process,reference,467,check insurance,check,True,insurance,check insurance
+3-8,2010-3 Claims handling process,reference,469,perform assessment,perform,True,assessment,perform assessment
+3-8,2010-3 Claims handling process,reference,456,check documentation,check,True,documentation,check documentation
+3-8,2010-3 Claims handling process,generated,n1,submit claim documentation,submit,True,claim documentation,submit claim documentation
+3-8,2010-3 Claims handling process,generated,n2,check documents and register claim,document,True,and register claim,document and register claim
+3-8,2010-3 Claims handling process,generated,n3,check insurance,check,True,insurance,check insurance
+3-8,2010-3 Claims handling process,generated,n4,perform assessment,perform,True,assessment,perform assessment
+3-8,2010-3 Claims handling process,generated,n5,send letter to customer,send,True,letter,send letter
+3-8,2010-3 Claims handling process,generated,n9,authorize repairs,repair,True,,repair
+3-8,2010-3 Claims handling process,generated,n10,schedule payment,schedule,True,payment,schedule payment
+3-8,2010-3 Claims handling process,generated,n11,reject claim,reject,True,claim,reject claim
+10-9,C1 - eng,reference,16734589,review,review,True,,review
+10-9,C1 - eng,reference,16734599,rejection of the change,reject,True,the change,reject the change
+10-9,C1 - eng,reference,16734582,causes a change by itself,cause,True,a change,cause a change
+10-9,C1 - eng,reference,2120552612,change request,change,True,request,change request
+10-9,C1 - eng,reference,16734622,failure of the changes,fail,True,the changes,fail the changes
+10-9,C1 - eng,reference,16734600,confirmation of the request,confirm,True,the request,confirm the request
+10-9,C1 - eng,reference,16734627,implementation report,report,True,,report
+10-9,C1 - eng,reference,16734612,performance of the measuring point change,perform,True,the measuring point change,perform the measuring point change
+10-9,C1 - eng,generated,n1,review change request,review,True,change request,review change request
+10-9,C1 - eng,generated,n2,perform measuring point change,measure,True,point change,measure point change
+10-9,C1 - eng,generated,n6,reject change request,reject,True,change request,reject change request
+10-9,C1 - eng,generated,n7,confirm change request,confirm,True,change request,confirm change request
+10-9,C1 - eng,generated,n10,report implementation success,report,True,implementation success,report implementation success
+10-9,C1 - eng,generated,n11,notify failure of changes,notify,True,failure of changes,notify failure of changes

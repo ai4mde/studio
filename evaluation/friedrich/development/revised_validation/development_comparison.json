@@ -1,0 +1,523 @@
+{
+  "scope": {
+    "development_cases": [
+      "3-2",
+      "3-6",
+      "5-4",
+      "10-6",
+      "10-8"
+    ],
+    "protected_held_out_cases_used": [],
+    "development_annotation_sha256": "4e5ea31e8d18690edb9891a35d1ecb4d4de748460e0d5128d23b245e1d989c6e"
+  },
+  "method": {
+    "semantic_threshold": 0.44,
+    "semantic_score": "max(original_label_cosine, canonical_operation_object_cosine)",
+    "operation_threshold": null,
+    "operation_guard": "frozen small conflict map",
+    "assignment": "deterministic global maximum-weight one-to-one",
+    "topology": "nearest locked predecessor/successor anchors; unique reciprocal winner only"
+  },
+  "annotation_counts": {
+    "equivalent": 15,
+    "unresolved_ambiguous": 2,
+    "different": 17,
+    "granularity_mismatch": 2,
+    "structurally_resolvable": 3
+  },
+  "previous": {
+    "selected_matches": 23,
+    "correct_matches": 14,
+    "false_matches": 7,
+    "missed_matches": 4,
+    "granularity_mismatches_selected": 1,
+    "granularity_annotations": 2,
+    "unresolved_pairs_selected": 1,
+    "unresolved_annotations": 2
+  },
+  "revised": {
+    "selected_matches": 25,
+    "correct_matches": 17,
+    "false_matches": 6,
+    "missed_matches": 1,
+    "granularity_mismatches_selected": 1,
+    "granularity_annotations": 2,
+    "unresolved_pairs_selected": 1,
+    "unresolved_annotations": 2,
+    "topology_resolved_cases": [
+      "10-6",
+      "10-8",
+      "3-2"
+    ],
+    "topology_resolved_matches": 7
+  },
+  "changed_decisions": [
+    {
+      "case_id": "10-8",
+      "reference_id": "16734520",
+      "reference_label": "information about the new assignment",
+      "generated_id": "n6",
+      "generated_label": "go informs sp about the assignment of the go",
+      "previous_selected": false,
+      "revised_selected": true,
+      "original_similarity": 0.42811006,
+      "canonical_similarity": 0.75762266,
+      "operation_similarity": 1.00000012,
+      "revised_selection_stage": "topology_tie_break"
+    },
+    {
+      "case_id": "10-8",
+      "reference_id": "16734521",
+      "reference_label": "information about the new assignment",
+      "generated_id": "n5",
+      "generated_label": "go informs mpo about the assignment of the go",
+      "previous_selected": false,
+      "revised_selected": true,
+      "original_similarity": 0.3787913,
+      "canonical_similarity": 0.46542013,
+      "operation_similarity": 1.00000012,
+      "revised_selection_stage": "topology_tie_break"
+    },
+    {
+      "case_id": "3-2",
+      "reference_id": "121",
+      "reference_label": "check files",
+      "generated_id": "n7",
+      "generated_label": "initiate search for missing files",
+      "previous_selected": true,
+      "revised_selected": false,
+      "original_similarity": 0.54868579,
+      "canonical_similarity": 0.26143026,
+      "operation_similarity": 0.18335044,
+      "revised_selection_stage": ""
+    },
+    {
+      "case_id": "3-2",
+      "reference_id": "123",
+      "reference_label": "initiate search",
+      "generated_id": "n7",
+      "generated_label": "initiate search for missing files",
+      "previous_selected": false,
+      "revised_selected": true,
+      "original_similarity": 0.54610813,
+      "canonical_similarity": 0.59088767,
+      "operation_similarity": 1.0,
+      "revised_selection_stage": "unambiguous_semantic_anchor"
+    }
+  ],
+  "topology_decisions": [
+    {
+      "reference_node": "16734343",
+      "selected_candidate": "n2",
+      "candidate_nodes": [
+        "n2"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "successor",
+          "reference_anchor": "16734348",
+          "generated_anchor": "n7",
+          "reference_distance": 2,
+          "generated_distance": 2
+        },
+        {
+          "direction": "successor",
+          "reference_anchor": "16734349",
+          "generated_anchor": "n6",
+          "reference_distance": 2,
+          "generated_distance": 2
+        }
+      ],
+      "anchor_count": 2,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.5354310870170593,
+      "rejected_alternatives": [],
+      "case_id": "10-6"
+    },
+    {
+      "reference_node": "16734500",
+      "selected_candidate": "n11",
+      "candidate_nodes": [
+        "n1",
+        "n10",
+        "n11",
+        "n2"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "successor",
+          "reference_anchor": "16734514",
+          "generated_anchor": "n3",
+          "reference_distance": 1,
+          "generated_distance": 2
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 1,
+      "semantic_similarity": 0.6182567477226257,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n1",
+          "rank": [
+            0,
+            0,
+            0.4914926290512085
+          ]
+        },
+        {
+          "generated_node": "n10",
+          "rank": [
+            0,
+            0,
+            0.5759670734405518
+          ]
+        },
+        {
+          "generated_node": "n2",
+          "rank": [
+            0,
+            0,
+            0.8922770023345947
+          ]
+        }
+      ],
+      "case_id": "10-8"
+    },
+    {
+      "reference_node": "16734517",
+      "selected_candidate": "n4",
+      "candidate_nodes": [
+        "n4",
+        "n5",
+        "n6"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "16734514",
+          "generated_anchor": "n3",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.4898790717124939,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n5",
+          "rank": [
+            0,
+            0,
+            0.465420126914978
+          ]
+        },
+        {
+          "generated_node": "n6",
+          "rank": [
+            0,
+            0,
+            0.7576226592063904
+          ]
+        }
+      ],
+      "case_id": "10-8"
+    },
+    {
+      "reference_node": "16734521",
+      "selected_candidate": "n5",
+      "candidate_nodes": [
+        "n5",
+        "n6"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "16734517",
+          "generated_anchor": "n4",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.465420126914978,
+      "rejected_alternatives": [
+        {
+          "generated_node": "n6",
+          "rank": [
+            0,
+            0,
+            0.7576226592063904
+          ]
+        }
+      ],
+      "case_id": "10-8"
+    },
+    {
+      "reference_node": "16734520",
+      "selected_candidate": "n6",
+      "candidate_nodes": [
+        "n6"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "16734521",
+          "generated_anchor": "n5",
+          "reference_distance": 1,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.7576226592063904,
+      "rejected_alternatives": [],
+      "case_id": "10-8"
+    },
+    {
+      "reference_node": "146",
+      "selected_candidate": "n1",
+      "candidate_nodes": [
+        "n1"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "predecessor",
+          "reference_anchor": "160",
+          "generated_anchor": "n8",
+          "reference_distance": 2,
+          "generated_distance": 2
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 0,
+      "semantic_similarity": 0.6608792543411255,
+      "rejected_alternatives": [],
+      "case_id": "3-2"
+    },
+    {
+      "reference_node": "148",
+      "selected_candidate": "n2",
+      "candidate_nodes": [
+        "n2"
+      ],
+      "anchor_evidence": [
+        {
+          "direction": "successor",
+          "reference_anchor": "156",
+          "generated_anchor": "n3",
+          "reference_distance": 2,
+          "generated_distance": 1
+        }
+      ],
+      "anchor_count": 1,
+      "path_distance_difference": 1,
+      "semantic_similarity": 0.9608421325683594,
+      "rejected_alternatives": [],
+      "case_id": "3-2"
+    }
+  ],
+  "selected_matches": [
+    {
+      "case_id": "10-6",
+      "reference_id": "16734335",
+      "reference_label": "dismissal",
+      "generated_id": "n1",
+      "generated_label": "send dismissal",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "10-6",
+      "reference_id": "16734343",
+      "reference_label": "review",
+      "generated_id": "n2",
+      "generated_label": "review dismissal",
+      "stage": "topology_tie_break"
+    },
+    {
+      "case_id": "10-6",
+      "reference_id": "16734348",
+      "reference_label": "confirmation of dismissal",
+      "generated_id": "n7",
+      "generated_label": "confirm dismissal",
+      "stage": "unambiguous_semantic_anchor"
+    },
+    {
+      "case_id": "10-6",
+      "reference_id": "16734349",
+      "reference_label": "rejection of dismissal",
+      "generated_id": "n6",
+      "generated_label": "reject dismissal",
+      "stage": "unambiguous_semantic_anchor"
+    },
+    {
+      "case_id": "10-8",
+      "reference_id": "16734487",
+      "reference_label": "deregistration",
+      "generated_id": "n2",
+      "generated_label": "go verifies deregistration",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "10-8",
+      "reference_id": "16734499",
+      "reference_label": "rejection of the deregistration",
+      "generated_id": "n10",
+      "generated_label": "go rejects the deregistration of the mspo",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "10-8",
+      "reference_id": "16734500",
+      "reference_label": "preliminary confirmation of the deregistration",
+      "generated_id": "n11",
+      "generated_label": "go preliminarily confirms the deregistration of the mspo",
+      "stage": "topology_tie_break"
+    },
+    {
+      "case_id": "10-8",
+      "reference_id": "16734514",
+      "reference_label": "assign go as msp",
+      "generated_id": "n3",
+      "generated_label": "go assigns himself as msp",
+      "stage": "unambiguous_semantic_anchor"
+    },
+    {
+      "case_id": "10-8",
+      "reference_id": "16734517",
+      "reference_label": "information about the new assignment",
+      "generated_id": "n4",
+      "generated_label": "go informs mspo about the end and beginning of assignments",
+      "stage": "topology_tie_break"
+    },
+    {
+      "case_id": "10-8",
+      "reference_id": "16734520",
+      "reference_label": "information about the new assignment",
+      "generated_id": "n6",
+      "generated_label": "go informs sp about the assignment of the go",
+      "stage": "topology_tie_break"
+    },
+    {
+      "case_id": "10-8",
+      "reference_id": "16734521",
+      "reference_label": "information about the new assignment",
+      "generated_id": "n5",
+      "generated_label": "go informs mpo about the assignment of the go",
+      "stage": "topology_tie_break"
+    },
+    {
+      "case_id": "3-2",
+      "reference_id": "123",
+      "reference_label": "initiate search",
+      "generated_id": "n7",
+      "generated_label": "initiate search for missing files",
+      "stage": "unambiguous_semantic_anchor"
+    },
+    {
+      "case_id": "3-2",
+      "reference_id": "146",
+      "reference_label": "head files to associate",
+      "generated_id": "n1",
+      "generated_label": "hand files to associate",
+      "stage": "topology_tie_break"
+    },
+    {
+      "case_id": "3-2",
+      "reference_id": "148",
+      "reference_label": "distribute judges s lawlist",
+      "generated_id": "n2",
+      "generated_label": "distribute judge s lawlist",
+      "stage": "topology_tie_break"
+    },
+    {
+      "case_id": "3-2",
+      "reference_id": "156",
+      "reference_label": "conduct directions hearings",
+      "generated_id": "n3",
+      "generated_label": "conduct directions hearings",
+      "stage": "unambiguous_semantic_anchor"
+    },
+    {
+      "case_id": "3-2",
+      "reference_id": "160",
+      "reference_label": "track physical files",
+      "generated_id": "n8",
+      "generated_label": "physically track files to intended location",
+      "stage": "unambiguous_semantic_anchor"
+    },
+    {
+      "case_id": "3-6",
+      "reference_id": "370",
+      "reference_label": "reject claim",
+      "generated_id": "n13",
+      "generated_label": "inform claimant that the claim must be rejected",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "3-6",
+      "reference_id": "376",
+      "reference_label": "send relevant forms",
+      "generated_id": "n12",
+      "generated_label": "send relevant forms to claimant",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "3-6",
+      "reference_id": "379",
+      "reference_label": "check for completeness",
+      "generated_id": "n10",
+      "generated_label": "check updated forms for completeness",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "3-6",
+      "reference_id": "381",
+      "reference_label": "register claim",
+      "generated_id": "n7",
+      "generated_label": "register claim in claims management system",
+      "stage": "unambiguous_semantic_anchor"
+    },
+    {
+      "case_id": "5-4",
+      "reference_id": "2120553978",
+      "reference_label": "create expense report",
+      "generated_id": "n8",
+      "generated_label": "return report to employee",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "5-4",
+      "reference_id": "2120553991",
+      "reference_label": "edit report",
+      "generated_id": "n14",
+      "generated_label": "correct and edit report",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "5-4",
+      "reference_id": "2120553993",
+      "reference_label": "review report",
+      "generated_id": "n10",
+      "generated_label": "correct report",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "5-4",
+      "reference_id": "2120554012",
+      "reference_label": "confirm receipts",
+      "generated_id": "n5",
+      "generated_label": "approve report",
+      "stage": "global_assignment"
+    },
+    {
+      "case_id": "5-4",
+      "reference_id": "2120554020",
+      "reference_label": "process expenses",
+      "generated_id": "n1",
+      "generated_label": "submit expense report",
+      "stage": "global_assignment"
+    }
+  ]
+}

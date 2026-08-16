@@ -1,0 +1,43 @@
+{
+  "purpose": "Regression check only; previous untouched annotations were not used for tuning",
+  "historical_evidence": {
+    "raw_results_sha256": "7e3777a12e8a1ee812ded94124258b3a4c7aefc616f77c8148ea6595d849a496",
+    "manual_review_sha256": "cd04a0c65b3a3a1e7715539a0abf44724889ba4939879d3633968ce42c4da1b9"
+  },
+  "corrected_matcher_sha256": "89175d1297ed8ad6e2a79eda04b6109e2cc6321b384d2f02cb31f1990ade8386",
+  "result": {
+    "selected_correspondences_before": 33,
+    "selected_correspondences_after": 33,
+    "selected_correspondence_sets_identical": true,
+    "topology_attributions_before": 9,
+    "topology_attributions_after": 4,
+    "all_post_fix_topology_decisions_have_real_ambiguity": true,
+    "temporary_corrected_raw_results_sha256": "9a53fa49d75a8d6a1eab4ff147d3a9a39b7301d62c6be101794d054ed98c6402"
+  },
+  "post_fix_ambiguity_sides": [
+    {
+      "case_id": "10-9",
+      "reference_node": "16734600",
+      "generated_node": "n7",
+      "ambiguity_sides": ["generated"]
+    },
+    {
+      "case_id": "2-2",
+      "reference_node": "26",
+      "generated_node": "n1",
+      "ambiguity_sides": ["reference", "generated"]
+    },
+    {
+      "case_id": "2-2",
+      "reference_node": "54",
+      "generated_node": "n12",
+      "ambiguity_sides": ["reference", "generated"]
+    },
+    {
+      "case_id": "3-8",
+      "reference_node": "457",
+      "generated_node": "n2",
+      "ambiguity_sides": ["reference"]
+    }
+  ]
+}
