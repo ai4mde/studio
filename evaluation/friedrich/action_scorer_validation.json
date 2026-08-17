@@ -1,0 +1,487 @@
+{
+  "scope": {
+    "purpose": "scorer accounting validation over frozen matcher decisions",
+    "reviewed_cases": [
+      "10-6",
+      "8-1",
+      "1-1",
+      "2-1",
+      "3-8"
+    ],
+    "formal_full_47_case_evaluation": false
+  },
+  "cases": [
+    {
+      "case_id": "10-6",
+      "reference_action_count": 4,
+      "generated_action_count": 4,
+      "TP": 4,
+      "FP": 0,
+      "FN": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "empty": false,
+      "matched_reference_ids": [
+        "16734335",
+        "16734343",
+        "16734348",
+        "16734349"
+      ],
+      "matched_generated_ids": [
+        "n1",
+        "n2",
+        "n6",
+        "n7"
+      ],
+      "unmatched_reference_ids": [],
+      "unmatched_generated_ids": [],
+      "accepted_pairs": [
+        {
+          "reference_id": "16734335",
+          "generated_id": "n1"
+        },
+        {
+          "reference_id": "16734343",
+          "generated_id": "n2"
+        },
+        {
+          "reference_id": "16734348",
+          "generated_id": "n7"
+        },
+        {
+          "reference_id": "16734349",
+          "generated_id": "n6"
+        }
+      ],
+      "unresolved_component_count": 0,
+      "unresolved_reference_node_count": 0,
+      "unresolved_generated_node_count": 0,
+      "unresolved_reference_ids": [],
+      "unresolved_generated_ids": [],
+      "granularity_mismatch_count": 0,
+      "granularity_mismatches": [],
+      "unlabeled_action_count": 0,
+      "unlabeled_reference_action_count": 0,
+      "unlabeled_generated_action_count": 0
+    },
+    {
+      "case_id": "8-1",
+      "reference_action_count": 5,
+      "generated_action_count": 6,
+      "TP": 4,
+      "FP": 2,
+      "FN": 1,
+      "precision": 0.6666666666666666,
+      "recall": 0.8,
+      "f1": 0.7272727272727273,
+      "empty": false,
+      "matched_reference_ids": [
+        "2120552557",
+        "2120552562",
+        "2120552565",
+        "2120552568"
+      ],
+      "matched_generated_ids": [
+        "n2",
+        "n3",
+        "n4",
+        "n5"
+      ],
+      "unmatched_reference_ids": [
+        "2120552556"
+      ],
+      "unmatched_generated_ids": [
+        "n1",
+        "n6"
+      ],
+      "accepted_pairs": [
+        {
+          "reference_id": "2120552557",
+          "generated_id": "n2"
+        },
+        {
+          "reference_id": "2120552562",
+          "generated_id": "n3"
+        },
+        {
+          "reference_id": "2120552565",
+          "generated_id": "n4"
+        },
+        {
+          "reference_id": "2120552568",
+          "generated_id": "n5"
+        }
+      ],
+      "unresolved_component_count": 0,
+      "unresolved_reference_node_count": 0,
+      "unresolved_generated_node_count": 0,
+      "unresolved_reference_ids": [],
+      "unresolved_generated_ids": [],
+      "granularity_mismatch_count": 0,
+      "granularity_mismatches": [],
+      "unlabeled_action_count": 0,
+      "unlabeled_reference_action_count": 0,
+      "unlabeled_generated_action_count": 0
+    },
+    {
+      "case_id": "1-1",
+      "reference_action_count": 9,
+      "generated_action_count": 5,
+      "TP": 4,
+      "FP": 1,
+      "FN": 5,
+      "precision": 0.8,
+      "recall": 0.4444444444444444,
+      "f1": 0.5714285714285714,
+      "empty": false,
+      "matched_reference_ids": [
+        "2120553001",
+        "2120553011",
+        "2120553033",
+        "2120553035"
+      ],
+      "matched_generated_ids": [
+        "n5",
+        "n7",
+        "n8",
+        "n9"
+      ],
+      "unmatched_reference_ids": [
+        "2120553021",
+        "2120553041",
+        "2120553043",
+        "2120553051",
+        "2120553063"
+      ],
+      "unmatched_generated_ids": [
+        "n1"
+      ],
+      "accepted_pairs": [
+        {
+          "reference_id": "2120553001",
+          "generated_id": "n9"
+        },
+        {
+          "reference_id": "2120553011",
+          "generated_id": "n5"
+        },
+        {
+          "reference_id": "2120553033",
+          "generated_id": "n7"
+        },
+        {
+          "reference_id": "2120553035",
+          "generated_id": "n8"
+        }
+      ],
+      "unresolved_component_count": 0,
+      "unresolved_reference_node_count": 0,
+      "unresolved_generated_node_count": 0,
+      "unresolved_reference_ids": [],
+      "unresolved_generated_ids": [],
+      "granularity_mismatch_count": 0,
+      "granularity_mismatches": [],
+      "unlabeled_action_count": 0,
+      "unlabeled_reference_action_count": 0,
+      "unlabeled_generated_action_count": 0
+    },
+    {
+      "case_id": "2-1",
+      "reference_action_count": 26,
+      "generated_action_count": 28,
+      "TP": 22,
+      "FP": 6,
+      "FN": 4,
+      "precision": 0.7857142857142857,
+      "recall": 0.8461538461538461,
+      "f1": 0.8148148148148148,
+      "empty": false,
+      "matched_reference_ids": [
+        "2120553456",
+        "2120553462",
+        "2120553507",
+        "2120553576",
+        "2120553589",
+        "2120553610",
+        "2120553636",
+        "2120553642",
+        "2120553653",
+        "2120553664",
+        "2120553672",
+        "2120553673",
+        "2120553694",
+        "2120553699",
+        "2120553701",
+        "2120553719",
+        "2120553722",
+        "2120553746",
+        "2120553779",
+        "2120553780",
+        "2120553783",
+        "2120553794"
+      ],
+      "matched_generated_ids": [
+        "n10",
+        "n13",
+        "n17",
+        "n2",
+        "n23",
+        "n24",
+        "n27",
+        "n28",
+        "n29",
+        "n3",
+        "n33",
+        "n34",
+        "n35",
+        "n36",
+        "n37",
+        "n38",
+        "n39",
+        "n4",
+        "n5",
+        "n6",
+        "n7",
+        "n9"
+      ],
+      "unmatched_reference_ids": [
+        "2120553543",
+        "2120553590",
+        "2120553606",
+        "2120553632"
+      ],
+      "unmatched_generated_ids": [
+        "n1",
+        "n11",
+        "n12",
+        "n20",
+        "n25",
+        "n8"
+      ],
+      "accepted_pairs": [
+        {
+          "reference_id": "2120553456",
+          "generated_id": "n2"
+        },
+        {
+          "reference_id": "2120553462",
+          "generated_id": "n3"
+        },
+        {
+          "reference_id": "2120553507",
+          "generated_id": "n6"
+        },
+        {
+          "reference_id": "2120553576",
+          "generated_id": "n4"
+        },
+        {
+          "reference_id": "2120553589",
+          "generated_id": "n5"
+        },
+        {
+          "reference_id": "2120553610",
+          "generated_id": "n27"
+        },
+        {
+          "reference_id": "2120553636",
+          "generated_id": "n29"
+        },
+        {
+          "reference_id": "2120553642",
+          "generated_id": "n23"
+        },
+        {
+          "reference_id": "2120553653",
+          "generated_id": "n24"
+        },
+        {
+          "reference_id": "2120553664",
+          "generated_id": "n17"
+        },
+        {
+          "reference_id": "2120553672",
+          "generated_id": "n9"
+        },
+        {
+          "reference_id": "2120553673",
+          "generated_id": "n10"
+        },
+        {
+          "reference_id": "2120553694",
+          "generated_id": "n33"
+        },
+        {
+          "reference_id": "2120553699",
+          "generated_id": "n34"
+        },
+        {
+          "reference_id": "2120553701",
+          "generated_id": "n36"
+        },
+        {
+          "reference_id": "2120553719",
+          "generated_id": "n13"
+        },
+        {
+          "reference_id": "2120553722",
+          "generated_id": "n7"
+        },
+        {
+          "reference_id": "2120553746",
+          "generated_id": "n35"
+        },
+        {
+          "reference_id": "2120553779",
+          "generated_id": "n37"
+        },
+        {
+          "reference_id": "2120553780",
+          "generated_id": "n38"
+        },
+        {
+          "reference_id": "2120553783",
+          "generated_id": "n39"
+        },
+        {
+          "reference_id": "2120553794",
+          "generated_id": "n28"
+        }
+      ],
+      "unresolved_component_count": 0,
+      "unresolved_reference_node_count": 0,
+      "unresolved_generated_node_count": 0,
+      "unresolved_reference_ids": [],
+      "unresolved_generated_ids": [],
+      "granularity_mismatch_count": 0,
+      "granularity_mismatches": [],
+      "unlabeled_action_count": 0,
+      "unlabeled_reference_action_count": 0,
+      "unlabeled_generated_action_count": 0
+    },
+    {
+      "case_id": "3-8",
+      "reference_action_count": 8,
+      "generated_action_count": 8,
+      "TP": 7,
+      "FP": 1,
+      "FN": 1,
+      "precision": 0.875,
+      "recall": 0.875,
+      "f1": 0.875,
+      "empty": false,
+      "matched_reference_ids": [
+        "457",
+        "467",
+        "469",
+        "479",
+        "483",
+        "491",
+        "495"
+      ],
+      "matched_generated_ids": [
+        "n10",
+        "n11",
+        "n2",
+        "n3",
+        "n4",
+        "n5",
+        "n9"
+      ],
+      "unmatched_reference_ids": [
+        "456"
+      ],
+      "unmatched_generated_ids": [
+        "n1"
+      ],
+      "accepted_pairs": [
+        {
+          "reference_id": "457",
+          "generated_id": "n2"
+        },
+        {
+          "reference_id": "467",
+          "generated_id": "n3"
+        },
+        {
+          "reference_id": "469",
+          "generated_id": "n4"
+        },
+        {
+          "reference_id": "479",
+          "generated_id": "n9"
+        },
+        {
+          "reference_id": "483",
+          "generated_id": "n10"
+        },
+        {
+          "reference_id": "491",
+          "generated_id": "n11"
+        },
+        {
+          "reference_id": "495",
+          "generated_id": "n5"
+        }
+      ],
+      "unresolved_component_count": 0,
+      "unresolved_reference_node_count": 0,
+      "unresolved_generated_node_count": 0,
+      "unresolved_reference_ids": [],
+      "unresolved_generated_ids": [],
+      "granularity_mismatch_count": 1,
+      "granularity_mismatches": [
+        {
+          "reference_ids": [
+            "456",
+            "457"
+          ],
+          "generated_ids": [
+            "n2"
+          ],
+          "direction": "many_reference_to_one_generated"
+        }
+      ],
+      "unlabeled_action_count": 0,
+      "unlabeled_reference_action_count": 0,
+      "unlabeled_generated_action_count": 0
+    }
+  ],
+  "aggregate": {
+    "case_count": 5,
+    "empty_case_count": 0,
+    "defined_macro_case_count": 5,
+    "total_reference_actions": 52,
+    "total_generated_actions": 51,
+    "micro_TP": 41,
+    "micro_FP": 10,
+    "micro_FN": 11,
+    "micro_precision": 0.803921568627451,
+    "micro_recall": 0.7884615384615384,
+    "micro_f1": 0.7961165048543689,
+    "macro_f1": 0.7977032227032227
+  },
+  "accounting_invariants": {
+    "10-6": {
+      "TP_plus_FN_equals_reference_actions": true,
+      "TP_plus_FP_equals_generated_actions": true
+    },
+    "8-1": {
+      "TP_plus_FN_equals_reference_actions": true,
+      "TP_plus_FP_equals_generated_actions": true
+    },
+    "1-1": {
+      "TP_plus_FN_equals_reference_actions": true,
+      "TP_plus_FP_equals_generated_actions": true
+    },
+    "2-1": {
+      "TP_plus_FN_equals_reference_actions": true,
+      "TP_plus_FP_equals_generated_actions": true
+    },
+    "3-8": {
+      "TP_plus_FN_equals_reference_actions": true,
+      "TP_plus_FP_equals_generated_actions": true
+    }
+  }
+}
