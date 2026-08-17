@@ -1,0 +1,2690 @@
+{
+  "scope": {
+    "purpose": "Control-flow scorer validation over frozen Action decisions",
+    "reviewed_cases": [
+      "8-1",
+      "10-6",
+      "3-8",
+      "1-1",
+      "2-2",
+      "6-1"
+    ],
+    "formal_full_47_case_evaluation": false,
+    "control_structure_scoring": false
+  },
+  "cases": [
+    {
+      "case_id": "8-1",
+      "reference_flow_count": 4,
+      "generated_flow_count": 5,
+      "TP": 3,
+      "FP": 2,
+      "FN": 1,
+      "precision": 0.6,
+      "recall": 0.75,
+      "f1": 0.6666666666666666,
+      "empty": false,
+      "reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552556"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552557"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552557"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552562"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552562"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552565"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552565"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552568"
+          }
+        }
+      ],
+      "generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552557"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552557"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552562"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552562"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552565"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552565"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552568"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552568"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n6"
+          }
+        }
+      ],
+      "matched_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552557"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552562"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552562"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552565"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552565"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552568"
+          }
+        }
+      ],
+      "unmatched_reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552556"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552557"
+          }
+        }
+      ],
+      "unmatched_generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552557"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552568"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n6"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_reference_actions": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120552556"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120552557"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_generated_actions": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n2"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n5"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n6"
+          }
+        }
+      ],
+      "flows_incident_to_unresolved_reference_actions": [],
+      "flows_incident_to_unresolved_generated_actions": [],
+      "granularity_incident_flow_count": 0,
+      "granularity_incident_reference_flow_relations": [],
+      "granularity_incident_generated_flow_relations": []
+    },
+    {
+      "case_id": "10-6",
+      "reference_flow_count": 2,
+      "generated_flow_count": 3,
+      "TP": 2,
+      "FP": 1,
+      "FN": 0,
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "f1": 0.8,
+      "empty": false,
+      "reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "16734343"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "16734348"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "16734343"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "16734349"
+          }
+        }
+      ],
+      "generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "16734335"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "16734343"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "16734343"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "16734348"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "16734343"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "16734349"
+          }
+        }
+      ],
+      "matched_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "16734343"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "16734348"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "16734343"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "16734349"
+          }
+        }
+      ],
+      "unmatched_reference_flow_relations": [],
+      "unmatched_generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "16734335"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "16734343"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_reference_actions": [],
+      "flows_incident_to_unmatched_generated_actions": [],
+      "flows_incident_to_unresolved_reference_actions": [],
+      "flows_incident_to_unresolved_generated_actions": [],
+      "granularity_incident_flow_count": 0,
+      "granularity_incident_reference_flow_relations": [],
+      "granularity_incident_generated_flow_relations": []
+    },
+    {
+      "case_id": "3-8",
+      "reference_flow_count": 8,
+      "generated_flow_count": 8,
+      "TP": 7,
+      "FP": 1,
+      "FN": 1,
+      "precision": 0.875,
+      "recall": 0.875,
+      "f1": 0.875,
+      "empty": false,
+      "reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "456"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "457"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "457"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "467"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "467"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "469"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "469"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "479"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "469"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "491"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "479"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "483"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "483"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "495"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "491"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "495"
+          }
+        }
+      ],
+      "generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "457"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "457"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "467"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "467"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "469"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "469"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "479"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "469"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "491"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "479"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "483"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "483"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "495"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "491"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "495"
+          }
+        }
+      ],
+      "matched_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "457"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "467"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "467"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "469"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "469"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "479"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "469"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "491"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "479"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "483"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "483"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "495"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "491"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "495"
+          }
+        }
+      ],
+      "unmatched_reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "456"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "457"
+          }
+        }
+      ],
+      "unmatched_generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "457"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_reference_actions": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "456"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "457"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_generated_actions": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n2"
+          }
+        }
+      ],
+      "flows_incident_to_unresolved_reference_actions": [],
+      "flows_incident_to_unresolved_generated_actions": [],
+      "granularity_incident_flow_count": 4,
+      "granularity_incident_reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "456"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "457"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "457"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "467"
+          }
+        }
+      ],
+      "granularity_incident_generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n2"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n2"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n3"
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "1-1",
+      "reference_flow_count": 12,
+      "generated_flow_count": 4,
+      "TP": 0,
+      "FP": 4,
+      "FN": 12,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "empty": false,
+      "reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553001"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553043"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553043"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553063"
+          }
+        }
+      ],
+      "generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553001"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          }
+        }
+      ],
+      "matched_flow_relations": [],
+      "unmatched_reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553001"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553043"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553043"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553063"
+          }
+        }
+      ],
+      "unmatched_generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553001"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_reference_actions": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553011"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553043"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553033"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553035"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553041"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553021"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553043"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "2120553051"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "2120553063"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_generated_actions": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n5"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n9"
+          }
+        }
+      ],
+      "flows_incident_to_unresolved_reference_actions": [],
+      "flows_incident_to_unresolved_generated_actions": [],
+      "granularity_incident_flow_count": 0,
+      "granularity_incident_reference_flow_relations": [],
+      "granularity_incident_generated_flow_relations": []
+    },
+    {
+      "case_id": "2-2",
+      "reference_flow_count": 20,
+      "generated_flow_count": 12,
+      "TP": 3,
+      "FP": 9,
+      "FN": 17,
+      "precision": 0.25,
+      "recall": 0.15,
+      "f1": 0.1875,
+      "empty": false,
+      "reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "105"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "168"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "131"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "161"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "168"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "131"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "17"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "18"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "18"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "25"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "18"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "26"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "181"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "183"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "181"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "187"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "208"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "226"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "208"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "231"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "25"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "17"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "26"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "35"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "26"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "35"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "43"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "52"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "5"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "181"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "52"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "54"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "52"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "74"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "54"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "74"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "105"
+          }
+        }
+      ],
+      "generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "168"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "161"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "187"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "5"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "231"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "161"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "25"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "26"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "25"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "26"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "35"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "43"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "187"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "43"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "54"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "5"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "168"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "5"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "208"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "54"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        }
+      ],
+      "matched_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "26"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "35"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "54"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        }
+      ],
+      "unmatched_reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "105"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "168"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "131"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "161"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "168"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "131"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "17"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "18"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "18"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "25"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "18"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "26"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "181"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "183"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "181"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "187"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "208"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "226"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "208"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "231"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "25"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "17"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "26"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "35"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "43"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "52"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "5"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "181"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "52"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "54"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "52"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "74"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "74"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "105"
+          }
+        }
+      ],
+      "unmatched_generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "168"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "161"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "187"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "5"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "231"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "161"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "25"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "43"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "26"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "25"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "43"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "187"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "43"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "54"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "5"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "168"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "5"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "208"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_reference_actions": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "105"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "168"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "131"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "161"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "168"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "131"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "17"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "18"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "18"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "25"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "18"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "26"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "181"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "183"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "181"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "187"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "208"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "226"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "25"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "17"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "43"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "52"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "5"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "181"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "52"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "54"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "52"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "74"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "74"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "105"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_generated_actions": [],
+      "flows_incident_to_unresolved_reference_actions": [],
+      "flows_incident_to_unresolved_generated_actions": [],
+      "granularity_incident_flow_count": 0,
+      "granularity_incident_reference_flow_relations": [],
+      "granularity_incident_generated_flow_relations": []
+    },
+    {
+      "case_id": "6-1",
+      "reference_flow_count": 16,
+      "generated_flow_count": 14,
+      "TP": 6,
+      "FP": 8,
+      "FN": 10,
+      "precision": 0.42857142857142855,
+      "recall": 0.375,
+      "f1": 0.4,
+      "empty": false,
+      "reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "403"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "404"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "404"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "405"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "405"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "406"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "406"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "407"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "407"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "408"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "408"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "409"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "409"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "413"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "411"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "409"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "413"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "408"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "413"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "415"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "415"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "417"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "417"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "422"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "417"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "424"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "422"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "424"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "424"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "426"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "426"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "427"
+          }
+        }
+      ],
+      "generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "415"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n12"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n13"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n13"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "407"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n20"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "426"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "405"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "406"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "406"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "407"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "407"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n12"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "407"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "408"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "408"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "404"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "408"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "417"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "415"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "405"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "417"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "424"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "424"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "426"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "426"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "427"
+          }
+        }
+      ],
+      "matched_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "405"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "406"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "406"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "407"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "407"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "408"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "417"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "424"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "424"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "426"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "426"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "427"
+          }
+        }
+      ],
+      "unmatched_reference_flow_relations": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "403"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "404"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "404"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "405"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "408"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "409"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "409"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "413"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "411"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "409"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "413"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "408"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "413"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "415"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "415"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "417"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "417"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "422"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "422"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "424"
+          }
+        }
+      ],
+      "unmatched_generated_flow_relations": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "415"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n12"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n13"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n13"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "407"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n20"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "426"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "407"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n12"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "408"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "404"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "408"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "417"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "415"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "405"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_reference_actions": [
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "403"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "404"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "408"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "409"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "409"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "413"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "411"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "409"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "413"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "408"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "413"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "415"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "417"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "422"
+          }
+        },
+        {
+          "source": {
+            "namespace": "ref",
+            "node_id": "422"
+          },
+          "target": {
+            "namespace": "ref",
+            "node_id": "424"
+          }
+        }
+      ],
+      "flows_incident_to_unmatched_generated_actions": [
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n1"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n2"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n12"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n13"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n13"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n5"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n20"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n7"
+          }
+        },
+        {
+          "source": {
+            "namespace": "gen",
+            "node_id": "n5"
+          },
+          "target": {
+            "namespace": "gen",
+            "node_id": "n12"
+          }
+        }
+      ],
+      "flows_incident_to_unresolved_reference_actions": [],
+      "flows_incident_to_unresolved_generated_actions": [],
+      "granularity_incident_flow_count": 0,
+      "granularity_incident_reference_flow_relations": [],
+      "granularity_incident_generated_flow_relations": []
+    }
+  ],
+  "aggregate": {
+    "case_count": 6,
+    "empty_flow_case_count": 0,
+    "defined_macro_case_count": 6,
+    "total_reference_flows": 62,
+    "total_generated_flows": 46,
+    "micro_TP": 21,
+    "micro_FP": 25,
+    "micro_FN": 41,
+    "micro_precision": 0.45652173913043476,
+    "micro_recall": 0.3387096774193548,
+    "micro_f1": 0.3888888888888889,
+    "macro_f1": 0.48819444444444443
+  },
+  "accounting_invariants": {
+    "8-1": {
+      "TP_plus_FN_equals_reference_flows": true,
+      "TP_plus_FP_equals_generated_flows": true
+    },
+    "10-6": {
+      "TP_plus_FN_equals_reference_flows": true,
+      "TP_plus_FP_equals_generated_flows": true
+    },
+    "3-8": {
+      "TP_plus_FN_equals_reference_flows": true,
+      "TP_plus_FP_equals_generated_flows": true
+    },
+    "1-1": {
+      "TP_plus_FN_equals_reference_flows": true,
+      "TP_plus_FP_equals_generated_flows": true
+    },
+    "2-2": {
+      "TP_plus_FN_equals_reference_flows": true,
+      "TP_plus_FP_equals_generated_flows": true
+    },
+    "6-1": {
+      "TP_plus_FN_equals_reference_flows": true,
+      "TP_plus_FP_equals_generated_flows": true
+    }
+  }
+}
