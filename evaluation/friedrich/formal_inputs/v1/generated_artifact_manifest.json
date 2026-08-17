@@ -1,0 +1,250 @@
+{
+  "schema_version": "1.0.0",
+  "dataset": "Friedrich Text2Process official 47-case dataset",
+  "dataset_case_count": 47,
+  "supported_case_count": 40,
+  "unsupported_case_count": 7,
+  "generated_selection_rule": "use run_1.json for every case without exception",
+  "declared_source_commit": "e1d576c6bdf181a79dd9649f207f7fad4f89d714",
+  "artifact_source_commit_verified": false,
+  "artifact_identity_policy": "generated artifact SHA-256 is authoritative",
+  "source_catalog_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_case_catalog.csv",
+  "source_catalog_sha256": "ead162d62c1785909941f8faa8a6eda9628453008101fef4f93f8e28a82ea311",
+  "artifacts": [
+    {
+      "case_id": "1-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/1-1/run_1.json",
+      "sha256": "397f8f6aaf96fad5bcd35a3c23487f50d5ca42d953942daae3e27020b9e8530b"
+    },
+    {
+      "case_id": "1-2",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/1-2/run_1.json",
+      "sha256": "655e1b30099bea34b7691eb02f6f5bc2b6e59c6f98ef0357bd2797284d8b6704"
+    },
+    {
+      "case_id": "1-3",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/1-3/run_1.json",
+      "sha256": "10a73f230426e863fd0b9f3faf88779b9b0ac8fb4dea07de2da89aaf0cfb6391"
+    },
+    {
+      "case_id": "1-4",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/1-4/run_1.json",
+      "sha256": "8f8b0f99eb1b0cdf5931487cc191a8b9fcd5346d1042edc034d491dce1be87b9"
+    },
+    {
+      "case_id": "2-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/2-1/run_1.json",
+      "sha256": "2db03d7e103fe66acce6fdb58e5000d5a11307094c70907e17d48a5ce2480635"
+    },
+    {
+      "case_id": "2-2",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/2-2/run_1.json",
+      "sha256": "60e2866a1381acbcacfc04772376cf05710a13a99ca2574d4931c1cfe7bb573d"
+    },
+    {
+      "case_id": "3-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-1/run_1.json",
+      "sha256": "b02935d3b33534efb16a1e37ee3ac44c6ceaa122274f7f25c96bdcf95abfd4a8"
+    },
+    {
+      "case_id": "3-2",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-2/run_1.json",
+      "sha256": "98416e1555a93c2425da65214b6ef9a06733870e43b06535ec6ff43d174b2315"
+    },
+    {
+      "case_id": "3-3",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-3/run_1.json",
+      "sha256": "19552371926e5c730f01079dc4ff066af864c2abf34409dcaf3fb73b5ff7c158"
+    },
+    {
+      "case_id": "3-4",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-4/run_1.json",
+      "sha256": "fa6a54aa5d26192cd6aacdc34f1c673be06b6f77e43e05b597b22633e18b25bb"
+    },
+    {
+      "case_id": "3-5",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-5/run_1.json",
+      "sha256": "ea2354a8dd17e58540b9e452f02584387e71cd93df26bb7c375d6afa5680b6e6"
+    },
+    {
+      "case_id": "3-6",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-6/run_1.json",
+      "sha256": "75ad912643594ef671279ef37f816561589ef7cc9291d0dfea973b39a4552c50"
+    },
+    {
+      "case_id": "3-7",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-7/run_1.json",
+      "sha256": "686bdc15658e95978560d15e0284c45224e8777a034338b73aee43f123b1d7ec"
+    },
+    {
+      "case_id": "3-8",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/3-8/run_1.json",
+      "sha256": "c9731cc3a33f65783e96e51c3a9fff78f21880c8ef7a8f62172cf81357eafc89"
+    },
+    {
+      "case_id": "4-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/4-1/run_1.json",
+      "sha256": "96f203a61dc06cde200bcd0558f1c7df7504b0c7c6c1245ccdf83b6fa1ce6e80"
+    },
+    {
+      "case_id": "5-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/5-1/run_1.json",
+      "sha256": "9c61470d5fac67a0ab309e1d92daeb7e2cccff46a0a02bfb940de4b335e44bba"
+    },
+    {
+      "case_id": "5-2",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/5-2/run_1.json",
+      "sha256": "aefeb4c6f20d129e6cdeb61cac85e1367198b4c8cae74cafc43cab53c1b613b6"
+    },
+    {
+      "case_id": "5-3",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/5-3/run_1.json",
+      "sha256": "643f3f4dcf57037bdc9d2d4f8403b6691b58d03f17bd40e37e0e23fb5f686d9e"
+    },
+    {
+      "case_id": "5-4",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/5-4/run_1.json",
+      "sha256": "ef06f1fa56f00b2b52a396370ed80d41d29edad44b117cfdf00f9675da505ae6"
+    },
+    {
+      "case_id": "6-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/6-1/run_1.json",
+      "sha256": "d40152684b8905785dc79b45164470b617253d9aedb1a99bc4685a36a9afb536"
+    },
+    {
+      "case_id": "6-2",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/6-2/run_1.json",
+      "sha256": "d0bf63ec055445bd5b9450fabe08713b0ef4389c43523b566e1abab3d4770f7e"
+    },
+    {
+      "case_id": "6-3",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/6-3/run_1.json",
+      "sha256": "504f7ccaecc3942e0272988c6ed09646588d51e92f71dc3814ee01279c0116d0"
+    },
+    {
+      "case_id": "6-4",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/6-4/run_1.json",
+      "sha256": "da36e14b27b37414073f69afcfb14a0a85e5ac730a114983c881d6c0cc3b8521"
+    },
+    {
+      "case_id": "7-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/7-1/run_1.json",
+      "sha256": "5087ccef213772c971a64d94393e5a4741273ad83c08e6ad094c2aa52d3a92e6"
+    },
+    {
+      "case_id": "8-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/8-1/run_1.json",
+      "sha256": "b0b7cb4efc89d316f7cc3532f1f60f05f22ae824e8e59f8c88dc67ea0e47daed"
+    },
+    {
+      "case_id": "8-2",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/8-2/run_1.json",
+      "sha256": "ee13a09129053b4a241d8fb4a0d56cbb7e4eae54f103a22e1ce7049301d82104"
+    },
+    {
+      "case_id": "8-3",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/8-3/run_1.json",
+      "sha256": "cf154d9c233ed1f3c15bb5a68106172070255df3c4557611d0355a5ad87fb023"
+    },
+    {
+      "case_id": "9-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/9-1/run_1.json",
+      "sha256": "211f2b296a355cfbf30afaeae82b727e1562ec32b7afe3a5f3dd53dffff0d37f"
+    },
+    {
+      "case_id": "9-2",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/9-2/run_1.json",
+      "sha256": "b0ae5afb164ea43d975a5f6c7941835b92e1dfcdd570fb45c986eb9f34711705"
+    },
+    {
+      "case_id": "9-3",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/9-3/run_1.json",
+      "sha256": "c276f0e24dad54276997126da34eec68e99472efedbd370cf473127eba736344"
+    },
+    {
+      "case_id": "9-4",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/9-4/run_1.json",
+      "sha256": "f13f07fea1c6c9a77a35292a06d653f9aa25460efe4dbe837f500ec0091bea72"
+    },
+    {
+      "case_id": "9-5",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/9-5/run_1.json",
+      "sha256": "a51bcf773e5f0550e0bbc9f14263975d864a2a9a3f6ab934714dcc4e95681c11"
+    },
+    {
+      "case_id": "9-6",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/9-6/run_1.json",
+      "sha256": "e5c058aa64568b61007f01f8e615b92908e61b1c698dbd058051cfd9f16c67cc"
+    },
+    {
+      "case_id": "10-1",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-1/run_1.json",
+      "sha256": "a61eed97743e046a0dd061b2e50d88cb65b16184d7ec25d1a3fac9c0380e7700"
+    },
+    {
+      "case_id": "10-2",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-2/run_1.json",
+      "sha256": "54d5d657e1514615c61db703e384ed4435d92e8f8fa272388285a805d418ed6b"
+    },
+    {
+      "case_id": "10-3",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-3/run_1.json",
+      "sha256": "65e6742a8ea0d28b2c8f3a3fd5c40294dcc160538ac86b028ca649da2e864f2b"
+    },
+    {
+      "case_id": "10-4",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-4/run_1.json",
+      "sha256": "5a555b9c4bb34850ffa2e9e3c6632aa71ba5d681c303ea6b3176c63ebccf3fab"
+    },
+    {
+      "case_id": "10-5",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-5/run_1.json",
+      "sha256": "3826da7512ce45462e4a9f8ef205c90b28698241e64a1061e8bd7bfa63da30fb"
+    },
+    {
+      "case_id": "10-6",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-6/run_1.json",
+      "sha256": "dbf3444aa612f8446906e0c6ea7080d94023bbf605464b4873bc479ee7388abe"
+    },
+    {
+      "case_id": "10-7",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-7/run_1.json",
+      "sha256": "4eea6897a185083389007728c592d1f97ea0acf7640306581c9927bc403f28d8"
+    },
+    {
+      "case_id": "10-8",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-8/run_1.json",
+      "sha256": "7ea98fdbca90be8d07adabb9192f6808d8b9111efb924032b6d7341ee72e5371"
+    },
+    {
+      "case_id": "10-9",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-9/run_1.json",
+      "sha256": "0ac29cc01de83f10238409384eb341f37e043bcff2a74a25c524d07bb11f8680"
+    },
+    {
+      "case_id": "10-10",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-10/run_1.json",
+      "sha256": "b0a449c9dcf14828a7d01eeb821bb689c6454936b7b952cf22691b29e0bbd090"
+    },
+    {
+      "case_id": "10-11",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-11/run_1.json",
+      "sha256": "e2882c94ccb87013d09dddba3644ed4921f0b8a88c01551110c0500b92074498"
+    },
+    {
+      "case_id": "10-12",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-12/run_1.json",
+      "sha256": "5d6c29dca4aba6eaf6546487f8ffea2da845b62a6595883f80cacee76417bd43"
+    },
+    {
+      "case_id": "10-13",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-13/run_1.json",
+      "sha256": "5173b20a9c28e5908b741bc7a9ddf9dafedfeb43698addec67767ee31a8307c8"
+    },
+    {
+      "case_id": "10-14",
+      "generated_artifact_path": "/Users/queenie/Desktop/evaluation-data/friedrich_47_artifacts/10-14/run_1.json",
+      "sha256": "e686e696f9a2623cfbcc586cb0aae2d2f9a5a539ed5779ce10a6991e5dd0cb9d"
+    }
+  ]
+}
