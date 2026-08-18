@@ -1,6 +1,6 @@
 import { authAxios } from "$lib/features/auth/state/auth";
 import { createPrototypeAtom } from "$lib/features/prototypes/atoms";
-import { useSystemDiagrams, useSystemInterfaces } from "$lib/features/prototypes/queries";
+import { prototypeQueryKey, useSystemDiagrams, useSystemInterfaces } from "$lib/features/prototypes/queries";
 import {
     Button,
     CircularProgress,
@@ -159,7 +159,7 @@ export const CreatePrototype: React.FC = () => {
             metadata,
             database_hash: databaseHash,
         }).then(() => {
-            queryClient.invalidateQueries({ queryKey: ['prototypes', systemId] })
+            queryClient.invalidateQueries({ queryKey: prototypeQueryKey(systemId) })
             close();
         }).catch((err) => {
             console.log(err)

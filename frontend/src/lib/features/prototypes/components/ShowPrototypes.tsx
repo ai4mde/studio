@@ -1,6 +1,6 @@
 import { authAxios } from "$lib/features/auth/state/auth";
 import { deletePrototype, deleteSystemPrototypes } from "$lib/features/prototypes/mutations";
-import { useSystemPrototypes } from "$lib/features/prototypes/queries";
+import { prototypeQueryKey, useSystemPrototypes } from "$lib/features/prototypes/queries";
 import { prototypeURL } from "$shared/globals";
 import { Button, CircularProgress, Divider, Modal, ModalClose, ModalDialog } from '@mui/joy';
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,7 +23,7 @@ export const ShowPrototypes: React.FC<Props> = () => {
 
     const queryClient = useQueryClient();
     useEffect(() => {
-        queryClient.invalidateQueries({ queryKey: ['prototypes', systemId] })
+        queryClient.invalidateQueries({ queryKey: prototypeQueryKey(systemId) })
     }, [queryClient, systemId]);
 
     useEffect(() => {
@@ -57,7 +57,7 @@ export const ShowPrototypes: React.FC<Props> = () => {
     const handleDelete = async (prototypeId: string) => {
         try {
             await deletePrototype(prototypeId);
-            window.location.reload();
+            queryClient.invalidateQueries({ queryKey: prototypeQueryKey(systemId) });
         } catch (error) {
             console.error('Error deleting prototype:', error);
         }
@@ -66,7 +66,7 @@ export const ShowPrototypes: React.FC<Props> = () => {
     const handleDeleteAll = async () => {
         try {
             await deleteSystemPrototypes(systemId);
-            window.location.reload();
+            queryClient.invalidateQueries({ queryKey: prototypeQueryKey(systemId) });
         } catch (error) {
             console.error('Error deleting prototypes:', error);
         }

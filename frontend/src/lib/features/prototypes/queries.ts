@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { authAxios } from "$auth/state/auth";
 
+export const prototypeQueryKey = (systemId: string | undefined) =>
+    ["generator", "prototypes", systemId] as const;
+
 export const useSystemInterfaces = (systemId: string) => {
     const queryResult = useQuery({
         queryKey: ["metdata", "interfaces", systemId],
@@ -26,7 +29,7 @@ export const useSystemInterfaces = (systemId: string) => {
 
 export const useSystemPrototypes = (systemId: string) => {
     const queryResult = useQuery({
-        queryKey: ["generator", "prototypes", systemId],
+        queryKey: prototypeQueryKey(systemId),
         queryFn: async () => {
             const response = await authAxios.get(`/v1/generator/prototypes/`, {
                 params: {
