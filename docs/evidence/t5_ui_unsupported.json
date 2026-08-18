@@ -1,0 +1,15 @@
+{
+  "mode": "unsupported",
+  "screenshotPath": "docs/evidence/t5_unsupported_bookloan.png",
+  "sections": [
+    {
+      "attr": "late_risk",
+      "enabled": true,
+      "text": "AI-managed attribute\nCustom / unsupported configuration - edit via import",
+      "presetValue": null,
+      "presetOptions": []
+    }
+  ],
+  "saveEnabled": false,
+  "pass": "G-B11 unsupported UI did not auto-dirty or render preset controls"
+}

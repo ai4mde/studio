@@ -1,0 +1,44 @@
+{
+  "mode": "panel",
+  "screenshots": {
+    "nonApplicable": "docs/evidence/t5_non_applicable_book.png",
+    "applicableBookLoan": "docs/evidence/t5_applicable_bookloan.png",
+    "allowedValuesDraft": "docs/evidence/t5_allowed_values_draft.png",
+    "rawJsonAfterSave": "docs/evidence/t5_raw_json_after_save.png",
+    "customerReadingPlan": "docs/evidence/t5_customer_reading_plan.png"
+  },
+  "bookSections": [],
+  "bookLoanSections": [
+    {
+      "attr": "late_risk",
+      "enabled": true,
+      "text": "AI-managed attribute\nPreset\nLate return risk\nTrigger\npost_save\nBookLoan\nContext\nFields\nloan_date\ndue_date\nreturn_date\nRelations\nBook\nCustomer\nLoan\nTemplate\nlibrary_late_risk_v1\nModel profile\ncheap\nstrong\nOutput\nWrites to\nlate_risk\nFormat\nrisk_label\nAllowed values",
+      "presetValue": "late_return_risk",
+      "presetOptions": [
+        "late_return_risk"
+      ]
+    }
+  ],
+  "customerSections": [
+    {
+      "attr": "reading_plan",
+      "enabled": true,
+      "text": "AI-managed attribute\nPreset\nReading plan\nTrigger\nuser_action\nCustomer\nContext\nFields\nNone\nRelations\nLoan\nBookLoan\nBook\nTemplate\nreading_plan_analyze_taste_v1\nreading_plan_recommend_v1\nreading_plan_sequence_v1\nModel profile\ncheap\nstrong\nOutput\nWrites to\nreading_plan\nFormat\nreading_plan",
+      "presetValue": "reading_plan",
+      "presetOptions": [
+        "reading_plan"
+      ]
+    }
+  ],
+  "allowedValues": {
+    "trailingDraft": "SAFE, ",
+    "finalDraft": "SAFE, RISKY"
+  },
+  "rawJson": {
+    "rawSaveDisabled": true,
+    "detailsTextHasAiConfig": false,
+    "monacoHasAiConfig": true,
+    "monacoValue": "{\n  \"data\": {\n    \"namespace\": \"\",\n    \"name\": \"BookLoan\",\n    \"type\": \"class\",\n    \"attributes\": [\n      {\n        \"name\": \"late_risk\",\n        \"type\": \"str\",\n        \"enum\": null,\n        \"derived\": false,\n        \"description\": \"AI-generated late-return risk label (LOW/MEDIUM/HIGH).\",\n        \"body\": null,\n        \"ai_config\": {\n          \"output\": {\n            \"format\": \"risk_label\",\n            \"write_back\": \"late_risk\",\n            \"allowed_values\": [\n              \"SAFE\",\n              \"RISKY\"\n            ]\n          },\n          \"context\": {\n            \"fields\": [\n              \"loan_date\",\n              \"due_date\",\n              \"return_date\"\n            ],\n            \"relations\": [\n              \"Book\",\n              \"Customer\",\n              \"Loan\"\n            ]\n          },\n          \"trigger\": {\n            \"type\": \"post_save\",\n            \"class\": \"BookLoan\"\n          },\n          \"template\": {\n            \"name\": \"library_late_risk_v1\"\n          },\n          \"model_profile\": \"cheap\",\n          \"ai_config_version\": \"1.0\"\n        }\n      }\n    ],\n    \"methods\": [],\n    \"abstract\": false,\n    \"leaf\": false,\n    \"systemName\": \"Library\",\n    \"systemId\": \"7d735a07-b6cd-409d-9cc7-f3a07cbec983\"\n  }\n}"
+  },
+  "pass": "G-B05/06 G-B03 G-B08 G-B07 UI probes passed"
+}

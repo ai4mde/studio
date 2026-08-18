@@ -1,0 +1,6 @@
+NAME                         IMAGE                                                                     COMMAND                  SERVICE             CREATED          STATUS          PORTS
+studio-postgres-1            postgres                                                                  "docker-entrypoint.s…"   postgres            2 months ago     Up 21 hours     0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+studio-studio-1              studio-studio                                                             "npm run dev -- --ho…"   studio              2 days ago       Up 21 hours     
+studio-studio-api-1          studio-studio-api                                                         "/entrypoint.sh /usr…"   studio-api          3 days ago       Up 21 hours     
+studio-studio-prototypes-1   sha256:8f9c483c89b6bd3a359919fbecaf11e715997101128ae5b41b3a949ef5600de1   "/usr/src/prototypes…"   studio-prototypes   14 minutes ago   Up 14 minutes   
+traefik                      traefik:v3.6.7                                                            "/entrypoint.sh --ap…"   traefik             2 months ago     Up 21 hours     0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp

@@ -1,0 +1,79 @@
+
+> ai4mde-studio@0.0.0 build
+> tsc && vite build
+
+vite v4.5.13 building for production...
+transforming...
+✓ 6257 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                     0.51 kB │ gzip:   0.31 kB
+dist/assets/inter-vietnamese-400-normal-547ad9fd.woff2              4.97 kB
+dist/assets/inter-greek-ext-400-normal-ab526cb3.woff2               5.23 kB
+dist/assets/ibm-plex-mono-vietnamese-400-normal-37de478c.woff       5.59 kB
+dist/assets/ibm-plex-mono-cyrillic-ext-400-normal-5eafb38e.woff     5.75 kB
+dist/assets/ibm-plex-mono-vietnamese-400-normal-e71e12f4.woff2      5.82 kB
+dist/assets/inter-vietnamese-400-normal-8a7b2f72.woff               6.68 kB
+dist/assets/ibm-plex-mono-cyrillic-ext-400-normal-dec44d96.woff2    6.92 kB
+dist/assets/inter-greek-ext-400-normal-e7a9b7cc.woff                7.14 kB
+dist/assets/ibm-plex-mono-cyrillic-400-normal-ccc671c8.woff         7.18 kB
+dist/assets/inter-cyrillic-400-normal-636d13aa.woff2                7.71 kB
+dist/assets/inter-greek-400-normal-150dc439.woff2                   7.84 kB
+dist/assets/ibm-plex-mono-cyrillic-400-normal-8bc4f839.woff2        8.33 kB
+dist/assets/inter-greek-400-normal-df483292.woff                    9.96 kB
+dist/assets/inter-cyrillic-400-normal-bdfe29cb.woff                10.14 kB
+dist/assets/inter-cyrillic-ext-400-normal-ef323d84.woff2           10.22 kB
+dist/assets/ibm-plex-mono-latin-ext-400-normal-88c904ee.woff       11.72 kB
+dist/assets/ibm-plex-mono-latin-400-normal-d3d6fff8.woff           13.20 kB
+dist/assets/ibm-plex-mono-latin-ext-400-normal-91e8ae15.woff2      13.27 kB
+dist/assets/inter-cyrillic-ext-400-normal-772d96f9.woff            14.19 kB
+dist/assets/ibm-plex-mono-latin-400-normal-3c5a451f.woff2          14.81 kB
+dist/assets/inter-latin-400-normal-dd05e326.woff2                  23.69 kB
+dist/assets/inter-latin-ext-400-normal-941e03c6.woff2              30.68 kB
+dist/assets/inter-latin-400-normal-31656ddb.woff                   31.20 kB
+dist/assets/inter-latin-ext-400-normal-1cdd9f70.woff               42.88 kB
+dist/assets/index-dadfa4be.css                                     25.29 kB │ gzip:   5.36 kB
+dist/assets/index-65f889d0.css                                     35.64 kB │ gzip:   4.84 kB
+dist/assets/atoms-f06c712a.js                                       0.49 kB │ gzip:   0.32 kB │ map:     0.46 kB
+dist/assets/index-0aa892ea.js                                       0.50 kB │ gzip:   0.33 kB │ map:     0.34 kB
+dist/assets/index-38fe8a6f.js                                       0.51 kB │ gzip:   0.34 kB │ map:     0.43 kB
+dist/assets/_...all_-58bd2885.js                                    0.70 kB │ gzip:   0.44 kB │ map:     0.75 kB
+dist/assets/x-9ca936b1.js                                           0.71 kB │ gzip:   0.45 kB │ map:     0.81 kB
+dist/assets/plus-a9aa448a.js                                        0.71 kB │ gzip:   0.45 kB │ map:     0.82 kB
+dist/assets/user-0ca3d085.js                                        0.75 kB │ gzip:   0.48 kB │ map:     0.89 kB
+dist/assets/trash-6264dfaf.js                                       0.80 kB │ gzip:   0.50 kB │ map:     0.99 kB
+dist/assets/download-42c76e70.js                                    0.82 kB │ gzip:   0.52 kB │ map:     1.07 kB
+dist/assets/workflow-e59d1af7.js                                    0.83 kB │ gzip:   0.50 kB │ map:     1.14 kB
+dist/assets/_...all_-9abdc106.js                                    0.86 kB │ gzip:   0.52 kB │ map:     0.95 kB
+dist/assets/rocket-69f12828.js                                      1.02 kB │ gzip:   0.62 kB │ map:     1.34 kB
+dist/assets/_...all_-052fd155.js                                    1.11 kB │ gzip:   0.61 kB │ map:     1.13 kB
+dist/assets/queries-b10427dc.js                                     1.14 kB │ gzip:   0.49 kB │ map:     3.43 kB
+dist/assets/TopNavigation-7958036a.js                               1.18 kB │ gzip:   0.64 kB │ map:     2.62 kB
+dist/assets/ProjectLayout-64e261b6.js                               2.00 kB │ gzip:   0.98 kB │ map:     4.88 kB
+dist/assets/SystemLayout-54b1ecf5.js                                2.10 kB │ gzip:   1.00 kB │ map:     5.18 kB
+dist/assets/useLocalStorage-8a06953d.js                             2.16 kB │ gzip:   0.81 kB │ map:     6.91 kB
+dist/assets/index-5998d5da.js                                       2.93 kB │ gzip:   1.19 kB │ map:     6.98 kB
+dist/assets/FileUpload-786c4816.js                                  2.98 kB │ gzip:   1.49 kB │ map:     8.07 kB
+dist/assets/useMutation-46ee5971.js                                 3.38 kB │ gzip:   1.45 kB │ map:     8.48 kB
+dist/assets/index-d2c702d2.js                                       4.57 kB │ gzip:   1.82 kB │ map:    13.83 kB
+dist/assets/LinearProgress-972a2ab3.js                              4.98 kB │ gzip:   1.81 kB │ map:    15.30 kB
+dist/assets/index-4a3478d4.js                                       5.25 kB │ gzip:   2.02 kB │ map:    17.83 kB
+dist/assets/Typography-d71e6b3e.js                                  5.72 kB │ gzip:   2.50 kB │ map:    26.37 kB
+dist/assets/index-787df9fe.js                                       5.72 kB │ gzip:   2.18 kB │ map:    18.72 kB
+dist/assets/index-e31465e8.js                                       6.95 kB │ gzip:   2.51 kB │ map:    23.01 kB
+dist/assets/Switch-258a2178.js                                      7.44 kB │ gzip:   2.51 kB │ map:    24.84 kB
+dist/assets/save-528d84e6.js                                        8.14 kB │ gzip:   2.88 kB │ map:    25.18 kB
+dist/assets/Steps-f8621da9.js                                       8.18 kB │ gzip:   2.67 kB │ map:    35.06 kB
+dist/assets/Checkbox-a2a6db13.js                                    8.49 kB │ gzip:   3.16 kB │ map:    35.89 kB
+dist/assets/index-e85188bf.js                                       8.60 kB │ gzip:   3.00 kB │ map:    31.69 kB
+dist/assets/useQuery-b3390538.js                                   11.11 kB │ gzip:   3.96 kB │ map:    40.94 kB
+dist/assets/index-5a3cc283.js                                      15.07 kB │ gzip:   4.35 kB │ map:    56.93 kB
+dist/assets/index-5ae52ecf.js                                      18.42 kB │ gzip:   6.29 kB │ map:    85.07 kB
+dist/assets/Textarea-a41f7c17.js                                   47.70 kB │ gzip:  14.15 kB │ map:   213.87 kB
+dist/assets/index-5f83bc5a.js                                      55.65 kB │ gzip:  15.05 kB │ map:   186.28 kB
+dist/assets/react-select.esm-c4a587aa.js                           67.22 kB │ gzip:  23.58 kB │ map:   328.51 kB
+dist/assets/index-be98f95f.js                                      80.51 kB │ gzip:  29.97 kB │ map:   386.68 kB
+dist/assets/Node-ccebad1c.js                                      152.58 kB │ gzip:  48.18 kB │ map:   602.76 kB
+dist/assets/index-58c5826d.js                                     612.02 kB │ gzip: 199.19 kB │ map: 3,113.44 kB
+dist/assets/index-609e988f.js                                     694.84 kB │ gzip: 219.26 kB │ map: 3,191.85 kB
+✓ built in 6.56s

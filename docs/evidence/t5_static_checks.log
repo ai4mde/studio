@@ -1,0 +1,93 @@
+{
+  "pass": true,
+  "checks": [
+    {
+      "label": "B05/B06 presets declare applicableTo",
+      "pass": true
+    },
+    {
+      "label": "B05/B06 BookLoan late_risk mapping",
+      "pass": true
+    },
+    {
+      "label": "B05/B06 Customer reading_plan mapping",
+      "pass": true
+    },
+    {
+      "label": "B05/B06 presetsFor helper exists",
+      "pass": true
+    },
+    {
+      "label": "B11 findAiPreset does not fallback to aiPresets[0]",
+      "pass": true
+    },
+    {
+      "label": "B11 unsupported branch exists",
+      "pass": true
+    },
+    {
+      "label": "B11 reconcile effect guards selectedPreset",
+      "pass": true
+    },
+    {
+      "label": "B08 draft change does not call applyConfig",
+      "pass": true
+    },
+    {
+      "label": "B08 allowed_values commits on blur",
+      "pass": true
+    },
+    {
+      "label": "B03 output writes-to label",
+      "pass": true
+    },
+    {
+      "label": "B03 output format label",
+      "pass": true
+    },
+    {
+      "label": "B07 raw follows node data",
+      "pass": true
+    },
+    {
+      "label": "B01 prototypeQueryKey helper exported",
+      "pass": true
+    },
+    {
+      "label": "B01 query uses prototypeQueryKey",
+      "pass": true
+    },
+    {
+      "label": "B01 create invalidates prototypeQueryKey",
+      "pass": true
+    },
+    {
+      "label": "B01 show invalidates prototypeQueryKey",
+      "pass": true
+    },
+    {
+      "label": "B01 no prototype stale query key",
+      "pass": true
+    },
+    {
+      "label": "B01 no window.location.reload",
+      "pass": true
+    },
+    {
+      "label": "B02 pyproject pins openai",
+      "pass": true
+    },
+    {
+      "label": "B02 pyproject pins groq",
+      "pass": true
+    },
+    {
+      "label": "B02 lock has openai 1.47.0",
+      "pass": true
+    },
+    {
+      "label": "B02 lock has groq 0.15.0",
+      "pass": true
+    }
+  ]
+}

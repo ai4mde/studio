@@ -1,0 +1,68 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 602B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 853B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12.1
+#3 ...
+
+#4 [auth] library/python:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12.1
+#3 DONE 0.9s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [venv 1/6] FROM docker.io/library/python:3.12.1@sha256:a3d69b8412f7068fd060ccc7e175825713d5a767e1e14753e75bce6f746c8a7e
+#6 resolve docker.io/library/python:3.12.1@sha256:a3d69b8412f7068fd060ccc7e175825713d5a767e1e14753e75bce6f746c8a7e 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 315.01kB 0.1s done
+#7 DONE 0.1s
+
+#8 [venv 2/6] RUN pip install pipx
+#8 CACHED
+
+#9 [venv 3/6] RUN pipx install "poetry==1.7.1"
+#9 CACHED
+
+#10 [venv 5/6] COPY pyproject.toml poetry.lock ./
+#10 CACHED
+
+#11 [stage-1 4/5] COPY --from=venv /.venv /usr/src/.venv
+#11 CACHED
+
+#12 [stage-1 2/5] WORKDIR /usr/src/app
+#12 CACHED
+
+#13 [venv 4/6] RUN pipx ensurepath
+#13 CACHED
+
+#14 [stage-1 3/5] RUN apt-get update && apt-get install -y cron
+#14 CACHED
+
+#15 [venv 6/6] RUN poetry install --no-dev --no-root --no-interaction --no-ansi
+#15 CACHED
+
+#16 [stage-1 5/5] COPY . /usr/src/prototypes
+#16 CACHED
+
+#17 exporting to image
+#17 exporting layers done
+#17 exporting manifest sha256:6e2c0f7da0e7286793a32d16c9eef61474534d4b427e99672630ff86cebf6df7 done
+#17 exporting config sha256:9462f95268dec94a131add52b24544a37064ac80b944dac3b44dca8e9ad428cd done
+#17 exporting attestation manifest sha256:370240048f4633d5ba5971c795bdc490b10ff2e38db20efa1ba5998c5b44a565 done
+#17 exporting manifest list sha256:c28167501879e9e56aa5a213850cca72ca6834682e14eca648d787bfdd3a9a29 done
+#17 naming to docker.io/library/studio-studio-prototypes:latest done
+#17 unpacking to docker.io/library/studio-studio-prototypes:latest done
+#17 DONE 0.0s
+
+#18 resolving provenance for metadata file
+#18 DONE 0.0s
