@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from jinja2 import Environment, FileSystemLoader
 
 from .handler import call_openai
-from .keyword_hints import extract_keyword_hints, extract_parallel_evidence
+from .keyword_hints import extract_keyword_hints, extract_loop_evidence, extract_parallel_evidence
 from .topology_artifact_model import TopologyArtifact
 
 _TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
@@ -682,6 +682,7 @@ def _validate_topology_artifact_against_process_text(
 ) -> Dict[str, Any]:
     artifact = TopologyArtifact.model_validate(topology_artifact)
     normalized_text = _normalize_text(process_text)
+    loop_evidence = extract_loop_evidence(process_text)
     parallel_evidence = extract_parallel_evidence(process_text)
     unsupported_structures: List[Dict[str, Any]] = []
 
@@ -693,6 +694,19 @@ def _validate_topology_artifact_against_process_text(
                 "id": "MISSING_DECISION",
                 "type": "decision",
                 "reason": "missing decision structure for explicit branching evidence",
+                "branches": [],
+                "structure": None,
+            }
+        )
+
+    loop_structures = [structure for structure in artifact.structures if structure.type == "loop"]
+    if loop_evidence["high_confidence"] and not loop_structures:
+        unsupported_structures.append(
+            {
+                "id": "MISSING_LOOP",
+                "type": "loop",
+                "reason": "missing loop structure for high-confidence repetition evidence",
+                "evidence": loop_evidence["candidates"],
                 "branches": [],
                 "structure": None,
             }
@@ -716,12 +730,17 @@ def _validate_topology_artifact_against_process_text(
                     }
                 )
         elif structure.type == "loop":
-            if not _contains_any_phrase(normalized_text, _LOOP_EVIDENCE_PHRASES):
+            if not loop_evidence["high_confidence"]:
                 unsupported_structures.append(
                     {
                         "id": structure.id,
                         "type": structure.type,
-                        "reason": "missing explicit repetition evidence in process text",
+                        "reason": "only weak lexical loop cues; structured repetition contract is incomplete",
+                        "weak_cues": loop_evidence["weak_cues"],
+                        "missing_evidence": [
+                            "bounded repeated region + iteration unit + completion boundary",
+                            "or retry condition + corrective operation + return target + successful exit",
+                        ],
                         "branches": structure.branches,
                     }
                 )

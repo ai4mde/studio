@@ -28,6 +28,81 @@ STRONG_LOOP_PHRASES = [
     "go back",
 ]
 
+_WEAK_LOOP_CUE_PATTERNS = (
+    ("again", r"\bagain\b"),
+    ("re-check", r"\bre[- ]?check(?:s|ed|ing)?\b"),
+    ("repeat", r"\brepeat(?:s|ed|ing)?\b"),
+    ("retry", r"\bretr(?:y|ies|ied|ying)\b"),
+    ("resubmit", r"\bre[- ]?submit(?:s|ted|ting)?\b"),
+    ("return", r"\breturn(?:s|ed|ing)?\b"),
+    ("sent back", r"\bsent\s+back\b"),
+)
+
+_FAILURE_SIGNAL_PATTERNS = (
+    ("failure", r"\b(?:fail(?:s|ed|ure)?|error(?:s)?|incorrect(?:ly)?)\b"),
+    ("incomplete", r"\b(?:incomplete|not\s+complete|missing)\b"),
+    ("invalid", r"\b(?:invalid|not\s+valid)\b"),
+    ("rejection", r"\b(?:reject(?:s|ed|ion)?|not\s+approve(?:d)?)\b"),
+    ("change_required", r"\b(?:ask(?:s|ed)?\s+for\s+(?:a\s+)?change|change\s+required)\b"),
+    ("negative_response", r"\bnegative\s+(?:response|result|outcome)\b"),
+    ("not_ok", r"\bnot\s+ok\b"),
+    ("no_response", r"\bno\s+response\b"),
+    ("correction_required", r"\b(?:ask(?:s|ed)?\s+for\s+corrections?|return(?:s|ed)?\b[^.]{0,100}\bfor\s+corrections?)\b"),
+    ("otherwise_retry", r"\botherwise\b"),
+    ("until_condition", r"\buntil\b"),
+)
+
+_CORRECTIVE_OPERATION_PATTERNS = (
+    ("correct", r"\bcorrect(?:s|ed|ing|ion|ions)?\b"),
+    ("update", r"\bupdat(?:e|es|ed|ing)\b"),
+    ("revise", r"\brevis(?:e|es|ed|ing|ion)\b"),
+    ("repair", r"\brepair(?:s|ed|ing)?\b"),
+    ("resolve", r"\bresolv(?:e|es|ed|ing)\b"),
+    ("rework", r"\brework(?:s|ed|ing)?\b"),
+    ("retry_operation", r"\bretr(?:y|ies|ied|ying)\b\s+[a-z]"),
+    ("review_comments", r"\breview(?:s|ed|ing)?\b[^.]{0,80}\bcomments?\b"),
+    ("choose_different", r"\bchoose(?:s|n)?\s+(?:a\s+)?different\b"),
+    ("new_cycle_work", r"\b(?:create\s+(?:a\s+)?new|initiate\s+another)\b[^.]{0,100}\b(?:plan|cycle)\b"),
+    ("another_activity", r"\banother\b[^.]{0,80}\b(?:activity|repair|attempt|cycle)\b"),
+    ("repeat_operation", r"\brepeat(?:s|ed|ing)?\b"),
+    ("reminder", r"\breminder\b"),
+)
+
+_RETURN_TARGET_PATTERNS = (
+    ("returned_to", r"\breturn(?:s|ed|ing)?\s+(?:it\s+)?to\b"),
+    ("sent_back_to", r"\bsent\s+back\s+to\b"),
+    ("send_back_to", r"\bsend(?:s|ing)?\s+(?:it\s+)?back\s+to\b"),
+    ("go_back_to", r"\b(?:go|goes|went)\s+back\s+to\b"),
+    ("restart", r"\b(?:restart|restarts|restarted|re-enter|re-enters)\b"),
+    ("previous_stage", r"\b(?:back\s+to|to)\s+(?:the\s+)?(?:previous|first|earlier|beginning)\b"),
+    ("operation_again", r"\b(?:check|review|generate|perform|execute|submit)\w*\b[^.]{0,80}\bagain\b"),
+    ("request_again", r"\b(?:ask|request)\w*\b[^.]{0,80}\bagain\b"),
+    ("another_activity", r"\banother\b[^.]{0,80}\b(?:activity|repair|attempt|cycle)\b"),
+    ("choose_different", r"\bchoose(?:s|n)?\s+(?:a\s+)?different\b"),
+    ("retry_until", r"\bretr(?:y|ies|ied|ying)\b[^.]{0,100}\buntil\b"),
+    ("corrective_operation_until", r"\b(?:correct|update|revise|repair|resolve|rework)\w*\b[^.]{0,100}\buntil\b"),
+    ("repeated_until", r"\b(?:repeat\w*|another\s+reminder|and\s+so\s+on)\b[^.]{0,120}\buntil\b"),
+    ("return_for_correction", r"\breturn\w*\s+to\b[^.]{0,100}\bcorrections?\b[^.]{0,100}\bagain\b"),
+)
+
+_SUCCESS_EXIT_PATTERNS = (
+    ("success", r"\b(?:success|succeeds?|successful(?:ly)?)\b"),
+    ("complete", r"\b(?:complete|completed|valid|approved|passes?|finished)\b"),
+    ("continuation", r"\b(?:continue|continues|proceed|proceeds|ends?|finished)\b"),
+    ("otherwise", r"\botherwise\b"),
+    ("all_handled", r"\b(?:all|every)\b[^.]{0,100}\b(?:handled|processed|reserved|ordered|complete|completed|correct)\b"),
+    ("selected", r"\bafter\b[^.]{0,100}\bselected\b"),
+    ("marked_ok", r"\b(?:marked\s+as\s+)?ok\b"),
+    ("received", r"\buntil\b[^.]{0,100}\breceived\b"),
+)
+
+_BOUNDED_ITERATION_PATTERNS = (
+    r"\b(?:procedure|process|activity|operation|step|region)\b[^.]{0,100}\brepeat(?:s|ed|ing)?\b[^.]{0,100}\b(?:for|over)\s+(?:each|every|all)\b",
+    r"\brepeat(?:s|ed|ing)?\b[^.]{0,120}\b(?:for|over)\s+(?:each|every|all)\b",
+    r"\b(?:for|over)\s+(?:each|every|all)\b[^.]{0,120}\brepeat(?:s|ed|ing)?\b",
+    r"\b(?:process|perform|handle|check)\w*\b[^.]{0,120}\buntil\s+all\b",
+)
+
 RETRY_SEMANTIC_PHRASES = [
     "retry",
     "retries",
@@ -192,6 +267,85 @@ def extract_parallel_evidence(process_text: str) -> List[str]:
     return evidence
 
 
+def _sentences(process_text: str) -> List[str]:
+    return [
+        sentence.strip()
+        for sentence in re.split(r"(?<=[.!?])\s+", process_text.strip())
+        if sentence.strip()
+    ]
+
+
+def _matched_signal_labels(text: str, patterns: tuple[tuple[str, str], ...]) -> List[str]:
+    return [label for label, pattern in patterns if re.search(pattern, text, re.IGNORECASE)]
+
+
+def _evidence_window(sentences: List[str], index: int, *, radius: int = 2) -> str:
+    start = max(0, index - radius)
+    end = min(len(sentences), index + radius + 1)
+    return " ".join(sentences[start:end])
+
+
+def extract_loop_evidence(process_text: str) -> Dict[str, Any]:
+    """Extract conservative evidence contracts; weak repetition vocabulary is never sufficient."""
+    sentences = _sentences(process_text)
+    normalized_text = _normalize_process_text(process_text)
+    weak_cues = _matched_signal_labels(normalized_text, _WEAK_LOOP_CUE_PATTERNS)
+    candidates: List[Dict[str, Any]] = []
+
+    for index, sentence in enumerate(sentences):
+        if not any(re.search(pattern, sentence, re.IGNORECASE) for pattern in _BOUNDED_ITERATION_PATTERNS):
+            continue
+        window = _evidence_window(sentences, index, radius=1)
+        unit_match = re.search(r"\b(?:for|over)\s+(each|every|all)\s+([a-z][a-z -]{0,50})", sentence, re.IGNORECASE)
+        iteration_unit = " ".join(unit_match.groups()).strip() if unit_match else "bounded collection"
+        completion = _matched_signal_labels(window, _SUCCESS_EXIT_PATTERNS) or ["explicit bounded repetition"]
+        candidates.append(
+            {
+                "kind": "bounded_iteration",
+                "source_fragment": window,
+                "repeated_operation": sentence,
+                "iteration_unit": iteration_unit,
+                "completion_evidence": completion,
+            }
+        )
+
+    for index, sentence in enumerate(sentences):
+        local_failure = _matched_signal_labels(sentence, _FAILURE_SIGNAL_PATTERNS)
+        if not local_failure:
+            continue
+        window = _evidence_window(sentences, index)
+        corrective = _matched_signal_labels(window, _CORRECTIVE_OPERATION_PATTERNS)
+        return_target = _matched_signal_labels(window, _RETURN_TARGET_PATTERNS)
+        success_exit = _matched_signal_labels(window, _SUCCESS_EXIT_PATTERNS)
+        if not (corrective and return_target and success_exit):
+            continue
+        candidates.append(
+            {
+                "kind": "retry_cycle",
+                "source_fragment": window,
+                "retry_condition": local_failure,
+                "corrective_operation": corrective,
+                "return_or_reexecution_evidence": return_target,
+                "successful_exit_evidence": success_exit,
+            }
+        )
+
+    deduplicated: List[Dict[str, Any]] = []
+    seen = set()
+    for candidate in candidates:
+        key = (candidate["kind"], candidate["source_fragment"])
+        if key in seen:
+            continue
+        seen.add(key)
+        deduplicated.append(candidate)
+
+    return {
+        "high_confidence": bool(deduplicated),
+        "weak_cues": weak_cues,
+        "candidates": deduplicated,
+    }
+
+
 def _contains_disjunction_decision_evidence(text: str) -> bool:
     if " or " not in f" {text} ":
         return False
@@ -218,6 +372,7 @@ def extract_keyword_hints(process_text: str) -> KeywordHints:
             if term not in decision_terms:
                 decision_terms.append(term)
     loop_terms = _contains_any(text, STRONG_LOOP_PHRASES)
+    loop_evidence = extract_loop_evidence(process_text)
     retry_terms = _contains_any(text, RETRY_SEMANTIC_PHRASES)
     parallel_terms = extract_parallel_evidence(process_text)
     approval_terms = _contains_any(
@@ -242,13 +397,13 @@ def extract_keyword_hints(process_text: str) -> KeywordHints:
                 "guidance": "Expect a control split with at least one alternative path.",
             }
         )
-    if loop_terms:
+    if loop_evidence["high_confidence"]:
         hints.append(
             {
                 "kind": "possible_loop",
                 "confidence": "high",
-                "evidence": loop_terms,
-                "guidance": "Consider a retry or repetition structure with a backward path and an exit path.",
+                "evidence": loop_evidence["candidates"],
+                "guidance": "Model the supported repeated region with a backward path and a distinct exit path.",
             }
         )
     if parallel_terms:
@@ -292,7 +447,7 @@ def extract_keyword_hints(process_text: str) -> KeywordHints:
         "process_text": process_text,
         "flags": {
             "possible_decision": bool(decision_terms),
-            "possible_loop": bool(loop_terms),
+            "possible_loop": bool(loop_evidence["high_confidence"]),
             "possible_parallelism": bool(parallel_terms),
             "retry_semantics": bool(retry_terms),
             "approval_flow": bool(approval_terms),
@@ -301,6 +456,7 @@ def extract_keyword_hints(process_text: str) -> KeywordHints:
         "evidence": {
             "decision_terms": decision_terms,
             "loop_terms": loop_terms,
+            "loop_evidence": loop_evidence,
             "retry_terms": retry_terms,
             "parallel_terms": parallel_terms,
             "approval_terms": approval_terms,
@@ -310,4 +466,4 @@ def extract_keyword_hints(process_text: str) -> KeywordHints:
     }
 
 
-__all__ = ["KeywordHints", "extract_keyword_hints", "extract_parallel_evidence"]
+__all__ = ["KeywordHints", "extract_keyword_hints", "extract_loop_evidence", "extract_parallel_evidence"]

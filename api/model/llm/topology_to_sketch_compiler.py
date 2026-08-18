@@ -376,6 +376,22 @@ def _root_ancestor_map(ordered_structures: List[TopologyStructure]) -> Dict[str,
     return ancestors
 
 
+def _enclosing_loop_id(
+    structure: TopologyStructure,
+    structures_by_id: Dict[str, TopologyStructure],
+) -> str | None:
+    current = structure
+    visited: set[str] = set()
+    while current.parent != "ROOT":
+        if current.id in visited or current.parent not in structures_by_id:
+            return None
+        visited.add(current.id)
+        current = structures_by_id[current.parent]
+        if current.type == "loop":
+            return current.id
+    return None
+
+
 def compile_topology_and_semantics_to_activity_sketch(
     topology_artifact: Dict[str, Any] | TopologyArtifact,
     semantic_plan: Dict[str, Any] | SemanticSketchPlan,
@@ -386,6 +402,7 @@ def compile_topology_and_semantics_to_activity_sketch(
     root_structures = _root_structures(ordered_structures)
     nested_children = _branch_children(ordered_structures)
     root_ancestors = _root_ancestor_map(ordered_structures)
+    structures_by_id = {structure.id: structure for structure in ordered_structures}
 
     root_action_lookup = _root_action_map(semantics, root_structures)
     root_slot_ids = _root_slot_ids(root_structures)
@@ -475,6 +492,8 @@ def compile_topology_and_semantics_to_activity_sketch(
                 "next_block_id": None,
                 "child_block_ids": [direct_children[0].id] if direct_children else [],
             }
+            if intent == "loop_back" and structure.type != "loop":
+                branch_payload["next_block_id"] = _enclosing_loop_id(structure, structures_by_id)
             if reconnect_target is not None and reconnect_target["first_step_id"] is not None:
                 branch_payload["reconnect_to_step_id"] = reconnect_target["first_step_id"]
             if intent in {"terminate", "loop_back"}:

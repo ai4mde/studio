@@ -319,10 +319,33 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
     branch_step_nodes: Dict[str, str] = {}
     referenced_block_ids: set[str] = set()
+    parent_block_by_child: Dict[str, str] = {}
     for block in control_blocks:
+        parent_block_id = str(block.get("block_id") or "").strip()
+        for branch in block.get("branches") or []:
+            for child_block_id in branch.get("child_block_ids") or []:
+                child_id = str(child_block_id).strip()
+                if child_id:
+                    parent_block_by_child[child_id] = parent_block_id
+
+    def is_ancestor_reference(*, source_block_id: str, target_block_id: str) -> bool:
+        current = source_block_id
+        visited: set[str] = set()
+        while current in parent_block_by_child and current not in visited:
+            visited.add(current)
+            current = parent_block_by_child[current]
+            if current == target_block_id:
+                return True
+        return False
+
+    for block in control_blocks:
+        source_block_id = str(block.get("block_id") or "").strip()
         for branch in block.get("branches") or []:
             next_block_id = str(branch.get("next_block_id") or "").strip()
-            if next_block_id:
+            if next_block_id and not is_ancestor_reference(
+                source_block_id=source_block_id,
+                target_block_id=next_block_id,
+            ):
                 referenced_block_ids.add(next_block_id)
             for child_block_id in branch.get("child_block_ids") or []:
                 child_id = str(child_block_id).strip()
@@ -411,7 +434,13 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
                 block_id,
                 {"continuation": incoming_refs, "terminal": []},
             )
-        if block_id in active_stack or block_id not in block_by_id:
+        if block_id in active_stack:
+            if reference_kind == "next":
+                attach_node_id = entry_attach_nodes_by_block.get(block_id)
+                if attach_node_id is not None:
+                    connect_refs(incoming_refs, attach_node_id)
+            return {"continuation": [], "terminal": []}
+        if block_id not in block_by_id:
             return {"continuation": incoming_refs, "terminal": []}
 
         block = block_by_id[block_id]
@@ -480,6 +509,8 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
                     block.get("loop_back_to_step_id"),
                     block.get("loop_back_to"),
                 )
+                if loop_target_id is None:
+                    loop_target_id = entry_node_id
                 if loop_target_id is not None:
                     connect_refs(refs, loop_target_id)
                 terminal_branch_outputs.append(branch_terminal_refs)

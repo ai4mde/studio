@@ -105,7 +105,9 @@ Rules:
 - For parallel blocks, do not promote a branch-local decision, loop, or nested control structure to `ROOT` unless the text explicitly moves execution to post-join scope
 - If the triggering condition for a structure is described only within one parallel branch narrative, attach that structure to that branch rather than to `ROOT`
 - Treat phrases like "when both tasks are completed", "after both reviews are completed", or equivalent join wording as the boundary between branch-local scope and post-join scope
-- Create a loop only when the text explicitly indicates repetition, retry, rework, correction, resubmission, or iteration with an exit condition
+- Create a loop only for a complete repetition contract: either a repeated process region over a bounded collection with a completion boundary, or a retry/correction cycle with a retry condition, corrective operation, return/re-execution target, and distinct successful exit
+- Treat `again`, `re-check`, `review again`, `retry`, and `resubmit` as weak cues only; none is sufficient by itself to create a loop
+- A one-time later check or review remains sequential even when the text says it happens `again`
 - Create a parallel block only when the text explicitly indicates concurrent work, two-or-more simultaneous branches, or an explicit join boundary such as `after both` or `once all branches finish`
 - Compound concurrency evidence can include separate executable activities linked by `in the meantime`, a `while A does X, B does Y` construction, multiple named activities executed in arbitrary order before shared continuation, or several named outputs synchronized before later work
 - Do not infer parallelism from `while`, `in the meantime`, or `arbitrary order` alone; require separate executable activities and any stated synchronization or shared continuation

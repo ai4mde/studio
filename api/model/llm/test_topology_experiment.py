@@ -13,7 +13,8 @@ from llm.topology_experiment import (
     generate_topology_artifact,
     parse_topology_artifact_json,
 )
-from llm.keyword_hints import extract_keyword_hints
+from llm.keyword_hints import extract_keyword_hints, extract_loop_evidence
+from llm.topology_artifact_model import TopologyArtifact
 
 
 def test_parse_topology_artifact_json_canonicalizes_retry_to_loop() -> None:
@@ -89,9 +90,168 @@ def test_build_topology_experiment_prompt_requires_explicit_evidence_for_control
 
     assert "Do not infer a decision from a single terminal status word such as `approved`, `rejected`, `archived`, `ready`, `blocked`" in prompt
     assert "If the process text is linear, keep the topology linear and return `structures: []`" in prompt
-    assert "Create a loop only when the text explicitly indicates repetition" in prompt
+    assert "Create a loop only for a complete repetition contract" in prompt
     assert "Create a parallel block only when the text explicitly indicates concurrent work" in prompt
     assert "Compound concurrency evidence can include separate executable activities linked by `in the meantime`" in prompt
+    assert "Treat `again`, `re-check`, `review again`, `retry`, and `resubmit` as weak cues only" in prompt
+
+
+@pytest.mark.parametrize(
+    "process_text",
+    [
+        "Finally, the order is checked again for quality.",
+        "The clerk re-checks the completed record.",
+        "The board reviews the approved invoice again under the four-eyes principle.",
+        "The applicant resubmits the missing document.",
+        "Operations reviews the request. Later, finance reviews the payment.",
+    ],
+)
+def test_extract_loop_evidence_keeps_weak_repetition_wording_non_cyclic(process_text: str) -> None:
+    evidence = extract_loop_evidence(process_text)
+
+    assert evidence["high_confidence"] is False
+    assert evidence["candidates"] == []
+
+
+def test_extract_loop_evidence_accepts_bounded_iteration_with_region_unit_and_completion() -> None:
+    evidence = extract_loop_evidence(
+        "The storehouse checks availability and reserves or back-orders a part. "
+        "This procedure is repeated for each item on the part list. "
+        "When every item is handled, assembly begins."
+    )
+
+    assert evidence["high_confidence"] is True
+    candidate = evidence["candidates"][0]
+    assert candidate["kind"] == "bounded_iteration"
+    assert candidate["iteration_unit"] == "each item on the part list"
+    assert "procedure is repeated" in candidate["repeated_operation"]
+    assert candidate["completion_evidence"]
+
+
+def test_extract_loop_evidence_accepts_complete_retry_correction_contract() -> None:
+    evidence = extract_loop_evidence(
+        "The clerk checks the form. If it is incomplete, the applicant updates it and submits it again "
+        "to the previous validation step. If it is complete, processing continues."
+    )
+
+    assert evidence["high_confidence"] is True
+    candidate = evidence["candidates"][0]
+    assert candidate["kind"] == "retry_cycle"
+    assert candidate["retry_condition"] == ["incomplete"]
+    assert candidate["corrective_operation"]
+    assert candidate["return_or_reexecution_evidence"]
+    assert candidate["successful_exit_evidence"]
+
+
+def test_extract_loop_evidence_does_not_treat_check_each_item_once_as_iteration() -> None:
+    evidence = extract_loop_evidence("The clerk checks each item once and archives the list.")
+
+    assert evidence["high_confidence"] is False
+
+
+@pytest.mark.parametrize(
+    "process_text",
+    [
+        "If the claim is Not OK, it is sent back to the claims officer and the recommendation is repeated. If it is OK, processing proceeds.",
+        "If no response is received, another reminder is sent and so on until the completed questionnaire is received.",
+        "If receipts are missing, the report is sent back to the employee. A report returned to the employee for corrections must again go to the supervisor. If accepted, processing continues.",
+        "The manager must ask for corrections again; otherwise, the manager approves the description.",
+    ],
+)
+def test_extract_loop_evidence_preserves_existing_explicit_cycle_forms(process_text: str) -> None:
+    assert extract_loop_evidence(process_text)["high_confidence"] is True
+
+
+def _loop_artifact(*, purpose: str = "repeat form correction until complete") -> dict:
+    return {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "loop",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["retry", "success"],
+                "purpose": purpose,
+            }
+        ]
+    }
+
+
+def test_validate_topology_rejects_missing_high_confidence_loop() -> None:
+    process_text = (
+        "If the form is incomplete, the applicant corrects it and sends it back to validation. "
+        "If the form is complete, processing continues."
+    )
+
+    with pytest.raises(ValueError, match="missing loop structure for high-confidence repetition evidence"):
+        _validate_topology_artifact_against_process_text(
+            process_text=process_text,
+            topology_artifact={"structures": []},
+        )
+
+
+def test_generate_topology_retries_for_missing_high_confidence_loop_with_narrow_diagnostics() -> None:
+    process_text = (
+        "If the form is incomplete, the applicant corrects it and sends it back to validation. "
+        "If the form is complete, processing continues."
+    )
+    with patch(
+        "llm.topology_experiment.call_openai",
+        side_effect=['{"structures": []}', '''
+        {"structures": [{"id": "T1", "type": "loop", "parent": "ROOT", "parent_branch": null,
+        "branches": ["retry", "success"], "purpose": "correct the form until complete"}]}
+        '''],
+    ) as mocked_call:
+        result = generate_topology_artifact(process_text)
+
+    assert result["artifact"]["structures"][0]["type"] == "loop"
+    assert len(result["planner_attempts"]) == 2
+    retry_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
+    assert "missing loop structure for high-confidence repetition evidence" in retry_prompt
+    assert "corrective_operation" in retry_prompt
+    assert "return_or_reexecution_evidence" in retry_prompt
+    assert "successful_exit_evidence" in retry_prompt
+    assert "root_scope_" not in str(result)
+
+
+def test_generate_topology_does_not_retry_for_ambiguous_weak_loop_wording() -> None:
+    with patch("llm.topology_experiment.call_openai", return_value='{"structures": []}') as mocked_call:
+        result = generate_topology_artifact("Finally, the order is checked again for quality.")
+
+    assert result["artifact"] == {"structures": []}
+    assert len(result["planner_attempts"]) == 1
+    assert mocked_call.call_count == 1
+
+
+def test_generate_topology_retries_to_remove_loop_supported_only_by_weak_cue() -> None:
+    invalid_output = '''
+    {"structures": [{"id": "T1", "type": "loop", "parent": "ROOT", "parent_branch": null,
+    "branches": ["retry", "success"], "purpose": "check order quality again"}]}
+    '''
+    with patch(
+        "llm.topology_experiment.call_openai",
+        side_effect=[invalid_output, '{"structures": []}'],
+    ) as mocked_call:
+        result = generate_topology_artifact("Finally, the order is checked again for quality.")
+
+    assert result["artifact"] == {"structures": []}
+    assert len(result["planner_attempts"]) == 2
+    retry_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
+    assert "only weak lexical loop cues" in retry_prompt
+    assert "again" in retry_prompt
+
+
+def test_topology_schema_is_unchanged_by_loop_evidence_diagnostics() -> None:
+    structure_schema = TopologyArtifact.model_json_schema()["$defs"]["TopologyStructure"]
+
+    assert set(structure_schema["properties"]) == {
+        "id",
+        "type",
+        "parent",
+        "parent_branch",
+        "branches",
+        "purpose",
+    }
 
 
 def test_generate_topology_artifact_rejects_unsupported_linear_decision_chain() -> None:

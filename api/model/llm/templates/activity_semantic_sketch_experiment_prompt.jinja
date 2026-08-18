@@ -76,7 +76,13 @@ Shared-continuation ownership:
 - A branch is `terminate` only when no later shared business behavior applies to that path; a rejection or cancellation verb alone does not prove termination
 - True termination remains `intent="terminate"` when the text ends that path and describes no later shared action for it
 - Retry success must reconnect to the same shared post-structure actions as the ordinary successful path; keep the retry/rework branch local and let its successful exit continue
-- For shared behavior after nested controls, use the available post-structure root slot after the enclosing root structure when that slot is reached only by the surviving paths described in the text
+- `retry_target` means the re-entry point for repeated work or re-evaluation; encode it with `target_slot_id` only when explicit source evidence requires that return
+- `retry_success_continuation` means the business work performed after the retry succeeds; represent that Action at its source-supported local or shared ownership scope
+- Never treat the retry target and retry-success continuation as the same thing: returning for re-review does not move post-success work to the review entry, and shared post-success work does not itself define a retry target
+- Use `target_slot_id` on a successful loop exit only when the source explicitly sends corrected work back to an earlier root-scope review or check; otherwise omit it and use the normal post-loop continuation
+- When `target_slot_id` is required, use one of the exact root slot ids listed below and do not use it to redirect unrelated branch-specific behavior
+- For shared behavior after nested controls, use the available post-structure root slot after the enclosing root structure only when every non-terminated path that reaches the slot should execute that behavior
+- If a retry-success continuation is local to one nested path and no safe local continuation slot exists, preserve the action in that path; do not promote it globally or invent a root_scope_* slot
 - Do not duplicate the shared action into branch steps; represent it once in the appropriate post-structure root slot
 
 Root semantic slots:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from llm.experimental_compiler import compile_activity_sketch
 from llm.topology_to_sketch_compiler import (
     SemanticPlanTopologyValidationError,
     compare_topology_artifact_to_activity_sketch,
@@ -256,6 +257,111 @@ def test_compile_topology_and_semantics_to_activity_sketch_uses_semantic_actions
         {"step_id": None, "action": "employee revises request and resubmits for budget review"}
     ]
     assert control_blocks["T3"]["branches"][1]["returns_to_main_flow"] is False
+
+
+def test_nested_loop_without_parent_action_retries_to_its_own_decision() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["ok", "not_ok"],
+                "purpose": "check recommendation",
+            },
+            {
+                "id": "T2",
+                "type": "loop",
+                "parent": "T1",
+                "parent_branch": "not_ok",
+                "branches": ["retry", "success"],
+                "purpose": "repeat recommendation until accepted",
+            },
+        ]
+    }
+    semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "write recommendation"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "ok", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "not_ok", "intent": "continue", "steps": []},
+            {
+                "structure_id": "T2",
+                "branch": "retry",
+                "intent": "loop_back",
+                "steps": [{"action": "write new recommendation"}],
+            },
+            {"structure_id": "T2", "branch": "success", "intent": "continue", "steps": []},
+        ],
+    }
+
+    graph = compile_activity_sketch(
+        compile_topology_and_semantics_to_activity_sketch(topology, semantics)
+    )
+    nodes = {node["id"]: node for node in graph["nodes"]}
+    retry_id = next(node_id for node_id, node in nodes.items() if node.get("name") == "write new recommendation")
+    loop_id = next(node_id for node_id, node in nodes.items() if node.get("origin_block_id") == "T2")
+
+    assert {"source": retry_id, "target": loop_id, "type": "control"} in graph["edges"]
+
+
+def test_nested_decision_loop_back_reenters_active_enclosing_loop() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "loop",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["retry", "success"],
+                "purpose": "correct description until approved",
+            },
+            {
+                "id": "T2",
+                "type": "decision",
+                "parent": "T1",
+                "parent_branch": "retry",
+                "branches": ["approved", "rejected"],
+                "purpose": "decide whether description is approved",
+            },
+        ]
+    }
+    semantics = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "create description"}]},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "post job"}]},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "retry",
+                "intent": "loop_back",
+                "steps": [{"action": "correct description"}],
+            },
+            {"structure_id": "T1", "branch": "success", "intent": "continue", "steps": []},
+            {"structure_id": "T2", "branch": "approved", "intent": "continue", "steps": []},
+            {
+                "structure_id": "T2",
+                "branch": "rejected",
+                "intent": "loop_back",
+                "steps": [{"action": "request correction"}],
+            },
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(topology, semantics)
+    child = next(block for block in sketch["control_blocks"] if block["block_id"] == "T2")
+    rejected = next(branch for branch in child["branches"] if branch["label"] == "rejected")
+    assert rejected["next_block_id"] == "T1"
+
+    graph = compile_activity_sketch(sketch)
+    nodes = {node["id"]: node for node in graph["nodes"]}
+    request_id = next(node_id for node_id, node in nodes.items() if node.get("name") == "request correction")
+    loop_id = next(node_id for node_id, node in nodes.items() if node.get("origin_block_id") == "T1")
+    assert {"source": request_id, "target": loop_id, "type": "control"} in graph["edges"]
 
 
 def test_compile_topology_and_semantics_to_activity_sketch_lowers_target_slot_id_to_reconnect_step_id() -> None:
