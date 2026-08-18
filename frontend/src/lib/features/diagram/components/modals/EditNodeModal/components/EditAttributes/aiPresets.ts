@@ -3,6 +3,10 @@ export type ModelProfile = "cheap" | "strong";
 export type AiPreset = {
     id: "late_return_risk" | "reading_plan";
     label: string;
+    applicableTo: {
+        className: string;
+        attributeName: string;
+    };
     triggerType: "post_save" | "user_action";
     context: {
         fields?: string[];
@@ -31,6 +35,10 @@ export const aiPresets: AiPreset[] = [
     {
         id: "late_return_risk",
         label: "Late return risk",
+        applicableTo: {
+            className: "BookLoan",
+            attributeName: "late_risk",
+        },
         triggerType: "post_save",
         context: {
             fields: ["loan_date", "due_date", "return_date"],
@@ -48,6 +56,10 @@ export const aiPresets: AiPreset[] = [
     {
         id: "reading_plan",
         label: "Reading plan",
+        applicableTo: {
+            className: "Customer",
+            attributeName: "reading_plan",
+        },
         triggerType: "user_action",
         context: {
             relations: ["Loan", "BookLoan", "Book"],
@@ -66,8 +78,16 @@ export const aiPresets: AiPreset[] = [
     },
 ];
 
-export function findAiPreset(id: string | undefined): AiPreset {
-    return aiPresets.find((preset) => preset.id === id) ?? aiPresets[0];
+export function findAiPreset(id: string | undefined): AiPreset | undefined {
+    return aiPresets.find((preset) => preset.id === id);
+}
+
+export function presetsFor(className: string | undefined, attributeName: string | undefined): AiPreset[] {
+    return aiPresets.filter(
+        (preset) =>
+            preset.applicableTo.className === className &&
+            preset.applicableTo.attributeName === attributeName,
+    );
 }
 
 export function inferPresetId(aiConfig: any): AiPreset["id"] | undefined {

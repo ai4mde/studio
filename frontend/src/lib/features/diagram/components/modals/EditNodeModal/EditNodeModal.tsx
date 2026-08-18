@@ -65,6 +65,10 @@ export const EditNodeModal: React.FC = () => {
     );
 
     useEffect(() => {
+        setRaw(JSON.stringify({ data: node?.data ?? {} }, null, 2));
+    }, [node?.data]);
+
+    useEffect(() => {
         const down = (e: KeyboardEvent) => {
             e.key === "Escape" && close();
         };

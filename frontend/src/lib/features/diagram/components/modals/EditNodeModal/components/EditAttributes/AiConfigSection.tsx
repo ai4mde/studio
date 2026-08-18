@@ -10,11 +10,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
     AiPreset,
     ModelProfile,
-    aiPresets,
     buildAiConfig,
     findAiPreset,
     inferPresetId,
     parseAllowedValues,
+    presetsFor,
 } from "./aiPresets";
 
 type Props = {
@@ -27,6 +27,11 @@ const modelProfiles: ModelProfile[] = ["cheap", "strong"];
 
 function valuesText(values: string[] | undefined): string {
     return (values ?? []).join(", ");
+}
+
+function existingAllowedValues(attribute: any): string[] | undefined {
+    const values = attribute?.ai_config?.output?.allowed_values;
+    return Array.isArray(values) ? values : undefined;
 }
 
 function SemanticChips({ values }: { values?: string[] }) {
@@ -42,25 +47,62 @@ function SemanticChips({ values }: { values?: string[] }) {
     );
 }
 
-const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
-    const enabled = Boolean(attribute?.ai_config);
-    const inferredPresetId = inferPresetId(attribute?.ai_config);
-    const selectedPreset = findAiPreset(inferredPresetId);
+const UnsupportedAiConfigSection: React.FC<Props> = ({ attribute, update }) => {
+    const disableAiConfig = () => {
+        const { ai_config, ...attributeWithoutAiConfig } = attribute;
+        update(attributeWithoutAiConfig);
+    };
+
+    return (
+        <div
+            className="flex flex-col gap-2 border-t border-solid border-gray-200 bg-white px-2 py-2 text-xs"
+            data-t4-ai-config-section={attribute?.name ?? ""}
+            data-t5-ai-config-section={attribute?.name ?? ""}
+        >
+            <FormControl orientation="horizontal">
+                <Switch
+                    size="sm"
+                    checked
+                    onChange={(event) => {
+                        if (!event.target.checked) disableAiConfig();
+                    }}
+                />
+                <FormLabel sx={{ marginLeft: "8px", marginTop: "2px" }}>
+                    AI-managed attribute
+                </FormLabel>
+            </FormControl>
+            <div className="rounded border border-solid border-gray-200 bg-gray-50 p-2 text-gray-600">
+                Custom / unsupported configuration - edit via import
+            </div>
+        </div>
+    );
+};
+
+const EditableAiConfigSection: React.FC<
+    Props & {
+        applicablePresets: AiPreset[];
+        enabled: boolean;
+        selectedPreset: AiPreset;
+    }
+> = ({ attribute, className, update, applicablePresets, enabled, selectedPreset }) => {
     const modelProfile = (attribute?.ai_config?.model_profile ??
         selectedPreset.defaultModelProfile) as ModelProfile;
-    const configAllowedValues = attribute?.ai_config?.output?.allowed_values;
+    const inferredPresetId = inferPresetId(attribute?.ai_config);
+    const configAllowedValues = existingAllowedValues(attribute);
     const presetAllowedValues = selectedPreset.output.allowedValues;
+    const configAllowedValuesKey = JSON.stringify(configAllowedValues ?? null);
+    const presetAllowedValuesKey = JSON.stringify(presetAllowedValues ?? null);
     const [allowedValuesText, setAllowedValuesText] = useState(
         valuesText(configAllowedValues ?? presetAllowedValues),
     );
 
     useEffect(() => {
         setAllowedValuesText(valuesText(configAllowedValues ?? presetAllowedValues));
-    }, [inferredPresetId, JSON.stringify(configAllowedValues), JSON.stringify(presetAllowedValues)]);
+    }, [inferredPresetId, configAllowedValuesKey, presetAllowedValuesKey]);
 
-    const currentAllowedValues = useMemo(
-        () => parseAllowedValues(allowedValuesText),
-        [allowedValuesText],
+    const effectiveAllowedValues = useMemo(
+        () => (presetAllowedValues ? configAllowedValues ?? presetAllowedValues : undefined),
+        [configAllowedValues, presetAllowedValues],
     );
     const dynamicAiConfig = useMemo(() => {
         if (!enabled) return null;
@@ -69,15 +111,14 @@ const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
             className,
             attributeName: attribute?.name ?? "",
             modelProfile,
-            allowedValues: presetAllowedValues ? currentAllowedValues : undefined,
+            allowedValues: effectiveAllowedValues,
         });
     }, [
         attribute?.name,
         className,
-        currentAllowedValues,
+        effectiveAllowedValues,
         enabled,
         modelProfile,
-        presetAllowedValues,
         selectedPreset,
     ]);
 
@@ -99,11 +140,11 @@ const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
     };
 
     useEffect(() => {
-        if (!enabled || !dynamicAiConfig) return;
+        if (!enabled || !selectedPreset || !dynamicAiConfig) return;
         if (!isEqual(dynamicAiConfig, attribute.ai_config)) {
             update({ ...attribute, ai_config: dynamicAiConfig });
         }
-    }, [attribute, dynamicAiConfig, enabled, update]);
+    }, [attribute, dynamicAiConfig, enabled, selectedPreset, update]);
 
     const disableAiConfig = () => {
         const { ai_config, ...attributeWithoutAiConfig } = attribute;
@@ -111,14 +152,16 @@ const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
     };
 
     const enableAiConfig = () => {
-        const preset = selectedPreset ?? aiPresets[0];
+        const preset = selectedPreset ?? applicablePresets[0];
+        if (!preset) return;
         const nextAllowedValues = preset.output.allowedValues ?? undefined;
         setAllowedValuesText(valuesText(nextAllowedValues));
         applyConfig(preset, preset.defaultModelProfile, nextAllowedValues);
     };
 
     const handlePresetChange = (value: string) => {
-        const preset = findAiPreset(value);
+        const preset = applicablePresets.find((candidate) => candidate.id === value);
+        if (!preset) return;
         const nextAllowedValues = preset.output.allowedValues ?? undefined;
         setAllowedValuesText(valuesText(nextAllowedValues));
         applyConfig(preset, preset.defaultModelProfile, nextAllowedValues);
@@ -128,20 +171,28 @@ const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
         applyConfig(
             selectedPreset,
             value as ModelProfile,
-            presetAllowedValues ? currentAllowedValues : undefined,
+            effectiveAllowedValues,
         );
     };
 
     const handleAllowedValuesChange = (value: string) => {
-        const nextValues = parseAllowedValues(value);
         setAllowedValuesText(value);
-        applyConfig(selectedPreset, modelProfile, nextValues);
+    };
+
+    const handleAllowedValuesBlur = () => {
+        if (!selectedPreset) return;
+        applyConfig(
+            selectedPreset,
+            modelProfile,
+            presetAllowedValues ? parseAllowedValues(allowedValuesText) : undefined,
+        );
     };
 
     return (
         <div
             className="flex flex-col gap-2 border-t border-solid border-gray-200 bg-white px-2 py-2 text-xs"
             data-t4-ai-config-section={attribute?.name ?? ""}
+            data-t5-ai-config-section={attribute?.name ?? ""}
         >
             <FormControl orientation="horizontal">
                 <Switch
@@ -168,7 +219,7 @@ const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
                             onInput={(event) => handlePresetChange(event.currentTarget.value)}
                             onChange={(event) => handlePresetChange(event.currentTarget.value)}
                         >
-                            {aiPresets.map((preset) => (
+                            {applicablePresets.map((preset) => (
                                 <option key={preset.id} value={preset.id}>
                                     {preset.label}
                                 </option>
@@ -230,10 +281,14 @@ const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
 
                         <span className="font-bold">Output</span>
                         <span className="flex flex-col gap-2">
-                            <span className="flex flex-row flex-wrap gap-1">
+                            <span className="flex flex-row items-center gap-1">
+                                <span>Writes to</span>
                                 <Chip size="sm" variant="soft">
                                     {attribute?.name ?? ""}
                                 </Chip>
+                            </span>
+                            <span className="flex flex-row items-center gap-1">
+                                <span>Format</span>
                                 <Chip size="sm" variant="soft">
                                     {selectedPreset.output.format}
                                 </Chip>
@@ -249,6 +304,7 @@ const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
                                             value={allowedValuesText}
                                             onInput={(event) => handleAllowedValuesChange(event.currentTarget.value)}
                                             onChange={(event) => handleAllowedValuesChange(event.currentTarget.value)}
+                                            onBlur={handleAllowedValuesBlur}
                                         />
                                     </FormControl>
                                 </>
@@ -258,6 +314,42 @@ const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
                 </div>
             )}
         </div>
+    );
+};
+
+const AiConfigSection: React.FC<Props> = ({ attribute, className, update }) => {
+    const enabled = Boolean(attribute?.ai_config);
+    const applicablePresets = presetsFor(className, attribute?.name);
+    if (applicablePresets.length === 0 && !enabled) return null;
+
+    const inferredPresetId = inferPresetId(attribute?.ai_config);
+    const inferredPreset = findAiPreset(inferredPresetId);
+    const selectedPreset = enabled
+        ? applicablePresets.find((preset) => preset.id === inferredPreset?.id)
+        : applicablePresets[0];
+    const unsupportedExistingConfig = enabled && (!inferredPreset || !selectedPreset);
+
+    if (unsupportedExistingConfig) {
+        return (
+            <UnsupportedAiConfigSection
+                attribute={attribute}
+                className={className}
+                update={update}
+            />
+        );
+    }
+
+    if (!selectedPreset) return null;
+
+    return (
+        <EditableAiConfigSection
+            attribute={attribute}
+            className={className}
+            update={update}
+            applicablePresets={applicablePresets}
+            enabled={enabled}
+            selectedPreset={selectedPreset}
+        />
     );
 };
 
