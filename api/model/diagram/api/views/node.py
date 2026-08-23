@@ -219,7 +219,7 @@ def import_node(request: HttpRequest, classifier_id: str):
 
 
 @node.post("/{uuid:node_id}/generate_attribute/", response={200: str, 404: str, 422: dict})
-def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str, model: str = "llama-3.3-70b-versatile"):
+def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str, model: str = "openai/gpt-oss-20b"):
     diagram = utils.get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
@@ -253,7 +253,7 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str,
     
 
 @node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: dict})
-def generate_method(request: HttpRequest, node_id: str, name: str, description: str, model: str = "llama-3.3-70b-versatile"):
+def generate_method(request: HttpRequest, node_id: str, name: str, description: str, model: str = "openai/gpt-oss-20b"):
     diagram = utils.get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"

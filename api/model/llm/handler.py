@@ -46,7 +46,7 @@ def call_groq(model: str, prompt: str) -> str:
 
 def llm_handler(
     prompt_name: str,
-    model: str = "llama-3.3-70b-versatile",
+    model: str = "openai/gpt-oss-20b",
     input_data: Optional[Dict[str, Any]] = None,
 ) -> str:
 
@@ -54,8 +54,10 @@ def llm_handler(
         raise Exception("No input data given")
 
     prompt = render_prompt(prompt_name=prompt_name, context=input_data)
-    
-    if model == 'gpt-4o':
+
+    # Provider routing by model id. OpenAI API models start with "gpt-";
+    # Groq-hosted ids (including namespaced ones like "moonshotai/..." or
+    # "openai/gpt-oss-*") do not, and therefore fall through to Groq.
+    if model.startswith("gpt-"):
         return call_openai(model = model, prompt = prompt)
-    else:
-        return call_groq(model = model, prompt = prompt)
+    return call_groq(model = model, prompt = prompt)

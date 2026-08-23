@@ -25,9 +25,8 @@ const EditMethod: React.FC<{
     const { diagram } = useDiagramStore();
     const [generationError, setGenerationError] = useState<string | null>(null);
     const LLMOptions = [
-        { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768' },
-        { value: 'llama-3.3-70b-versatile', label: 'llama-3.3-70b-versatile' },
-        { value: 'gpt-4o', label: 'gpt-4o' },
+        { value: 'openai/gpt-oss-20b', label: 'gpt-oss-20b (Groq)' },
+        { value: 'gpt-5.1', label: 'gpt-5.1 (OpenAI)' },
     ]
     const [generateButtonDisabled, setGenerateButtonDisabled] = useState(false);
     const [selectedLLMOption, setSelectedLLMOption] = useState(LLMOptions[0]);
