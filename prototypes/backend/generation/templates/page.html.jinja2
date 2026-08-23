@@ -157,7 +157,8 @@
             {#- CUSTOM METHOD BUTTONS#}
             {% for custom_method in section_component.custom_methods -%}
             <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="get">
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
+                    {% raw %}{% csrf_token %}{% endraw %}
                     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ custom_method }}" value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
                     <input type="submit" value="{{ custom_method }}"/>
                 </form>
