@@ -1,9 +1,21 @@
 import os
 
-# M06 Model Routing & Abstraction. Mirrors Studio's llm/handler.py defaults.
+# M06 Model Routing & Abstraction. Profile -> (provider, model).
+# Profiles are routing abstractions: "cheap" = the lower-cost / lower-latency profile of
+# this deployment, "strong" = the higher-capability profile selected for the multi-step
+# task. The model binding is replaceable deployment configuration, decoupled from any
+# particular model or parameter count (M06).
+# Bindings selected on 2026-08-23; per-account availability is established empirically by
+# the F0 provider probes (docs/evidence/realmode/m0_*.json|.status), which gate this file:
+#   cheap/groq   : openai/gpt-oss-20b                (probe-gated fallback adopted 2026-08-23:
+#                                                     primary moonshotai/kimi-k2-instruct-0905
+#                                                     returned 404 for this account, see
+#                                                     docs/evidence/realmode/m0_groq_kimi_k2_0905.*)
+#   strong/openai: gpt-5.1                            (probe-gated; fallback: keep gpt-4o if its
+#                                                     probe passes while gpt-5.1's does not)
 MODEL_PROFILES = {
-    "cheap":  {"provider": "groq",   "model": "llama-3.3-70b-versatile"},
-    "strong": {"provider": "openai", "model": "gpt-4o"},
+    "cheap":  {"provider": "groq",   "model": "openai/gpt-oss-20b"},
+    "strong": {"provider": "openai", "model": "gpt-5.1"},
 }
 
 
