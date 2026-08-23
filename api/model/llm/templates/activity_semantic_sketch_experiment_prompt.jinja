@@ -60,9 +60,13 @@ Semantic preservation rules:
 - If no real shared root-scope business action exists for a listed root slot, return `"actions": []` for that slot
 - Do not move a branch-specific action into an empty root slot and do not shift a later root action backward or forward to fill it
 - If an action belongs only to one branch or one subset of branches, keep it inside those branch `steps`
+- If a parallel/workstream branch has its own explicit business action before synchronization, keep that action inside that branch even when a later shared continuation also exists
 - Do not move branch-specific business actions into shared `root_actions`
 - Do not summarize multiple branch-specific actions into a single shared root action
 - Preserve semantic granularity whenever an action belongs to only one execution path
+- When the source text explicitly describes a separate handoff, submission, delivery, forwarding, or transfer of a business object to another actor, office, department, or workstream, preserve that transfer as its own Action
+- Do not merge an explicit transfer/handoff Action into an earlier action such as preparing, filling out, recording, reviewing, or completing the same object when the source presents them as separate steps
+- Do not force a separate transfer Action for incidental destination context, passive document state, or a single business operation that the source does not separate
 - Example:
   - If one branch says `issue payment` and another branch says `reject request`, then `issue payment` must stay in that branch's `steps` and `reject request` must stay in the rejecting branch's `steps`
   - The shared root slot after that decision must not be `issue payment`, `reject request`, or `issue payment and reject request`
@@ -82,6 +86,7 @@ Shared-continuation ownership:
 - Use `target_slot_id` on a successful loop exit only when the source explicitly sends corrected work back to an earlier root-scope review or check; otherwise omit it and use the normal post-loop continuation
 - When `target_slot_id` is required, use one of the exact root slot ids listed below and do not use it to redirect unrelated branch-specific behavior
 - For shared behavior after nested controls, use the available post-structure root slot after the enclosing root structure only when every non-terminated path that reaches the slot should execute that behavior
+- For parallel/workstream structures, do not move a branch-local action into a shared post-structure slot unless the source explicitly says the later action happens after both/all relevant branches complete
 - If a retry-success continuation is local to one nested path and no safe local continuation slot exists, preserve the action in that path; do not promote it globally or invent a root_scope_* slot
 - Do not duplicate the shared action into branch steps; represent it once in the appropriate post-structure root slot
 

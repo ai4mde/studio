@@ -123,45 +123,78 @@ RETRY_SEMANTIC_PHRASES = [
     "provide additional information",
 ]
 
-EXPLICIT_PARALLEL_PHRASES = [
-    "simultaneously",
-    "in parallel",
-    "concurrently",
-    "at the same time",
-    "independently",
-    "after both",
-    "once both",
-    "when both",
-    "all branches",
-]
+_PARALLEL_CUE_PATTERNS = (
+    ("simultaneously", r"\bsimultaneously\b"),
+    ("in_parallel", r"\bin\s+parallel\b"),
+    ("concurrently", r"\bconcurrently\b"),
+    ("concurrent_activities", r"\b(?:two|three|multiple|several|\d+)\s+concurrent\s+(?:activities|tasks|operations)\b"),
+    ("at_the_same_time", r"\bat\s+the\s+same\s+time\b"),
+    ("in_the_meantime", r"\bin\s+the\s+meantime\b"),
+    ("meantime", r"\bmeantime\b"),
+    ("meanwhile", r"\bmeanwhile\b"),
+    ("while", r"\bwhile\b"),
+)
 
 _EXECUTABLE_ACTIVITY_STEMS = (
+    "accept",
+    "add",
+    "adjust",
     "analy",
     "assembl",
+    "assign",
     "back-order",
     "calculat",
+    "captur",
     "check",
+    "collect",
+    "communicat",
+    "compil",
+    "comput",
     "configur",
+    "conduct",
+    "creat",
     "deliver",
+    "determin",
+    "distribut",
     "do",
     "enable",
+    "enter",
     "execut",
     "fetch",
+    "formulat",
     "gather",
+    "hand",
+    "import",
+    "inform",
     "inspect",
+    "investigat",
+    "mail",
+    "notif",
     "order",
+    "perform",
+    "plan",
+    "post",
     "prepar",
     "process",
     "provision",
+    "put",
     "readi",
+    "receiv",
     "record",
     "repair",
+    "report",
     "repeat",
     "review",
     "reserv",
+    "send",
     "sign",
     "start",
+    "store",
     "test",
+    "track",
+    "transmit",
+    "type",
+    "undertak",
     "validat",
 )
 
@@ -191,31 +224,144 @@ def _count_executable_clauses(text: str) -> int:
     return sum(1 for clause in clauses if _has_executable_activity(clause))
 
 
-def _has_temporal_marker_concurrency(text: str, marker_pattern: str) -> bool:
-    for match in re.finditer(marker_pattern, text):
-        left = text[max(0, match.start() - 300) : match.start()]
-        right = text[match.end() : match.end() + 300]
-        left_sentences = [sentence for sentence in re.split(r"[.!?]", left) if sentence.strip()]
-        left_context = left_sentences[-1] if left_sentences else ""
-        right_context = re.split(r"[.!?]", right)[0]
-        if _has_executable_activity(left_context) and _has_executable_activity(right_context):
-            return True
-    return False
+_WORKSTREAM_STOPWORDS = {
+    "a", "all", "an", "and", "are", "as", "at", "be", "before", "both", "by", "each",
+    "for", "from", "has", "have", "in", "is", "it", "of", "on", "or", "the", "then", "this",
+    "same", "to", "two", "when", "while", "with",
+}
 
 
-def _has_in_the_meantime_concurrency(text: str) -> bool:
-    return _has_temporal_marker_concurrency(text, r"\bin the meantime\b")
+def _workstream_tokens(value: str) -> set[str]:
+    tokens: set[str] = set()
+    for raw_token in re.findall(r"[a-z][a-z-]*", value.lower()):
+        token = raw_token
+        for suffix in ("ing", "ed", "es", "s"):
+            if token.endswith(suffix) and len(token) > len(suffix) + 3:
+                token = token[: -len(suffix)]
+                break
+        if token not in _WORKSTREAM_STOPWORDS and len(token) > 2:
+            tokens.add(token)
+    return tokens
 
 
-def _has_meanwhile_concurrency(text: str) -> bool:
-    return _has_temporal_marker_concurrency(text, r"\bmeanwhile\b")
+def _distinct_executable_workstreams(first: str, second: str) -> bool:
+    if not (_has_executable_activity(first) and _has_executable_activity(second)):
+        return False
+    first_tokens = _workstream_tokens(first)
+    second_tokens = _workstream_tokens(second)
+    return bool(first_tokens - second_tokens and second_tokens - first_tokens)
 
 
-def _has_while_clause_concurrency(text: str) -> bool:
-    for match in re.finditer(r"\bwhile\s+([^,.;]+),\s*([^.;]+)", text):
-        if _has_executable_activity(match.group(1)) and _has_executable_activity(match.group(2)):
-            return True
-    return False
+def _candidate_activity_clauses(text: str) -> List[str]:
+    normalized = " ".join(text.split()).strip(" ,")
+    raw_clauses = re.split(
+        r"[.;]|,\s*(?:and\s+)?|\b(?:first|second|third)\s+activity\b|\b(?:i|ii|iii)\)",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    clauses = [clause.strip(" ,:-") for clause in raw_clauses if _has_executable_activity(clause)]
+    distinct: List[str] = []
+    for clause in clauses:
+        if any(_workstream_tokens(clause) == _workstream_tokens(existing) for existing in distinct):
+            continue
+        distinct.append(clause)
+    return distinct
+
+
+def _nearest_executable_sentence(sentences: List[str], index: int) -> str:
+    for previous_index in range(index - 1, max(-1, index - 3), -1):
+        if _has_executable_activity(sentences[previous_index]):
+            return sentences[previous_index]
+    return ""
+
+
+def _resolve_anaphoric_workstream(sentences: List[str], index: int, workstream: str) -> str:
+    if not re.match(r"\s*(?:this|that|it)\s+(?:procedure|process|activity|work)\b", workstream, re.IGNORECASE):
+        return workstream
+    for previous_index in range(index - 2, max(-1, index - 6), -1):
+        candidate = sentences[previous_index]
+        if re.match(r"\s*(?:if|otherwise|this|that|it)\b", candidate, re.IGNORECASE):
+            continue
+        if _has_executable_activity(candidate):
+            return f"{candidate} {workstream}"
+    return workstream
+
+
+def _synchronization_matches(window: str) -> List[str]:
+    patterns = (
+        r"\b(?:after|once|when|as\s+soon\s+as)\b[^.]{0,180}\b(?:both|all|two|three|first\s+and\s+second)\b[^.]{0,120}\b(?:complet\w*|finish\w*|done|ready|taken\s+place)\b",
+        r"\bif\b[^.]{0,180}\b(?:all|every)\b[^.]{0,160}\band\b[^.]{0,120}\b(?:complet\w*|finish\w*|done|ready)\b",
+        r"\bmeetings?\s+of\s+the\s+first\s+and\s+second\b[^.]{0,160}\b(?:taken\s+place|complet\w*|finish\w*)\b",
+    )
+    return [match.group(0).strip() for pattern in patterns for match in re.finditer(pattern, window, re.IGNORECASE)]
+
+
+def _synchronization_evidence(sentences: List[str], index: int) -> List[str]:
+    return _synchronization_matches(" ".join(sentences[index : min(len(sentences), index + 4)]))
+
+
+def _post_split_synchronization_evidence(sentences: List[str], index: int, offset: int) -> List[str]:
+    post_cue_window = " ".join(
+        [sentences[index][offset:], *sentences[index + 1 : min(len(sentences), index + 4)]]
+    )
+    evidence = _synchronization_matches(post_cue_window)
+    if _has_multi_output_synchronization(_normalize_process_text(post_cue_window)):
+        evidence.append("multiple_outputs_synchronized_before_continuation")
+    if index + 1 < len(sentences):
+        continuation = sentences[index + 1]
+        if re.match(r"\s*(?:afterwards|subsequently|after\s+that|thereafter)\b", continuation, re.IGNORECASE) and _has_executable_activity(continuation):
+            evidence.append(f"shared_continuation: {continuation}")
+    return evidence
+
+
+def _all_synchronization_evidence(sentences: List[str]) -> List[str]:
+    return _synchronization_matches(" ".join(sentences))
+
+
+def _named_workstreams_for_synchronization(sentences: List[str], index: int) -> tuple[str, str] | None:
+    synchronization_sentence = sentences[index]
+    named_pair = re.search(
+        r"\b(?:meetings?|activities|tasks|work)\s+of\s+the\s+(first)\s+and\s+(second)\s+([a-z][a-z-]*)",
+        synchronization_sentence,
+        re.IGNORECASE,
+    )
+    if named_pair is None:
+        return None
+
+    first_name = f"{named_pair.group(1)} {named_pair.group(3)}".lower()
+    second_name = f"{named_pair.group(2)} {named_pair.group(3)}".lower()
+    preceding = sentences[max(0, index - 12) : index]
+    first_workstream = next(
+        (sentence for sentence in reversed(preceding) if first_name in sentence.lower() and _has_executable_activity(sentence)),
+        "",
+    )
+    second_workstream = next(
+        (sentence for sentence in reversed(preceding) if second_name in sentence.lower() and _has_executable_activity(sentence)),
+        "",
+    )
+    if not _distinct_executable_workstreams(first_workstream, second_workstream):
+        return None
+    return first_workstream, second_workstream
+
+
+def _parallel_candidate(
+    *,
+    source_fragment: str,
+    workstream_a: str,
+    workstream_b: str,
+    concurrency_cue: str,
+    synchronization_evidence: List[str],
+) -> Dict[str, Any] | None:
+    if not _distinct_executable_workstreams(workstream_a, workstream_b):
+        return None
+    return {
+        "source_fragment": " ".join(source_fragment.split()),
+        "workstream_a": " ".join(workstream_a.split()).strip(" ,"),
+        "workstream_b": " ".join(workstream_b.split()).strip(" ,"),
+        "concurrency_cue": concurrency_cue,
+        "expected_scope": "local scope containing both workstreams before any shared continuation",
+        "synchronization_evidence": synchronization_evidence,
+    }
 
 
 def _has_arbitrary_order_concurrency(text: str) -> bool:
@@ -237,6 +383,17 @@ def _has_arbitrary_order_concurrency(text: str) -> bool:
     return names_multiple_activities and has_shared_continuation
 
 
+def _arbitrary_order_workstreams(text: str) -> tuple[str, str] | None:
+    match = re.search(
+        r"\bfirst\s+activity\s+([^.;]+?)\s+and\s+(?:the\s+)?second\s+([^.;]+)",
+        text,
+        re.IGNORECASE,
+    )
+    if match is None or not _distinct_executable_workstreams(match.group(1), match.group(2)):
+        return None
+    return match.group(1), match.group(2)
+
+
 def _has_multi_output_synchronization(text: str) -> bool:
     for match in re.finditer(r"\b(?:once|when|after)\s+([^.;]{0,180}),\s*([^.;]+)", text):
         synchronized_items = match.group(1)
@@ -250,21 +407,141 @@ def _has_multi_output_synchronization(text: str) -> bool:
     return False
 
 
-def extract_parallel_evidence(process_text: str) -> List[str]:
-    """Return conservative source signals that can support a proposed parallel block."""
-    text = _normalize_process_text(process_text)
-    evidence = _contains_any(text, EXPLICIT_PARALLEL_PHRASES)
+def extract_parallel_evidence_contract(process_text: str) -> Dict[str, Any]:
+    """Extract scoped parallel-split evidence without inferring synchronization."""
+    sentences = _sentences(process_text)
+    normalized_text = _normalize_process_text(process_text)
+    weak_cues = _matched_signal_labels(normalized_text, _PARALLEL_CUE_PATTERNS)
+    candidates: List[Dict[str, Any]] = []
+
+    for index, sentence in enumerate(sentences):
+        synchronization = _synchronization_evidence(sentences, index)
+
+        named_workstreams = _named_workstreams_for_synchronization(sentences, index)
+        if synchronization and named_workstreams:
+            candidate = _parallel_candidate(
+                source_fragment=" ".join((*named_workstreams, sentence)),
+                workstream_a=named_workstreams[0],
+                workstream_b=named_workstreams[1],
+                concurrency_cue="shared_completion_dependency",
+                synchronization_evidence=synchronization,
+            )
+            if candidate:
+                candidates.append(candidate)
+
+        for cue, marker_pattern in _PARALLEL_CUE_PATTERNS:
+            if cue == "while":
+                continue
+            for match in re.finditer(marker_pattern, sentence, re.IGNORECASE):
+                marker_synchronization = _post_split_synchronization_evidence(sentences, index, match.end())
+                if cue == "concurrent_activities":
+                    following = " ".join(sentences[index + 1 : min(len(sentences), index + 3)])
+                    source_after_cue = " ".join((sentence[match.end() :], following))
+                    clauses = _candidate_activity_clauses(source_after_cue)
+                    if len(clauses) < 2:
+                        continue
+                    candidate = _parallel_candidate(
+                        source_fragment=f"{sentence} {following}",
+                        workstream_a=clauses[0],
+                        workstream_b=clauses[1],
+                        concurrency_cue=cue,
+                        synchronization_evidence=marker_synchronization,
+                    )
+                    if candidate:
+                        candidates.append(candidate)
+                    continue
+                left = sentence[: match.start()].strip(" ,") or _nearest_executable_sentence(sentences, index)
+                left = _resolve_anaphoric_workstream(sentences, index, left)
+                right = sentence[match.end() :].strip(" ,:-")
+                clauses = _candidate_activity_clauses(right if not left else f"{left}. {right}")
+                if left and right and _distinct_executable_workstreams(left, right):
+                    workstream_a, workstream_b = left, right
+                elif len(clauses) >= 2:
+                    workstream_a, workstream_b = clauses[0], clauses[1]
+                else:
+                    continue
+                fragment = " ".join(
+                    part for part in (_nearest_executable_sentence(sentences, index), sentence) if part
+                )
+                candidate = _parallel_candidate(
+                    source_fragment=fragment or sentence,
+                    workstream_a=workstream_a,
+                    workstream_b=workstream_b,
+                    concurrency_cue=cue,
+                    synchronization_evidence=marker_synchronization,
+                )
+                if candidate:
+                    candidates.append(candidate)
+
+        for match in re.finditer(r"\bwhile\s+([^,.;]+),\s*([^.;]+)", sentence, re.IGNORECASE):
+            candidate = _parallel_candidate(
+                source_fragment=sentence,
+                workstream_a=match.group(1),
+                workstream_b=match.group(2),
+                concurrency_cue="while",
+                synchronization_evidence=_post_split_synchronization_evidence(sentences, index, match.start()),
+            )
+            if candidate:
+                candidates.append(candidate)
+
     compound_checks = (
-        ("in_the_meantime_with_independent_activities", _has_in_the_meantime_concurrency),
-        ("meanwhile_with_independent_activities", _has_meanwhile_concurrency),
-        ("while_with_independent_activities", _has_while_clause_concurrency),
         ("multiple_activities_in_arbitrary_order", _has_arbitrary_order_concurrency),
         ("multiple_outputs_synchronized_before_continuation", _has_multi_output_synchronization),
     )
-    for label, detector in compound_checks:
-        if detector(text) and label not in evidence:
-            evidence.append(label)
-    return evidence
+    for cue, detector in compound_checks:
+        if candidates:
+            break
+        if not detector(normalized_text):
+            continue
+        named_workstreams = _arbitrary_order_workstreams(process_text) if cue == "multiple_activities_in_arbitrary_order" else None
+        if named_workstreams:
+            workstream_a, workstream_b = named_workstreams
+        else:
+            clauses = _candidate_activity_clauses(process_text)
+            if len(clauses) < 2:
+                continue
+            workstream_a, workstream_b = clauses[0], clauses[1]
+        synchronization = _all_synchronization_evidence(sentences)
+        if cue == "multiple_outputs_synchronized_before_continuation":
+            synchronization.append(cue)
+        candidate = _parallel_candidate(
+            source_fragment=process_text,
+            workstream_a=workstream_a,
+            workstream_b=workstream_b,
+            concurrency_cue=cue,
+            synchronization_evidence=synchronization,
+        )
+        if candidate:
+            candidates.append(candidate)
+
+    deduplicated: List[Dict[str, Any]] = []
+    seen: set[tuple[str, frozenset[frozenset[str]]]] = set()
+    for candidate in candidates:
+        key = (
+            candidate["concurrency_cue"],
+            frozenset(
+                {
+                    frozenset(_workstream_tokens(candidate["workstream_a"])),
+                    frozenset(_workstream_tokens(candidate["workstream_b"])),
+                }
+            ),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        deduplicated.append(candidate)
+
+    return {
+        "high_confidence": bool(deduplicated),
+        "weak_cues": weak_cues,
+        "candidates": deduplicated,
+    }
+
+
+def extract_parallel_evidence(process_text: str) -> List[str]:
+    """Return backward-compatible labels for high-confidence parallel evidence."""
+    contract = extract_parallel_evidence_contract(process_text)
+    return list(dict.fromkeys(candidate["concurrency_cue"] for candidate in contract["candidates"]))
 
 
 def _sentences(process_text: str) -> List[str]:
@@ -466,4 +743,10 @@ def extract_keyword_hints(process_text: str) -> KeywordHints:
     }
 
 
-__all__ = ["KeywordHints", "extract_keyword_hints", "extract_loop_evidence", "extract_parallel_evidence"]
+__all__ = [
+    "KeywordHints",
+    "extract_keyword_hints",
+    "extract_loop_evidence",
+    "extract_parallel_evidence",
+    "extract_parallel_evidence_contract",
+]

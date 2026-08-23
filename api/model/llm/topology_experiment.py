@@ -9,7 +9,11 @@ from typing import Any, Dict, List, Optional, Tuple
 from jinja2 import Environment, FileSystemLoader
 
 from .handler import call_openai
-from .keyword_hints import extract_keyword_hints, extract_loop_evidence, extract_parallel_evidence
+from .keyword_hints import (
+    extract_keyword_hints,
+    extract_loop_evidence,
+    extract_parallel_evidence_contract,
+)
 from .topology_artifact_model import TopologyArtifact
 
 _TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
@@ -64,6 +68,82 @@ _EXPLICIT_OR_DECISION_STEMS = (
     "pass",
     "fail",
 )
+_TIMEOUT_DEADLINE_PATTERN = re.compile(
+    r"\b(?P<operator>within|before|no later than)\s+"
+    r"(?P<amount>\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s*"
+    r"(?P<unit>minutes?|hours?|days?|weeks?|months?)\b",
+    re.IGNORECASE,
+)
+_TIMEOUT_ALTERNATIVE_PATTERN = re.compile(
+    r"\b(?P<marker>otherwise|unless|or else|if not|failing that)\b",
+    re.IGNORECASE,
+)
+_TIMEOUT_CONSEQUENCE_PATTERN = re.compile(
+    r"\b(?P<verb>terminat\w*|cancel\w*|stop\w*|abort\w*)\b",
+    re.IGNORECASE,
+)
+_TIMEOUT_TARGET_PATTERN = re.compile(
+    r"\b(process|path|case|request|order|application|contract|workflow|procedure|operation|service)\b",
+    re.IGNORECASE,
+)
+_TIMEOUT_FAILURE_STEMS = (
+    "timeout",
+    "overdue",
+    "late",
+    "expir",
+    "miss",
+    "fail",
+    "cancel",
+    "terminat",
+    "abort",
+    "stop",
+)
+_TIMEOUT_SUCCESS_STEMS = (
+    "within",
+    "timely",
+    "arriv",
+    "receiv",
+    "restor",
+    "success",
+    "continu",
+)
+_TIMEOUT_SCOPE_STOPWORDS = {
+    "and",
+    "are",
+    "been",
+    "being",
+    "after",
+    "before",
+    "but",
+    "continuing",
+    "cancel",
+    "cancelled",
+    "case",
+    "day",
+    "days",
+    "for",
+    "from",
+    "happen",
+    "has",
+    "have",
+    "hour",
+    "hours",
+    "into",
+    "only",
+    "out",
+    "must",
+    "otherwise",
+    "process",
+    "the",
+    "then",
+    "terminates",
+    "terminate",
+    "terminated",
+    "this",
+    "was",
+    "were",
+    "within",
+}
 _LOOP_EVIDENCE_PHRASES = (
     " retry ",
     " retries ",
@@ -389,6 +469,82 @@ def _has_explicit_sentence_level_disjunction(normalized_text: str) -> bool:
     )
 
 
+def _timeout_scope_tokens(value: str) -> set[str]:
+    return {
+        token
+        for token in re.findall(r"[a-z][a-z0-9]*", str(value or "").lower())
+        if len(token) > 2 and token not in _TIMEOUT_SCOPE_STOPWORDS
+    }
+
+
+def _extract_timeout_consequence_evidence(process_text: str) -> List[Dict[str, Any]]:
+    candidates: List[Dict[str, Any]] = []
+    for source_fragment in re.split(r"(?<=[.!?])\s+", str(process_text or "").strip()):
+        normalized_fragment = " ".join(source_fragment.split())
+        deadline_match = _TIMEOUT_DEADLINE_PATTERN.search(normalized_fragment)
+        if deadline_match is None:
+            continue
+
+        consequence_tail = normalized_fragment[deadline_match.end() :]
+        alternative_match = _TIMEOUT_ALTERNATIVE_PATTERN.search(consequence_tail)
+        if alternative_match is None:
+            continue
+
+        consequence_clause = consequence_tail[alternative_match.end() :]
+        consequence_match = _TIMEOUT_CONSEQUENCE_PATTERN.search(consequence_clause)
+        target_match = _TIMEOUT_TARGET_PATTERN.search(consequence_clause)
+        if consequence_match is None or target_match is None:
+            continue
+
+        candidates.append(
+            {
+                "kind": "timeout_termination",
+                "source_fragment": normalized_fragment,
+                "deadline": deadline_match.group(0),
+                "alternative_marker": alternative_match.group("marker").lower(),
+                "consequence_verb": consequence_match.group("verb").lower(),
+                "consequence_target": target_match.group(0).lower(),
+                "scope_tokens": sorted(_timeout_scope_tokens(normalized_fragment)),
+            }
+        )
+    return candidates
+
+
+def _timeout_branch_tokens(value: str) -> set[str]:
+    return set(re.findall(r"[a-z0-9]+", re.sub(r"[_-]+", " ", str(value or "").lower())))
+
+
+def _tokens_have_stem(tokens: set[str], stems: tuple[str, ...]) -> bool:
+    return any(token.startswith(stem) for token in tokens for stem in stems)
+
+
+def _timeout_structure_matches_evidence(structure: Any, candidate: Dict[str, Any]) -> bool:
+    if structure.type != "decision":
+        return False
+
+    branch_tokens = [_timeout_branch_tokens(branch) for branch in structure.branches]
+    timeout_indices = {
+        index
+        for index, tokens in enumerate(branch_tokens)
+        if _tokens_have_stem(tokens, _TIMEOUT_FAILURE_STEMS)
+        or ("not" in tokens and bool(tokens.intersection({"arrive", "arrived", "receive", "received"})))
+    }
+    timely_indices = {
+        index
+        for index, tokens in enumerate(branch_tokens)
+        if _tokens_have_stem(tokens, _TIMEOUT_SUCCESS_STEMS)
+    }
+    if not any(timeout_index != timely_index for timeout_index in timeout_indices for timely_index in timely_indices):
+        return False
+
+    structure_text = " ".join(
+        [str(structure.purpose or ""), *[str(branch) for branch in structure.branches]]
+    )
+    structure_tokens = _timeout_scope_tokens(structure_text)
+    evidence_tokens = set(candidate.get("scope_tokens") or [])
+    return bool(structure_tokens.intersection(evidence_tokens))
+
+
 def _has_shared_post_branch_scope_signal(normalized_text: str) -> bool:
     return _contains_any_phrase(normalized_text, _SHARED_POST_BRANCH_SCOPE_PHRASES) and _contains_any_phrase(
         normalized_text,
@@ -675,6 +831,36 @@ def _duplicate_branch_local_structures(
     return duplicates
 
 
+_PARALLEL_SCOPE_STOPWORDS = {
+    "activity", "before", "branch", "concurrent", "concurrently", "continue", "independent",
+    "parallel", "perform", "process", "scope", "task", "track", "work",
+}
+
+
+def _parallel_scope_tokens(value: str) -> set[str]:
+    tokens: set[str] = set()
+    for raw_token in re.findall(r"[a-z][a-z0-9-]*", value.replace("_", " ").lower()):
+        token = raw_token
+        for suffix in ("ing", "ed", "es", "s"):
+            if token.endswith(suffix) and len(token) > len(suffix) + 3:
+                token = token[: -len(suffix)]
+                break
+        if len(token) > 2 and token not in _PARALLEL_SCOPE_STOPWORDS:
+            tokens.add(token)
+    return tokens
+
+
+def _parallel_structure_matches_evidence(structure: Any, candidate: Dict[str, Any]) -> bool:
+    structure_tokens = _parallel_scope_tokens(
+        " ".join([str(structure.purpose or ""), *[str(branch) for branch in structure.branches]])
+    )
+    workstream_tokens = [
+        _parallel_scope_tokens(str(candidate.get(field) or ""))
+        for field in ("workstream_a", "workstream_b")
+    ]
+    return bool(structure_tokens) and all(tokens.intersection(structure_tokens) for tokens in workstream_tokens)
+
+
 def _validate_topology_artifact_against_process_text(
     *,
     process_text: str,
@@ -683,7 +869,8 @@ def _validate_topology_artifact_against_process_text(
     artifact = TopologyArtifact.model_validate(topology_artifact)
     normalized_text = _normalize_text(process_text)
     loop_evidence = extract_loop_evidence(process_text)
-    parallel_evidence = extract_parallel_evidence(process_text)
+    parallel_evidence = extract_parallel_evidence_contract(process_text)
+    timeout_evidence = _extract_timeout_consequence_evidence(process_text)
     unsupported_structures: List[Dict[str, Any]] = []
 
     if _has_explicit_sentence_level_disjunction(normalized_text) and not any(
@@ -708,6 +895,44 @@ def _validate_topology_artifact_against_process_text(
                 "reason": "missing loop structure for high-confidence repetition evidence",
                 "evidence": loop_evidence["candidates"],
                 "branches": [],
+                "structure": None,
+            }
+        )
+
+    parallel_structures = [structure for structure in artifact.structures if structure.type == "parallel"]
+    missing_parallel_evidence = [
+        candidate
+        for candidate in parallel_evidence["candidates"]
+        if not any(_parallel_structure_matches_evidence(structure, candidate) for structure in parallel_structures)
+    ]
+    if missing_parallel_evidence:
+        unsupported_structures.append(
+            {
+                "id": "MISSING_PARALLEL",
+                "type": "parallel",
+                "reason": "missing parallel structure for high-confidence concurrent workstream evidence",
+                "evidence": missing_parallel_evidence,
+                "branches": [],
+                "structure": None,
+            }
+        )
+
+    missing_timeout_evidence = [
+        candidate
+        for candidate in timeout_evidence
+        if not any(
+            _timeout_structure_matches_evidence(structure, candidate)
+            for structure in artifact.structures
+        )
+    ]
+    if missing_timeout_evidence:
+        unsupported_structures.append(
+            {
+                "id": "MISSING_TIMEOUT_DECISION",
+                "type": "decision",
+                "reason": "missing local timeout conditional structure for explicit bounded deadline and termination consequence",
+                "evidence": missing_timeout_evidence,
+                "branches": ["timely_or_success", "timeout_or_failure"],
                 "structure": None,
             }
         )
@@ -745,12 +970,14 @@ def _validate_topology_artifact_against_process_text(
                     }
                 )
         elif structure.type == "parallel":
-            if not parallel_evidence:
+            if not parallel_evidence["high_confidence"]:
                 unsupported_structures.append(
                     {
                         "id": structure.id,
                         "type": structure.type,
                         "reason": "missing explicit concurrency or join evidence in process text",
+                        "weak_cues": parallel_evidence["weak_cues"],
+                        "missing_evidence": "two distinct executable workstreams in a recoverable concurrent scope",
                         "branches": structure.branches,
                     }
                 )

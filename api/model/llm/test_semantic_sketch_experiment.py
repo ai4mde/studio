@@ -8,6 +8,12 @@ from llm.semantic_sketch_experiment import (
     SemanticCoverageEvidenceValidationError,
     SemanticOwnershipEvidenceValidationError,
     SemanticSketchPlanGenerationError,
+    _build_semantic_correction_prompt,
+    _enforce_semantic_correction_preservation,
+    _has_explicit_parallel_branch_ownership,
+    _has_explicit_parallel_join_ownership,
+    _normalize_topology_artifact,
+    _parallel_structure_local_fragments,
     build_semantic_sketch_experiment_prompt,
     generate_semantic_sketch_plan,
     parse_semantic_sketch_plan_json,
@@ -188,6 +194,9 @@ def test_build_semantic_sketch_experiment_prompt_includes_semantic_preservation_
     assert "verify internally that every listed root slot appears exactly once in `root_actions`" in prompt
     assert "Do not move branch-specific business actions into shared `root_actions`" in prompt
     assert "An empty `steps` list is valid only when that branch genuinely performs no business action of its own in the process text" in prompt
+    assert "preserve that transfer as its own Action" in prompt
+    assert "Do not merge an explicit transfer/handoff Action into an earlier action" in prompt
+    assert "Do not force a separate transfer Action for incidental destination context" in prompt
 
 
 def test_build_semantic_sketch_experiment_prompt_explains_shared_continuation_ownership() -> None:
@@ -215,6 +224,62 @@ def test_build_semantic_sketch_experiment_prompt_explains_shared_continuation_ow
     assert "keep every affected branch on `intent=\"continue\"`" in prompt
     assert "Retry success must reconnect to the same shared post-structure actions" in prompt
     assert "Do not duplicate the shared action into branch steps" in prompt
+
+
+def test_generate_semantic_plan_retries_after_missing_explicit_handoff_action() -> None:
+    process_text = (
+        "The nurse records the patient information on a registration form. "
+        "After the conversation, the registration form is handed in at the secretarial office. "
+        "The secretarial office stores the information in the information system."
+    )
+    incomplete = json.dumps(
+        {
+            "root_actions": [
+                {
+                    "slot_id": "ROOT_START",
+                    "actions": [
+                        {"action": "record patient information on registration form"},
+                        {"action": "store registration information in information system"},
+                    ],
+                }
+            ],
+            "branch_plans": [],
+        }
+    )
+    corrected = json.dumps(
+        {
+            "root_actions": [
+                {
+                    "slot_id": "ROOT_START",
+                    "actions": [
+                        {"action": "record patient information on registration form"},
+                        {"action": "submit registration form to secretarial office"},
+                        {"action": "store registration information in information system"},
+                    ],
+                }
+            ],
+            "branch_plans": [],
+        }
+    )
+
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[incomplete, corrected],
+    ) as mocked_call:
+        result = generate_semantic_sketch_plan(
+            process_text,
+            topology_artifact={"structures": []},
+        )
+
+    assert mocked_call.call_count == 2
+    assert result["artifact"]["root_actions"][0]["actions"] == [
+        {"action": "record patient information on registration form"},
+        {"action": "submit registration form to secretarial office"},
+        {"action": "store registration information in information system"},
+    ]
+    correction_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
+    assert "preserve that transfer as its own Action" in correction_prompt
+    assert "Do not force a separate Action for incidental destination context" in correction_prompt
 
 
 def _decision_topology() -> dict:
@@ -1301,6 +1366,906 @@ def test_generate_semantic_sketch_plan_retries_after_shared_ownership_validation
     assert "do not terminate a branch before that shared behavior" in retry_prompt
 
 
+def _parallel_workstream_topology() -> dict:
+    return {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["customer_report", "meter_data"],
+                "purpose": "run customer report and meter data workstreams in parallel",
+            }
+        ]
+    }
+
+
+def _parallel_workstream_plan(
+    *,
+    customer_report_steps: list[str],
+    meter_data_steps: list[str],
+    shared_actions: list[str],
+) -> dict:
+    return {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": [{"action": action} for action in shared_actions]},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "customer_report",
+                "intent": "continue",
+                "steps": [{"action": action} for action in customer_report_steps],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "meter_data",
+                "intent": "continue",
+                "steps": [{"action": action} for action in meter_data_steps],
+            },
+        ],
+    }
+
+
+def test_semantic_parallel_branch_ownership_rejects_misowned_customer_report_case_2_1() -> None:
+    process_text = (
+        "In the customer report branch, create and deliver the customer report. "
+        "In the meter data branch, transmit and import meter data. "
+        "After both the customer report branch and the meter data branch are complete, close the incident."
+    )
+    semantic_plan = _parallel_workstream_plan(
+        customer_report_steps=[],
+        meter_data_steps=["transmit and import meter data"],
+        shared_actions=["create and deliver customer report", "close incident"],
+    )
+
+    with pytest.raises(
+        SemanticOwnershipEvidenceValidationError,
+        match=r"parallel-branch ownership evidence.*customer_report",
+    ):
+        validate_semantic_ownership_against_evidence(
+            process_text,
+            topology_artifact=_parallel_workstream_topology(),
+            semantic_plan=semantic_plan,
+        )
+
+
+def test_semantic_parallel_branch_ownership_keeps_meter_data_branch_local_case_2_2() -> None:
+    process_text = (
+        "In the customer report branch, create and deliver the customer report. "
+        "In the meter data branch, transmit and import meter data. "
+        "After both the customer report branch and the meter data branch are complete, close the incident."
+    )
+    semantic_plan = _parallel_workstream_plan(
+        customer_report_steps=["create and deliver customer report", "transmit and import meter data"],
+        meter_data_steps=[],
+        shared_actions=["close incident"],
+    )
+
+    with pytest.raises(
+        SemanticOwnershipEvidenceValidationError,
+        match=r"parallel-branch ownership evidence.*meter_data",
+    ) as exc_info:
+        validate_semantic_ownership_against_evidence(
+            process_text,
+            topology_artifact=_parallel_workstream_topology(),
+            semantic_plan=semantic_plan,
+        )
+
+    assert "select supplier" not in str(exc_info.value)
+
+
+def test_parallel_branch_detector_rejects_generic_send_overlap_without_domain_match() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T4",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["send_report", "compute_billing"],
+                "purpose": "transmit meter data and compute final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="send confirmation document to customer",
+        structure=structure,
+        branch="send_report",
+    )
+
+
+def test_parallel_branch_detector_accepts_real_send_report_domain_match() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T4",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["send_report", "compute_billing"],
+                "purpose": "transmit meter data and compute final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="transmit meter data report to the supplier",
+        structure=structure,
+        branch="send_report",
+    )
+
+
+def test_parallel_branch_detector_rejects_generic_report_overlap_without_domain_match() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T4",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["send_report", "compute_billing"],
+                "purpose": "transmit meter data and compute final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="create confirmation report for customer",
+        structure=structure,
+        branch="send_report",
+    )
+
+
+def test_parallel_branch_detector_declines_ambiguous_generic_overlap_across_multiple_branches() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["send_report", "review_report"],
+                "purpose": "send meter data and review final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="send report to customer",
+        structure=structure,
+        branch="send_report",
+    )
+
+
+def test_parallel_branch_detector_rejects_supplier_concurrence_without_parallel_domain_support() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T5",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["billing_old_supplier", "billing_customer_service"],
+                "purpose": "transmit meter data and create final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="In the case of supplier concurrence the grid operator would inform all involved suppliers and demand the resolution of the conflict",
+        structure=structure,
+        branch="billing_old_supplier",
+    )
+
+
+def test_parallel_branch_detector_accepts_true_old_supplier_billing_match() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T5",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["billing_old_supplier", "billing_customer_service"],
+                "purpose": "transmit meter data and create final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="calculate final billing for the old supplier",
+        structure=structure,
+        branch="billing_old_supplier",
+    )
+
+
+def test_parallel_branch_detector_accepts_true_customer_service_branch_match() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T5",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["billing_old_supplier", "billing_customer_service"],
+                "purpose": "transmit meter data and create final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="send meter data and final billing information to customer service",
+        structure=structure,
+        branch="billing_customer_service",
+    )
+
+
+def test_parallel_branch_detector_rejects_structure_level_token_only_overlap() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T5",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["billing_old_supplier", "billing_customer_service"],
+                "purpose": "transmit meter data and create final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="review the billing",
+        structure=structure,
+        branch="billing_old_supplier",
+    )
+
+
+def test_parallel_branch_detector_rejects_single_weak_domain_token_overlap() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T5",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["billing_old_supplier", "billing_customer_service"],
+                "purpose": "transmit meter data and create final billing in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="notify the supplier",
+        structure=structure,
+        branch="billing_old_supplier",
+    )
+
+
+def test_parallel_branch_detector_preserves_strong_actor_identity_overlap() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["kitchen_task", "waiter_task"],
+                "purpose": "prepare food and drinks in parallel",
+            }
+        ]
+    }
+    structure = _normalize_topology_artifact(topology).structures[0]
+
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="assign order to waiter",
+        structure=structure,
+        branch="waiter_task",
+    )
+
+
+def _source_locality_topology() -> dict:
+    return {
+        "structures": [
+            {
+                "id": "T5",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["meter_data_transmission", "billing_processing"],
+                "purpose": "handle meter data and billing concurrently after switch",
+            }
+        ]
+    }
+
+
+def _source_locality_process_text() -> str:
+    return (
+        "The customer transmits customer data to customer service. Customer service receives the customer data.\n\n"
+        "Customer service prepares the switch contract. A confirmation document is sent to the customer. "
+        "The grid operator resolves any supplier concurrence conflict.\n\n"
+        "On the switch date, the grid operator transmits power meter data to customer service and the old supplier. "
+        "At the same time, the grid operator computes final billing from the meter data. "
+        "The old supplier sends its final billing to the customer. After receiving the meter data, customer service "
+        "imports it into the required systems."
+    )
+
+
+def test_parallel_branch_locality_rejects_distant_customer_data_but_accepts_real_meter_data() -> None:
+    artifact = _normalize_topology_artifact(_source_locality_topology())
+    structure = artifact.structures[0]
+    local_fragments = _parallel_structure_local_fragments(_source_locality_process_text(), artifact)["T5"]
+
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="The customer transmits customer data to customer service",
+        structure=structure,
+        branch="meter_data_transmission",
+    )
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="The customer transmits customer data to customer service",
+        structure=structure,
+        branch="meter_data_transmission",
+        local_fragments=local_fragments,
+    )
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="On the switch date, the grid operator transmits power meter data to customer service and the old supplier",
+        structure=structure,
+        branch="meter_data_transmission",
+        local_fragments=local_fragments,
+    )
+
+
+def test_parallel_branch_locality_keeps_adjacent_same_phase_action_outside_exact_evidence() -> None:
+    process_text = (
+        "Open the case.\n\n"
+        "The grid operator transmits power meter data. At the same time, the billing service computes final billing. "
+        "The old supplier sends final billing to the customer.\n\n"
+        "Send a final billing report during a later audit phase."
+    )
+    artifact = _normalize_topology_artifact(_source_locality_topology())
+    structure = artifact.structures[0]
+    local_fragments = _parallel_structure_local_fragments(process_text, artifact)["T5"]
+
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="The old supplier sends final billing to the customer",
+        structure=structure,
+        branch="billing_processing",
+        local_fragments=local_fragments,
+    )
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="Send a final billing report during a later audit phase",
+        structure=structure,
+        branch="billing_processing",
+    )
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="Send a final billing report during a later audit phase",
+        structure=structure,
+        branch="billing_processing",
+        local_fragments=local_fragments,
+    )
+
+
+def test_parallel_branch_locality_uses_one_adjacent_sentence_without_paragraph_boundaries() -> None:
+    process_text = (
+        "Open the case. The grid operator transmits power meter data. "
+        "At the same time, the billing service computes final billing. "
+        "The old supplier sends final billing to the customer. Archive the record."
+    )
+    artifact = _normalize_topology_artifact(_source_locality_topology())
+    structure = artifact.structures[0]
+    local_fragments = _parallel_structure_local_fragments(process_text, artifact)["T5"]
+
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="The old supplier sends final billing to the customer",
+        structure=structure,
+        branch="billing_processing",
+        local_fragments=local_fragments,
+    )
+    assert not _has_explicit_parallel_branch_ownership(
+        fragment="Open the case",
+        structure=structure,
+        branch="billing_processing",
+        local_fragments=local_fragments,
+    )
+
+
+def test_parallel_branch_locality_falls_back_when_parallel_source_evidence_is_unavailable() -> None:
+    process_text = "Transmit meter data. Compute final billing."
+    artifact = _normalize_topology_artifact(_source_locality_topology())
+    structure = artifact.structures[0]
+
+    assert _parallel_structure_local_fragments(process_text, artifact) == {}
+    assert _has_explicit_parallel_branch_ownership(
+        fragment="Transmit meter data",
+        structure=structure,
+        branch="meter_data_transmission",
+        local_fragments=None,
+    )
+
+
+def test_semantic_parallel_locality_prevents_2_2_false_ownership_diagnostics() -> None:
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "receive customer data"}]},
+            {"slot_id": "AFTER_T5", "actions": [{"action": "import meter data"}]},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T5",
+                "branch": "meter_data_transmission",
+                "intent": "continue",
+                "steps": [{"action": "transmit power meter data"}],
+            },
+            {
+                "structure_id": "T5",
+                "branch": "billing_processing",
+                "intent": "continue",
+                "steps": [
+                    {"action": "compute final billing"},
+                    {"action": "send final billing to customer"},
+                ],
+            },
+        ],
+    }
+
+    assert validate_semantic_ownership_against_evidence(
+        _source_locality_process_text(),
+        topology_artifact=_source_locality_topology(),
+        semantic_plan=semantic_plan,
+    ) == semantic_plan
+
+
+def test_semantic_parallel_locality_reports_real_t5_omission_without_claiming_root_start() -> None:
+    topology = _source_locality_topology()
+    topology["structures"].insert(
+        0,
+        {
+            "id": "T4",
+            "type": "decision",
+            "parent": "ROOT",
+            "parent_branch": None,
+            "branches": ["withdraw", "confirm"],
+            "purpose": "customer decides whether to withdraw or confirm",
+        },
+    )
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "receive customer data"}]},
+            {"slot_id": "AFTER_T4", "actions": []},
+            {"slot_id": "AFTER_T5", "actions": [{"action": "import meter data"}]},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T4",
+                "branch": "withdraw",
+                "intent": "terminate",
+                "steps": [{"action": "withdraw from contract"}],
+            },
+            {
+                "structure_id": "T4",
+                "branch": "confirm",
+                "intent": "continue",
+                "steps": [],
+            },
+            {
+                "structure_id": "T5",
+                "branch": "meter_data_transmission",
+                "intent": "continue",
+                "steps": [],
+            },
+            {
+                "structure_id": "T5",
+                "branch": "billing_processing",
+                "intent": "continue",
+                "steps": [{"action": "compute final billing"}],
+            },
+        ],
+    }
+
+    with pytest.raises(SemanticOwnershipEvidenceValidationError) as exc_info:
+        validate_semantic_ownership_against_evidence(
+            _source_locality_process_text(),
+            topology_artifact=topology,
+            semantic_plan=semantic_plan,
+        )
+
+    diagnostic = str(exc_info.value)
+    assert "grid operator transmits power meter data" in diagnostic
+    assert "customer transmits customer data" not in diagnostic
+    assert "root_actions[ROOT_START]" not in diagnostic
+
+
+def _assembly_parallel_topology() -> dict:
+    return {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["storehouse", "engineering"],
+                "purpose": "prepare storehouse and engineering work in parallel",
+            }
+        ]
+    }
+
+
+def _assembly_parallel_structure():
+    return _normalize_topology_artifact(_assembly_parallel_topology()).structures[0]
+
+
+def test_parallel_join_detector_accepts_conjoined_completion_then_business_action() -> None:
+    sentence = (
+        "If the storehouse has successfully reserved every item of the part list "
+        "and the engineering preparation activity has finished, the engineering department assembles the bicycle."
+    )
+
+    assert _has_explicit_parallel_join_ownership(
+        sentence=sentence,
+        structure=_assembly_parallel_structure(),
+    )
+
+
+def test_parallel_join_detector_rejects_plain_sequential_and_sentence() -> None:
+    sentence = "The storehouse reserves the items and the engineering department assembles the bicycle."
+
+    assert not _has_explicit_parallel_join_ownership(
+        sentence=sentence,
+        structure=_assembly_parallel_structure(),
+    )
+
+
+def test_parallel_join_detector_rejects_two_actions_in_same_branch() -> None:
+    sentence = "The storehouse has reserved the items and has packed them, then shipping prepares the dispatch."
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["storehouse", "shipping"],
+                "purpose": "run storehouse and shipping work in parallel",
+            }
+        ]
+    }
+
+    assert not _has_explicit_parallel_join_ownership(
+        sentence=sentence,
+        structure=_normalize_topology_artifact(topology).structures[0],
+    )
+
+
+def test_parallel_join_detector_rejects_two_branches_without_completion_semantics() -> None:
+    sentence = "The storehouse and the engineering department coordinate, and the engineering department assembles the bicycle."
+
+    assert not _has_explicit_parallel_join_ownership(
+        sentence=sentence,
+        structure=_assembly_parallel_structure(),
+    )
+
+
+def test_parallel_join_detector_rejects_completion_without_business_action() -> None:
+    sentence = (
+        "If the storehouse has reserved every item and the engineering preparation activity has finished, "
+        "the process continues."
+    )
+
+    assert not _has_explicit_parallel_join_ownership(
+        sentence=sentence,
+        structure=_assembly_parallel_structure(),
+    )
+
+
+def test_parallel_join_detector_rejects_ambiguous_branch_identity() -> None:
+    sentence = "If packing has finished and preparation has finished, the engineering department assembles the bicycle."
+
+    assert not _has_explicit_parallel_join_ownership(
+        sentence=sentence,
+        structure=_assembly_parallel_structure(),
+    )
+
+
+def test_semantic_parallel_join_ownership_rejects_branch_owned_assembly_case_1_1() -> None:
+    process_text = (
+        "In the storehouse branch, process the part list and check quantities. "
+        "In the engineering branch, prepare for bicycle assembling. "
+        "If the storehouse has successfully reserved or back-ordered every item of the part list "
+        "and the preparation activity has finished, the engineering department assembles the bicycle. "
+        "Afterwards, shipping sends the bicycle to the customer."
+    )
+    invalid_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "send bicycle to customer"}]},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "storehouse",
+                "intent": "continue",
+                "steps": [{"action": "process part list and check quantities"}],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "engineering",
+                "intent": "continue",
+                "steps": [
+                    {"action": "prepare for bicycle assembling"},
+                    {"action": "assemble bicycle"},
+                ],
+            },
+        ],
+    }
+
+    with pytest.raises(
+        SemanticOwnershipEvidenceValidationError,
+        match=r"parallel-join ownership evidence.*AFTER_T1",
+    ):
+        validate_semantic_ownership_against_evidence(
+            process_text,
+            topology_artifact=_assembly_parallel_topology(),
+            semantic_plan=invalid_plan,
+        )
+
+    valid_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "assemble bicycle"}, {"action": "send bicycle to customer"}]},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "storehouse",
+                "intent": "continue",
+                "steps": [{"action": "process part list and check quantities"}],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "engineering",
+                "intent": "continue",
+                "steps": [{"action": "prepare for bicycle assembling"}],
+            },
+        ],
+    }
+
+    assert validate_semantic_ownership_against_evidence(
+        process_text,
+        topology_artifact=_assembly_parallel_topology(),
+        semantic_plan=valid_plan,
+    ) == valid_plan
+
+
+def test_semantic_parallel_join_ownership_requires_safe_shared_slot() -> None:
+    process_text = (
+        "In the storehouse branch, process part list and check quantities. "
+        "In the engineering branch, prepare for bicycle assembling. "
+        "If the storehouse has successfully reserved every item and the engineering preparation activity has finished, "
+        "the engineering department assembles the bicycle."
+    )
+    unsafe_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "storehouse",
+                "intent": "continue",
+                "steps": [{"action": "process part list and check quantities"}],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "engineering",
+                "intent": "terminate",
+                "steps": [
+                    {"action": "prepare for bicycle assembling"},
+                    {"action": "assemble bicycle"},
+                ],
+            },
+        ],
+    }
+
+    assert validate_semantic_ownership_against_evidence(
+        process_text,
+        topology_artifact=_assembly_parallel_topology(),
+        semantic_plan=unsafe_plan,
+    ) == unsafe_plan
+
+
+def test_semantic_parallel_join_ownership_requires_explicit_sync_for_patient_listing_case_4_1() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "parallel",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["first_intaker_meeting", "second_intaker_meeting"],
+                "purpose": "conduct the two intaker meetings in parallel",
+            }
+        ]
+    }
+    process_text = (
+        "In the first intaker meeting branch, check the medical file condition. "
+        "In the second intaker meeting branch, conduct the second intaker meeting. "
+        "After both the first intaker meeting branch and the second intaker meeting branch are complete, "
+        "list the patient for treatment."
+    )
+    invalid_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "first_intaker_meeting",
+                "intent": "continue",
+                "steps": [{"action": "check medical file condition"}, {"action": "list patient for treatment"}],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "second_intaker_meeting",
+                "intent": "continue",
+                "steps": [{"action": "conduct second intaker meeting"}],
+            },
+        ],
+    }
+
+    with pytest.raises(
+        SemanticOwnershipEvidenceValidationError,
+        match=r"parallel-join ownership evidence.*list the patient for treatment",
+    ):
+        validate_semantic_ownership_against_evidence(
+            process_text,
+            topology_artifact=topology,
+            semantic_plan=invalid_plan,
+        )
+
+    no_sync_text = (
+        "In the first intaker meeting branch, check the medical file condition. "
+        "In the second intaker meeting branch, conduct the second intaker meeting. "
+        "Later, list the patient for treatment."
+    )
+    ambiguous_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": invalid_plan["branch_plans"],
+    }
+    assert validate_semantic_ownership_against_evidence(
+        no_sync_text,
+        topology_artifact=topology,
+        semantic_plan=ambiguous_plan,
+    ) == ambiguous_plan
+
+
+def test_semantic_parallel_join_ownership_does_not_fabricate_shared_action_case_3_5() -> None:
+    process_text = (
+        "In the intake branch, create the intake package. "
+        "In the verification branch, verify the intake package. "
+        "After both the intake branch and the verification branch are complete, the process ends."
+    )
+    plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "intake",
+                "intent": "continue",
+                "steps": [{"action": "create intake package"}],
+            },
+            {
+                "structure_id": "T1",
+                "branch": "verification",
+                "intent": "continue",
+                "steps": [{"action": "verify intake package"}],
+            },
+        ],
+    }
+
+    assert validate_semantic_ownership_against_evidence(
+        process_text,
+        topology_artifact={
+            "structures": [
+                {
+                    "id": "T1",
+                    "type": "parallel",
+                    "parent": "ROOT",
+                    "parent_branch": None,
+                    "branches": ["intake", "verification"],
+                    "purpose": "run intake and verification in parallel",
+                }
+            ]
+        },
+        semantic_plan=plan,
+    ) == plan
+    assert "root_scope_" not in json.dumps(plan)
+
+
+@pytest.mark.parametrize(
+    ("process_text", "topology_artifact", "semantic_plan"),
+    [
+        (
+            "Receive the request. Prepare the record. Send the result.",
+            {"structures": []},
+            {"root_actions": [{"slot_id": "ROOT_START", "actions": [{"action": "receive request"}, {"action": "prepare record"}, {"action": "send result"}]}], "branch_plans": []},
+        ),
+        (
+            "The request is checked. If invalid, revise and check again until valid. When valid, archive it.",
+            {
+                "structures": [
+                    {"id": "T1", "type": "loop", "parent": "ROOT", "parent_branch": None, "branches": ["retry", "success"], "purpose": "check request until valid"}
+                ]
+            },
+            {
+                "root_actions": [
+                    {"slot_id": "ROOT_START", "actions": [{"action": "check request"}]},
+                    {"slot_id": "AFTER_T1", "actions": [{"action": "archive request"}]},
+                ],
+                "branch_plans": [
+                    {"structure_id": "T1", "branch": "retry", "intent": "loop_back", "steps": [{"action": "revise request"}]},
+                    {"structure_id": "T1", "branch": "success", "intent": "continue", "steps": []},
+                ],
+            },
+        ),
+        (
+            "Determine parts and quantities. Enter the data into PPS. Procure missing parts when needed.",
+            {"structures": []},
+            {"root_actions": [{"slot_id": "ROOT_START", "actions": [{"action": "determine parts and quantities"}, {"action": "enter data into PPS"}, {"action": "procure missing parts"}]}], "branch_plans": []},
+        ),
+        (
+            "If review is required, inspect the request. Without review, approve it directly.",
+            {
+                "structures": [
+                    {"id": "T1", "type": "decision", "parent": "ROOT", "parent_branch": None, "branches": ["review", "direct"], "purpose": "decide whether review is required"}
+                ]
+            },
+            {
+                "root_actions": [
+                    {"slot_id": "ROOT_START", "actions": []},
+                    {"slot_id": "AFTER_T1", "actions": []},
+                ],
+                "branch_plans": [
+                    {"structure_id": "T1", "branch": "review", "intent": "continue", "steps": [{"action": "inspect request"}]},
+                    {"structure_id": "T1", "branch": "direct", "intent": "continue", "steps": [{"action": "approve request"}]},
+                ],
+            },
+        ),
+    ],
+)
+def test_semantic_parallel_ownership_regressions_preserve_non_target_cases(
+    process_text: str,
+    topology_artifact: dict,
+    semantic_plan: dict,
+) -> None:
+    assert validate_semantic_ownership_against_evidence(
+        process_text,
+        topology_artifact=topology_artifact,
+        semantic_plan=semantic_plan,
+    ) == semantic_plan
+    assert "root_scope_" not in json.dumps(semantic_plan)
+
+
 def test_semantic_sketch_plan_response_format_requires_steps_for_terminate_or_loop_back() -> None:
     schema = semantic_sketch_plan_response_format()["json_schema"]["schema"]
     branch_plan_schema = schema["$defs"]["SemanticBranchPlan"]
@@ -1447,7 +2412,7 @@ def test_generate_semantic_sketch_plan_retries_after_missing_root_slot_failure()
     {
       "root_actions": [
         {"slot_id": "ROOT_START", "action": "submit deployment request"},
-        {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+        {"slot_id": "AFTER_T1", "action": "review deployment request"},
         {"slot_id": "AFTER_T4", "action": "complete deployment rollout"}
       ],
       "branch_plans": [
@@ -1515,7 +2480,7 @@ def test_generate_semantic_sketch_plan_retries_after_misplaced_root_action_failu
     {
       "root_actions": [
         {"slot_id": "ROOT_START", "action": "submit deployment request"},
-        {"slot_id": "AFTER_T1", "action": "conduct compliance review"},
+        {"slot_id": "AFTER_T1", "action": "review deployment request"},
         {"slot_id": "AFTER_T4", "action": "complete deployment rollout"}
       ],
       "branch_plans": [
@@ -1785,6 +2750,130 @@ def test_semantic_coverage_accepts_narrow_operation_synonym_with_same_object() -
     ) == plan
 
 
+def test_semantic_coverage_accepts_create_request_nominalization_with_same_object() -> None:
+    plan = _linear_plan("request automatic resource restoration")
+
+    assert validate_semantic_coverage_against_evidence(
+        "Service Management creates a request for automatic resource restoration.",
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_accepts_determine_whether_decision_semantics() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["insured", "rejected"],
+                "purpose": "determine whether claim is insured",
+            }
+        ]
+    }
+    plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "insured", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+
+    assert validate_semantic_coverage_against_evidence(
+        "It is checked whether the claim is insured.",
+        topology_artifact=topology,
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_accepts_morphological_request_variation() -> None:
+    plan = _linear_plan("request updated customer records")
+
+    assert validate_semantic_coverage_against_evidence(
+        "The clerk creates a request for updated customer records.",
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_extracts_embedded_reprioritize_from_process_wrapper() -> None:
+    plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "re_prioritize", "intent": "loop_back", "steps": [{"action": "re-prioritize counter measures"}]},
+            {"structure_id": "T1", "branch": "continue", "intent": "continue", "steps": []},
+        ],
+    }
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["re_prioritize", "continue"],
+                "purpose": "determine whether counter measures must be adjusted",
+            }
+        ]
+    }
+
+    assert validate_semantic_coverage_against_evidence(
+        "The process goes back to re-prioritize these measures.",
+        topology_artifact=topology,
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_extracts_embedded_review_from_process_wrapper() -> None:
+    plan = _linear_plan("review claim")
+
+    assert validate_semantic_coverage_against_evidence(
+        "The process goes back to review the claim.",
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_handles_full_reprioritize_wrapper_with_control_tail() -> None:
+    plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "premium", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "re_prioritize", "intent": "loop_back", "steps": [{"action": "re-prioritize counter measures"}]},
+            {"structure_id": "T1", "branch": "continue", "intent": "continue", "steps": []},
+        ],
+    }
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["premium", "re_prioritize", "continue"],
+                "purpose": "determine customer significance and adjust actions",
+            }
+        ]
+    }
+
+    assert validate_semantic_coverage_against_evidence(
+        "The process goes back to re-prioritize these measures - otherwise the process continues.",
+        topology_artifact=topology,
+        semantic_plan=plan,
+    ) == plan
+
+
 def test_semantic_coverage_distinguishes_same_operation_with_different_object() -> None:
     with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
         validate_semantic_coverage_against_evidence(
@@ -1795,6 +2884,53 @@ def test_semantic_coverage_distinguishes_same_operation_with_different_object() 
 
     assert exc_info.value.issues[0]["objects"] == ["invoice"]
     assert exc_info.value.issues[0]["scope_hint"] == "ROOT_START"
+
+
+@pytest.mark.parametrize(
+    ("process_text", "semantic_action"),
+    [
+        ("The clerk creates a request for correction.", "approve request for correction"),
+        ("The clerk submits the form.", "review form"),
+        ("The clerk checks the claim.", "reject claim"),
+    ],
+)
+def test_semantic_coverage_rejects_same_object_with_different_operation(
+    process_text: str,
+    semantic_action: str,
+) -> None:
+    with pytest.raises(SemanticCoverageEvidenceValidationError):
+        validate_semantic_coverage_against_evidence(
+            process_text,
+            topology_artifact={"structures": []},
+            semantic_plan=_linear_plan(semantic_action),
+        )
+
+
+def test_semantic_coverage_still_rejects_true_missing_action() -> None:
+    with pytest.raises(SemanticCoverageEvidenceValidationError):
+        validate_semantic_coverage_against_evidence(
+            "At the end of the conversation, the form is handed in at the secretarial office.",
+            topology_artifact={"structures": []},
+            semantic_plan=_linear_plan("request medical file from family doctor"),
+        )
+
+
+@pytest.mark.parametrize(
+    "process_text",
+    [
+        "The process continues.",
+        "The process ends.",
+        "The process goes back.",
+        "Otherwise the process continues.",
+        "The process goes back to it.",
+    ],
+)
+def test_semantic_coverage_keeps_control_flow_only_wrappers_non_executable(process_text: str) -> None:
+    assert validate_semantic_coverage_against_evidence(
+        process_text,
+        topology_artifact={"structures": []},
+        semantic_plan=_linear_plan(),
+    ) == _linear_plan()
 
 
 @pytest.mark.parametrize(
@@ -1953,6 +3089,127 @@ def test_semantic_coverage_preserves_valid_compound_action() -> None:
     ) == plan
 
 
+def test_semantic_coverage_rejects_partial_case_6_3_compound_operation() -> None:
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "Optimize production processes and create uniform work packages.",
+            topology_artifact={"structures": []},
+            semantic_plan=_linear_plan("optimize production processes"),
+        )
+
+    assert exc_info.value.issues[0]["operations"] == ["create"]
+    assert set(exc_info.value.issues[0]["objects"]) == {"packag", "uniform", "work"}
+    assert exc_info.value.issues[0]["uncovered_requirements"] == [
+        {
+            "operation": "create",
+            "objects": ["packag", "uniform", "work"],
+            "terms": ["create"],
+            "checked_semantic_content": [],
+        }
+    ]
+
+
+def test_semantic_coverage_reports_independent_uncovered_requirements_for_compound_clause() -> None:
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "Optimize production processes and create uniform work packages.",
+            topology_artifact={"structures": []},
+            semantic_plan=_linear_plan(),
+        )
+
+    assert exc_info.value.issues[0]["operations"] == ["create", "process"]
+    assert exc_info.value.issues[0]["uncovered_requirements"] == [
+        {
+            "operation": "create",
+            "objects": ["packag", "uniform", "work"],
+            "terms": ["create"],
+            "checked_semantic_content": [],
+        },
+        {
+            "operation": "process",
+            "objects": ["optimize", "production"],
+            "terms": ["process"],
+            "checked_semantic_content": [],
+        },
+    ]
+
+
+def test_semantic_coverage_accepts_full_case_6_3_compound_operation() -> None:
+    plan = _linear_plan(
+        "optimize production processes",
+        "create uniform work packages",
+    )
+
+    assert validate_semantic_coverage_against_evidence(
+        "Optimize production processes and create uniform work packages.",
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_requires_create_and_send_independently() -> None:
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "Create the report and send it.",
+            topology_artifact={"structures": []},
+            semantic_plan=_linear_plan("create report"),
+        )
+
+    assert exc_info.value.issues[0]["operations"] == ["send"]
+    assert exc_info.value.issues[0]["objects"] == ["report"]
+
+
+def test_semantic_coverage_requires_check_and_update_independently() -> None:
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "Check the order and update the record.",
+            topology_artifact={"structures": []},
+            semantic_plan=_linear_plan("check order"),
+        )
+
+    assert "correct" in exc_info.value.issues[0]["operations"]
+
+
+def test_semantic_coverage_keeps_single_operation_matching_unchanged() -> None:
+    plan = _linear_plan("review request")
+
+    assert validate_semantic_coverage_against_evidence(
+        "Review the request.",
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_does_not_require_purpose_result_as_separate_operation() -> None:
+    plan = _linear_plan("create uniform work packages")
+
+    assert validate_semantic_coverage_against_evidence(
+        "Create uniform work packages so that setup times are minimized.",
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_does_not_split_object_list_into_operations() -> None:
+    plan = _linear_plan("create reports and invoices")
+
+    assert validate_semantic_coverage_against_evidence(
+        "Create reports and invoices.",
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_does_not_split_one_verb_with_multiple_objects() -> None:
+    plan = _linear_plan("review request and supporting documents")
+
+    assert validate_semantic_coverage_against_evidence(
+        "Review the request and supporting documents.",
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
 def test_semantic_coverage_distinguishes_clearly_separate_operations() -> None:
     with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
         validate_semantic_coverage_against_evidence(
@@ -1987,14 +3244,15 @@ def test_semantic_coverage_suppresses_waiting_constraint() -> None:
     ) == plan
 
 
-def test_semantic_coverage_does_not_split_partially_represented_compound_action() -> None:
-    plan = _linear_plan("send report")
+def test_semantic_coverage_rejects_partially_represented_compound_action() -> None:
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "The clerk prepares and sends the report.",
+            topology_artifact={"structures": []},
+            semantic_plan=_linear_plan("send report"),
+        )
 
-    assert validate_semantic_coverage_against_evidence(
-        "The clerk prepares and sends the report.",
-        topology_artifact={"structures": []},
-        semantic_plan=plan,
-    ) == plan
+    assert exc_info.value.issues[0]["operations"] == ["create"]
 
 
 def test_semantic_coverage_keeps_same_object_coordinated_verbs_compound() -> None:
@@ -2017,7 +3275,7 @@ def test_semantic_coverage_accepts_partially_represented_coordinated_result() ->
     ) == plan
 
 
-def test_semantic_coverage_reports_only_unrepresented_part_of_compound_clause() -> None:
+def test_semantic_coverage_does_not_use_object_overlap_as_compound_operation_credit() -> None:
     process_text = (
         'In "ACME Financial Accounting", a software specially developed for ACME AG, '
         "she identifies the charging suppliers and creates a new instance (invoice)."
@@ -2033,10 +3291,24 @@ def test_semantic_coverage_reports_only_unrepresented_part_of_compound_clause() 
     assert exc_info.value.issues == [
         {
             "source_fragment": "she identifies the charging suppliers and creates a new instance (invoice)",
-            "operations": ["identify"],
-            "objects": ["charg", "supplier"],
+            "operations": ["create", "identify"],
+            "objects": ["charg", "instance", "invoice", "new", "supplier"],
             "qualification": "explicit executable operation with concrete business content",
-            "checked_semantic_content": [],
+            "checked_semantic_content": ["enter invoice into ACME Financial Accounting"],
+            "uncovered_requirements": [
+                {
+                    "operation": "create",
+                    "objects": ["instance", "invoice", "new"],
+                    "terms": ["create"],
+                    "checked_semantic_content": ["enter invoice into ACME Financial Accounting"],
+                },
+                {
+                    "operation": "identify",
+                    "objects": ["charg", "supplier"],
+                    "terms": ["identify"],
+                    "checked_semantic_content": [],
+                },
+            ],
             "scope_hint": "ROOT_START",
             "reason": "no equivalent Action or decision semantics found",
         }
@@ -2089,6 +3361,399 @@ def test_generate_semantic_plan_retries_after_coverage_failure() -> None:
     assert result["artifact"] == corrected
     assert "Source-coverage correction" in mocked_call.call_args_list[1].kwargs["prompt"]
     assert "root_scope_" not in json.dumps(result["artifact"])
+
+
+def test_coverage_correction_prompt_renders_exact_scope_and_independent_requirements() -> None:
+    previous_plan = _linear_plan("create list of parts to be procured")
+
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            (
+                "Optimize production processes and create uniform work packages. "
+                "Create list of parts to be procured."
+            ),
+            topology_artifact={"structures": []},
+            semantic_plan=previous_plan,
+        )
+
+    correction_prompt = _build_semantic_correction_prompt(
+        base_prompt="BASE",
+        process_text=(
+            "Optimize production processes and create uniform work packages. "
+            "Create list of parts to be procured."
+        ),
+        topology_artifact={"structures": []},
+        invalid_semantic_output=json.dumps(previous_plan),
+        parsed_semantic_output=previous_plan,
+        validation_error=str(exc_info.value),
+        correction_attempt=1,
+    )
+
+    assert "Use the previous parsed SemanticSketchPlan as the preservation baseline" in correction_prompt
+    assert "At ROOT_START, preserve the previous plan and independently add the following missing requirements." in correction_prompt
+    assert 'Source fragment: "Optimize production processes and create uniform work packages"' in correction_prompt
+    assert "1. independently add a source-supported Action covering operation `create`" in correction_prompt
+    assert "2. independently add a source-supported Action covering operation `process`" in correction_prompt
+    assert "business objects/context: `packag`, `uniform`, `work`" in correction_prompt
+    assert "business objects/context: `optimize`, `production`" in correction_prompt
+    assert 'checked semantic content near this requirement: ["create list of parts to be procured"]' in correction_prompt
+    assert "Do not treat an existing same-verb Action with different business objects as satisfying a missing requirement" in correction_prompt
+
+
+def test_generate_semantic_plan_correction_preserves_unrelated_existing_actions_when_adding_missing_one() -> None:
+    previous_plan = _linear_plan("record request", "review request", "notify customer")
+    lossy_correction = _linear_plan("record request", "notify customer", "send invoice")
+    preserved_correction = _linear_plan("record request", "review request", "notify customer", "send invoice")
+
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[
+            json.dumps(previous_plan),
+            json.dumps(lossy_correction),
+            json.dumps(preserved_correction),
+        ],
+        ) as mocked_call:
+            result = generate_semantic_sketch_plan(
+                "Record the request. Review the request. Notify the customer. Send the invoice.",
+                topology_artifact={"structures": []},
+            )
+
+    assert mocked_call.call_count == 3
+    assert len(result["planner_attempts"]) == 3
+    assert "omits high-confidence source activities" in result["planner_attempts"][0]["validation_error"]
+    assert "dropped unaffected previously valid Actions" in result["planner_attempts"][1]["validation_error"]
+    assert result["artifact"] == preserved_correction
+    assert result["artifact"]["root_actions"][0]["actions"] == [
+        {"action": "record request"},
+        {"action": "review request"},
+        {"action": "notify customer"},
+        {"action": "send invoice"},
+    ]
+
+
+def test_semantic_correction_preservation_allows_targeted_ownership_move() -> None:
+    previous_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}, {"action": "archive request"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+    moved_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": [{"action": "archive request"}]},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+
+    assert _enforce_semantic_correction_preservation(
+        previous_plan=previous_plan,
+        current_plan=moved_plan,
+        previous_validation_error=(
+            "SemanticSketchPlan contradicts parallel-branch ownership evidence: action from fragment "
+            "'archive request' is owned outside branch T1/approved: root_actions[ROOT_START]."
+        ),
+    ) == moved_plan
+
+
+def test_semantic_correction_preservation_allows_targeted_branch_to_shared_move() -> None:
+    previous_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": [{"action": "archive request"}]},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+    moved_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}]},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "archive request"}]},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+
+    assert _enforce_semantic_correction_preservation(
+        previous_plan=previous_plan,
+        current_plan=moved_plan,
+        previous_validation_error=(
+            "SemanticSketchPlan contradicts parallel-join ownership evidence: post-join action from sentence "
+            "'Archive request after both reviews complete.' is not in shared slot AFTER_T1; found at "
+            "branch_plans[T1/approved]."
+        ),
+    ) == moved_plan
+
+
+def test_semantic_correction_preservation_allows_targeted_replacement_or_removal() -> None:
+    previous_plan = _linear_plan("review request", "notify customer")
+    corrected_plan = _linear_plan("review request")
+
+    assert _enforce_semantic_correction_preservation(
+        previous_plan=previous_plan,
+        current_plan=corrected_plan,
+        previous_validation_error="SemanticSketchPlan correction must remove notify customer because notify customer is semantically wrong here",
+    ) == corrected_plan
+
+
+def test_semantic_correction_preservation_rejects_unrelated_action_loss() -> None:
+    previous_plan = _linear_plan("record request", "review request", "notify customer")
+    corrected_plan = _linear_plan("record request", "notify customer", "send invoice")
+
+    with pytest.raises(ValueError, match="review request"):
+        _enforce_semantic_correction_preservation(
+            previous_plan=previous_plan,
+            current_plan=corrected_plan,
+            previous_validation_error=(
+                'SemanticSketchPlan omits high-confidence source activities: '
+                '[{"scope_hint": "ROOT_START", "source_fragment": "Send the invoice.", "operations": ["send"]}]'
+            ),
+        )
+
+
+def test_semantic_correction_preservation_rejects_wrong_target_scope_for_diagnosed_move() -> None:
+    previous_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}, {"action": "archive request"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+    wrong_target_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": [{"action": "archive request"}]},
+        ],
+    }
+
+    with pytest.raises(ValueError, match="archive request"):
+        _enforce_semantic_correction_preservation(
+            previous_plan=previous_plan,
+            current_plan=wrong_target_plan,
+            previous_validation_error=(
+                "SemanticSketchPlan contradicts parallel-branch ownership evidence: action from fragment "
+                "'archive request' is owned outside branch T1/approved: root_actions[ROOT_START]."
+            ),
+        )
+
+
+def test_semantic_correction_preservation_rejects_arbitrary_same_label_relocation_without_diagnostic() -> None:
+    previous_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}, {"action": "archive request"}]},
+        ],
+        "branch_plans": [],
+    }
+    moved_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review request"}]},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": [{"action": "archive request"}]},
+        ],
+    }
+
+    with pytest.raises(ValueError, match="archive request"):
+        _enforce_semantic_correction_preservation(
+            previous_plan=previous_plan,
+            current_plan=moved_plan,
+            previous_validation_error=(
+                'SemanticSketchPlan omits high-confidence source activities: '
+                '[{"scope_hint": "ROOT_START", "source_fragment": "Send the invoice.", "operations": ["send"]}]'
+            ),
+        )
+
+
+def test_semantic_correction_preservation_rejects_unrelated_ownership_move() -> None:
+    previous_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "record request"}, {"action": "review request"}]},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "notify customer"}]},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+    corrected_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "record request"}]},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "notify customer"}]},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": [{"action": "review request"}]},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+
+    with pytest.raises(ValueError, match="review request"):
+        _enforce_semantic_correction_preservation(
+            previous_plan=previous_plan,
+            current_plan=corrected_plan,
+            previous_validation_error=(
+                'SemanticSketchPlan omits high-confidence source activities: '
+                '[{"scope_hint": "AFTER_T1", "source_fragment": "Notify the customer after approval.", "operations": ["notify"]}]'
+            ),
+        )
+
+
+def test_semantic_correction_preservation_allows_targeted_scope_local_replacement_for_case_1_1_shape() -> None:
+    previous_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "receive order"}]},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "assemble bicycle"}, {"action": "ship bicycle"}]},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "accepted", "intent": "continue", "steps": [{"action": "inform storehouse and engineering department"}]},
+            {"structure_id": "T1", "branch": "rejected", "intent": "terminate", "steps": [{"action": "reject order"}]},
+            {"structure_id": "T2", "branch": "storehouse", "intent": "continue", "steps": [{"action": "process part list"}]},
+            {"structure_id": "T2", "branch": "engineering", "intent": "continue", "steps": [{"action": "prepare for assembly"}]},
+            {"structure_id": "T3", "branch": "repeat", "intent": "loop_back", "steps": [{"action": "check item availability"}, {"action": "reserve or back-order item"}]},
+            {"structure_id": "T3", "branch": "complete", "intent": "continue", "steps": []},
+        ],
+    }
+    corrected_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "create new process instance for order"}]},
+            {"slot_id": "AFTER_T1", "actions": [{"action": "assemble bicycle"}, {"action": "ship bicycle"}]},
+        ],
+        "branch_plans": previous_plan["branch_plans"],
+    }
+    validation_error = (
+        'SemanticSketchPlan omits high-confidence source activities: '
+        '[{"checked_semantic_content": ["reject order", "prepare for assembly"], '
+        '"objects": ["instance", "new", "order", "receiv", "sal", "whenever"], '
+        '"operations": ["create"], '
+        '"scope_hint": "ROOT_START", '
+        '"source_fragment": "Whenever the sales department receives an order, a new process instance is created"}]'
+    )
+
+    assert _enforce_semantic_correction_preservation(
+        previous_plan=previous_plan,
+        current_plan=corrected_plan,
+        previous_validation_error=validation_error,
+    ) == corrected_plan
+
+
+def test_semantic_correction_preservation_allows_real_1_3_root_to_branch_relocation() -> None:
+    previous_plan = {
+        "root_actions": [
+            {
+                "slot_id": "ROOT_START",
+                "actions": [
+                    {"action": "take order"},
+                    {"action": "submit order ticket to kitchen"},
+                    {"action": "give order to sommelier"},
+                    {"action": "assign order to waiter"},
+                ],
+            },
+            {"slot_id": "AFTER_T1", "actions": [{"action": "deliver order to guest's room"}]},
+            {"slot_id": "AFTER_T2", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "kitchen_task", "intent": "continue", "steps": [{"action": "prepare food in kitchen"}]},
+            {"structure_id": "T1", "branch": "waiter_task", "intent": "continue", "steps": [{"action": "ready cart"}, {"action": "prepare nonalcoholic drinks"}]},
+            {"structure_id": "T2", "branch": "bill_now", "intent": "continue", "steps": [{"action": "debit guest's account"}]},
+            {"structure_id": "T2", "branch": "bill_later", "intent": "continue", "steps": []},
+        ],
+    }
+    corrected_plan = {
+        "root_actions": [
+            {
+                "slot_id": "ROOT_START",
+                "actions": [
+                    {"action": "take order"},
+                    {"action": "submit order ticket to kitchen"},
+                    {"action": "give order to sommelier"},
+                ],
+            },
+            {"slot_id": "AFTER_T1", "actions": [{"action": "deliver order to guest's room"}]},
+            {"slot_id": "AFTER_T2", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "kitchen_task", "intent": "continue", "steps": [{"action": "prepare food in kitchen"}]},
+            {
+                "structure_id": "T1",
+                "branch": "waiter_task",
+                "intent": "continue",
+                "steps": [
+                    {"action": "assign order to waiter"},
+                    {"action": "ready cart"},
+                    {"action": "prepare nonalcoholic drinks"},
+                ],
+            },
+            {"structure_id": "T2", "branch": "bill_now", "intent": "continue", "steps": [{"action": "debit guest's account"}]},
+            {"structure_id": "T2", "branch": "bill_later", "intent": "continue", "steps": []},
+        ],
+    }
+    validation_error = (
+        "SemanticSketchPlan contradicts parallel-branch ownership evidence: action from fragment "
+        "'she assigns the order to the waiter' is owned outside branch T1/waiter_task: "
+        "root_actions[ROOT_START]. Keep the cited branch-local action inside its source-supported "
+        "parallel/workstream branch and do not move it into shared/root continuation without explicit "
+        "synchronization evidence."
+    )
+
+    assert _enforce_semantic_correction_preservation(
+        previous_plan=previous_plan,
+        current_plan=corrected_plan,
+        previous_validation_error=validation_error,
+    ) == corrected_plan
+
+
+def test_semantic_correction_preservation_preserves_case_2_1_style_unrelated_actions_when_fixing_timeout() -> None:
+    previous_plan = {
+        "root_actions": [
+            {
+                "slot_id": "ROOT_START",
+                "actions": [
+                    {"action": "enter problem report into system T"},
+                ],
+            }
+        ],
+        "branch_plans": [
+            {"structure_id": "T2", "branch": "significant_customer", "intent": "loop_back", "steps": [{"action": "re-prioritize counter measures"}]},
+            {"structure_id": "T4", "branch": "automatic_restoration", "intent": "continue", "steps": [{"action": "create request for automatic resource restoration"}]},
+            {"structure_id": "T5", "branch": "within_2_days", "intent": "continue", "steps": [{"action": "track errors"}]},
+            {"structure_id": "T5", "branch": "terminate", "intent": "terminate", "steps": []},
+        ],
+    }
+    corrected_plan = {
+        "root_actions": previous_plan["root_actions"],
+        "branch_plans": [
+            {"structure_id": "T2", "branch": "significant_customer", "intent": "loop_back", "steps": [{"action": "re-prioritize counter measures"}]},
+            {"structure_id": "T4", "branch": "automatic_restoration", "intent": "continue", "steps": [{"action": "create request for automatic resource restoration"}]},
+            {"structure_id": "T5", "branch": "within_2_days", "intent": "continue", "steps": [{"action": "track errors"}]},
+            {"structure_id": "T5", "branch": "terminate", "intent": "terminate", "steps": [{"action": "terminate process due to delay"}]},
+        ],
+    }
+
+    assert _enforce_semantic_correction_preservation(
+        previous_plan=previous_plan,
+        current_plan=corrected_plan,
+        previous_validation_error=(
+            "branch_plans with intent `terminate` or `loop_back` must include at least one branch-local "
+            "business action in `steps`; missing_steps=['T5:terminate']"
+        ),
+    ) == corrected_plan
 
 
 def test_generate_semantic_plan_persistent_coverage_failure_is_explicit() -> None:

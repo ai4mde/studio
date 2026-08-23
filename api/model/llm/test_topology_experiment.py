@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 from unittest.mock import patch
 
@@ -13,7 +15,11 @@ from llm.topology_experiment import (
     generate_topology_artifact,
     parse_topology_artifact_json,
 )
-from llm.keyword_hints import extract_keyword_hints, extract_loop_evidence
+from llm.keyword_hints import (
+    extract_keyword_hints,
+    extract_loop_evidence,
+    extract_parallel_evidence_contract,
+)
 from llm.topology_artifact_model import TopologyArtifact
 
 
@@ -494,6 +500,161 @@ def test_parallel_evidence_rejects_sequential_contextual_or_exclusive_text(proce
             process_text=process_text,
             topology_artifact=_parallel_artifact(),
         )
+
+
+@pytest.mark.parametrize(
+    ("process_text", "expected_cue"),
+    [
+        (
+            "Two concurrent activities are triggered, i.e. i) Finance reviews the invoice, and "
+            "ii) Legal checks the contract.",
+            "concurrent_activities",
+        ),
+        (
+            "Finance reviews the invoice. Concurrently, legal checks the contract.",
+            "concurrently",
+        ),
+        (
+            "Finance reviews the invoice. Meantime, legal checks the contract.",
+            "meantime",
+        ),
+        (
+            "Finance reviews the invoice. In the meantime, legal checks the contract.",
+            "in_the_meantime",
+        ),
+        (
+            "While finance reviews the invoice, legal checks the contract.",
+            "while",
+        ),
+    ],
+)
+def test_parallel_evidence_contract_requires_two_executable_workstreams(
+    process_text: str,
+    expected_cue: str,
+) -> None:
+    evidence = extract_parallel_evidence_contract(process_text)
+
+    assert evidence["high_confidence"] is True
+    assert any(candidate["concurrency_cue"] == expected_cue for candidate in evidence["candidates"])
+    assert all(candidate["workstream_a"] and candidate["workstream_b"] for candidate in evidence["candidates"])
+
+
+@pytest.mark.parametrize(
+    "process_text",
+    [
+        "While the request is pending, the clerk records its status.",
+        "The request remains pending; meanwhile, its status is unchanged.",
+        "The clerk receives the request, then reviews it, and then archives it.",
+        "The process lists review and approval activities.",
+        "The clerk either approves the request or rejects it.",
+        "The clerk may review the form fields in any order before submitting the form.",
+        "Meanwhile, the system sends an asynchronous notification.",
+        "The activities are concurrent in the process documentation.",
+        "The clerk reviews the request. Meanwhile, the clerk continues reviewing the same request.",
+    ],
+)
+def test_weak_parallel_cues_do_not_trigger_missing_parallel(process_text: str) -> None:
+    evidence = extract_parallel_evidence_contract(process_text)
+
+    assert evidence["high_confidence"] is False
+    try:
+        _validate_topology_artifact_against_process_text(
+            process_text=process_text,
+            topology_artifact={"structures": []},
+        )
+    except ValueError as exc:
+        assert "MISSING_PARALLEL" not in str(exc)
+
+
+def test_strong_parallel_evidence_rejects_missing_parallel_topology() -> None:
+    process_text = (
+        "Finance reviews the invoice. In the meantime, legal checks the contract. "
+        "After both reviews are complete, the manager signs the agreement."
+    )
+
+    with pytest.raises(ValueError, match="MISSING_PARALLEL"):
+        _validate_topology_artifact_against_process_text(
+            process_text=process_text,
+            topology_artifact={"structures": []},
+        )
+
+
+def test_strong_parallel_evidence_rejects_unrelated_parallel_scope() -> None:
+    process_text = (
+        "Finance reviews the invoice. Meanwhile, legal checks the contract. "
+        "After both reviews are complete, the manager signs the agreement."
+    )
+    unrelated_parallel = _parallel_artifact(branches=["warehouse", "engineering"])
+
+    with pytest.raises(ValueError, match="MISSING_PARALLEL"):
+        _validate_topology_artifact_against_process_text(
+            process_text=process_text,
+            topology_artifact=unrelated_parallel,
+        )
+
+
+def test_parallel_split_and_synchronization_evidence_are_separate() -> None:
+    split_only = extract_parallel_evidence_contract(
+        "Finance reviews the invoice. Meanwhile, legal checks the contract."
+    )
+    synchronized = extract_parallel_evidence_contract(
+        "Finance reviews the invoice. Meanwhile, legal checks the contract. "
+        "After both reviews are complete, the manager signs the agreement."
+    )
+
+    assert split_only["high_confidence"] is True
+    assert all(not candidate["synchronization_evidence"] for candidate in split_only["candidates"])
+    assert synchronized["high_confidence"] is True
+    assert any(candidate["synchronization_evidence"] for candidate in synchronized["candidates"])
+
+
+def test_missing_parallel_uses_existing_topology_correction_loop() -> None:
+    process_text = (
+        "Finance reviews the invoice. Meanwhile, legal checks the contract. "
+        "After both reviews are complete, the manager signs the agreement."
+    )
+    corrected_output = """
+    {
+      "structures": [
+        {
+          "id": "T1",
+          "type": "parallel",
+          "parent": "ROOT",
+          "parent_branch": null,
+          "branches": ["finance", "legal"],
+          "purpose": "review the invoice and contract concurrently"
+        }
+      ]
+    }
+    """
+
+    with patch(
+        "llm.topology_experiment.call_openai",
+        side_effect=['{"structures": []}', corrected_output],
+    ) as mocked_call:
+        result = generate_topology_artifact(process_text, model="gpt-4o")
+
+    assert mocked_call.call_count == 2
+    assert "MISSING_PARALLEL" in result["planner_attempts"][0]["validation_error"]
+    assert result["planner_attempts"][1]["validation_error"] is None
+    assert result["artifact"]["structures"][0]["type"] == "parallel"
+
+
+def test_parallel_evidence_does_not_change_topology_schema() -> None:
+    artifact = parse_topology_artifact_json(
+        '{"structures":[{"id":"T1","type":"parallel","parent":"ROOT",'
+        '"parent_branch":null,"branches":["finance","legal"],"purpose":"parallel review"}]}'
+    )
+
+    assert set(artifact["structures"][0]) == {
+        "id",
+        "type",
+        "parent",
+        "parent_branch",
+        "branches",
+        "purpose",
+    }
+    assert "root_scope_" not in str(artifact)
 
 
 def test_generate_topology_artifact_preserves_supported_nested_parallel_on_first_attempt() -> None:
@@ -1434,3 +1595,158 @@ def test_generate_topology_artifact_accepts_existing_working_topology_patterns(
 
     assert [structure["type"] for structure in result["artifact"]["structures"]] == expected_types
     assert [structure["parent"] for structure in result["artifact"]["structures"]] == expected_parents
+
+
+_CASE_2_1_TIMEOUT_SOURCE = (
+    "Resource Provisioning has been on-hold and waiting for a restoration request - "
+    "but this must happen within 2 days after the status report was sent out, "
+    "otherwise Resource Provisioning terminates the process."
+)
+
+
+def _incomplete_timeout_topology() -> dict:
+    return {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["normal", "priority"],
+                "purpose": "route the request for ordinary processing",
+            }
+        ]
+    }
+
+
+def _corrected_timeout_topology() -> dict:
+    return {
+        "structures": [
+            {
+                "id": "T4",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["no_problem", "minor_problem", "automatic_resource_restoration"],
+                "purpose": "select the resource provisioning countermeasure",
+            },
+            {
+                "id": "T5",
+                "type": "decision",
+                "parent": "T4",
+                "parent_branch": "automatic_resource_restoration",
+                "branches": ["restoration_received_within_2_days", "restoration_timeout"],
+                "purpose": "determine whether the restoration request arrives before the deadline",
+            },
+        ]
+    }
+
+
+def test_validate_topology_rejects_explicit_timeout_termination_without_local_decision() -> None:
+    with pytest.raises(ValueError, match="MISSING_TIMEOUT_DECISION") as exc_info:
+        _validate_topology_artifact_against_process_text(
+            process_text="The request must arrive within 2 days, otherwise the process is terminated.",
+            topology_artifact=_incomplete_timeout_topology(),
+        )
+
+    assert "missing local timeout conditional structure" in str(exc_info.value)
+    assert "within 2 days" in str(exc_info.value)
+
+
+def test_validate_topology_accepts_explicit_timeout_termination_with_local_decision() -> None:
+    artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["request_received_within_deadline", "request_timeout"],
+                "purpose": "determine whether the request arrives before the deadline",
+            }
+        ]
+    }
+
+    validated = _validate_topology_artifact_against_process_text(
+        process_text="The request must arrive within 2 days, otherwise the process is terminated.",
+        topology_artifact=artifact,
+    )
+
+    assert validated == artifact
+
+
+@pytest.mark.parametrize(
+    "process_text",
+    [
+        "The process waits for 2 days before continuing.",
+        "The request should arrive within 2 days.",
+        "If the customer rejects the offer, the process terminates.",
+    ],
+)
+def test_validate_topology_does_not_overtrigger_timeout_completeness(process_text: str) -> None:
+    validated = _validate_topology_artifact_against_process_text(
+        process_text=process_text,
+        topology_artifact={"structures": []},
+    )
+
+    assert validated == {"structures": []}
+
+
+def test_validate_topology_recognizes_unless_timeout_cancellation() -> None:
+    process_text = (
+        "The process continues only if approval is received within 24 hours; "
+        "unless it is received, the case is cancelled."
+    )
+
+    with pytest.raises(ValueError, match="MISSING_TIMEOUT_DECISION"):
+        _validate_topology_artifact_against_process_text(
+            process_text=process_text,
+            topology_artifact={"structures": []},
+        )
+
+
+def test_validate_topology_rejects_saved_case_2_1_shape_without_timeout_decision() -> None:
+    with pytest.raises(ValueError, match="MISSING_TIMEOUT_DECISION"):
+        _validate_topology_artifact_against_process_text(
+            process_text=_CASE_2_1_TIMEOUT_SOURCE,
+            topology_artifact={
+                "structures": [
+                    {
+                        "id": "T4",
+                        "type": "decision",
+                        "parent": "ROOT",
+                        "parent_branch": None,
+                        "branches": ["no_problem", "minor_problem", "automatic_resource_restoration"],
+                        "purpose": "select the resource provisioning countermeasure",
+                    }
+                ]
+            },
+        )
+
+
+def test_validate_topology_accepts_corrected_case_2_1_timeout_decision() -> None:
+    validated = _validate_topology_artifact_against_process_text(
+        process_text=_CASE_2_1_TIMEOUT_SOURCE,
+        topology_artifact=_corrected_timeout_topology(),
+    )
+
+    assert validated == _corrected_timeout_topology()
+
+
+def test_missing_timeout_decision_uses_existing_topology_correction_loop() -> None:
+    invalid_output = json.dumps(_incomplete_timeout_topology())
+    valid_output = json.dumps(_corrected_timeout_topology())
+
+    with patch(
+        "llm.topology_experiment.call_openai",
+        side_effect=[invalid_output, valid_output],
+    ) as mocked_call:
+        result = generate_topology_artifact(_CASE_2_1_TIMEOUT_SOURCE, model="gpt-4o")
+
+    assert result["artifact"] == _corrected_timeout_topology()
+    assert len(result["planner_attempts"]) == 2
+    assert "MISSING_TIMEOUT_DECISION" in result["planner_attempts"][0]["validation_error"]
+    retry_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
+    assert "missing local timeout conditional structure" in retry_prompt
+    assert "timely_or_success" in retry_prompt
+    assert "timeout_or_failure" in retry_prompt

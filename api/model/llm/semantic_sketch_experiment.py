@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from jinja2 import Environment, FileSystemLoader
 
 from .handler import call_openai
-from .keyword_hints import extract_keyword_hints
+from .keyword_hints import extract_keyword_hints, extract_parallel_evidence_contract
 from .semantic_sketch_plan_model import (
     SemanticSketchPlan,
     apply_semantic_branch_plan_schema_constraints,
@@ -115,14 +115,32 @@ _UNIVERSAL_CONTINUATION_PATTERNS = (
     re.compile(r"\bonce\s+(?:both|all)\b", re.IGNORECASE),
 )
 
+_EXPLICIT_PARALLEL_SYNC_PATTERNS = (
+    re.compile(r"\bafter\s+both\b", re.IGNORECASE),
+    re.compile(r"\bonce\s+both\b", re.IGNORECASE),
+    re.compile(r"\bwhen\s+both\b", re.IGNORECASE),
+    re.compile(r"\bafter\s+all\b", re.IGNORECASE),
+    re.compile(r"\bonce\s+all\b", re.IGNORECASE),
+    re.compile(r"\bwhen\s+all\b", re.IGNORECASE),
+)
+
+_PARALLEL_COMPLETION_PATTERNS = (
+    re.compile(r"\b(?:has|have)\s+(?:\w+\s+){0,4}?(?:complete|completed|finish|finished|reserve|reserved)\b", re.IGNORECASE),
+    re.compile(r"\b(?:is|are|was|were)\s+complete\b", re.IGNORECASE),
+    re.compile(r"\bback-ordered\b", re.IGNORECASE),
+)
+
 _BUSINESS_ACTION_VERB_STEMS = {
+    "assemble",
     "approve",
     "archive",
     "assign",
     "authorize",
     "cancel",
+    "calculate",
     "close",
     "complete",
+    "compute",
     "create",
     "deliver",
     "finalize",
@@ -130,7 +148,9 @@ _BUSINESS_ACTION_VERB_STEMS = {
     "generate",
     "inform",
     "issue",
+    "list",
     "notify",
+    "prepare",
     "produce",
     "record",
     "register",
@@ -139,6 +159,7 @@ _BUSINESS_ACTION_VERB_STEMS = {
     "schedule",
     "send",
     "store",
+    "treat",
     "transmit",
     "update",
 }
@@ -223,6 +244,7 @@ _COVERAGE_OPERATION_STEMS = {
     "link": ("link",),
     "notify": ("inform", "notif"),
     "pay": ("pay", "reimburs", "refund"),
+    "prioritize": ("prioritiz", "prioritize"),
     "process": ("conduct", "fulfill", "perform", "process"),
     "record": ("enter", "import", "mark", "note", "record", "register", "stor"),
     "reject": ("declin", "deni", "reject"),
@@ -231,6 +253,10 @@ _COVERAGE_OPERATION_STEMS = {
     "schedule": ("schedul", "schedule"),
     "select": ("choos", "choose", "select"),
     "send": ("deliver", "dispatch", "distribut", "distribute", "forward", "hand", "send", "ship", "submit", "transmit"),
+}
+
+_COVERAGE_NOMINALIZED_OPERATION_EQUIVALENTS = {
+    ("create", "send"): {"request"},
 }
 
 _COVERAGE_OBJECT_STOPWORDS = _OWNERSHIP_TOKEN_STOPWORDS | {
@@ -290,8 +316,360 @@ class SemanticCoverageEvidenceValidationError(ValueError):
         )
 
 
+def _coverage_validation_issues_from_error(validation_error: str) -> List[Dict[str, Any]]:
+    prefix = "SemanticSketchPlan omits high-confidence source activities: "
+    if not validation_error.startswith(prefix):
+        return []
+    try:
+        loaded = json.loads(validation_error[len(prefix) :])
+    except json.JSONDecodeError:
+        return []
+    return loaded if isinstance(loaded, list) else []
+
+
+def _format_coverage_scope_hint(scope_hint: str) -> str:
+    normalized_scope = str(scope_hint or "").strip()
+    if not normalized_scope:
+        return "At the cited topology-compatible scope"
+    if normalized_scope == "ROOT_START":
+        return "At ROOT_START"
+    if normalized_scope.startswith("AFTER_"):
+        return f"At shared root slot {normalized_scope}"
+    return f"At branch scope {normalized_scope}"
+
+
+def _structured_coverage_correction_feedback(validation_error: str) -> str:
+    issues = _coverage_validation_issues_from_error(validation_error)
+    if not issues:
+        return ""
+
+    feedback_sections: List[str] = []
+    for issue in issues:
+        scope_line = _format_coverage_scope_hint(str(issue.get("scope_hint") or ""))
+        requirements = issue.get("uncovered_requirements") or []
+        if not isinstance(requirements, list):
+            requirements = []
+        if not requirements:
+            operations = issue.get("operations") or []
+            objects = issue.get("objects") or []
+            requirements = [
+                {
+                    "operation": operation,
+                    "objects": objects,
+                    "terms": [],
+                    "checked_semantic_content": issue.get("checked_semantic_content") or [],
+                }
+                for operation in operations
+            ]
+
+        requirement_lines: List[str] = []
+        for index, requirement in enumerate(requirements, start=1):
+            operation = str(requirement.get("operation") or "").strip() or "unspecified-operation"
+            objects = requirement.get("objects") or []
+            terms = requirement.get("terms") or []
+            checked_content = requirement.get("checked_semantic_content") or []
+            requirement_lines.append(
+                f"{index}. independently add a source-supported Action covering operation `{operation}`"
+            )
+            if objects:
+                requirement_lines.append(
+                    "   business objects/context: "
+                    + ", ".join(f"`{obj}`" for obj in objects)
+                )
+            if terms:
+                requirement_lines.append(
+                    "   operation terms already evidenced: "
+                    + ", ".join(f"`{term}`" for term in terms)
+                )
+            if checked_content:
+                requirement_lines.append(
+                    "   checked semantic content near this requirement: "
+                    + json.dumps(checked_content, ensure_ascii=False)
+                )
+        source_fragment = str(issue.get("source_fragment") or "").strip()
+        fragment_line = (
+            f'Source fragment: "{source_fragment}"\n' if source_fragment else ""
+        )
+        feedback_sections.append(
+            f"{scope_line}, preserve the previous plan and independently add the following missing requirements.\n"
+            f"{fragment_line}"
+            + "\n".join(requirement_lines)
+        )
+
+    return (
+        "Structured missing requirements:\n"
+        + "\n\n".join(feedback_sections)
+        + "\nPreserve existing source-supported Actions unrelated to these requirements. "
+        "Do not treat an existing same-verb Action with different business objects as satisfying a missing "
+        "requirement; keep the existing Action when source-supported and add the missing one separately.\n"
+    )
+
+
 def _required_root_slot_ids(topology_artifact: Dict[str, Any] | TopologyArtifact) -> List[str]:
     return [slot["slot_id"] for slot in _build_root_slots(_normalize_topology_artifact(topology_artifact))]
+
+
+def _semantic_action_occurrences(plan: Dict[str, Any]) -> List[Dict[str, str]]:
+    occurrences: List[Dict[str, str]] = []
+    for root in plan.get("root_actions") or []:
+        scope = str(root.get("slot_id") or "").strip()
+        for step in root.get("actions") or []:
+            action = str(step.get("action") or "").strip()
+            if action:
+                occurrences.append(
+                    {
+                        "scope": scope,
+                        "action": action,
+                        "normalized_action": _normalize_action_text(action),
+                    }
+                )
+    for branch in plan.get("branch_plans") or []:
+        scope = f"{branch.get('structure_id')}/{branch.get('branch')}"
+        for step in branch.get("steps") or []:
+            action = str(step.get("action") or "").strip()
+            if action:
+                occurrences.append(
+                    {
+                        "scope": scope,
+                        "action": action,
+                        "normalized_action": _normalize_action_text(action),
+                    }
+                )
+    return occurrences
+
+
+def _validation_explicitly_targets_action(action: str, validation_error: str) -> bool:
+    normalized_action = _normalize_action_text(action)
+    normalized_error = _normalize_action_text(validation_error)
+    if not normalized_action or not normalized_error:
+        return False
+    return normalized_action in normalized_error
+
+
+def _validation_scope_hints(validation_error: str) -> set[str]:
+    scope_hints: set[str] = set()
+    for pattern in (
+        r'"scope_hint"\s*:\s*"([^"]+)"',
+        r"'scope_hint'\s*:\s*'([^']+)'",
+        r"\bshared slot ([A-Z0-9_]+)\b",
+    ):
+        for match in re.finditer(pattern, validation_error, re.IGNORECASE):
+            hint = str(match.group(1) or "").strip()
+            if hint:
+                scope_hints.add(hint)
+    return scope_hints
+
+
+def _validation_source_fragments(validation_error: str) -> List[str]:
+    fragments: List[str] = []
+    for pattern in (
+        r'"source_fragment"\s*:\s*"([^"]+)"',
+        r"'source_fragment'\s*:\s*'([^']+)'",
+        r"action from fragment '([^']+)'",
+        r"post-join action from sentence '([^']+)'",
+    ):
+        for match in re.finditer(pattern, validation_error, re.IGNORECASE):
+            fragment = str(match.group(1) or "").strip()
+            if fragment:
+                fragments.append(fragment)
+    return fragments
+
+
+def _validation_targets_occurrence(entry: Dict[str, str], validation_error: str) -> bool:
+    if _validation_explicitly_targets_action(entry["action"], validation_error):
+        return True
+
+    scope_hints = _validation_scope_hints(validation_error)
+    if not scope_hints:
+        return False
+    if entry["scope"] not in scope_hints:
+        return False
+
+    action_tokens = {
+        _stem_ownership_token(token)
+        for token in _tokenize(entry["action"])
+        if _stem_ownership_token(token) not in _OWNERSHIP_TOKEN_STOPWORDS
+    }
+    if not action_tokens:
+        return False
+
+    for fragment in _validation_source_fragments(validation_error):
+        fragment_tokens = {
+            _stem_ownership_token(token)
+            for token in _tokenize(fragment)
+            if _stem_ownership_token(token) not in _OWNERSHIP_TOKEN_STOPWORDS
+        }
+        if action_tokens.issubset(fragment_tokens):
+            return True
+    return False
+
+
+def _validation_targets_action_or_fragment(entry: Dict[str, str], validation_error: str) -> bool:
+    if _validation_explicitly_targets_action(entry["action"], validation_error):
+        return True
+
+    action_tokens = {
+        _stem_ownership_token(token)
+        for token in _tokenize(entry["action"])
+        if _stem_ownership_token(token) not in _OWNERSHIP_TOKEN_STOPWORDS
+    }
+    if not action_tokens:
+        return False
+
+    for fragment in _validation_source_fragments(validation_error):
+        fragment_tokens = {
+            _stem_ownership_token(token)
+            for token in _tokenize(fragment)
+            if _stem_ownership_token(token) not in _OWNERSHIP_TOKEN_STOPWORDS
+        }
+        if action_tokens.issubset(fragment_tokens) or _action_matches_evidence(entry["action"], fragment_tokens):
+            return True
+    return False
+
+
+def _validation_relocation_source_scopes(validation_error: str) -> set[str]:
+    scopes: set[str] = set()
+    for match in re.finditer(r"root_actions\[([A-Z0-9_]+)\]", validation_error):
+        scope = str(match.group(1) or "").strip()
+        if scope:
+            scopes.add(scope)
+    for match in re.finditer(r"branch_plans\[([A-Z0-9_]+/[A-Za-z0-9_]+)\]", validation_error):
+        scope = str(match.group(1) or "").strip()
+        if scope:
+            scopes.add(scope)
+    for match in re.finditer(
+        r"branch_plans\[structure_id=([A-Z0-9_]+),branch=([A-Za-z0-9_]+)\]\.steps",
+        validation_error,
+    ):
+        structure_id = str(match.group(1) or "").strip()
+        branch = str(match.group(2) or "").strip()
+        if structure_id and branch:
+            scopes.add(f"{structure_id}/{branch}")
+    return scopes
+
+
+def _validation_relocation_target_scopes(validation_error: str) -> set[str]:
+    scopes = _validation_scope_hints(validation_error)
+    for match in re.finditer(
+        r"outside branch ([A-Z0-9_]+/[A-Za-z0-9_]+)",
+        validation_error,
+        re.IGNORECASE,
+    ):
+        scope = str(match.group(1) or "").strip()
+        if scope:
+            scopes.add(scope)
+    for match in re.finditer(
+        r"allowed_destination=root_actions\[slot_id=([A-Z0-9_]+)\]\.actions",
+        validation_error,
+    ):
+        scope = str(match.group(1) or "").strip()
+        if scope:
+            scopes.add(scope)
+    for match in re.finditer(
+        r"allowed_destination=branch_plans\[structure_id=([A-Z0-9_]+),branch=([A-Za-z0-9_]+)\]\.steps",
+        validation_error,
+    ):
+        structure_id = str(match.group(1) or "").strip()
+        branch = str(match.group(2) or "").strip()
+        if structure_id and branch:
+            scopes.add(f"{structure_id}/{branch}")
+    return scopes
+
+
+def _plan_has_normalized_action_in_scope(
+    plan: Dict[str, Any],
+    *,
+    scope: str,
+    normalized_action: str,
+) -> bool:
+    for entry in _semantic_action_occurrences(plan):
+        if entry["scope"] != scope:
+            continue
+        if entry["normalized_action"] == normalized_action:
+            return True
+    return False
+
+
+def _loss_is_explained_by_diagnosed_relocation(
+    *,
+    previous_entry: Dict[str, str],
+    current_plan: Dict[str, Any],
+    previous_validation_error: str,
+) -> bool:
+    if not _validation_targets_action_or_fragment(previous_entry, previous_validation_error):
+        return False
+
+    source_scopes = _validation_relocation_source_scopes(previous_validation_error)
+    if not source_scopes or previous_entry["scope"] not in source_scopes:
+        return False
+
+    target_scopes = _validation_relocation_target_scopes(previous_validation_error)
+    if not target_scopes:
+        return False
+
+    return any(
+        _plan_has_normalized_action_in_scope(
+            current_plan,
+            scope=target_scope,
+            normalized_action=previous_entry["normalized_action"],
+        )
+        for target_scope in target_scopes
+    )
+
+
+def _unexpected_preservation_losses(
+    *,
+    previous_plan: Dict[str, Any],
+    current_plan: Dict[str, Any],
+    previous_validation_error: str,
+) -> List[Dict[str, str]]:
+    current_occurrences = _semantic_action_occurrences(current_plan)
+    current_occurrence_keys = {
+        (entry["scope"], entry["normalized_action"])
+        for entry in current_occurrences
+    }
+    losses: List[Dict[str, str]] = []
+    for entry in _semantic_action_occurrences(previous_plan):
+        occurrence_key = (entry["scope"], entry["normalized_action"])
+        if occurrence_key in current_occurrence_keys:
+            continue
+        source_scopes = _validation_relocation_source_scopes(previous_validation_error)
+        if _loss_is_explained_by_diagnosed_relocation(
+            previous_entry=entry,
+            current_plan=current_plan,
+            previous_validation_error=previous_validation_error,
+        ):
+            continue
+        if source_scopes and entry["scope"] in source_scopes:
+            losses.append(entry)
+            continue
+        if _validation_targets_occurrence(entry, previous_validation_error):
+            continue
+        losses.append(entry)
+    return losses
+
+
+def _enforce_semantic_correction_preservation(
+    *,
+    previous_plan: Dict[str, Any] | None,
+    current_plan: Dict[str, Any],
+    previous_validation_error: str | None,
+) -> Dict[str, Any]:
+    if previous_plan is None or not previous_validation_error:
+        return current_plan
+    losses = _unexpected_preservation_losses(
+        previous_plan=previous_plan,
+        current_plan=current_plan,
+        previous_validation_error=previous_validation_error,
+    )
+    if not losses:
+        return current_plan
+    loss_descriptions = [f"{entry['scope']}::{entry['action']}" for entry in losses]
+    raise ValueError(
+        "SemanticSketchPlan correction dropped unaffected previously valid Actions: "
+        f"lost_actions={loss_descriptions}. Preserve all existing source-supported Actions unrelated to the "
+        "current correction target; add or move only the cited Action(s)."
+    )
 
 
 def _build_semantic_correction_prompt(
@@ -321,6 +699,21 @@ def _build_semantic_correction_prompt(
             "The proposed semantic plan prevents a branch that should reach shared post-branch behavior "
             "from doing so. Preserve branch-local actions, place behavior that applies after convergence "
             "in the shared post-structure slot, and do not terminate a branch before that shared behavior.\n"
+        )
+    if "parallel-branch ownership evidence" in validation_error:
+        ownership_feedback = (
+            "\nParallel branch-ownership correction:\n"
+            "The cited action is explicitly local to one parallel/workstream branch. Keep it in that branch's "
+            "steps, do not move it into root_actions, and do not assign it to a sibling branch unless the "
+            "source text explicitly says the work is shared after synchronization.\n"
+        )
+    if "parallel-join ownership evidence" in validation_error:
+        ownership_feedback = (
+            "\nParallel join-ownership correction:\n"
+            "The cited action occurs only after explicitly synchronized parallel/workstream branches complete. "
+            "Keep branch-local work inside branch steps, place the post-join action once in the safe shared "
+            "post-structure root slot, and keep all participating branches on intent=\"continue\" until that "
+            "shared action is reached.\n"
         )
     if "unrepresentable under the current root-slot model" in validation_error:
         ownership_feedback = (
@@ -356,15 +749,21 @@ def _build_semantic_correction_prompt(
         )
     coverage_feedback = ""
     if "omits high-confidence source activities" in validation_error:
+        structured_feedback = _structured_coverage_correction_feedback(validation_error)
         coverage_feedback = (
             "\nSource-coverage correction:\n"
             "The deterministic diagnostics identify explicit source-supported business activity that is not "
             "represented by an equivalent Action or by existing decision semantics. Re-check the cited source "
             "fragment and correct only the cited omission in its topology-compatible root or branch slot. Do not "
             "expand unrelated source details. Preserve a defensible compound Action when coordinated operations "
-            "share an actor, business object, and ownership. Preserve the authoritative topology and ownership "
-            "constraints; do not invent control structures, duplicate decision semantics, or turn timing/waiting "
-            "language into an Action.\n"
+            "share an actor, business object, and ownership. If the cited fragment explicitly describes a "
+            "separate handoff, submission, delivery, forwarding, or transfer of a business object to another "
+            "actor, office, department, or workstream, preserve that transfer as its own Action rather than "
+            "merging it into preparing, recording, reviewing, or completing the same object. Do not force a "
+            "separate Action for incidental destination context or passive document state. Preserve the "
+            "authoritative topology and ownership constraints; do not invent control structures, duplicate "
+            "decision semantics, or turn timing/waiting language into an Action.\n"
+            f"{structured_feedback}"
         )
     return (
         f"{base_prompt}\n"
@@ -374,6 +773,13 @@ def _build_semantic_correction_prompt(
         "Return a complete corrected SemanticSketchPlan JSON object only.\n"
         "Every required root slot must appear exactly once.\n"
         "Do not omit, duplicate, shift, or invent fallback root actions.\n"
+        "Use the previous parsed SemanticSketchPlan as the preservation baseline.\n"
+        "Preserve every existing source-supported Action, scope, and intent that is unrelated to the cited "
+        "validation issue.\n"
+        "When the correction is to add a missing Action, make the smallest additive change needed and do not "
+        "remove or rewrite unrelated Actions.\n"
+        "Only move, replace, or remove an existing Action when the diagnostic explicitly identifies that Action "
+        "as wrongly placed or semantically wrong.\n"
         "Do not add explanations outside the JSON object.\n"
         "\nOriginal process text:\n"
         f"{process_text}\n"
@@ -457,11 +863,17 @@ def _tokenize(value: str) -> List[str]:
 def _stem_ownership_token(token: str) -> str:
     irregular = {
         "archived": "archive",
+        "assembled": "assemble",
+        "assembles": "assemble",
         "authorized": "authorize",
         "authorised": "authorize",
         "completed": "complete",
         "confirmed": "confirm",
         "fulfilled": "fulfill",
+        "receive": "receive",
+        "received": "receive",
+        "receives": "receive",
+        "receiving": "receive",
         "rejected": "reject",
         "registered": "register",
         "sent": "send",
@@ -475,6 +887,9 @@ def _stem_ownership_token(token: str) -> str:
     if token.endswith("ed") and len(token) > 4:
         return token[:-2]
     if token.endswith("es") and len(token) > 4:
+        singular = token[:-1]
+        if singular in _BUSINESS_ACTION_VERB_STEMS or singular in _EXPLICIT_ACTIVITY_VERBS or singular in _DECISION_PROXY_VERBS:
+            return singular
         return token[:-2]
     if token.endswith("s") and not token.endswith("ss") and len(token) > 3:
         return token[:-1]
@@ -509,6 +924,20 @@ def _root_action_texts(plan: Dict[str, Any], slot_id: str) -> List[str]:
     return []
 
 
+def _branch_action_texts(plan: Dict[str, Any], structure_id: str, branch: str) -> List[str]:
+    for entry in plan.get("branch_plans") or []:
+        if str(entry.get("structure_id") or "").strip() != structure_id:
+            continue
+        if str(entry.get("branch") or "").strip() != branch:
+            continue
+        return [
+            str(step.get("action") or "").strip()
+            for step in entry.get("steps") or []
+            if str(step.get("action") or "").strip()
+        ]
+    return []
+
+
 def _branch_plan_lookup(plan: Dict[str, Any]) -> Dict[tuple[str, str], Dict[str, Any]]:
     return {
         (str(entry.get("structure_id") or "").strip(), str(entry.get("branch") or "").strip()): entry
@@ -522,11 +951,410 @@ def _action_matches_evidence(action: str, evidence_tokens: set[str]) -> bool:
     return bool(overlap.intersection(_BUSINESS_ACTION_VERB_STEMS)) or len(overlap) >= 2
 
 
+def _matching_action_scopes(
+    plan: Dict[str, Any],
+    *,
+    evidence_tokens: set[str],
+    exclude_branch: tuple[str, str] | None = None,
+    exclude_root_slot: str | None = None,
+    allowed_scopes: set[str] | None = None,
+) -> List[str]:
+    scopes: List[str] = []
+    for root_action in plan.get("root_actions") or []:
+        slot_id = str(root_action.get("slot_id") or "").strip()
+        if exclude_root_slot is not None and slot_id == exclude_root_slot:
+            continue
+        scope_label = f"root_actions[{slot_id}]"
+        if allowed_scopes is not None and scope_label not in allowed_scopes:
+            continue
+        actions = [
+            str(step.get("action") or "").strip()
+            for step in root_action.get("actions") or []
+            if str(step.get("action") or "").strip()
+        ]
+        if any(_action_matches_evidence(action, evidence_tokens) for action in actions):
+            scopes.append(scope_label)
+    for branch_plan in plan.get("branch_plans") or []:
+        structure_id = str(branch_plan.get("structure_id") or "").strip()
+        branch = str(branch_plan.get("branch") or "").strip()
+        if exclude_branch is not None and (structure_id, branch) == exclude_branch:
+            continue
+        scope_label = f"branch_plans[{structure_id}/{branch}]"
+        if allowed_scopes is not None and scope_label not in allowed_scopes:
+            continue
+        actions = [
+            str(step.get("action") or "").strip()
+            for step in branch_plan.get("steps") or []
+            if str(step.get("action") or "").strip()
+        ]
+        if any(_action_matches_evidence(action, evidence_tokens) for action in actions):
+            scopes.append(scope_label)
+    return scopes
+
+
+def _branch_identity_tokens(branch: str) -> set[str]:
+    return {
+        token
+        for token in _ownership_tokens(branch)
+        if token not in _GENERIC_PURPOSE_STEMS
+    }
+
+
+_GENERIC_PARALLEL_BRANCH_STEMS = {
+    "branch",
+    "check",
+    "process",
+    "report",
+    "review",
+    "send",
+    "task",
+    "workstream",
+}
+
+
+def _parallel_branch_specific_tokens(branch: str) -> set[str]:
+    return {
+        token
+        for token in _branch_identity_tokens(branch)
+        if token not in _GENERIC_PARALLEL_BRANCH_STEMS
+        and token not in _BUSINESS_ACTION_VERB_STEMS
+    }
+
+
+def _parallel_structure_context_tokens(structure: TopologyStructure) -> set[str]:
+    return {
+        token
+        for token in _ownership_tokens(structure.purpose or "")
+        if token not in _GENERIC_PURPOSE_STEMS
+        and token not in _GENERIC_PARALLEL_BRANCH_STEMS
+        and token not in _BUSINESS_ACTION_VERB_STEMS
+    }
+
+
+_PARALLEL_LOCALITY_SCOPE_STOPWORDS = {
+    "activity",
+    "before",
+    "branch",
+    "concurrent",
+    "concurrently",
+    "continue",
+    "independent",
+    "parallel",
+    "perform",
+    "process",
+    "scope",
+    "task",
+    "track",
+    "work",
+}
+
+
+def _parallel_locality_scope_tokens(value: str) -> set[str]:
+    tokens: set[str] = set()
+    for raw_token in re.findall(r"[a-z][a-z0-9-]*", value.replace("_", " ").lower()):
+        token = raw_token
+        for suffix in ("ing", "ed", "es", "s"):
+            if token.endswith(suffix) and len(token) > len(suffix) + 3:
+                token = token[: -len(suffix)]
+                break
+        if len(token) > 2 and token not in _PARALLEL_LOCALITY_SCOPE_STOPWORDS:
+            tokens.add(token)
+    return tokens
+
+
+def _parallel_structure_matches_locality_evidence(
+    structure: TopologyStructure,
+    candidate: Dict[str, Any],
+) -> bool:
+    structure_tokens = _parallel_locality_scope_tokens(
+        " ".join([str(structure.purpose or ""), *[str(branch) for branch in structure.branches]])
+    )
+    workstream_tokens = [
+        _parallel_locality_scope_tokens(str(candidate.get(field) or ""))
+        for field in ("workstream_a", "workstream_b")
+    ]
+    return bool(structure_tokens) and all(tokens.intersection(structure_tokens) for tokens in workstream_tokens)
+
+
+def _source_sentence_records(process_text: str) -> List[Dict[str, Any]]:
+    paragraphs = [part for part in re.split(r"\n\s*\n", process_text.strip()) if part.strip()]
+    records: List[Dict[str, Any]] = []
+    for paragraph_index, paragraph in enumerate(paragraphs):
+        for sentence in re.split(r"(?<=[.!?])\s+", paragraph.strip()):
+            text = sentence.strip()
+            if not text:
+                continue
+            records.append(
+                {
+                    "index": len(records),
+                    "paragraph_index": paragraph_index,
+                    "text": text,
+                    "normalized": _normalize_action_text(text),
+                }
+            )
+    return records
+
+
+def _candidate_sentence_indices(candidate: Dict[str, Any], records: List[Dict[str, Any]]) -> set[int]:
+    component_indices: Dict[str, set[int]] = {}
+    for field in ("source_fragment", "workstream_a", "workstream_b"):
+        normalized_component = _normalize_action_text(str(candidate.get(field) or ""))
+        component_indices[field] = {
+            int(record["index"])
+            for record in records
+            if record["normalized"]
+            and (
+                record["normalized"] in normalized_component
+                or normalized_component in record["normalized"]
+            )
+        }
+
+    # Both workstreams must be locatable before source position is treated as authoritative.
+    if not component_indices["workstream_a"] or not component_indices["workstream_b"]:
+        return set()
+    return set().union(*component_indices.values())
+
+
+def _candidate_local_fragment_set(
+    *,
+    candidate: Dict[str, Any],
+    records: List[Dict[str, Any]],
+) -> set[str]:
+    evidence_indices = _candidate_sentence_indices(candidate, records)
+    if not evidence_indices:
+        return set()
+
+    paragraph_indices = {
+        int(record["paragraph_index"])
+        for record in records
+        if int(record["index"]) in evidence_indices
+    }
+    total_paragraphs = len({int(record["paragraph_index"]) for record in records})
+    if total_paragraphs > 1:
+        local_indices = {
+            int(record["index"])
+            for record in records
+            if int(record["paragraph_index"]) in paragraph_indices
+        }
+    else:
+        local_indices = set(evidence_indices)
+
+    if total_paragraphs == 1:
+        # Without explicit paragraph boundaries, admit one adjacent sentence for
+        # branch-local work just outside the concurrency cue.
+        first_index = min(local_indices)
+        last_index = max(local_indices)
+        if first_index > 0:
+            local_indices.add(first_index - 1)
+        if last_index + 1 < len(records):
+            local_indices.add(last_index + 1)
+
+    local_fragments: set[str] = set()
+    for record in records:
+        if int(record["index"]) not in local_indices:
+            continue
+        if record["normalized"]:
+            local_fragments.add(str(record["normalized"]))
+        for fragment in re.split(r"[;,]", str(record["text"])):
+            normalized_fragment = _normalize_action_text(fragment.strip().strip(".!?"))
+            if normalized_fragment:
+                local_fragments.add(normalized_fragment)
+    return local_fragments
+
+
+def _parallel_structure_local_fragments(
+    process_text: str,
+    artifact: TopologyArtifact,
+) -> Dict[str, set[str]]:
+    parallel_structures = [structure for structure in artifact.structures if structure.type == "parallel"]
+    if not parallel_structures:
+        return {}
+
+    records = _source_sentence_records(process_text)
+    evidence = extract_parallel_evidence_contract(process_text)
+    local_fragments: Dict[str, set[str]] = {}
+    for candidate in evidence.get("candidates") or []:
+        matching_structures = [
+            structure
+            for structure in parallel_structures
+            if _parallel_structure_matches_locality_evidence(structure, candidate)
+        ]
+        if len(matching_structures) != 1:
+            continue
+        candidate_fragments = _candidate_local_fragment_set(candidate=candidate, records=records)
+        if candidate_fragments:
+            local_fragments.setdefault(matching_structures[0].id, set()).update(candidate_fragments)
+    return local_fragments
+
+
+def _parallel_structure_local_scope_labels(
+    structure: TopologyStructure,
+    root_structures: List[TopologyStructure],
+) -> set[str] | None:
+    branch_scopes = {
+        f"branch_plans[{structure.id}/{branch}]"
+        for branch in structure.branches
+    }
+    if structure.parent != "ROOT":
+        if not structure.parent_branch:
+            return None
+        return branch_scopes | {f"branch_plans[{structure.parent}/{structure.parent_branch}]"}
+
+    try:
+        structure_index = next(
+            index for index, root_structure in enumerate(root_structures) if root_structure.id == structure.id
+        )
+    except StopIteration:
+        return None
+    entry_slot = "ROOT_START" if structure_index == 0 else f"AFTER_{root_structures[structure_index - 1].id}"
+    return branch_scopes | {
+        f"root_actions[{entry_slot}]",
+        f"root_actions[AFTER_{structure.id}]",
+    }
+
+
+def _has_strong_parallel_branch_identity(
+    *,
+    fragment_tokens: set[str],
+    specific_branch_tokens: set[str],
+    structure_context_tokens: set[str],
+) -> bool:
+    if len(specific_branch_tokens) != 1:
+        return False
+    token = next(iter(specific_branch_tokens))
+    if token not in fragment_tokens:
+        return False
+    if token in structure_context_tokens:
+        return False
+    return True
+
+
+def _has_discriminative_parallel_overlap(
+    overlap_tokens: set[str],
+    *,
+    structure_context_tokens: set[str],
+) -> bool:
+    if len(overlap_tokens) >= 2:
+        return True
+    return bool(overlap_tokens - structure_context_tokens)
+
+
+def _has_explicit_parallel_branch_ownership(
+    *,
+    fragment: str,
+    structure: TopologyStructure,
+    branch: str,
+    local_fragments: set[str] | None = None,
+) -> bool:
+    if local_fragments is not None and _normalize_action_text(fragment) not in local_fragments:
+        return False
+    fragment_tokens = _ownership_tokens(fragment)
+    if not fragment_tokens.intersection(_BUSINESS_ACTION_VERB_STEMS):
+        return False
+    branch_tokens = _branch_identity_tokens(branch)
+    if not branch_tokens or not branch_tokens.intersection(fragment_tokens):
+        return False
+
+    specific_branch_tokens = _parallel_branch_specific_tokens(branch)
+    branch_specific_overlap = specific_branch_tokens.intersection(fragment_tokens)
+    structure_context_tokens = _parallel_structure_context_tokens(structure)
+    structure_context_overlap = structure_context_tokens.intersection(fragment_tokens)
+
+    if len(branch_specific_overlap) >= 2:
+        pass
+    elif len(branch_specific_overlap) == 1:
+        if not structure_context_overlap and not _has_strong_parallel_branch_identity(
+            fragment_tokens=fragment_tokens,
+            specific_branch_tokens=specific_branch_tokens,
+            structure_context_tokens=structure_context_tokens,
+        ):
+            return False
+    elif not structure_context_overlap:
+        return False
+
+    for sibling in structure.branches:
+        if sibling == branch:
+            continue
+        sibling_tokens = _parallel_branch_specific_tokens(sibling)
+        sibling_overlap = sibling_tokens.intersection(fragment_tokens)
+        if sibling_overlap and _has_discriminative_parallel_overlap(
+            sibling_overlap,
+            structure_context_tokens=structure_context_tokens,
+        ):
+            return False
+    if _has_conjoined_parallel_completion_evidence(fragment) or any(
+        pattern.search(fragment) for pattern in _EXPLICIT_PARALLEL_SYNC_PATTERNS
+    ):
+        return False
+    return True
+
+
+def _has_conjoined_parallel_completion_evidence(sentence: str) -> bool:
+    pre_join_clause, separator, _ = sentence.partition(",")
+    if not separator or " and " not in pre_join_clause.lower():
+        return False
+    completion_segments = [
+        segment.strip()
+        for segment in re.split(r"\band\b", pre_join_clause, flags=re.IGNORECASE)
+        if segment.strip()
+    ]
+    completion_count = sum(
+        any(pattern.search(segment) for pattern in _PARALLEL_COMPLETION_PATTERNS)
+        for segment in completion_segments
+    )
+    return completion_count >= 2
+
+
+def _has_explicit_parallel_join_ownership(
+    *,
+    sentence: str,
+    structure: TopologyStructure,
+) -> bool:
+    has_explicit_sync_phrase = any(pattern.search(sentence) for pattern in _EXPLICIT_PARALLEL_SYNC_PATTERNS)
+    has_conjoined_completion_evidence = _has_conjoined_parallel_completion_evidence(sentence)
+    if not has_explicit_sync_phrase and not has_conjoined_completion_evidence:
+        return False
+    _, _, post_join_clause = sentence.partition(",")
+    if not post_join_clause.strip():
+        return False
+    activity_clause = post_join_clause.strip()
+    if _coverage_fragment_is_context_only(activity_clause):
+        return False
+    if not _ownership_tokens(activity_clause).intersection(_BUSINESS_ACTION_VERB_STEMS):
+        return False
+    sentence_tokens = _ownership_tokens(sentence)
+    if not sentence_tokens.intersection(_BUSINESS_ACTION_VERB_STEMS):
+        return False
+    mentioned_branches = 0
+    for branch in structure.branches:
+        branch_tokens = _branch_identity_tokens(branch)
+        if branch_tokens and branch_tokens.intersection(sentence_tokens):
+            mentioned_branches += 1
+    return mentioned_branches >= 2
+
+
+def _is_explicit_parallel_post_join_clause(
+    *,
+    fragment: str,
+    structure: TopologyStructure,
+    sentences: List[str],
+) -> bool:
+    normalized_fragment = _normalize_action_text(fragment)
+    for sentence in sentences:
+        if not _has_explicit_parallel_join_ownership(sentence=sentence, structure=structure):
+            continue
+        _, _, post_join_clause = sentence.partition(",")
+        if _normalize_action_text(post_join_clause) == normalized_fragment:
+            return True
+    return False
+
+
 def _coverage_operation(token: str, *, index: int, tokens: List[str]) -> str | None:
     stemmed = _stem_ownership_token(token)
     lowered = token.lower()
     previous = tokens[index - 1].lower() if index > 0 else ""
     following = tokens[index + 1].lower() if index + 1 < len(tokens) else ""
+    window = {part.lower() for part in tokens[index + 1 : index + 4]}
     if stemmed == "request":
         if (
             following in {"is", "are", "was", "were", "has", "have"}
@@ -535,8 +1363,10 @@ def _coverage_operation(token: str, *, index: int, tokens: List[str]) -> str | N
         ):
             return None
         return "send"
+    if stemmed in {"determin", "determine"} and {"if", "whether"}.intersection(window):
+        return "review"
     if stemmed == "process" and lowered == "process":
-        if index > 0 or following in {"is", "continues", "ends", "starts"}:
+        if index > 0 or following in {"is", "continues", "ends", "starts", "goes", "go", "returns", "return", "proceeds", "proceed"}:
             return None
     if stemmed == "call":
         if previous in {"cold", "center"} or (lowered == "call" and index > 0):
@@ -547,13 +1377,45 @@ def _coverage_operation(token: str, *, index: int, tokens: List[str]) -> str | N
     return None
 
 
-def _coverage_evidence(value: str) -> Dict[str, Any] | None:
-    tokens = _tokenize(value)
-    operation_occurrences = [
+def _coverage_embedded_activity_fragment(value: str) -> str | None:
+    normalized = _normalize_action_text(value)
+    match = re.match(
+        r"^(?:otherwise\s+)?(?:the\s+)?process\s+"
+        r"(?:go(?:es)?\s+back|return(?:s|ed)?|proceed(?:s|ed)?|continue(?:s|d)?)\s+to\s+(.+)$",
+        normalized,
+    )
+    if not match:
+        return None
+    candidate = re.sub(
+        r"\s*(?:-|–|—)?\s*otherwise\s+(?:the\s+)?process\s+(?:continue(?:s|d)?|end(?:s|ed)?)\s*$",
+        "",
+        match.group(1),
+        flags=re.IGNORECASE,
+    ).strip()
+    if not candidate:
+        return None
+    return candidate
+
+
+def _coverage_operation_occurrences(tokens: List[str]) -> List[tuple[int, str]]:
+    return [
         (index, operation)
         for index, token in enumerate(tokens)
         if (operation := _coverage_operation(token, index=index, tokens=tokens)) is not None
     ]
+
+
+def _coverage_evidence(value: str) -> Dict[str, Any] | None:
+    tokens = _tokenize(value)
+    operation_occurrences = _coverage_operation_occurrences(tokens)
+    if any(operation == "process" for _, operation in operation_occurrences):
+        embedded_fragment = _coverage_embedded_activity_fragment(value)
+        if embedded_fragment is not None:
+            embedded_tokens = _tokenize(embedded_fragment)
+            embedded_occurrences = _coverage_operation_occurrences(embedded_tokens)
+            if embedded_occurrences and not any(operation == "process" for _, operation in embedded_occurrences):
+                tokens = embedded_tokens
+                operation_occurrences = embedded_occurrences
     if not operation_occurrences:
         return None
 
@@ -572,7 +1434,9 @@ def _coverage_evidence(value: str) -> Dict[str, Any] | None:
     if not objects:
         return None
     operation_objects: Dict[str, set[str]] = {}
+    operation_terms: Dict[str, set[str]] = {}
     for occurrence_index, (token_index, operation) in enumerate(operation_occurrences):
+        operation_terms.setdefault(operation, set()).add(_stem_ownership_token(tokens[token_index]))
         next_index = (
             operation_occurrences[occurrence_index + 1][0]
             if occurrence_index + 1 < len(operation_occurrences)
@@ -597,6 +1461,10 @@ def _coverage_evidence(value: str) -> Dict[str, Any] | None:
         "operation_objects": {
             operation: sorted(operation_objects[operation])
             for operation in sorted(operation_objects)
+        },
+        "operation_terms": {
+            operation: sorted(operation_terms[operation])
+            for operation in sorted(operation_terms)
         },
     }
 
@@ -715,9 +1583,81 @@ def _coverage_entry_matches(source: Dict[str, Any], entry: Dict[str, Any]) -> bo
     represented = entry.get("evidence")
     if not represented:
         return False
-    if not set(source["operations"]).intersection(represented["operations"]):
+    if not _coverage_operations_overlap(source, represented):
         return False
     return bool(set(source["objects"]).intersection(represented["objects"]))
+
+
+def _coverage_operations_overlap(source: Dict[str, Any], represented: Dict[str, Any]) -> bool:
+    source_operations = set(source["operations"])
+    represented_operations = set(represented["operations"])
+    if source_operations.intersection(represented_operations):
+        return True
+    return any(
+        _coverage_operations_are_equivalent(
+            source_operation=source_operation,
+            represented_operation=represented_operation,
+            source=source,
+            represented=represented,
+        )
+        for source_operation in source_operations
+        for represented_operation in represented_operations
+    )
+
+
+def _coverage_operations_are_equivalent(
+    *,
+    source_operation: str,
+    represented_operation: str,
+    source: Dict[str, Any],
+    represented: Dict[str, Any],
+) -> bool:
+    nominalized_terms = _COVERAGE_NOMINALIZED_OPERATION_EQUIVALENTS.get(
+        (source_operation, represented_operation)
+    )
+    if not nominalized_terms:
+        return False
+    source_objects = set(source["operation_objects"].get(source_operation) or source["objects"])
+    represented_terms = set(
+        represented.get("operation_terms", {}).get(represented_operation) or []
+    )
+    shared_nominalization = source_objects.intersection(represented_terms).intersection(
+        nominalized_terms
+    )
+    if not shared_nominalization:
+        return False
+    shared_core_objects = set(source["objects"]).intersection(represented["objects"]) - shared_nominalization
+    return bool(shared_core_objects)
+
+
+def _coverage_entry_represents_operation(
+    *,
+    source: Dict[str, Any],
+    source_operation: str,
+    entry: Dict[str, Any],
+) -> bool:
+    represented = entry.get("evidence")
+    if not represented:
+        return False
+    source_objects = set(source["operation_objects"].get(source_operation) or source["objects"])
+    for represented_operation in represented["operations"]:
+        if source_operation != represented_operation:
+            if _coverage_operations_are_equivalent(
+                source_operation=source_operation,
+                represented_operation=represented_operation,
+                source=source,
+                represented=represented,
+            ):
+                return True
+            continue
+        represented_objects = set(
+            represented["objects"]
+            if entry.get("kind") == "decision_semantics"
+            else represented["operation_objects"].get(represented_operation) or represented["objects"]
+        )
+        if source_objects.intersection(represented_objects):
+            return True
+    return False
 
 
 def _uncovered_coverage_operations(
@@ -726,31 +1666,27 @@ def _uncovered_coverage_operations(
 ) -> List[str]:
     uncovered: List[str] = []
     for operation in source["operations"]:
-        source_objects = set(source["operation_objects"].get(operation) or source["objects"])
         if any(
-            entry.get("evidence")
-            and operation in entry["evidence"]["operations"]
-            and source_objects.intersection(entry["evidence"]["objects"])
-            for entry in entries
-        ):
-            continue
-        coordinated_clause = bool(re.search(r"\b(?:and|as well as)\b", source["fragment"], re.IGNORECASE))
-        if any(
-            entry.get("kind") == "action"
-            and entry.get("evidence")
-            and (
-                (
-                    len(source["operations"]) > 1
-                    and source_objects.intersection(entry["evidence"]["objects"])
-                )
-                or (
-                    coordinated_clause
-                    and len(source_objects.intersection(entry["evidence"]["objects"])) >= 2
-                )
+            _coverage_entry_represents_operation(
+                source=source,
+                source_operation=operation,
+                entry=entry,
             )
             for entry in entries
         ):
             continue
+        if len(source["operations"]) == 1:
+            source_objects = set(source["operation_objects"].get(operation) or source["objects"])
+            coordinated_clause = bool(
+                re.search(r"\b(?:and|as well as)\b", source["fragment"], re.IGNORECASE)
+            )
+            if coordinated_clause and any(
+                entry.get("kind") == "action"
+                and entry.get("evidence")
+                and len(source_objects.intersection(entry["evidence"]["objects"])) >= 2
+                for entry in entries
+            ):
+                continue
         uncovered.append(operation)
     return uncovered
 
@@ -773,6 +1709,32 @@ def _related_coverage_content(
         )
     ]
     return related[:4]
+
+
+def _uncovered_coverage_requirements(
+    *,
+    source: Dict[str, Any],
+    uncovered_operations: List[str],
+    entries: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    requirements: List[Dict[str, Any]] = []
+    for operation in uncovered_operations:
+        operation_objects = sorted(
+            source["operation_objects"].get(operation) or source["objects"]
+        )
+        requirements.append(
+            {
+                "operation": operation,
+                "objects": operation_objects,
+                "terms": sorted(source["operation_terms"].get(operation) or []),
+                "checked_semantic_content": _related_coverage_content(
+                    operations=[operation],
+                    objects=operation_objects,
+                    entries=entries,
+                ),
+            }
+        )
+    return requirements
 
 
 def _coverage_issue_priority(issue: Dict[str, Any]) -> tuple[int, int, int, int]:
@@ -845,7 +1807,9 @@ def validate_semantic_coverage_against_evidence(
     candidate_issues: List[Dict[str, Any]] = []
 
     for source_index, source in enumerate(_coverage_fragments(process_text)):
-        if any(_coverage_entry_matches(source, entry) for entry in entries):
+        if len(source["operations"]) == 1 and any(
+            _coverage_entry_matches(source, entry) for entry in entries
+        ):
             continue
         uncovered_operations = _uncovered_coverage_operations(source, entries)
         if not uncovered_operations:
@@ -859,6 +1823,11 @@ def validate_semantic_coverage_against_evidence(
         )
         if scope_hint is None:
             continue
+        uncovered_requirements = _uncovered_coverage_requirements(
+            source=source,
+            uncovered_operations=uncovered_operations,
+            entries=entries,
+        )
         diagnostic_objects = sorted(
             {
                 object_token
@@ -876,13 +1845,33 @@ def validate_semantic_coverage_against_evidence(
                 objects=diagnostic_objects,
                 entries=entries,
             ),
+            "uncovered_requirements": uncovered_requirements,
             "scope_hint": scope_hint,
             "reason": "no equivalent Action or decision semantics found",
             "source_index": source_index,
         }
-        duplicate_key = (scope_hint, tuple(uncovered_operations))
+        duplicate_key = (
+            scope_hint,
+            tuple(
+                (
+                    requirement["operation"],
+                    tuple(requirement["objects"]),
+                )
+                for requirement in uncovered_requirements
+            ),
+        )
         if any(
-            (existing["scope_hint"], tuple(existing["operations"])) == duplicate_key
+            (
+                existing["scope_hint"],
+                tuple(
+                    (
+                        requirement["operation"],
+                        tuple(requirement["objects"]),
+                    )
+                    for requirement in existing.get("uncovered_requirements") or []
+                ),
+            )
+            == duplicate_key
             for existing in candidate_issues
         ):
             continue
@@ -983,6 +1972,43 @@ def _shared_root_continuation_is_scope_safe(
             return False
         eligible_branches = {owner_branch}
     return bool(continuing_root_branches) and continuing_root_branches.issubset(eligible_branches)
+
+
+def _safe_parallel_post_slot_id(
+    *,
+    structure: TopologyStructure,
+    root_structures: List[TopologyStructure],
+    branch_plans: Dict[tuple[str, str], Dict[str, Any]],
+    structures_by_id: Dict[str, TopologyStructure],
+) -> str | None:
+    root_ancestor_id = _root_ancestor_id(structure, structures_by_id)
+    if root_ancestor_id is None:
+        return None
+    root_ancestor = structures_by_id[root_ancestor_id]
+    if structure.parent == "ROOT":
+        if all(
+            (branch_plans.get((structure.id, branch)) or {}).get("intent") == "continue"
+            for branch in structure.branches
+        ):
+            return f"AFTER_{structure.id}"
+        return None
+    if root_ancestor.type != "decision":
+        return None
+    owner_branch = _root_branch_containing_structure(
+        structure,
+        root_ancestor.id,
+        structures_by_id,
+    )
+    if owner_branch is None:
+        return None
+    continuing_root_branches = {
+        branch
+        for branch in root_ancestor.branches
+        if (branch_plans.get((root_ancestor.id, branch)) or {}).get("intent") == "continue"
+    }
+    if continuing_root_branches and continuing_root_branches.issubset({owner_branch}):
+        return f"AFTER_{root_ancestor.id}"
+    return None
 
 
 def _action_has_universal_continuation_evidence(action: str, sentences: List[str]) -> bool:
@@ -1131,6 +2157,22 @@ def _raise_shared_ownership_contradiction(reason: str) -> None:
     )
 
 
+def _raise_parallel_branch_ownership_contradiction(reason: str) -> None:
+    raise SemanticOwnershipEvidenceValidationError(
+        "SemanticSketchPlan contradicts parallel-branch ownership evidence: "
+        f"{reason}. Keep the cited branch-local action inside its source-supported parallel/workstream branch "
+        "and do not move it into shared/root continuation without explicit synchronization evidence."
+    )
+
+
+def _raise_parallel_join_ownership_contradiction(reason: str) -> None:
+    raise SemanticOwnershipEvidenceValidationError(
+        "SemanticSketchPlan contradicts parallel-join ownership evidence: "
+        f"{reason}. Keep pre-synchronization work branch-local, place explicitly post-join work in the safe "
+        "shared continuation slot once, and do not assign that shared action to only one branch."
+    )
+
+
 def _raise_loop_continuation_contradiction(reason: str) -> None:
     raise SemanticOwnershipEvidenceValidationError(
         "SemanticSketchPlan contradicts loop-success-continuation evidence: "
@@ -1158,13 +2200,103 @@ def validate_semantic_ownership_against_evidence(
     plan = _normalize_semantic_plan(semantic_plan).model_dump(mode="json")
     root_structures = [structure for structure in artifact.structures if structure.parent == "ROOT"]
     branch_plans = _branch_plan_lookup(plan)
+    structures_by_id = {structure.id: structure for structure in artifact.structures}
     sentences = [
         sentence.strip()
         for sentence in re.split(r"(?<=[.!?])\s+", process_text.strip())
         if sentence.strip()
     ]
+    fragments = _split_process_fragments(process_text)
+    parallel_local_fragments = _parallel_structure_local_fragments(process_text, artifact)
 
-    if len(root_structures) == 1:
+    for structure in artifact.structures:
+        if structure.type != "parallel":
+            continue
+        has_explicit_post_join = any(
+            _has_explicit_parallel_join_ownership(sentence=sentence, structure=structure)
+            for sentence in sentences
+        )
+        for branch in structure.branches:
+            for fragment in fragments:
+                if _is_explicit_parallel_post_join_clause(
+                    fragment=fragment,
+                    structure=structure,
+                    sentences=sentences,
+                ):
+                    continue
+                if not _has_explicit_parallel_branch_ownership(
+                    fragment=fragment,
+                    structure=structure,
+                    branch=branch,
+                    local_fragments=parallel_local_fragments.get(structure.id),
+                ):
+                    continue
+                evidence_tokens = _ownership_tokens(fragment)
+                branch_actions = _branch_action_texts(plan, structure.id, branch)
+                if any(_action_matches_evidence(action, evidence_tokens) for action in branch_actions):
+                    continue
+                conflicting_scopes = _matching_action_scopes(
+                    plan,
+                    evidence_tokens=evidence_tokens,
+                    exclude_branch=(structure.id, branch),
+                    allowed_scopes=_parallel_structure_local_scope_labels(structure, root_structures),
+                )
+                if conflicting_scopes:
+                    _raise_parallel_branch_ownership_contradiction(
+                        f"action from fragment {fragment!r} is owned outside branch {structure.id}/{branch}: "
+                        f"{', '.join(conflicting_scopes)}"
+                    )
+                _raise_parallel_branch_ownership_contradiction(
+                    f"branch {structure.id}/{branch} is missing explicit branch-local work from fragment "
+                    f"{fragment!r}"
+                )
+
+            if has_explicit_post_join:
+                branch_plan = branch_plans.get((structure.id, branch))
+                if branch_plan is not None and branch_plan.get("intent") != "continue":
+                    safe_post_slot_id = _safe_parallel_post_slot_id(
+                        structure=structure,
+                        root_structures=root_structures,
+                        branch_plans=branch_plans,
+                        structures_by_id=structures_by_id,
+                    )
+                    if safe_post_slot_id is not None:
+                        _raise_parallel_join_ownership_contradiction(
+                            f"branch {structure.id}/{branch} uses intent={branch_plan.get('intent')} before "
+                            f"explicit post-join work in {safe_post_slot_id}"
+                        )
+
+        safe_post_slot_id = _safe_parallel_post_slot_id(
+            structure=structure,
+            root_structures=root_structures,
+            branch_plans=branch_plans,
+            structures_by_id=structures_by_id,
+        )
+        if safe_post_slot_id is None:
+            continue
+        shared_actions = _root_action_texts(plan, safe_post_slot_id)
+        for sentence in sentences:
+            if not _has_explicit_parallel_join_ownership(sentence=sentence, structure=structure):
+                continue
+            evidence_tokens = _ownership_tokens(sentence)
+            if any(_action_matches_evidence(action, evidence_tokens) for action in shared_actions):
+                continue
+            conflicting_scopes = _matching_action_scopes(
+                plan,
+                evidence_tokens=evidence_tokens,
+                exclude_root_slot=safe_post_slot_id,
+            )
+            if conflicting_scopes:
+                _raise_parallel_join_ownership_contradiction(
+                    f"post-join action from sentence {sentence!r} is not in shared slot {safe_post_slot_id}; "
+                    f"found at {', '.join(conflicting_scopes)}"
+                )
+            _raise_parallel_join_ownership_contradiction(
+                f"shared post-join action is missing from safe slot {safe_post_slot_id} for sentence "
+                f"{sentence!r}"
+            )
+
+    if len(root_structures) == 1 and root_structures[0].type != "parallel":
         root_structure = root_structures[0]
         post_slot_id = f"AFTER_{root_structure.id}"
         shared_actions = _root_action_texts(plan, post_slot_id)
@@ -1184,7 +2316,6 @@ def validate_semantic_ownership_against_evidence(
                         f"before explicit shared behavior in {post_slot_id}"
                     )
 
-    structures_by_id = {structure.id: structure for structure in artifact.structures}
     for loop in artifact.structures:
         if loop.type != "loop":
             continue
@@ -1649,6 +2780,12 @@ def generate_semantic_sketch_plan(
             candidate_artifact = _revalidate_semantic_plan_against_topology(
                 topology_artifact=normalized_topology_artifact,
                 semantic_plan=parsed_payload,
+            )
+            previous_attempt = planner_attempts[-1] if planner_attempts else None
+            candidate_artifact = _enforce_semantic_correction_preservation(
+                previous_plan=previous_attempt.get("parsed_output") if previous_attempt else None,
+                current_plan=candidate_artifact,
+                previous_validation_error=previous_attempt.get("validation_error") if previous_attempt else None,
             )
             candidate_artifact = validate_semantic_ownership_against_evidence(
                 process_text,
