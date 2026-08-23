@@ -27,21 +27,39 @@ def _build_output_schema(write_back, allowed_values):
 def invoke(ai_config, instance):
     """Step 7 - full runtime for one AI-managed attribute. Orchestrates
     M02 context -> M01 render -> M06 route -> M03 parse, logs a full trace, and returns the
-    parsed write-back value (or None). The generated hook performs the ORM write-back."""
+    parsed write-back value (or None). The generated hook performs the ORM write-back.
+
+    Fail-open (M07 error semantics): any runtime/provider failure is logged as an
+    'invoke_error' record and yields value=None. It must never propagate into the caller's
+    post_save signal, so a business save can never be broken by AI availability."""
     model_profile = ai_config.get("model_profile")
-    template_name = ai_config["template"]["name"]
+    template_name = ai_config.get("template", {}).get("name")
     output_cfg = ai_config.get("output", {})
     write_back = output_cfg.get("write_back")
     allowed_values = output_cfg.get("allowed_values")
 
-    context = build_context(ai_config, instance)          # M02
-    prompt = render_prompt(template_name, context)        # M01
-    routed = call_model(model_profile, prompt)            # M06
-    raw = routed.get("content", "")
+    context = None
+    routed = {}
+    raw = ""
+    value = None
+    status = "success"
+    error = None
 
-    schema = _build_output_schema(write_back, allowed_values)   # M05 -> M03
-    parsed = JsonOutputParser(schema).parse(raw)               # M03
-    value = getattr(parsed.data, write_back) if parsed.success else None
+    try:
+        context = build_context(ai_config, instance)                 # M02
+        prompt = render_prompt(template_name, context)               # M01
+        routed = call_model(model_profile, prompt)                   # M06
+        raw = routed.get("content", "")
+        schema = _build_output_schema(write_back, allowed_values)    # M05 -> M03
+        parsed = JsonOutputParser(schema).parse(raw)                 # M03
+        if parsed.success:
+            value = getattr(parsed.data, write_back)
+        else:
+            status = "parse_error"
+            error = {"code": parsed.error.code, "message": parsed.error.message}
+    except Exception as exc:  # noqa: BLE001 - fail-open boundary, see docstring
+        status = "invoke_error"
+        error = {"code": type(exc).__name__, "message": str(exc)}
 
     record = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -56,13 +74,16 @@ def invoke(ai_config, instance):
         "template": template_name,
         "context": context,
         "raw_output": raw,
-        "parsed_output": value if parsed.success else None,
+        "parsed_output": value,
         "write_back": {"field": write_back, "value": value},
-        "status": "success" if parsed.success else "parse_error",
-        "error": None if parsed.success else {"code": parsed.error.code, "message": parsed.error.message},
+        "status": status,
+        "error": error,
         "ai_config_version": ai_config.get("ai_config_version"),
     }
-    with LOG_PATH.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    try:
+        with LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    except OSError:
+        pass  # logging must also never break the business save
 
     return value
