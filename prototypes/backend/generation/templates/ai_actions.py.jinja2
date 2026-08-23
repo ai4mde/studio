@@ -1,5 +1,8 @@
 # GENERATED - M07 user-action LLM invocation glue (do not edit by hand).
 # Mirrors ai_hooks.py for the post_save case; here the trigger is an explicit user action.
+# Fail-open (M07 error semantics): chain-internal failures surface as status="chain_error"
+# with ChainResult.error; anything raised outside the chain (e.g. context building) is
+# caught here as status="action_error". Neither may break the user's request.
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,7 +19,23 @@ LOG_PATH = Path(settings.BASE_DIR) / "ai_invocations.jsonl"
 
 def generate_{{ a.func_suffix }}(instance):
     from ai_runtime.reading_plan import run_reading_plan  # chain orchestration (Step 8)
-    summary, result, mode = run_reading_plan({{ a.config_name }}, instance)
+    summary = None
+    mode = None
+    status = "success"
+    failed_step = None
+    step_details = []
+    error = None
+    try:
+        summary, result, mode = run_reading_plan({{ a.config_name }}, instance)
+        failed_step = result.failed_step
+        step_details = result.step_details
+        if not result.success:
+            status = "chain_error"
+        if result.error is not None:
+            error = {"code": result.error.code, "message": result.error.message}
+    except Exception as exc:  # noqa: BLE001 - fail-open boundary (M07 user_action)
+        status = "action_error"
+        error = {"code": type(exc).__name__, "message": str(exc)}
     record = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "event": "invoke_chain",
@@ -26,13 +45,17 @@ def generate_{{ a.func_suffix }}(instance):
         "model_profile": {{ a.config_name }}.get("model_profile"),
         "mode": mode,
         "write_back": {"field": "{{ a.write_back }}", "value": summary},
-        "status": "success" if result.success else "chain_error",
-        "failed_step": result.failed_step,
-        "step_details": result.step_details,
+        "status": status,
+        "failed_step": failed_step,
+        "error": error,
+        "step_details": step_details,
         "ai_config_version": {{ a.config_name }}.get("ai_config_version"),
     }
-    with LOG_PATH.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    try:
+        with LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    except OSError:
+        pass  # logging must not break the user's request either
     if summary is not None:
         {{ a.model }}.objects.filter(pk=instance.pk).update({{ a.write_back }}=summary)
     return summary
