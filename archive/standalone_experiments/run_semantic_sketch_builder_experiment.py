@@ -216,7 +216,14 @@ def _write_summary(output_dir: Path, summary_rows: List[Dict[str, Any]]) -> None
 
 def _is_rate_limit_failure(exc: BaseException) -> bool:
     text = f"{type(exc).__name__}: {exc}"
-    return "429" in text and "Too Many Requests" in text
+    lowered = text.lower()
+    return "rate_limit_exceeded" in lowered or (
+        "429" in text
+        and any(
+            marker in lowered
+            for marker in ("too many requests", "error code", "status code", "status_code")
+        )
+    )
 
 
 def _build_failure_payload(

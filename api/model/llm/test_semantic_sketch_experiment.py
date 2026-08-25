@@ -9,11 +9,20 @@ from llm.semantic_sketch_experiment import (
     SemanticOwnershipEvidenceValidationError,
     SemanticSketchPlanGenerationError,
     _build_semantic_correction_prompt,
+    _apply_semantic_patch,
+    _canonicalize_redundant_semantic_branch_metadata,
+    _deterministic_target_slot_correction,
+    _diagnostic_editable_coordinates,
     _enforce_semantic_correction_preservation,
+    _coverage_evidence,
     _has_explicit_parallel_branch_ownership,
     _has_explicit_parallel_join_ownership,
     _normalize_topology_artifact,
+    _normalized_correction_state,
     _parallel_structure_local_fragments,
+    _parse_semantic_patch,
+    _revalidate_semantic_plan_against_topology,
+    _semantic_patch_prompt,
     build_semantic_sketch_experiment_prompt,
     generate_semantic_sketch_plan,
     parse_semantic_sketch_plan_json,
@@ -22,6 +31,109 @@ from llm.semantic_sketch_experiment import (
     validate_semantic_coverage_against_evidence,
     validate_semantic_ownership_against_evidence,
 )
+
+
+def _patch(*operations: dict) -> str:
+    return json.dumps({"operations": list(operations)})
+
+
+def _root_coordinate(slot_id: str) -> dict:
+    return {"kind": "root_actions", "slot_id": slot_id}
+
+
+def _branch_coordinate(kind: str, structure_id: str, branch: str) -> dict:
+    return {"kind": kind, "structure_id": structure_id, "branch": branch}
+
+
+def _exact_target_diagnostic(
+    *,
+    allowed_target: str,
+    loop_id: str = "T2",
+    success_branch: str = "resubmit",
+    current_target: str | None = None,
+) -> str:
+    if current_target is None:
+        current_target = "AFTER_T1" if allowed_target == "ROOT_START" else "ROOT_START"
+    return (
+        "SemanticSketchPlan contradicts loop-success-continuation evidence: "
+        f"loop={loop_id}, retry_branch=retry, success_branch={success_branch}, "
+        f"expected_continuation={allowed_target}, retry_target={allowed_target}, "
+        f"allowed_target_slot_id={allowed_target}, current_target={current_target}; "
+        "the source explicitly returns corrected work to earlier review"
+    )
+
+
+def _accounting_topology() -> dict:
+    return {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "loop",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["retry", "success"],
+                "purpose": "first correction loop",
+            },
+            {
+                "id": "T2",
+                "type": "loop",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["retry", "success"],
+                "purpose": "second correction loop",
+            },
+        ]
+    }
+
+
+def _accounting_plan() -> dict:
+    return {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "submit report"}]},
+            {"slot_id": "AFTER_T1", "actions": []},
+            {"slot_id": "AFTER_T2", "actions": []},
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "retry",
+                "intent": "loop_back",
+                "steps": [{"action": "correct report"}],
+            },
+            {"structure_id": "T1", "branch": "success", "intent": "continue", "steps": []},
+            {
+                "structure_id": "T2",
+                "branch": "retry",
+                "intent": "loop_back",
+                "steps": [{"action": "complete receipts"}],
+            },
+            {"structure_id": "T2", "branch": "success", "intent": "continue", "steps": []},
+        ],
+    }
+
+
+def _coverage_error(action: str) -> SemanticCoverageEvidenceValidationError:
+    operation, *object_parts = action.split()
+    objects = object_parts or ["report"]
+    return SemanticCoverageEvidenceValidationError(
+        [
+            {
+                "source_fragment": action,
+                "operations": [operation],
+                "objects": objects,
+                "uncovered_requirements": [
+                    {
+                        "operation": operation,
+                        "objects": objects,
+                        "terms": [operation],
+                        "checked_semantic_content": [],
+                    }
+                ],
+                "scope_hint": "ROOT_START",
+                "reason": "no equivalent Action or decision semantics found",
+            }
+        ]
+    )
 
 
 def test_parse_semantic_sketch_plan_json_accepts_valid_semantic_plan() -> None:
@@ -246,7 +358,7 @@ def test_generate_semantic_plan_retries_after_missing_explicit_handoff_action() 
             "branch_plans": [],
         }
     )
-    corrected = json.dumps(
+    _corrected = json.dumps(
         {
             "root_actions": [
                 {
@@ -264,7 +376,17 @@ def test_generate_semantic_plan_retries_after_missing_explicit_handoff_action() 
 
     with patch(
         "llm.semantic_sketch_experiment.call_openai",
-        side_effect=[incomplete, corrected],
+        side_effect=[
+            incomplete,
+            _patch(
+                {
+                        "op": "insert_action",
+                        "coordinate": _root_coordinate("ROOT_START"),
+                        "value": "submit registration form to secretarial office",
+                        "index": 1,
+                }
+            ),
+        ],
     ) as mocked_call:
         result = generate_semantic_sketch_plan(
             process_text,
@@ -278,8 +400,8 @@ def test_generate_semantic_plan_retries_after_missing_explicit_handoff_action() 
         {"action": "store registration information in information system"},
     ]
     correction_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
-    assert "preserve that transfer as its own Action" in correction_prompt
-    assert "Do not force a separate Action for incidental destination context" in correction_prompt
+    assert "Return only a local patch" in correction_prompt
+    assert '"insert_action"' in correction_prompt
 
 
 def _decision_topology() -> dict:
@@ -318,6 +440,74 @@ def _decision_plan(*, shared_actions: list[str], rejected_intent: str = "continu
             },
         ],
     }
+
+
+def _decision_plan_with_branch_metadata(**metadata: object) -> dict:
+    plan = _decision_plan(shared_actions=[])
+    plan["branch_plans"][0].update(metadata)
+    return plan
+
+
+def test_matching_redundant_semantic_branch_metadata_is_canonicalized() -> None:
+    canonical = _canonicalize_redundant_semantic_branch_metadata(
+        _decision_plan_with_branch_metadata(
+            type="decision",
+            purpose="review the request outcome",
+        ),
+        topology_artifact=_decision_topology(),
+    )
+
+    assert "type" not in canonical["branch_plans"][0]
+    assert "purpose" not in canonical["branch_plans"][0]
+    _revalidate_semantic_plan_against_topology(
+        topology_artifact=_decision_topology(),
+        semantic_plan=canonical,
+    )
+
+
+def test_mismatched_semantic_branch_type_still_fails_strict_validation() -> None:
+    canonical = _canonicalize_redundant_semantic_branch_metadata(
+        _decision_plan_with_branch_metadata(type="loop"),
+        topology_artifact=_decision_topology(),
+    )
+
+    with pytest.raises(ValueError, match=r"branch_plans\.0\.type"):
+        _revalidate_semantic_plan_against_topology(
+            topology_artifact=_decision_topology(),
+            semantic_plan=canonical,
+        )
+
+
+def test_mismatched_semantic_branch_purpose_still_fails_strict_validation() -> None:
+    canonical = _canonicalize_redundant_semantic_branch_metadata(
+        _decision_plan_with_branch_metadata(purpose="redesign the workflow"),
+        topology_artifact=_decision_topology(),
+    )
+
+    with pytest.raises(ValueError, match=r"branch_plans\.0\.purpose"):
+        _revalidate_semantic_plan_against_topology(
+            topology_artifact=_decision_topology(),
+            semantic_plan=canonical,
+        )
+
+
+def test_unrelated_extra_semantic_branch_field_prevents_metadata_canonicalization() -> None:
+    canonical = _canonicalize_redundant_semantic_branch_metadata(
+        _decision_plan_with_branch_metadata(
+            type="decision",
+            purpose="review the request outcome",
+            note="not part of the semantic schema",
+        ),
+        topology_artifact=_decision_topology(),
+    )
+
+    assert canonical["branch_plans"][0]["type"] == "decision"
+    assert canonical["branch_plans"][0]["purpose"] == "review the request outcome"
+    with pytest.raises(ValueError, match=r"branch_plans\.0\.note"):
+        _revalidate_semantic_plan_against_topology(
+            topology_artifact=_decision_topology(),
+            semantic_plan=canonical,
+        )
 
 
 @pytest.mark.parametrize(
@@ -582,7 +772,21 @@ def test_generate_semantic_plan_applies_only_validator_approved_shared_relocatio
 
     with patch(
         "llm.semantic_sketch_experiment.call_openai",
-        side_effect=[json.dumps(invalid_plan), json.dumps(corrected_plan)],
+        side_effect=[
+            json.dumps(invalid_plan),
+            _patch(
+                {
+                    "op": "remove_action",
+                    "coordinate": _branch_coordinate("branch_steps", "T2", "complete"),
+                    "action": "register claim",
+                },
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("AFTER_T1"),
+                    "value": "register claim",
+                },
+            ),
+        ],
     ) as mocked_call:
         result = generate_semantic_sketch_plan(
             process_text,
@@ -595,9 +799,9 @@ def test_generate_semantic_plan_applies_only_validator_approved_shared_relocatio
     assert 'exact_action="register claim"' in correction_prompt
     assert "REMOVE exact_action from invalid_owner" in correction_prompt
     assert "ADD exact_action exactly once to allowed_destination" in correction_prompt
-    assert "overrides the generic branch-local preference for the exact cited Action only" in correction_prompt
-    assert "Use the previous parsed plan as the preservation baseline" in correction_prompt
-    assert "Preserve every unrelated Action, intent, target_slot_id, topology handle, and branch structure" in correction_prompt
+    assert "The previous plan is authoritative" in correction_prompt
+    assert "Unspecified content is frozen" in correction_prompt
+    assert '"exact_action": "register claim"' in correction_prompt
 
     artifact = result["artifact"]
     all_actions = [
@@ -823,11 +1027,25 @@ def test_generate_semantic_sketch_plan_retries_for_label_independent_retry_conve
         "Otherwise, the submitter corrects it. The corrected submission is checked again until it passes."
     )
     invalid_plan = _label_independent_retry_plan(shared=False)
-    valid_plan = _label_independent_retry_plan(shared=True)
+    _valid_plan = _label_independent_retry_plan(shared=True)
 
     with patch(
         "llm.semantic_sketch_experiment.call_openai",
-        side_effect=[json.dumps(invalid_plan), json.dumps(valid_plan)],
+        side_effect=[
+            json.dumps(invalid_plan),
+            _patch(
+                {
+                    "op": "remove_action",
+                    "coordinate": _branch_coordinate("branch_steps", "T1", "route_a"),
+                    "action": "archive submission",
+                },
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("AFTER_T1"),
+                    "value": "archive submission",
+                },
+            ),
+        ],
     ):
         result = generate_semantic_sketch_plan(
             process_text,
@@ -874,7 +1092,13 @@ def _explicit_review_return_plan(*, target_slot_id: str | None) -> dict:
         success_plan["target_slot_id"] = target_slot_id
     return {
         "root_actions": [
-            {"slot_id": "ROOT_START", "actions": [{"action": "submit report"}]},
+            {
+                "slot_id": "ROOT_START",
+                "actions": [
+                    {"action": "submit report"},
+                    {"action": "supervisor reviews report"},
+                ],
+            },
             {"slot_id": "AFTER_T1", "actions": [{"action": "process approved report"}]},
         ],
         "branch_plans": [
@@ -1118,17 +1342,115 @@ def test_semantic_loop_validator_does_not_enforce_ambiguous_continuation() -> No
     ) == plan
 
 
+@pytest.mark.parametrize(
+    ("allowed_target", "rejected_target"),
+    [("ROOT_START", "AFTER_T1"), ("AFTER_T1", "ROOT_START")],
+)
+def test_exact_loop_success_target_authorizes_and_enforces_only_validator_target(
+    allowed_target: str,
+    rejected_target: str,
+) -> None:
+    diagnostic = _exact_target_diagnostic(allowed_target=allowed_target)
+    deterministic = _deterministic_target_slot_correction(diagnostic)
+    success_coordinate = _branch_coordinate("branch_target_slot_id", "T2", "resubmit")
+    editable_coordinates = _diagnostic_editable_coordinates(diagnostic)
+
+    assert deterministic == {
+        "coordinate": success_coordinate,
+        "allowed_target_slot_id": allowed_target,
+        "patch": {
+            "operations": [
+                {
+                    "op": "set_target_slot_id",
+                    "coordinate": success_coordinate,
+                    "value": allowed_target,
+                }
+            ]
+        },
+    }
+    assert editable_coordinates == [
+        {
+            **success_coordinate,
+            "allowed_operations": ["set_target_slot_id"],
+            "allowed_target_slot_id": allowed_target,
+        }
+    ]
+
+    corrected, audit = _apply_semantic_patch(
+        previous_plan=_explicit_review_return_plan(target_slot_id=None),
+        patch=deterministic["patch"],
+        editable_coordinates=editable_coordinates,
+        topology_artifact=_explicit_review_return_topology(),
+    )
+    assert corrected["branch_plans"][-1]["target_slot_id"] == allowed_target
+    assert audit["changed_coordinates"] == [success_coordinate]
+
+    with pytest.raises(ValueError, match="exact validator-approved target"):
+        _apply_semantic_patch(
+            previous_plan=_explicit_review_return_plan(target_slot_id=None),
+            patch={
+                "operations": [
+                    {
+                        "op": "set_target_slot_id",
+                        "coordinate": success_coordinate,
+                        "value": rejected_target,
+                    }
+                ]
+            },
+            editable_coordinates=editable_coordinates,
+            topology_artifact=_explicit_review_return_topology(),
+        )
+
+
+def test_exact_loop_success_target_does_not_authorize_retry_sibling() -> None:
+    diagnostic = _exact_target_diagnostic(allowed_target="ROOT_START")
+    editable_coordinates = _diagnostic_editable_coordinates(diagnostic)
+
+    with pytest.raises(ValueError, match="unauthorized operation"):
+        _apply_semantic_patch(
+            previous_plan=_explicit_review_return_plan(target_slot_id=None),
+            patch={
+                "operations": [
+                    {
+                        "op": "set_target_slot_id",
+                        "coordinate": _branch_coordinate("branch_target_slot_id", "T2", "retry"),
+                        "value": "ROOT_START",
+                    }
+                ]
+            },
+            editable_coordinates=editable_coordinates,
+            topology_artifact=_explicit_review_return_topology(),
+        )
+
+
+def test_target_diagnostic_without_exact_allowed_value_keeps_existing_editable_scope() -> None:
+    diagnostic = (
+        "SemanticSketchPlan contradicts loop-success-continuation evidence: "
+        "loop=T2, retry_branch=retry, success_branch=resubmit, expected_continuation=AFTER_T1; "
+        "continuation requires semantic correction"
+    )
+
+    assert _deterministic_target_slot_correction(diagnostic) is None
+    editable_coordinates = _diagnostic_editable_coordinates(diagnostic)
+    target_coordinates = {
+        (coordinate["structure_id"], coordinate["branch"])
+        for coordinate in editable_coordinates
+        if coordinate["kind"] == "branch_target_slot_id"
+    }
+    assert target_coordinates == {("T2", "retry"), ("T2", "resubmit")}
+    assert all("allowed_target_slot_id" not in coordinate for coordinate in editable_coordinates)
+
+
 def test_generate_semantic_plan_loop_correction_is_targeted_and_has_no_placeholder() -> None:
     process_text = (
         "The supervisor reviews and rejects the report. The employee corrects and resubmits it. "
         "A corrected report must again go to the supervisor for review."
     )
     invalid = _explicit_review_return_plan(target_slot_id=None)
-    corrected = _explicit_review_return_plan(target_slot_id="ROOT_START")
 
     with patch(
         "llm.semantic_sketch_experiment.call_openai",
-        side_effect=[json.dumps(invalid), json.dumps(corrected)],
+        side_effect=[json.dumps(invalid)],
     ) as mocked_call:
         result = generate_semantic_sketch_plan(
             process_text,
@@ -1142,14 +1464,15 @@ def test_generate_semantic_plan_loop_correction_is_targeted_and_has_no_placehold
     assert "expected_continuation=ROOT_START" in diagnostic
     assert "retry_target=ROOT_START" in diagnostic
     assert "retry_success_continuation remains separate" in diagnostic
-    retry_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
-    assert "Loop-success-continuation correction" in retry_prompt
-    assert "Preserve the authoritative topology, unrelated root actions, and branch-local actions" in retry_prompt
-    assert "Treat retry_target and retry_success_continuation as distinct concepts" in retry_prompt
+    assert mocked_call.call_count == 1
+    assert result["planner_attempts"][1]["response_mode"] == "deterministic_target_slot_patch"
+    assert result["planner_attempts"][1]["correction_audit"]["changed_coordinates"] == [
+        _branch_coordinate("branch_target_slot_id", "T2", "resubmit")
+    ]
     assert "root_scope_" not in json.dumps(result["artifact"])
 
 
-def test_generate_semantic_plan_persistent_loop_continuation_failure_uses_three_attempts() -> None:
+def test_generate_semantic_plan_exact_loop_target_ignores_wrong_llm_patch_outputs() -> None:
     process_text = (
         "The supervisor reviews and rejects the report. The employee corrects and resubmits it. "
         "A corrected report must again go to the supervisor for review."
@@ -1158,18 +1481,243 @@ def test_generate_semantic_plan_persistent_loop_continuation_failure_uses_three_
 
     with patch(
         "llm.semantic_sketch_experiment.call_openai",
-        side_effect=[invalid, invalid, invalid],
+        side_effect=[invalid],
     ) as mocked_call:
-        with pytest.raises(SemanticSketchPlanGenerationError) as exc_info:
-            generate_semantic_sketch_plan(
-                process_text,
-                topology_artifact=_explicit_review_return_topology(),
+        result = generate_semantic_sketch_plan(
+            process_text,
+            topology_artifact=_explicit_review_return_topology(),
+        )
+
+    assert mocked_call.call_count == 1
+    assert result["artifact"]["branch_plans"][-1]["target_slot_id"] == "ROOT_START"
+
+
+def test_deterministic_target_repairs_preserve_llm_budget_for_later_semantic_correction() -> None:
+    initial = _accounting_plan()
+
+    def ownership_validator(_process_text: str, *, semantic_plan: dict, **_kwargs: object) -> dict:
+        branches = {
+            (entry["structure_id"], entry["branch"]): entry
+            for entry in semantic_plan["branch_plans"]
+        }
+        if branches[("T1", "success")].get("target_slot_id") != "ROOT_START":
+            raise SemanticOwnershipEvidenceValidationError(
+                _exact_target_diagnostic(
+                    allowed_target="ROOT_START",
+                    loop_id="T1",
+                    success_branch="success",
+                )
             )
+        if branches[("T2", "success")].get("target_slot_id") != "AFTER_T1":
+            raise SemanticOwnershipEvidenceValidationError(
+                _exact_target_diagnostic(
+                    allowed_target="AFTER_T1",
+                    loop_id="T2",
+                    success_branch="success",
+                    current_target="AFTER_T2",
+                )
+            )
+        return semantic_plan
+
+    def coverage_validator(_process_text: str, *, semantic_plan: dict, **_kwargs: object) -> dict:
+        actions = [
+            action["action"]
+            for entry in semantic_plan["root_actions"]
+            for action in entry["actions"]
+        ]
+        if "review expense report" not in actions:
+            raise _coverage_error("review expense report")
+        return semantic_plan
+
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[
+            json.dumps(initial),
+            _patch(
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("ROOT_START"),
+                    "value": "review expense report",
+                }
+            ),
+        ],
+    ) as mocked_call, patch(
+        "llm.semantic_sketch_experiment.validate_semantic_ownership_against_evidence",
+        side_effect=ownership_validator,
+    ), patch(
+        "llm.semantic_sketch_experiment.validate_semantic_coverage_against_evidence",
+        side_effect=coverage_validator,
+    ):
+        result = generate_semantic_sketch_plan("Review expense report.", topology_artifact=_accounting_topology())
+
+    assert mocked_call.call_count == 2
+    assert result["deterministic_repair_count"] == 2
+    assert result["llm_correction_count"] == 1
+    assert [attempt["response_mode"] for attempt in result["planner_attempts"]] == [
+        "structured_output",
+        "deterministic_target_slot_patch",
+        "deterministic_target_slot_patch",
+        "local_patch_json_mode",
+    ]
+
+
+def test_two_llm_corrections_still_exhaust_existing_budget() -> None:
+    initial = _linear_plan()
+
+    def coverage_validator(_process_text: str, *, semantic_plan: dict, **_kwargs: object) -> dict:
+        actions = [action["action"] for action in semantic_plan["root_actions"][0]["actions"]]
+        for required in ("review request", "approve request", "notify customer"):
+            if required not in actions:
+                raise _coverage_error(required)
+        return semantic_plan
+
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[
+            json.dumps(initial),
+            _patch(
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("ROOT_START"),
+                    "value": "review request",
+                }
+            ),
+            _patch(
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("ROOT_START"),
+                    "value": "approve request",
+                }
+            ),
+        ],
+    ) as mocked_call, patch(
+        "llm.semantic_sketch_experiment.validate_semantic_coverage_against_evidence",
+        side_effect=coverage_validator,
+    ):
+        with pytest.raises(SemanticSketchPlanGenerationError) as exc_info:
+            generate_semantic_sketch_plan("Review, approve, and notify.", topology_artifact={"structures": []})
 
     assert mocked_call.call_count == 3
-    attempts = exc_info.value.debug_artifacts["semantic_attempts"]
-    assert len(attempts) == 3
-    assert all("loop-success-continuation evidence" in attempt["validation_error"] for attempt in attempts)
+    assert exc_info.value.debug_artifacts["llm_correction_count"] == 2
+    assert exc_info.value.debug_artifacts["deterministic_repair_count"] == 0
+    assert "notify customer" in exc_info.value.debug_artifacts["semantic_validation_error"]
+
+
+def test_mixed_deterministic_and_llm_corrections_use_only_llm_budget() -> None:
+    initial = _accounting_plan()
+
+    def ownership_validator(_process_text: str, *, semantic_plan: dict, **_kwargs: object) -> dict:
+        branches = {
+            (entry["structure_id"], entry["branch"]): entry
+            for entry in semantic_plan["branch_plans"]
+        }
+        actions = [action["action"] for action in semantic_plan["root_actions"][0]["actions"]]
+        if branches[("T1", "success")].get("target_slot_id") != "ROOT_START":
+            raise SemanticOwnershipEvidenceValidationError(
+                _exact_target_diagnostic(
+                    allowed_target="ROOT_START",
+                    loop_id="T1",
+                    success_branch="success",
+                )
+            )
+        if "review request" in actions and branches[("T2", "success")].get("target_slot_id") != "AFTER_T1":
+            raise SemanticOwnershipEvidenceValidationError(
+                _exact_target_diagnostic(
+                    allowed_target="AFTER_T1",
+                    loop_id="T2",
+                    success_branch="success",
+                    current_target="AFTER_T2",
+                )
+            )
+        return semantic_plan
+
+    def coverage_validator(_process_text: str, *, semantic_plan: dict, **_kwargs: object) -> dict:
+        actions = [action["action"] for action in semantic_plan["root_actions"][0]["actions"]]
+        for required in ("review request", "approve request"):
+            if required not in actions:
+                raise _coverage_error(required)
+        return semantic_plan
+
+    patches = [
+        _patch(
+            {
+                "op": "append_action",
+                "coordinate": _root_coordinate("ROOT_START"),
+                "value": value,
+            }
+        )
+        for value in ("review request", "approve request")
+    ]
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[json.dumps(initial), *patches],
+    ) as mocked_call, patch(
+        "llm.semantic_sketch_experiment.validate_semantic_ownership_against_evidence",
+        side_effect=ownership_validator,
+    ), patch(
+        "llm.semantic_sketch_experiment.validate_semantic_coverage_against_evidence",
+        side_effect=coverage_validator,
+    ):
+        result = generate_semantic_sketch_plan("Review and approve request.", topology_artifact=_accounting_topology())
+
+    assert mocked_call.call_count == 3
+    assert result["deterministic_repair_count"] == 2
+    assert result["llm_correction_count"] == 2
+    assert [attempt["response_mode"] for attempt in result["planner_attempts"]] == [
+        "structured_output",
+        "deterministic_target_slot_patch",
+        "local_patch_json_mode",
+        "deterministic_target_slot_patch",
+        "local_patch_json_mode",
+    ]
+
+
+def test_repeated_exact_deterministic_repair_terminates_without_llm_correction() -> None:
+    diagnostic = _exact_target_diagnostic(
+        allowed_target="ROOT_START",
+        loop_id="T1",
+        success_branch="success",
+    )
+
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[json.dumps(_accounting_plan())],
+    ) as mocked_call, patch(
+        "llm.semantic_sketch_experiment.validate_semantic_ownership_against_evidence",
+        side_effect=SemanticOwnershipEvidenceValidationError(diagnostic),
+    ):
+        with pytest.raises(SemanticSketchPlanGenerationError) as exc_info:
+            generate_semantic_sketch_plan("Correct report.", topology_artifact=_accounting_topology())
+
+    assert mocked_call.call_count == 1
+    assert exc_info.value.debug_artifacts["deterministic_repair_count"] == 1
+    assert exc_info.value.debug_artifacts["llm_correction_count"] == 0
+    assert "same exact deterministic target repair" in str(exc_info.value)
+
+
+def test_deterministic_target_repair_no_op_terminates_safely() -> None:
+    initial = _accounting_plan()
+    initial["branch_plans"][1]["target_slot_id"] = "ROOT_START"
+    diagnostic = _exact_target_diagnostic(
+        allowed_target="ROOT_START",
+        loop_id="T1",
+        success_branch="success",
+    )
+
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[json.dumps(initial)],
+    ) as mocked_call, patch(
+        "llm.semantic_sketch_experiment.validate_semantic_ownership_against_evidence",
+        side_effect=SemanticOwnershipEvidenceValidationError(diagnostic),
+    ):
+        with pytest.raises(SemanticSketchPlanGenerationError) as exc_info:
+            generate_semantic_sketch_plan("Correct report.", topology_artifact=_accounting_topology())
+
+    assert mocked_call.call_count == 1
+    assert exc_info.value.debug_artifacts["deterministic_repair_count"] == 0
+    assert exc_info.value.debug_artifacts["llm_correction_count"] == 0
+    assert "no effective state change" in str(exc_info.value)
 
 
 def test_semantic_ownership_validator_does_not_promote_unrelated_direct_branch_action() -> None:
@@ -1346,11 +1894,20 @@ def test_generate_semantic_sketch_plan_retries_after_shared_ownership_validation
         "Otherwise, the analyst rejects it. In either case, the analyst records the outcome."
     )
     invalid_plan = _decision_plan(shared_actions=["record outcome"], rejected_intent="terminate")
-    valid_plan = _decision_plan(shared_actions=["record outcome"])
+    _valid_plan = _decision_plan(shared_actions=["record outcome"])
 
     with patch(
         "llm.semantic_sketch_experiment.call_openai",
-        side_effect=[json.dumps(invalid_plan), json.dumps(valid_plan)],
+        side_effect=[
+            json.dumps(invalid_plan),
+            _patch(
+                {
+                    "op": "set_intent",
+                    "coordinate": _branch_coordinate("branch_intent", "T1", "rejected"),
+                    "value": "continue",
+                }
+            ),
+        ],
     ) as mocked_call:
         result = generate_semantic_sketch_plan(
             process_text,
@@ -1362,8 +1919,8 @@ def test_generate_semantic_sketch_plan_retries_after_shared_ownership_validation
     assert "shared-continuation evidence" in result["planner_attempts"][0]["validation_error"]
     assert result["planner_attempts"][1]["validation_error"] is None
     retry_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
-    assert "Preserve branch-local actions" in retry_prompt
-    assert "do not terminate a branch before that shared behavior" in retry_prompt
+    assert "Unspecified content is frozen" in retry_prompt
+    assert '"kind": "branch_intent"' in retry_prompt
 
 
 def _parallel_workstream_topology() -> dict:
@@ -2408,7 +2965,7 @@ def test_generate_semantic_sketch_plan_retries_after_missing_root_slot_failure()
       ]
     }
     """
-    valid_semantic_plan = """
+    _valid_semantic_plan = """
     {
       "root_actions": [
         {"slot_id": "ROOT_START", "action": "submit deployment request"},
@@ -2424,19 +2981,16 @@ def test_generate_semantic_sketch_plan_retries_after_missing_root_slot_failure()
     }
     """
 
-    with patch("llm.semantic_sketch_experiment.call_openai", side_effect=[invalid_semantic_plan, valid_semantic_plan]) as mocked_call:
-        result = generate_semantic_sketch_plan(
-            process_text,
-            topology_artifact=topology_artifact,
-            model="gpt-4o",
-        )
+    with patch("llm.semantic_sketch_experiment.call_openai", return_value=invalid_semantic_plan) as mocked_call:
+        with pytest.raises(SemanticSketchPlanGenerationError, match="missing_root_slots") as exc_info:
+            generate_semantic_sketch_plan(
+                process_text,
+                topology_artifact=topology_artifact,
+                model="gpt-4o",
+            )
 
-    assert [entry["slot_id"] for entry in result["artifact"]["root_actions"]] == ["ROOT_START", "AFTER_T1", "AFTER_T4"]
-    assert len(result["planner_attempts"]) == 2
-    retry_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
-    assert "Required root-slot sequence" in retry_prompt
-    assert "missing_root_slots=['AFTER_T1']" in retry_prompt
-    assert "misplaced_root_actions" in retry_prompt
+    assert mocked_call.call_count == 1
+    assert "no safe local editable coordinates" in str(exc_info.value)
 
 
 def test_generate_semantic_sketch_plan_retries_after_misplaced_root_action_failure() -> None:
@@ -2476,7 +3030,7 @@ def test_generate_semantic_sketch_plan_retries_after_misplaced_root_action_failu
       ]
     }
     """
-    valid_semantic_plan = """
+    _valid_semantic_plan = """
     {
       "root_actions": [
         {"slot_id": "ROOT_START", "action": "submit deployment request"},
@@ -2492,14 +3046,15 @@ def test_generate_semantic_sketch_plan_retries_after_misplaced_root_action_failu
     }
     """
 
-    with patch("llm.semantic_sketch_experiment.call_openai", side_effect=[invalid_semantic_plan, valid_semantic_plan]):
-        result = generate_semantic_sketch_plan(
-            process_text,
-            topology_artifact=topology_artifact,
-            model="gpt-4o",
-        )
+    with patch("llm.semantic_sketch_experiment.call_openai", return_value=invalid_semantic_plan) as mocked_call:
+        with pytest.raises(SemanticSketchPlanGenerationError, match="no safe local editable coordinates"):
+            generate_semantic_sketch_plan(
+                process_text,
+                topology_artifact=topology_artifact,
+                model="gpt-4o",
+            )
 
-    assert [entry["slot_id"] for entry in result["artifact"]["root_actions"]] == ["ROOT_START", "AFTER_T1", "AFTER_T4"]
+    assert mocked_call.call_count == 1
 
 
 def test_generate_semantic_sketch_plan_retry_exhaustion_keeps_failure_explicit() -> None:
@@ -2539,7 +3094,7 @@ def test_generate_semantic_sketch_plan_retry_exhaustion_keeps_failure_explicit()
     }
     """
 
-    with patch("llm.semantic_sketch_experiment.call_openai", side_effect=[invalid_semantic_plan, invalid_semantic_plan, invalid_semantic_plan]):
+    with patch("llm.semantic_sketch_experiment.call_openai", return_value=invalid_semantic_plan) as mocked_call:
         with pytest.raises(SemanticSketchPlanGenerationError, match="missing_root_slots") as exc_info:
             generate_semantic_sketch_plan(
                 process_text,
@@ -2547,7 +3102,8 @@ def test_generate_semantic_sketch_plan_retry_exhaustion_keeps_failure_explicit()
                 model="gpt-4o",
             )
 
-    assert len(exc_info.value.debug_artifacts["semantic_attempts"]) == 3
+    assert mocked_call.call_count == 1
+    assert len(exc_info.value.debug_artifacts["semantic_attempts"]) == 1
     assert "root_scope_" in exc_info.value.debug_artifacts["semantic_raw_output"]
     assert "placeholder_root_actions" in exc_info.value.debug_artifacts["semantic_validation_error"]
 
@@ -2964,7 +3520,7 @@ def test_semantic_coverage_does_not_treat_conditional_state_as_body_operation() 
     ) == plan
 
 
-def test_semantic_coverage_counts_decision_semantics_without_duplicate_action() -> None:
+def test_semantic_coverage_does_not_use_decision_semantics_for_explicit_review_action() -> None:
     topology = {
         "structures": [
             {
@@ -2993,11 +3549,14 @@ def test_semantic_coverage_counts_decision_semantics_without_duplicate_action() 
         ],
     }
 
-    assert validate_semantic_coverage_against_evidence(
-        "The supervisor reviews the request and decides whether it is approved.",
-        topology_artifact=topology,
-        semantic_plan=plan,
-    ) == plan
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "The supervisor reviews the request and decides whether it is approved.",
+            topology_artifact=topology,
+            semantic_plan=plan,
+        )
+
+    assert "review" in exc_info.value.issues[0]["operations"]
 
 
 def test_semantic_coverage_ignores_compound_decision_outcome_wording() -> None:
@@ -3180,6 +3739,210 @@ def test_semantic_coverage_keeps_single_operation_matching_unchanged() -> None:
     ) == plan
 
 
+def test_semantic_coverage_case_3_3_falls_back_for_anaphoric_recommendation_check() -> None:
+    topology = _decision_topology()
+    plan = _decision_plan(shared_actions=[])
+    plan["root_actions"][0]["actions"] = [{"action": "examine claim"}]
+
+    assert validate_semantic_coverage_against_evidence(
+        "The clerk examines the claim. This recommendation is then checked by a senior claims officer.",
+        topology_artifact=topology,
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_case_5_4_requires_supervisor_actions_not_decision_labels() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "rejected"],
+                "purpose": "supervisor approves or rejects request",
+            }
+        ]
+    }
+    plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": []},
+            {"slot_id": "AFTER_T1", "actions": []},
+        ],
+        "branch_plans": [
+            {"structure_id": "T1", "branch": "approved", "intent": "continue", "steps": []},
+            {"structure_id": "T1", "branch": "rejected", "intent": "continue", "steps": []},
+        ],
+    }
+
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "The supervisor reviews the request and approves or rejects it.",
+            topology_artifact=topology,
+            semantic_plan=plan,
+        )
+
+    assert set(exc_info.value.issues[0]["operations"]) == {"approve", "reject", "review"}
+
+
+def test_semantic_coverage_case_6_1_falls_back_for_actor_occurrence_ambiguity() -> None:
+    plan = _linear_plan("board reviews invoice")
+
+    assert validate_semantic_coverage_against_evidence(
+        "The accounting employee checks the invoice items.",
+        topology_artifact=_decision_topology(),
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_case_10_11_preserves_unresolved_request_check() -> None:
+    topology = _decision_topology()
+    plan = _decision_plan(shared_actions=[])
+    plan["root_actions"][0]["actions"] = [{"action": "request measurements"}]
+
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "If the request is received, the MSP checks the received request.",
+            topology_artifact=topology,
+            semantic_plan=plan,
+        )
+
+    assert exc_info.value.issues[0]["scope_hint"] is None
+    assert exc_info.value.issues[0]["operations"] == ["review"]
+    assert _diagnostic_editable_coordinates(str(exc_info.value)) == []
+
+
+def test_semantic_coverage_case_10_14_keeps_conditional_send_occurrences_distinct() -> None:
+    process_text = (
+        "If the MPOO sends the bill for temporary continuation of operations to the GO, the GO examines the bill. "
+        "If the MSPO sends the bill for additional readings to the GO, the GO examines the bill."
+    )
+    plan = _linear_plan(
+        "MPOO sends bill for temporary continuation of operations to GO",
+        "GO examines bill",
+    )
+
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            process_text,
+            topology_artifact={"structures": []},
+            semantic_plan=plan,
+        )
+
+    assert exc_info.value.issues[0]["source_fragment"] == (
+        "the MSPO sends the bill for additional readings to the GO"
+    )
+    assert exc_info.value.issues[0]["operations"] == ["send"]
+
+
+def test_semantic_coverage_case_3_5_ignores_organization_name_as_occurrence_context() -> None:
+    plan = _linear_plan("collect mail from party")
+
+    assert _coverage_evidence("Mail Processing Unit") is None
+
+    assert validate_semantic_coverage_against_evidence(
+        "Mail from the party is collected daily by the Mail Processing Unit.",
+        topology_artifact=_decision_topology(),
+        semantic_plan=plan,
+    ) == plan
+
+
+@pytest.mark.parametrize(
+    "process_text",
+    [
+        "process the request",
+        "The unit processes the mail",
+        "The request is processed by the unit",
+        "The unit is processing the mail",
+        "The Unit Processes System Requests",
+        "The Unit Is Processing System Requests",
+    ],
+)
+def test_semantic_coverage_entity_guard_preserves_process_predicates(process_text: str) -> None:
+    assert "process" in _coverage_evidence(process_text)["operations"]
+
+
+@pytest.mark.parametrize(
+    ("process_text", "expected_operation"),
+    [
+        ("review the claim", "review"),
+        ("assess the application", "review"),
+        ("register the mail", "record"),
+        ("update the plan", "correct"),
+    ],
+)
+def test_semantic_coverage_entity_guard_preserves_other_predicates(
+    process_text: str,
+    expected_operation: str,
+) -> None:
+    assert _coverage_evidence(process_text)["operations"] == [expected_operation]
+
+
+def test_semantic_coverage_case_3_7_ignores_subordinate_result_clause() -> None:
+    plan = _linear_plan("inform claimant of outcome")
+
+    assert validate_semantic_coverage_against_evidence(
+        "The claimant is informed of the outcome, which ends the process.",
+        topology_artifact=_decision_topology(),
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_case_5_1_allows_action_plus_matching_control_semantics() -> None:
+    topology = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["approved", "denied"],
+                "purpose": "evaluate loan request based on risk and amount",
+            }
+        ]
+    }
+    plan = _decision_plan(shared_actions=[])
+    plan["root_actions"][0]["actions"] = [{"action": "invoke risk assessment service"}]
+
+    assert validate_semantic_coverage_against_evidence(
+        "The risk assessment Web service is invoked to assess the request.",
+        topology_artifact=topology,
+        semantic_plan=plan,
+    ) == plan
+
+
+def test_semantic_coverage_case_3_8_falls_back_for_compound_submission_granularity() -> None:
+    plan = _linear_plan("send customer claim documentation")
+
+    assert validate_semantic_coverage_against_evidence(
+        "The process starts when a customer submits a claim by sending in relevant documentation.",
+        topology_artifact=_decision_topology(),
+        semantic_plan=plan,
+    ) == plan
+
+
+@pytest.mark.parametrize(
+    ("process_text", "semantic_action"),
+    [
+        ("The Supervisor Reviews the Request.", "supervisor reviews request"),
+        ("The accounting employee checks the invoice items.", "accountant reviews invoice items"),
+        ("The request is examined by the supervisor.", "supervisor reviews request"),
+        ("The clerk forwards the completed invoice.", "clerk sends completed invoice"),
+    ],
+)
+def test_semantic_coverage_context_matching_preserves_valid_paraphrases(
+    process_text: str,
+    semantic_action: str,
+) -> None:
+    plan = _linear_plan(semantic_action)
+
+    assert validate_semantic_coverage_against_evidence(
+        process_text,
+        topology_artifact={"structures": []},
+        semantic_plan=plan,
+    ) == plan
+
+
 def test_semantic_coverage_does_not_require_purpose_result_as_separate_operation() -> None:
     plan = _linear_plan("create uniform work packages")
 
@@ -3221,7 +3984,7 @@ def test_semantic_coverage_distinguishes_clearly_separate_operations() -> None:
     assert exc_info.value.issues[0]["operations"] == ["create"]
 
 
-def test_semantic_coverage_reports_only_strongest_of_multiple_omissions() -> None:
+def test_semantic_coverage_batches_same_scope_omissions_in_source_order() -> None:
     with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
         validate_semantic_coverage_against_evidence(
             "The clerk sends the invoice. The clerk calculates the annual customer account total.",
@@ -3229,9 +3992,46 @@ def test_semantic_coverage_reports_only_strongest_of_multiple_omissions() -> Non
             semantic_plan=_linear_plan(),
         )
 
-    assert len(exc_info.value.issues) == 1
+    assert len(exc_info.value.issues) == 2
     assert exc_info.value.issues[0]["operations"] == ["send"]
     assert exc_info.value.issues[0]["objects"] == ["invoice"]
+    assert exc_info.value.issues[1]["operations"] == ["calculate"]
+    assert exc_info.value.issues[1]["objects"] == ["account", "annual", "customer", "total"]
+
+
+def test_semantic_coverage_keeps_different_scopes_in_separate_cycles() -> None:
+    def scope_hint(*, source: dict, **_kwargs: object) -> str:
+        return "ROOT_START" if "invoice" in source["fragment"] else "AFTER_T1"
+
+    with patch(
+        "llm.semantic_sketch_experiment._coverage_scope_hint",
+        side_effect=scope_hint,
+    ), pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            "The clerk sends the invoice. The clerk reviews the annual report.",
+            topology_artifact=_decision_topology(),
+            semantic_plan=_decision_plan(shared_actions=[]),
+        )
+
+    assert len(exc_info.value.issues) == 1
+    assert exc_info.value.issues[0]["scope_hint"] == "ROOT_START"
+    assert exc_info.value.issues[0]["operations"] == ["send"]
+
+
+def test_semantic_coverage_does_not_batch_unresolved_scope_omissions() -> None:
+    with pytest.raises(SemanticCoverageEvidenceValidationError) as exc_info:
+        validate_semantic_coverage_against_evidence(
+            (
+                "If the MPOO sends the bill for temporary continuation to the GO, the GO examines the bill. "
+                "If the MSPO sends the bill for additional readings to the GO, the GO examines the bill."
+            ),
+            topology_artifact=_decision_topology(),
+            semantic_plan=_decision_plan(shared_actions=[]),
+        )
+
+    assert len(exc_info.value.issues) == 1
+    assert exc_info.value.issues[0]["scope_hint"] is None
+    assert _diagnostic_editable_coordinates(str(exc_info.value)) == []
 
 
 def test_semantic_coverage_suppresses_waiting_constraint() -> None:
@@ -3341,13 +4141,371 @@ def test_semantic_coverage_rejection_does_not_mutate_plan() -> None:
     assert plan["root_actions"][0]["actions"] == []
 
 
+@pytest.mark.parametrize(
+    "operation",
+    [
+        {"op": "append_action", "coordinate": _root_coordinate("ROOT_START"), "value": "send invoice"},
+        {
+            "op": "insert_action",
+            "coordinate": _branch_coordinate("branch_steps", "T1", "retry"),
+            "value": "revise invoice",
+            "index": 0,
+        },
+        {
+            "op": "remove_action",
+            "coordinate": _root_coordinate("ROOT_START"),
+            "action": "send invoice",
+        },
+        {
+            "op": "replace_action",
+            "coordinate": _branch_coordinate("branch_steps", "T1", "retry"),
+            "action": "revise invoice",
+            "value": "correct invoice",
+        },
+        {
+            "op": "set_intent",
+            "coordinate": _branch_coordinate("branch_intent", "T1", "retry"),
+            "value": "loop_back",
+        },
+        {
+            "op": "set_target_slot_id",
+            "coordinate": _branch_coordinate("branch_target_slot_id", "T1", "retry"),
+            "value": "ROOT_START",
+        },
+        {
+            "op": "clear_target_slot_id",
+            "coordinate": _branch_coordinate("branch_target_slot_id", "T1", "retry"),
+        },
+    ],
+)
+def test_parse_semantic_patch_accepts_valid_operation_payloads(operation: dict) -> None:
+    assert _parse_semantic_patch(_patch(operation)) == {"operations": [operation]}
+
+
+@pytest.mark.parametrize(
+    ("operation", "error"),
+    [
+        (
+            {"op": "append_action", "coordinate": _root_coordinate("ROOT_START"), "value": {"action": "send invoice"}},
+            "value must be a non-empty string",
+        ),
+        (
+            {"op": "append_action", "coordinate": _root_coordinate("ROOT_START"), "value": ["send invoice"]},
+            "value must be a non-empty string",
+        ),
+        (
+            {"op": "append_action", "coordinate": _root_coordinate("ROOT_START"), "value": None},
+            "value must be a non-empty string",
+        ),
+        (
+            {"op": "append_action", "coordinate": _root_coordinate("ROOT_START"), "value": ""},
+            "value must be a non-empty string",
+        ),
+        (
+            {
+                "op": "insert_action",
+                "coordinate": _branch_coordinate("branch_steps", "T1", "retry"),
+                "value": {"action": "revise invoice"},
+                "index": 0,
+            },
+            "value must be a non-empty string",
+        ),
+        (
+            {
+                "op": "insert_action",
+                "coordinate": _branch_coordinate("branch_steps", "T1", "retry"),
+                "value": "revise invoice",
+                "index": True,
+            },
+            "index must be an integer",
+        ),
+        (
+            {"op": "remove_action", "coordinate": _root_coordinate("ROOT_START"), "action": 7},
+            "action must be a non-empty string",
+        ),
+        (
+            {
+                "op": "replace_action",
+                "coordinate": _root_coordinate("ROOT_START"),
+                "action": {"action": "send invoice"},
+                "value": "submit invoice",
+            },
+            "action must be a non-empty string",
+        ),
+        (
+            {
+                "op": "replace_action",
+                "coordinate": _root_coordinate("ROOT_START"),
+                "action": "send invoice",
+                "value": ["submit invoice"],
+            },
+            "value must be a non-empty string",
+        ),
+        (
+            {
+                "op": "replace_action",
+                "coordinate": _root_coordinate("ROOT_START"),
+                "action": "send invoice",
+                "value": {"action": "submit invoice"},
+            },
+            "value must be a non-empty string",
+        ),
+        (
+            {
+                "op": "set_intent",
+                "coordinate": _branch_coordinate("branch_intent", "T1", "retry"),
+                "value": 1,
+            },
+            "set_intent value",
+        ),
+        (
+            {
+                "op": "set_intent",
+                "coordinate": _branch_coordinate("branch_intent", "T1", "retry"),
+                "value": "retry",
+            },
+            "set_intent value",
+        ),
+        (
+            {
+                "op": "set_target_slot_id",
+                "coordinate": _branch_coordinate("branch_target_slot_id", "T1", "retry"),
+                "value": {"slot_id": "ROOT_START"},
+            },
+            "value must be a non-empty string",
+        ),
+        (
+            {
+                "op": "clear_target_slot_id",
+                "coordinate": _branch_coordinate("branch_target_slot_id", "T1", "retry"),
+                "value": "ROOT_START",
+            },
+            "requires exactly the fields",
+        ),
+        (
+            {
+                "op": "append_action",
+                "coordinate": _root_coordinate("ROOT_START"),
+                "value": "send invoice",
+                "unexpected": True,
+            },
+            "requires exactly the fields",
+        ),
+        (
+            {"op": "append_action", "coordinate": _root_coordinate("ROOT_START")},
+            "requires exactly the fields",
+        ),
+    ],
+)
+def test_parse_semantic_patch_rejects_malformed_operation_payloads(operation: dict, error: str) -> None:
+    with pytest.raises(ValueError, match=error):
+        _parse_semantic_patch(_patch(operation))
+
+
+@pytest.mark.parametrize(
+    "operation",
+    [
+        {
+            "op": "append_action",
+            "coordinate": _root_coordinate("ROOT_START"),
+            "value": {"action": "perform a task to locate relevant existing designs"},
+        },
+        {
+            "op": "insert_action",
+            "coordinate": _branch_coordinate("branch_steps", "T1", "retry"),
+            "value": {"action": "reject AP and send copy of invoice back to accounting"},
+            "index": 1,
+        },
+    ],
+)
+def test_parse_semantic_patch_rejects_observed_nested_action_objects(operation: dict) -> None:
+    with pytest.raises(ValueError, match="value must be a non-empty string"):
+        _parse_semantic_patch(_patch(operation))
+
+
+def test_semantic_patch_prompt_requires_scalar_action_payloads() -> None:
+    prompt = _semantic_patch_prompt(
+        process_text="Perform quality check.",
+        topology_artifact={"structures": []},
+        previous_plan=_linear_plan(),
+        validation_error="missing quality check at root_actions[ROOT_START]",
+        editable_coordinates=[
+            {**_root_coordinate("ROOT_START"), "allowed_operations": ["append_action", "insert_action"]}
+        ],
+        correction_attempt=1,
+    )
+
+    assert "append_action.value, insert_action.value, and replace_action.value MUST be scalar JSON strings" in prompt
+    assert "remove_action.action and replace_action.action MUST be scalar JSON strings" in prompt
+    assert 'Do NOT return {"action": "..."} as an action or value' in prompt
+    assert '"value": "perform quality check"' in prompt
+    assert '"value": {"action": "perform quality check"}' in prompt
+
+
+def test_local_patch_modifies_only_validator_cited_root_slot() -> None:
+    previous = _decision_plan(shared_actions=["record outcome"])
+    coordinates = [
+        {
+            **_root_coordinate("AFTER_T1"),
+            "allowed_operations": ["append_action"],
+        }
+    ]
+
+    corrected, audit = _apply_semantic_patch(
+        previous_plan=previous,
+        patch=json.loads(_patch({"op": "append_action", "coordinate": _root_coordinate("AFTER_T1"), "value": "notify customer"})),
+        editable_coordinates=coordinates,
+        topology_artifact=_decision_topology(),
+    )
+
+    assert corrected["root_actions"][0] == previous["root_actions"][0]
+    assert corrected["root_actions"][1]["actions"][-1] == {"action": "notify customer"}
+    assert audit["dropped_actions"] == []
+
+
+def test_local_patch_modifies_only_validator_cited_branch() -> None:
+    previous = _decision_plan(shared_actions=[])
+    coordinate = _branch_coordinate("branch_steps", "T1", "approved")
+
+    corrected, _ = _apply_semantic_patch(
+        previous_plan=previous,
+        patch=json.loads(_patch({"op": "append_action", "coordinate": coordinate, "value": "archive request"})),
+        editable_coordinates=[{**coordinate, "allowed_operations": ["append_action"]}],
+        topology_artifact=_decision_topology(),
+    )
+
+    assert corrected["branch_plans"][1] == previous["branch_plans"][1]
+    assert corrected["branch_plans"][0]["steps"][-1] == {"action": "archive request"}
+
+
+def test_local_patch_cannot_drop_or_move_unaffected_action() -> None:
+    previous = _decision_plan(shared_actions=["record outcome"])
+    approved = _branch_coordinate("branch_steps", "T1", "approved")
+    patch = json.loads(
+        _patch(
+            {"op": "remove_action", "coordinate": _root_coordinate("AFTER_T1"), "action": "record outcome"},
+            {"op": "append_action", "coordinate": approved, "value": "record outcome"},
+        )
+    )
+
+    with pytest.raises(ValueError, match="unauthorized operation"):
+        _apply_semantic_patch(
+            previous_plan=previous,
+            patch=patch,
+            editable_coordinates=[{**approved, "allowed_operations": ["append_action"]}],
+            topology_artifact=_decision_topology(),
+        )
+
+
+def test_local_patch_rejects_unauthorized_llm_coordinate() -> None:
+    previous = _decision_plan(shared_actions=[])
+    with pytest.raises(ValueError, match="unauthorized operation"):
+        _apply_semantic_patch(
+            previous_plan=previous,
+            patch=json.loads(_patch({"op": "append_action", "coordinate": _root_coordinate("ROOT_START"), "value": "rewrite request"})),
+            editable_coordinates=[
+                {**_root_coordinate("AFTER_T1"), "allowed_operations": ["append_action"]}
+            ],
+            topology_artifact=_decision_topology(),
+        )
+
+
+def test_local_patch_applies_declared_multi_coordinate_correction() -> None:
+    previous = _decision_plan(shared_actions=[], rejected_intent="terminate")
+    previous["branch_plans"][1]["steps"].append({"action": "record outcome"})
+    rejected_steps = _branch_coordinate("branch_steps", "T1", "rejected")
+    rejected_intent = _branch_coordinate("branch_intent", "T1", "rejected")
+    shared = _root_coordinate("AFTER_T1")
+
+    corrected, audit = _apply_semantic_patch(
+        previous_plan=previous,
+        patch=json.loads(
+            _patch(
+                {"op": "remove_action", "coordinate": rejected_steps, "action": "record outcome"},
+                {"op": "append_action", "coordinate": shared, "value": "record outcome"},
+                {"op": "set_intent", "coordinate": rejected_intent, "value": "continue"},
+            )
+        ),
+        editable_coordinates=[
+            {**rejected_steps, "allowed_operations": ["remove_action"], "exact_action": "record outcome"},
+            {**shared, "allowed_operations": ["append_action"]},
+            {**rejected_intent, "allowed_operations": ["set_intent"]},
+        ],
+        topology_artifact=_decision_topology(),
+    )
+
+    assert corrected["root_actions"][1]["actions"] == [{"action": "record outcome"}]
+    assert corrected["branch_plans"][1]["intent"] == "continue"
+    assert audit["relocated_actions"] == [
+        {"action": "record outcome", "from_scope": "T1/rejected", "to_scope": "AFTER_T1"}
+    ]
+
+
+def test_local_patch_rejects_duplicate_action_scope_pair() -> None:
+    previous = _linear_plan("send invoice")
+    coordinate = _root_coordinate("ROOT_START")
+    with pytest.raises(ValueError, match="duplicate normalized actions"):
+        _apply_semantic_patch(
+            previous_plan=previous,
+            patch=json.loads(_patch({"op": "append_action", "coordinate": coordinate, "value": "send invoice"})),
+            editable_coordinates=[{**coordinate, "allowed_operations": ["append_action"]}],
+            topology_artifact={"structures": []},
+        )
+
+
+def test_local_patch_rejects_invalid_topology_references() -> None:
+    previous = _decision_plan(shared_actions=[])
+    invalid = _branch_coordinate("branch_steps", "T9", "missing")
+    with pytest.raises(ValueError, match="invalid branch"):
+        _apply_semantic_patch(
+            previous_plan=previous,
+            patch=json.loads(_patch({"op": "append_action", "coordinate": invalid, "value": "invent action"})),
+            editable_coordinates=[{**invalid, "allowed_operations": ["append_action"]}],
+            topology_artifact=_decision_topology(),
+        )
+
+
+def test_normalized_correction_state_is_stable_for_equivalent_diagnostics() -> None:
+    plan = _linear_plan("send invoice")
+    assert _normalized_correction_state(plan, "missing   action\nROOT_START") == _normalized_correction_state(
+        json.loads(json.dumps(plan)),
+        "missing action ROOT_START",
+    )
+
+
+def test_generate_semantic_plan_stops_before_repeated_correction_state() -> None:
+    initial = _linear_plan()
+    first_patch = _patch(
+        {"op": "append_action", "coordinate": _root_coordinate("ROOT_START"), "value": "send invoice"}
+    )
+
+    with patch("llm.semantic_sketch_experiment.call_openai", side_effect=[json.dumps(initial), first_patch]) as mocked_call:
+        with patch("llm.semantic_sketch_experiment._normalized_correction_state", return_value="same-state"):
+            with pytest.raises(SemanticSketchPlanGenerationError, match="normalized plan and diagnostic state repeated"):
+                generate_semantic_sketch_plan(
+                    "Send the invoice. Create the report.",
+                    topology_artifact={"structures": []},
+                )
+
+    assert mocked_call.call_count == 2
+
+
 def test_generate_semantic_plan_retries_after_coverage_failure() -> None:
     incomplete = _linear_plan()
     corrected = _linear_plan("send invoice")
 
     with patch(
         "llm.semantic_sketch_experiment.call_openai",
-        side_effect=[json.dumps(incomplete), json.dumps(corrected)],
+        side_effect=[
+            json.dumps(incomplete),
+            _patch(
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("ROOT_START"),
+                    "value": "send invoice",
+                }
+            ),
+        ],
     ) as mocked_call:
         result = generate_semantic_sketch_plan(
             "The clerk sends the invoice.",
@@ -3359,8 +4517,44 @@ def test_generate_semantic_plan_retries_after_coverage_failure() -> None:
     assert "omits high-confidence source activities" in result["planner_attempts"][0]["validation_error"]
     assert result["planner_attempts"][1]["validation_error"] is None
     assert result["artifact"] == corrected
-    assert "Source-coverage correction" in mocked_call.call_args_list[1].kwargs["prompt"]
+    assert "Return only a local patch" in mocked_call.call_args_list[1].kwargs["prompt"]
     assert "root_scope_" not in json.dumps(result["artifact"])
+
+
+def test_generate_semantic_plan_batches_same_scope_coverage_in_one_correction() -> None:
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[
+            json.dumps(_linear_plan()),
+            _patch(
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("ROOT_START"),
+                    "value": "send invoice",
+                },
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("ROOT_START"),
+                    "value": "calculate annual customer account total",
+                },
+            ),
+        ],
+    ) as mocked_call:
+        result = generate_semantic_sketch_plan(
+            "The clerk sends the invoice. The clerk calculates the annual customer account total.",
+            topology_artifact={"structures": []},
+        )
+
+    assert mocked_call.call_count == 2
+    assert result["llm_correction_count"] == 1
+    assert result["deterministic_repair_count"] == 0
+    assert result["artifact"]["root_actions"][0]["actions"] == [
+        {"action": "send invoice"},
+        {"action": "calculate annual customer account total"},
+    ]
+    audit = result["planner_attempts"][1]["correction_audit"]
+    assert audit["dropped_actions"] == []
+    assert audit["relocated_actions"] == []
 
 
 def test_coverage_correction_prompt_renders_exact_scope_and_independent_requirements() -> None:
@@ -3389,28 +4583,29 @@ def test_coverage_correction_prompt_renders_exact_scope_and_independent_requirem
         correction_attempt=1,
     )
 
-    assert "Use the previous parsed SemanticSketchPlan as the preservation baseline" in correction_prompt
-    assert "At ROOT_START, preserve the previous plan and independently add the following missing requirements." in correction_prompt
-    assert 'Source fragment: "Optimize production processes and create uniform work packages"' in correction_prompt
-    assert "1. independently add a source-supported Action covering operation `create`" in correction_prompt
-    assert "2. independently add a source-supported Action covering operation `process`" in correction_prompt
-    assert "business objects/context: `packag`, `uniform`, `work`" in correction_prompt
-    assert "business objects/context: `optimize`, `production`" in correction_prompt
-    assert 'checked semantic content near this requirement: ["create list of parts to be procured"]' in correction_prompt
-    assert "Do not treat an existing same-verb Action with different business objects as satisfying a missing requirement" in correction_prompt
+    assert "Do not return a complete SemanticSketchPlan" in correction_prompt
+    assert '"kind": "root_actions"' in correction_prompt
+    assert '"slot_id": "ROOT_START"' in correction_prompt
+    assert "Optimize production processes and create uniform work packages" in correction_prompt
+    assert '"allowed_operations": [' in correction_prompt
+    assert '"append_action"' in correction_prompt
 
 
 def test_generate_semantic_plan_correction_preserves_unrelated_existing_actions_when_adding_missing_one() -> None:
     previous_plan = _linear_plan("record request", "review request", "notify customer")
-    lossy_correction = _linear_plan("record request", "notify customer", "send invoice")
     preserved_correction = _linear_plan("record request", "review request", "notify customer", "send invoice")
 
     with patch(
         "llm.semantic_sketch_experiment.call_openai",
         side_effect=[
             json.dumps(previous_plan),
-            json.dumps(lossy_correction),
-            json.dumps(preserved_correction),
+            _patch(
+                {
+                    "op": "append_action",
+                    "coordinate": _root_coordinate("ROOT_START"),
+                    "value": "send invoice",
+                }
+            ),
         ],
         ) as mocked_call:
             result = generate_semantic_sketch_plan(
@@ -3418,10 +4613,10 @@ def test_generate_semantic_plan_correction_preserves_unrelated_existing_actions_
                 topology_artifact={"structures": []},
             )
 
-    assert mocked_call.call_count == 3
-    assert len(result["planner_attempts"]) == 3
+    assert mocked_call.call_count == 2
+    assert len(result["planner_attempts"]) == 2
     assert "omits high-confidence source activities" in result["planner_attempts"][0]["validation_error"]
-    assert "dropped unaffected previously valid Actions" in result["planner_attempts"][1]["validation_error"]
+    assert result["planner_attempts"][1]["correction_audit"]["dropped_actions"] == []
     assert result["artifact"] == preserved_correction
     assert result["artifact"]["root_actions"][0]["actions"] == [
         {"action": "record request"},
@@ -3769,11 +4964,11 @@ def test_generate_semantic_plan_persistent_coverage_failure_is_explicit() -> Non
                 topology_artifact={"structures": []},
             )
 
-    assert mocked_call.call_count == 3
+    assert mocked_call.call_count == 2
     attempts = exc_info.value.debug_artifacts["semantic_attempts"]
-    assert len(attempts) == 3
-    assert all("omits high-confidence source activities" in attempt["validation_error"] for attempt in attempts)
-    assert exc_info.value.debug_artifacts["semantic_validation_error"] == attempts[-1]["validation_error"]
+    assert len(attempts) == 2
+    assert "omits high-confidence source activities" in attempts[0]["validation_error"]
+    assert "patch rejected" in attempts[1]["validation_error"]
 
 
 def test_generate_semantic_plan_never_returns_stale_post_topology_candidate() -> None:

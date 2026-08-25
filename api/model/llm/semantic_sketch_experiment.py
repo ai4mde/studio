@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import logging
 from pathlib import Path
@@ -253,6 +254,25 @@ _COVERAGE_OPERATION_STEMS = {
     "schedule": ("schedul", "schedule"),
     "select": ("choos", "choose", "select"),
     "send": ("deliver", "dispatch", "distribut", "distribute", "forward", "hand", "send", "ship", "submit", "transmit"),
+}
+
+_COVERAGE_ENTITY_HEADS = {
+    "department",
+    "office",
+    "service",
+    "system",
+    "team",
+    "unit",
+}
+_COVERAGE_PREDICATE_AUXILIARIES = {
+    "am",
+    "are",
+    "be",
+    "been",
+    "being",
+    "is",
+    "was",
+    "were",
 }
 
 _COVERAGE_NOMINALIZED_OPERATION_EQUIVALENTS = {
@@ -672,6 +692,545 @@ def _enforce_semantic_correction_preservation(
     )
 
 
+def _coordinate_key(coordinate: Dict[str, Any]) -> tuple[str, str, str]:
+    return (
+        str(coordinate.get("kind") or ""),
+        str(coordinate.get("slot_id") or coordinate.get("structure_id") or ""),
+        str(coordinate.get("branch") or ""),
+    )
+
+
+def _editable_coordinate(
+    kind: str,
+    *,
+    slot_id: str | None = None,
+    structure_id: str | None = None,
+    branch: str | None = None,
+    allowed_operations: List[str],
+    exact_action: str | None = None,
+    allowed_target_slot_id: str | None = None,
+) -> Dict[str, Any]:
+    coordinate: Dict[str, Any] = {
+        "kind": kind,
+        "allowed_operations": sorted(set(allowed_operations)),
+    }
+    if slot_id:
+        coordinate["slot_id"] = slot_id
+    if structure_id:
+        coordinate["structure_id"] = structure_id
+    if branch:
+        coordinate["branch"] = branch
+    if exact_action:
+        coordinate["exact_action"] = exact_action
+    if allowed_target_slot_id:
+        coordinate["allowed_target_slot_id"] = allowed_target_slot_id
+    return coordinate
+
+
+def _merge_editable_coordinates(coordinates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    merged: Dict[tuple[str, str, str], Dict[str, Any]] = {}
+    for coordinate in coordinates:
+        key = _coordinate_key(coordinate)
+        existing = merged.get(key)
+        if existing is None:
+            merged[key] = copy.deepcopy(coordinate)
+            continue
+        existing["allowed_operations"] = sorted(
+            set(existing.get("allowed_operations") or [])
+            | set(coordinate.get("allowed_operations") or [])
+        )
+        if existing.get("exact_action") != coordinate.get("exact_action"):
+            existing.pop("exact_action", None)
+    return list(merged.values())
+
+
+def _scope_coordinate(
+    scope: str,
+    *,
+    allowed_operations: List[str],
+    exact_action: str | None = None,
+) -> Dict[str, Any] | None:
+    normalized_scope = str(scope or "").strip()
+    if normalized_scope == "ROOT_START" or normalized_scope.startswith("AFTER_"):
+        return _editable_coordinate(
+            "root_actions",
+            slot_id=normalized_scope,
+            allowed_operations=allowed_operations,
+            exact_action=exact_action,
+        )
+    if "/" in normalized_scope:
+        structure_id, branch = normalized_scope.split("/", 1)
+        return _editable_coordinate(
+            "branch_steps",
+            structure_id=structure_id,
+            branch=branch,
+            allowed_operations=allowed_operations,
+            exact_action=exact_action,
+        )
+    return None
+
+
+def _deterministic_target_slot_correction(validation_error: str) -> Dict[str, Any] | None:
+    if not validation_error.startswith(
+        "SemanticSketchPlan contradicts loop-success-continuation evidence:"
+    ):
+        return None
+    loop_ids = re.findall(r"(?:^|[\s,])loop=([A-Z0-9_]+)", validation_error)
+    success_branches = re.findall(r"(?:^|[\s,])success_branch=([A-Za-z0-9_]+)", validation_error)
+    allowed_targets = re.findall(r"(?:^|[\s,])allowed_target_slot_id=([A-Z0-9_]+)", validation_error)
+    current_targets = re.findall(r"(?:^|[\s,])current_target=([A-Z0-9_]+)", validation_error)
+    if (
+        len(loop_ids) != 1
+        or len(success_branches) != 1
+        or len(allowed_targets) != 1
+        or len(current_targets) != 1
+    ):
+        return None
+    coordinate = {
+        "kind": "branch_target_slot_id",
+        "structure_id": loop_ids[0],
+        "branch": success_branches[0],
+    }
+    return {
+        "coordinate": coordinate,
+        "allowed_target_slot_id": allowed_targets[0],
+        "patch": {
+            "operations": [
+                {
+                    "op": "set_target_slot_id",
+                    "coordinate": coordinate,
+                    "value": allowed_targets[0],
+                }
+            ]
+        },
+    }
+
+
+def _diagnostic_editable_coordinates(validation_error: str) -> List[Dict[str, Any]]:
+    deterministic_target = _deterministic_target_slot_correction(validation_error)
+    if deterministic_target:
+        coordinate = deterministic_target["coordinate"]
+        return [
+            _editable_coordinate(
+                "branch_target_slot_id",
+                structure_id=coordinate["structure_id"],
+                branch=coordinate["branch"],
+                allowed_operations=["set_target_slot_id"],
+                allowed_target_slot_id=deterministic_target["allowed_target_slot_id"],
+            )
+        ]
+
+    coordinates: List[Dict[str, Any]] = []
+
+    for issue in _coverage_validation_issues_from_error(validation_error):
+        coordinate = _scope_coordinate(
+            str(issue.get("scope_hint") or ""),
+            allowed_operations=["append_action", "insert_action"],
+        )
+        if coordinate:
+            coordinates.append(coordinate)
+
+    missing_steps_match = re.search(r"missing_steps=(\[[^\]]*\])", validation_error)
+    if missing_steps_match:
+        try:
+            missing_steps = json.loads(missing_steps_match.group(1).replace("'", '"'))
+        except json.JSONDecodeError:
+            missing_steps = []
+        for missing_step in missing_steps:
+            if ":" not in str(missing_step):
+                continue
+            structure_id, branch = str(missing_step).split(":", 1)
+            coordinates.append(
+                _editable_coordinate(
+                    "branch_steps",
+                    structure_id=structure_id,
+                    branch=branch,
+                    allowed_operations=["append_action", "insert_action"],
+                )
+            )
+
+    exact_action_match = re.search(r'exact_action="([^"]+)"', validation_error)
+    exact_action = exact_action_match.group(1) if exact_action_match else None
+    for slot_id in re.findall(r"root_actions\[(?:slot_id=)?([A-Z0-9_]+)\]", validation_error):
+        coordinates.append(
+            _editable_coordinate(
+                "root_actions",
+                slot_id=slot_id,
+                allowed_operations=["append_action", "remove_action", "replace_action"],
+                exact_action=exact_action,
+            )
+        )
+    for structure_id, branch in re.findall(
+        r"branch_plans\[(?:structure_id=)?([A-Z0-9_]+)(?:,branch=|/)([A-Za-z0-9_]+)\](?:\.steps)?",
+        validation_error,
+    ):
+        coordinates.append(
+            _editable_coordinate(
+                "branch_steps",
+                structure_id=structure_id,
+                branch=branch,
+                allowed_operations=["append_action", "remove_action", "replace_action"],
+                exact_action=exact_action,
+            )
+        )
+
+    for structure_id, branch in re.findall(
+        r"(?:branch|owned only by)\s+([A-Z0-9_]+)/([A-Za-z0-9_]+)",
+        validation_error,
+    ):
+        coordinates.extend(
+            [
+                _editable_coordinate(
+                    "branch_steps",
+                    structure_id=structure_id,
+                    branch=branch,
+                    allowed_operations=["append_action", "remove_action", "replace_action"],
+                ),
+                _editable_coordinate(
+                    "branch_intent",
+                    structure_id=structure_id,
+                    branch=branch,
+                    allowed_operations=["set_intent"],
+                ),
+            ]
+        )
+
+    for slot_id in re.findall(r"(?:shared slot|allowed_shared_slot=|expected_continuation=)([A-Z0-9_]+)", validation_error):
+        coordinates.append(
+            _editable_coordinate(
+                "root_actions",
+                slot_id=slot_id,
+                allowed_operations=["append_action", "remove_action", "replace_action"],
+                exact_action=exact_action,
+            )
+        )
+
+    loop_match = re.search(r"loop=([A-Z0-9_]+)", validation_error)
+    if loop_match:
+        loop_id = loop_match.group(1)
+        for field_name in ("retry_branch", "success_branch"):
+            branch_match = re.search(rf"{field_name}=([A-Za-z0-9_]+)", validation_error)
+            if not branch_match:
+                continue
+            branch = branch_match.group(1)
+            coordinates.extend(
+                [
+                    _editable_coordinate(
+                        "branch_steps",
+                        structure_id=loop_id,
+                        branch=branch,
+                        allowed_operations=["append_action", "remove_action", "replace_action"],
+                        exact_action=exact_action,
+                    ),
+                    _editable_coordinate(
+                        "branch_intent",
+                        structure_id=loop_id,
+                        branch=branch,
+                        allowed_operations=["set_intent"],
+                    ),
+                    _editable_coordinate(
+                        "branch_target_slot_id",
+                        structure_id=loop_id,
+                        branch=branch,
+                        allowed_operations=["set_target_slot_id", "clear_target_slot_id"],
+                    ),
+                ]
+            )
+
+    return _merge_editable_coordinates(coordinates)
+
+
+def _semantic_patch_prompt(
+    *,
+    process_text: str,
+    topology_artifact: Dict[str, Any],
+    previous_plan: Dict[str, Any],
+    validation_error: str,
+    editable_coordinates: List[Dict[str, Any]],
+    correction_attempt: int,
+) -> str:
+    return (
+        "Purpose:\nReturn only a local patch for an existing SemanticSketchPlan.\n"
+        f"This is correction attempt {correction_attempt}.\n"
+        "The previous plan is authoritative. Do not return a complete SemanticSketchPlan.\n"
+        "Use only the authorized coordinates and operations listed below. Unspecified content is frozen.\n"
+        "Return JSON only with shape: {\"operations\": [{\"op\": \"append_action | insert_action | remove_action | "
+        "replace_action | set_intent | set_target_slot_id | clear_target_slot_id\", "
+        "\"coordinate\": {\"kind\": \"...\", ...}, \"action\": \"...\", "
+        "\"value\": \"...\"}]}.\n"
+        "For replace_action, action is the exact old value and value is the replacement.\n"
+        "For remove_action, action is the exact value to remove.\n"
+        "For append_action, value is the new action.\n"
+        "For insert_action, value is the new action and index is its zero-based position.\n"
+        "Strict action payload types:\n"
+        "- append_action.value, insert_action.value, and replace_action.value MUST be scalar JSON strings.\n"
+        "- remove_action.action and replace_action.action MUST be scalar JSON strings.\n"
+        "- Do NOT return {\"action\": \"...\"} as an action or value.\n"
+        "- Do NOT return nested action objects or copy the full SemanticSketchPlan action-object "
+        "representation into patch action/value fields.\n"
+        "VALID insert_action example: {\"op\": \"insert_action\", \"coordinate\": "
+        "{\"kind\": \"root_actions\", \"slot_id\": \"ROOT_START\"}, "
+        "\"value\": \"perform quality check\", \"index\": 5}.\n"
+        "INVALID insert_action example: {\"op\": \"insert_action\", \"coordinate\": "
+        "{\"kind\": \"root_actions\", \"slot_id\": \"ROOT_START\"}, "
+        "\"value\": {\"action\": \"perform quality check\"}, \"index\": 5}.\n"
+        "Do not include allowed_operations or exact_action inside an operation coordinate.\n"
+        f"\nProcess text:\n{process_text}\n"
+        "\nAuthoritative topology artifact:\n"
+        f"{json.dumps(topology_artifact, ensure_ascii=False, indent=2)}\n"
+        "\nFrozen previous SemanticSketchPlan:\n"
+        f"{json.dumps(previous_plan, ensure_ascii=False, indent=2)}\n"
+        "\nDeterministic validation diagnostic:\n"
+        f"{validation_error}\n"
+        "\nAuthorized editable coordinates:\n"
+        f"{json.dumps(editable_coordinates, ensure_ascii=False, indent=2)}\n"
+    )
+
+
+def _parse_semantic_patch(raw_output: str) -> Dict[str, Any]:
+    parsed = json.loads(_strip_optional_json_code_fence(raw_output))
+    if not isinstance(parsed, dict) or set(parsed) != {"operations"}:
+        raise ValueError("Semantic correction patch must contain only an operations list")
+    if not isinstance(parsed["operations"], list) or not parsed["operations"]:
+        raise ValueError("Semantic correction patch operations must be a non-empty list")
+
+    operation_contracts = {
+        "append_action": ({"op", "coordinate", "value"}, {"root_actions", "branch_steps"}),
+        "insert_action": ({"op", "coordinate", "value", "index"}, {"root_actions", "branch_steps"}),
+        "remove_action": ({"op", "coordinate", "action"}, {"root_actions", "branch_steps"}),
+        "replace_action": ({"op", "coordinate", "action", "value"}, {"root_actions", "branch_steps"}),
+        "set_intent": ({"op", "coordinate", "value"}, {"branch_intent"}),
+        "set_target_slot_id": ({"op", "coordinate", "value"}, {"branch_target_slot_id"}),
+        "clear_target_slot_id": ({"op", "coordinate"}, {"branch_target_slot_id"}),
+    }
+    for operation in parsed["operations"]:
+        if not isinstance(operation, dict):
+            raise ValueError("Semantic correction patch operations must be objects")
+        op = operation.get("op")
+        if not isinstance(op, str) or op not in operation_contracts:
+            raise ValueError(f"Unsupported semantic correction patch operation {op}")
+        expected_fields, allowed_kinds = operation_contracts[op]
+        if set(operation) != expected_fields:
+            raise ValueError(f"{op} requires exactly the fields {sorted(expected_fields)}")
+
+        coordinate = operation["coordinate"]
+        if not isinstance(coordinate, dict):
+            raise ValueError(f"{op} requires a coordinate object")
+        kind = coordinate.get("kind")
+        if not isinstance(kind, str) or kind not in allowed_kinds:
+            raise ValueError(f"{op} does not support coordinate kind {kind}")
+        expected_coordinate_fields = (
+            {"kind", "slot_id"} if kind == "root_actions" else {"kind", "structure_id", "branch"}
+        )
+        if set(coordinate) != expected_coordinate_fields:
+            raise ValueError(
+                f"{op} coordinate requires exactly the fields {sorted(expected_coordinate_fields)}"
+            )
+        if any(
+            not isinstance(coordinate[field], str) or not coordinate[field].strip()
+            for field in expected_coordinate_fields - {"kind"}
+        ):
+            raise ValueError(f"{op} coordinate identifiers must be non-empty strings")
+
+        if op in {"append_action", "insert_action", "replace_action", "set_target_slot_id"}:
+            value = operation["value"]
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{op} value must be a non-empty string")
+        if op in {"remove_action", "replace_action"}:
+            action = operation["action"]
+            if not isinstance(action, str) or not action.strip():
+                raise ValueError(f"{op} action must be a non-empty string")
+        if op == "insert_action":
+            index = operation["index"]
+            if isinstance(index, bool) or not isinstance(index, int):
+                raise ValueError("insert_action index must be an integer")
+        if op == "set_intent":
+            value = operation["value"]
+            if not isinstance(value, str) or value not in {"continue", "terminate", "loop_back"}:
+                raise ValueError("set_intent value must be continue, terminate, or loop_back")
+    return parsed
+
+
+def _root_entry(plan: Dict[str, Any], slot_id: str) -> Dict[str, Any] | None:
+    return next((entry for entry in plan.get("root_actions") or [] if entry.get("slot_id") == slot_id), None)
+
+
+def _branch_entry(plan: Dict[str, Any], structure_id: str, branch: str) -> Dict[str, Any] | None:
+    return next(
+        (
+            entry
+            for entry in plan.get("branch_plans") or []
+            if entry.get("structure_id") == structure_id and entry.get("branch") == branch
+        ),
+        None,
+    )
+
+
+def _action_inventory(plan: Dict[str, Any]) -> List[Dict[str, str]]:
+    return [
+        {"scope": entry["scope"], "action": entry["action"], "normalized_action": entry["normalized_action"]}
+        for entry in _semantic_action_occurrences(plan)
+    ]
+
+
+def _duplicate_action_keys(plan: Dict[str, Any]) -> tuple[set[tuple[str, str]], Dict[str, int]]:
+    inventory = _action_inventory(plan)
+    scoped_counts: Dict[tuple[str, str], int] = {}
+    global_counts: Dict[str, int] = {}
+    for entry in inventory:
+        scoped_key = (entry["scope"], entry["normalized_action"])
+        scoped_counts[scoped_key] = scoped_counts.get(scoped_key, 0) + 1
+        normalized_action = entry["normalized_action"]
+        global_counts[normalized_action] = global_counts.get(normalized_action, 0) + 1
+    return {key for key, count in scoped_counts.items() if count > 1}, global_counts
+
+
+def _apply_semantic_patch(
+    *,
+    previous_plan: Dict[str, Any],
+    patch: Dict[str, Any],
+    editable_coordinates: List[Dict[str, Any]],
+    topology_artifact: Dict[str, Any],
+) -> tuple[Dict[str, Any], Dict[str, Any]]:
+    candidate = copy.deepcopy(previous_plan)
+    allowed = {_coordinate_key(coordinate): coordinate for coordinate in editable_coordinates}
+    valid_slot_ids = set(_required_root_slot_ids(topology_artifact))
+    topology = _normalize_topology_artifact(topology_artifact)
+    valid_branches = {(structure.id, branch) for structure in topology.structures for branch in structure.branches}
+    changed_coordinates: List[Dict[str, Any]] = []
+
+    for operation in patch["operations"]:
+        if not isinstance(operation, dict):
+            raise ValueError("Semantic correction patch operations must be objects")
+        if set(operation) - {"op", "coordinate", "action", "value", "index"}:
+            raise ValueError("Semantic correction patch contains unauthorized operation fields")
+        op = str(operation.get("op") or "")
+        coordinate = operation.get("coordinate")
+        if not isinstance(coordinate, dict):
+            raise ValueError("Semantic correction patch operation is missing its coordinate")
+        if set(coordinate) - {"kind", "slot_id", "structure_id", "branch"}:
+            raise ValueError("Semantic correction patch coordinate contains unauthorized fields")
+        authorization = allowed.get(_coordinate_key(coordinate))
+        if authorization is None or op not in authorization.get("allowed_operations", []):
+            raise ValueError(f"Semantic correction patch attempted unauthorized operation {op} at {coordinate}")
+        exact_action = authorization.get("exact_action")
+        if exact_action and op in {"remove_action", "replace_action"} and operation.get("action") != exact_action:
+            raise ValueError("Semantic correction patch attempted to change an unauthorized action occurrence")
+        allowed_target_slot_id = authorization.get("allowed_target_slot_id")
+        if (
+            op == "set_target_slot_id"
+            and allowed_target_slot_id
+            and operation.get("value") != allowed_target_slot_id
+        ):
+            raise ValueError(
+                "Semantic correction patch target_slot_id does not match the exact validator-approved target"
+            )
+
+        kind = coordinate.get("kind")
+        action_list: List[Dict[str, str]] | None = None
+        target_entry: Dict[str, Any] | None = None
+        if kind == "root_actions":
+            slot_id = str(coordinate.get("slot_id") or "")
+            if slot_id not in valid_slot_ids:
+                raise ValueError(f"Semantic correction patch references invalid root slot {slot_id}")
+            target_entry = _root_entry(candidate, slot_id)
+            if target_entry is None:
+                raise ValueError(f"Semantic correction patch references missing root slot {slot_id}")
+            action_list = target_entry["actions"]
+        else:
+            structure_id = str(coordinate.get("structure_id") or "")
+            branch = str(coordinate.get("branch") or "")
+            if (structure_id, branch) not in valid_branches:
+                raise ValueError(f"Semantic correction patch references invalid branch {structure_id}/{branch}")
+            target_entry = _branch_entry(candidate, structure_id, branch)
+            if target_entry is None:
+                raise ValueError(f"Semantic correction patch references missing branch {structure_id}/{branch}")
+            if kind == "branch_steps":
+                action_list = target_entry["steps"]
+
+        if op == "append_action":
+            value = operation["value"].strip()
+            if action_list is None or not value:
+                raise ValueError("append_action requires a non-empty value at an action coordinate")
+            action_list.append({"action": value})
+        elif op == "insert_action":
+            value = operation["value"].strip()
+            index = operation.get("index")
+            if action_list is None or not value or not isinstance(index, int) or not 0 <= index <= len(action_list):
+                raise ValueError("insert_action requires a non-empty value and valid zero-based index")
+            action_list.insert(index, {"action": value})
+        elif op in {"remove_action", "replace_action"}:
+            old_action = operation["action"].strip()
+            if action_list is None or not old_action:
+                raise ValueError(f"{op} requires an exact existing action")
+            matching_indexes = [index for index, entry in enumerate(action_list) if entry.get("action") == old_action]
+            if len(matching_indexes) != 1:
+                raise ValueError(f"{op} requires exactly one matching action occurrence")
+            index = matching_indexes[0]
+            if op == "remove_action":
+                action_list.pop(index)
+            else:
+                value = operation["value"].strip()
+                if not value:
+                    raise ValueError("replace_action requires a non-empty replacement value")
+                action_list[index] = {"action": value}
+        elif op == "set_intent":
+            value = operation["value"]
+            if kind != "branch_intent" or value not in {"continue", "terminate", "loop_back"}:
+                raise ValueError("set_intent requires a branch_intent coordinate and valid intent")
+            target_entry["intent"] = value
+        elif op == "set_target_slot_id":
+            value = operation["value"]
+            if kind != "branch_target_slot_id" or value not in valid_slot_ids:
+                raise ValueError("set_target_slot_id requires a valid root slot")
+            target_entry["target_slot_id"] = value
+        elif op == "clear_target_slot_id":
+            if kind != "branch_target_slot_id":
+                raise ValueError("clear_target_slot_id requires a branch_target_slot_id coordinate")
+            target_entry.pop("target_slot_id", None)
+        else:
+            raise ValueError(f"Unsupported semantic correction patch operation {op}")
+        changed_coordinates.append(copy.deepcopy(coordinate))
+
+    previous_scoped_duplicates, previous_global_counts = _duplicate_action_keys(previous_plan)
+    candidate_scoped_duplicates, candidate_global_counts = _duplicate_action_keys(candidate)
+    if candidate_scoped_duplicates - previous_scoped_duplicates:
+        raise ValueError("Semantic correction patch introduced duplicate normalized actions within a scope")
+    for action, count in candidate_global_counts.items():
+        if count > max(1, previous_global_counts.get(action, 0)):
+            raise ValueError("Semantic correction patch introduced an unintended cross-scope action duplicate")
+
+    candidate = _revalidate_semantic_plan_against_topology(
+        topology_artifact=topology_artifact,
+        semantic_plan=candidate,
+    )
+    previous_inventory = _action_inventory(previous_plan)
+    candidate_inventory = _action_inventory(candidate)
+    previous_keys = {(entry["scope"], entry["normalized_action"]) for entry in previous_inventory}
+    candidate_keys = {(entry["scope"], entry["normalized_action"]) for entry in candidate_inventory}
+    dropped = [entry for entry in previous_inventory if (entry["scope"], entry["normalized_action"]) not in candidate_keys]
+    added = [entry for entry in candidate_inventory if (entry["scope"], entry["normalized_action"]) not in previous_keys]
+    relocated = [
+        {"action": entry["action"], "from_scope": entry["scope"], "to_scope": added_entry["scope"]}
+        for entry in dropped
+        for added_entry in added
+        if entry["normalized_action"] == added_entry["normalized_action"] and entry["scope"] != added_entry["scope"]
+    ]
+    unchanged = [entry for entry in previous_inventory if (entry["scope"], entry["normalized_action"]) in candidate_keys]
+    return candidate, {
+        "editable_coordinates": copy.deepcopy(editable_coordinates),
+        "changed_coordinates": changed_coordinates,
+        "unchanged_action_inventory": unchanged,
+        "dropped_actions": dropped,
+        "relocated_actions": relocated,
+    }
+
+
+def _normalized_correction_state(plan: Dict[str, Any], validation_error: str) -> str:
+    normalized_diagnostic = " ".join(str(validation_error or "").split())
+    return json.dumps(plan, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n" + normalized_diagnostic
+
+
 def _build_semantic_correction_prompt(
     *,
     base_prompt: str,
@@ -682,119 +1241,18 @@ def _build_semantic_correction_prompt(
     validation_error: str,
     correction_attempt: int,
 ) -> str:
-    parsed_pretty = (
-        json.dumps(parsed_semantic_output, ensure_ascii=False, indent=2)
-        if parsed_semantic_output is not None
-        else "null"
-    )
-    topology_pretty = json.dumps(topology_artifact, ensure_ascii=False, indent=2)
-    required_root_slots = json.dumps(
-        _required_root_slot_ids(topology_artifact),
-        ensure_ascii=False,
-    )
-    ownership_feedback = ""
-    if "shared-continuation evidence" in validation_error:
-        ownership_feedback = (
-            "\nShared-continuation correction:\n"
-            "The proposed semantic plan prevents a branch that should reach shared post-branch behavior "
-            "from doing so. Preserve branch-local actions, place behavior that applies after convergence "
-            "in the shared post-structure slot, and do not terminate a branch before that shared behavior.\n"
-        )
-    if "parallel-branch ownership evidence" in validation_error:
-        ownership_feedback = (
-            "\nParallel branch-ownership correction:\n"
-            "The cited action is explicitly local to one parallel/workstream branch. Keep it in that branch's "
-            "steps, do not move it into root_actions, and do not assign it to a sibling branch unless the "
-            "source text explicitly says the work is shared after synchronization.\n"
-        )
-    if "parallel-join ownership evidence" in validation_error:
-        ownership_feedback = (
-            "\nParallel join-ownership correction:\n"
-            "The cited action occurs only after explicitly synchronized parallel/workstream branches complete. "
-            "Keep branch-local work inside branch steps, place the post-join action once in the safe shared "
-            "post-structure root slot, and keep all participating branches on intent=\"continue\" until that "
-            "shared action is reached.\n"
-        )
-    if "unrepresentable under the current root-slot model" in validation_error:
-        ownership_feedback = (
-            "\nLocal loop-continuation safety:\n"
-            "The cited retry-success continuation is branch-local and has no safe shared root slot in the "
-            "current representation. Preserve the action in its local branch. Do not move it into root_actions, "
-            "do not invent a root_scope_* placeholder, and do not redirect the retry-success branch through an "
-            "unrelated root slot. Keep retry_target (re-entry for repeated work or re-evaluation) distinct from "
-            "retry_success_continuation (business work performed after success).\n"
-        )
-    elif "loop-success-continuation evidence" in validation_error:
-        constrained_feedback = ""
-        if "validator-approved constrained ownership relocation" in validation_error:
-            constrained_feedback = (
-                " This validator-approved relocation overrides the generic branch-local preference for the exact "
-                "cited Action only. Use the previous parsed plan as the preservation baseline and apply exactly "
-                "the REMOVE and ADD operations in the diagnostic. The Action must occur exactly once afterwards. "
-                "Change only this diagnosed ownership relationship unless a later validator reports a separate "
-                "problem. Preserve every unrelated Action, intent, target_slot_id, topology handle, and branch "
-                "structure; do not move any other branch-specific Action to root/shared scope."
-            )
-        ownership_feedback = (
-            "\nLoop-success-continuation correction:\n"
-            "Correct only the cited loop ownership problem. Preserve the authoritative topology, unrelated root "
-            "actions, and branch-local actions. Keep exactly one retry/rework branch on intent=\"loop_back\" and "
-            "one successful exit branch on intent=\"continue\". Treat retry_target and retry_success_continuation "
-            "as distinct concepts. When the diagnostic names allowed_shared_slot, place only the cited, safely "
-            "shared retry-success continuation there once and remove only its duplicate from the ordinary-success "
-            "branch. When the diagnostic names allowed_target_slot_id, set the successful exit branch's "
-            "target_slot_id to exactly that slot for re-entry; do not choose a nearby slot and do not relocate "
-            "unrelated actions. Never move branch-specific work to root scope."
-            f"{constrained_feedback}\n"
-        )
-    coverage_feedback = ""
-    if "omits high-confidence source activities" in validation_error:
-        structured_feedback = _structured_coverage_correction_feedback(validation_error)
-        coverage_feedback = (
-            "\nSource-coverage correction:\n"
-            "The deterministic diagnostics identify explicit source-supported business activity that is not "
-            "represented by an equivalent Action or by existing decision semantics. Re-check the cited source "
-            "fragment and correct only the cited omission in its topology-compatible root or branch slot. Do not "
-            "expand unrelated source details. Preserve a defensible compound Action when coordinated operations "
-            "share an actor, business object, and ownership. If the cited fragment explicitly describes a "
-            "separate handoff, submission, delivery, forwarding, or transfer of a business object to another "
-            "actor, office, department, or workstream, preserve that transfer as its own Action rather than "
-            "merging it into preparing, recording, reviewing, or completing the same object. Do not force a "
-            "separate Action for incidental destination context or passive document state. Preserve the "
-            "authoritative topology and ownership constraints; do not invent control structures, duplicate "
-            "decision semantics, or turn timing/waiting language into an Action.\n"
-            f"{structured_feedback}"
-        )
-    return (
-        f"{base_prompt}\n"
-        "\nCorrection attempt:\n"
-        f"This is correction attempt {correction_attempt}.\n"
-        "Your previous SemanticSketchPlan failed deterministic validation.\n"
-        "Return a complete corrected SemanticSketchPlan JSON object only.\n"
-        "Every required root slot must appear exactly once.\n"
-        "Do not omit, duplicate, shift, or invent fallback root actions.\n"
-        "Use the previous parsed SemanticSketchPlan as the preservation baseline.\n"
-        "Preserve every existing source-supported Action, scope, and intent that is unrelated to the cited "
-        "validation issue.\n"
-        "When the correction is to add a missing Action, make the smallest additive change needed and do not "
-        "remove or rewrite unrelated Actions.\n"
-        "Only move, replace, or remove an existing Action when the diagnostic explicitly identifies that Action "
-        "as wrongly placed or semantically wrong.\n"
-        "Do not add explanations outside the JSON object.\n"
-        "\nOriginal process text:\n"
-        f"{process_text}\n"
-        "\nAuthoritative topology artifact:\n"
-        f"{topology_pretty}\n"
-        "\nRequired root-slot sequence:\n"
-        f"{required_root_slots}\n"
-        "\nInvalid semantic raw output:\n"
-        f"{invalid_semantic_output}\n"
-        "\nInvalid semantic parsed JSON:\n"
-        f"{parsed_pretty}\n"
-        "\nDeterministic validation diagnostics:\n"
-        f"{validation_error}\n"
-        f"{ownership_feedback}"
-        f"{coverage_feedback}"
+    if parsed_semantic_output is None:
+        raise ValueError("Local semantic correction requires a previous parseable SemanticSketchPlan")
+    editable_coordinates = _diagnostic_editable_coordinates(validation_error)
+    if not editable_coordinates:
+        raise ValueError("Semantic validation diagnostic has no safe local editable coordinates")
+    return _semantic_patch_prompt(
+        process_text=process_text,
+        topology_artifact=topology_artifact,
+        previous_plan=parsed_semantic_output,
+        validation_error=validation_error,
+        editable_coordinates=editable_coordinates,
+        correction_attempt=correction_attempt,
     )
 
 
@@ -832,6 +1290,14 @@ def _call_semantic_planner(
         "raw_output": raw_output,
         "response_mode": response_mode,
         "fallback_reason": fallback_reason,
+    }
+
+
+def _call_semantic_patch_planner(*, model: str, prompt: str) -> Dict[str, Any]:
+    return {
+        "raw_output": call_openai(model=model, prompt=prompt),
+        "response_mode": "local_patch_json_mode",
+        "fallback_reason": None,
     }
 
 
@@ -1349,7 +1815,41 @@ def _is_explicit_parallel_post_join_clause(
     return False
 
 
-def _coverage_operation(token: str, *, index: int, tokens: List[str]) -> str | None:
+def _coverage_entity_modifier_indices(value: str, tokens: List[str]) -> set[int]:
+    original_tokens = [
+        token
+        for token in re.findall(r"[A-Za-z]+", str(value or ""))
+        if token.lower() not in {"a", "an", "the"}
+    ]
+    if [token.lower() for token in original_tokens] != tokens:
+        return set()
+
+    modifier_indices: set[int] = set()
+    for index, token in enumerate(original_tokens[:-1]):
+        entity_head = original_tokens[index + 1]
+        if (
+            token[:1].isupper()
+            and token.lower().endswith("ing")
+            and entity_head[:1].isupper()
+            and entity_head.lower() in _COVERAGE_ENTITY_HEADS
+            and (
+                index == 0
+                or original_tokens[index - 1].lower() not in _COVERAGE_PREDICATE_AUXILIARIES
+            )
+        ):
+            modifier_indices.add(index)
+    return modifier_indices
+
+
+def _coverage_operation(
+    token: str,
+    *,
+    index: int,
+    tokens: List[str],
+    entity_modifier_indices: set[int] | None = None,
+) -> str | None:
+    if entity_modifier_indices and index in entity_modifier_indices:
+        return None
     stemmed = _stem_ownership_token(token)
     lowered = token.lower()
     previous = tokens[index - 1].lower() if index > 0 else ""
@@ -1397,32 +1897,62 @@ def _coverage_embedded_activity_fragment(value: str) -> str | None:
     return candidate
 
 
-def _coverage_operation_occurrences(tokens: List[str]) -> List[tuple[int, str]]:
+def _coverage_operation_occurrences(
+    tokens: List[str],
+    *,
+    entity_modifier_indices: set[int] | None = None,
+) -> List[tuple[int, str]]:
     return [
         (index, operation)
         for index, token in enumerate(tokens)
-        if (operation := _coverage_operation(token, index=index, tokens=tokens)) is not None
+        if (
+            operation := _coverage_operation(
+                token,
+                index=index,
+                tokens=tokens,
+                entity_modifier_indices=entity_modifier_indices,
+            )
+        )
+        is not None
     ]
 
 
 def _coverage_evidence(value: str) -> Dict[str, Any] | None:
     tokens = _tokenize(value)
-    operation_occurrences = _coverage_operation_occurrences(tokens)
+    entity_modifier_indices = _coverage_entity_modifier_indices(value, tokens)
+    operation_occurrences = _coverage_operation_occurrences(
+        tokens,
+        entity_modifier_indices=entity_modifier_indices,
+    )
     if any(operation == "process" for _, operation in operation_occurrences):
         embedded_fragment = _coverage_embedded_activity_fragment(value)
         if embedded_fragment is not None:
             embedded_tokens = _tokenize(embedded_fragment)
-            embedded_occurrences = _coverage_operation_occurrences(embedded_tokens)
+            embedded_entity_modifier_indices = _coverage_entity_modifier_indices(
+                embedded_fragment,
+                embedded_tokens,
+            )
+            embedded_occurrences = _coverage_operation_occurrences(
+                embedded_tokens,
+                entity_modifier_indices=embedded_entity_modifier_indices,
+            )
             if embedded_occurrences and not any(operation == "process" for _, operation in embedded_occurrences):
                 tokens = embedded_tokens
                 operation_occurrences = embedded_occurrences
+                entity_modifier_indices = embedded_entity_modifier_indices
     if not operation_occurrences:
         return None
 
     operation_tokens = {
         _stem_ownership_token(token)
         for index, token in enumerate(tokens)
-        if _coverage_operation(token, index=index, tokens=tokens) is not None
+        if _coverage_operation(
+            token,
+            index=index,
+            tokens=tokens,
+            entity_modifier_indices=entity_modifier_indices,
+        )
+        is not None
     }
     objects = {
         stemmed
@@ -1487,11 +2017,18 @@ def _coverage_fragment_is_context_only(fragment: str) -> bool:
     ):
         return True
     if evidence and set(evidence["operations"]).issubset({"approve", "confirm", "reject", "review"}):
-        if re.search(r"\b(?:approve|approved|reject|rejected|confirm|confirmed)\b.*\b(?:or|but)\b", normalized):
+        explicit_review = re.search(
+            r"\b(?:analy[sz]e|assess|audit|check|evaluate|examine|inspect|review|screen|test|validate|verify)\w*\b",
+            normalized,
+        )
+        if not explicit_review and re.search(
+            r"\b(?:approve|approved|reject|rejected|confirm|confirmed)\b.*\b(?:or|but)\b",
+            normalized,
+        ):
             return True
     if re.match(r"^(?:if|unless|whether|when|once|after|as soon as)\b", normalized) and "," not in fragment:
         return True
-    return bool(
+    return bool(evidence and len(evidence["operations"]) == 1) and bool(
         re.fullmatch(
             r"(?:the\s+)?[\w\s-]+\s+(?:is|are|was|were|be|been)\s+"
             r"(?:approved|rejected|confirmed|completed|finished|ready|registered|valid|invalid)",
@@ -1502,7 +2039,7 @@ def _coverage_fragment_is_context_only(fragment: str) -> bool:
 
 def _coverage_fragments(process_text: str) -> List[Dict[str, Any]]:
     fragments: List[Dict[str, Any]] = []
-    for sentence in re.split(r"(?<=[.!?])\s+", process_text.strip()):
+    for sentence_index, sentence in enumerate(re.split(r"(?<=[.!?])\s+", process_text.strip())):
         stripped_sentence = sentence.strip()
         if not stripped_sentence:
             continue
@@ -1515,29 +2052,42 @@ def _coverage_fragments(process_text: str) -> List[Dict[str, Any]]:
             fragment = piece.strip().strip(".!?")
             if not fragment:
                 continue
+            fragment_candidates: List[tuple[str, str | None, bool]] = [(fragment, None, False)]
             if re.match(r"^(?:if|unless|whether|when|once|after|as soon as)\b", fragment, re.IGNORECASE):
-                _, separator, activity_clause = fragment.partition(",")
+                condition_clause, separator, activity_clause = fragment.partition(",")
                 if separator:
-                    fragment = activity_clause.strip()
-                    if not fragment:
-                        continue
-            if re.match(r"^in\b", fragment, re.IGNORECASE) and "," in fragment:
-                comma_clauses = [clause.strip() for clause in fragment.split(",") if clause.strip()]
-                executable_clauses = [clause for clause in comma_clauses if _coverage_evidence(clause)]
-                if len(executable_clauses) == 1:
-                    fragment = executable_clauses[0]
-            if _coverage_fragment_is_context_only(fragment):
-                continue
-            evidence = _coverage_evidence(fragment)
-            if evidence is None:
-                continue
-            fragments.append(
-                {
-                    "fragment": fragment,
-                    "sentence": stripped_sentence,
-                    **evidence,
-                }
-            )
+                    executable_condition = re.sub(
+                        r"^(?:if|unless|whether|when|once|after|as soon as)\s+",
+                        "",
+                        condition_clause,
+                        flags=re.IGNORECASE,
+                    ).strip()
+                    fragment_candidates = []
+                    if _coverage_evidence(executable_condition) is not None:
+                        fragment_candidates.append((executable_condition, condition_clause.strip(), True))
+                    if activity_clause.strip():
+                        fragment_candidates.append((activity_clause.strip(), condition_clause.strip(), False))
+            for candidate, condition_context, conditional_antecedent in fragment_candidates:
+                if re.match(r"^in\b", candidate, re.IGNORECASE) and "," in candidate:
+                    comma_clauses = [clause.strip() for clause in candidate.split(",") if clause.strip()]
+                    executable_clauses = [clause for clause in comma_clauses if _coverage_evidence(clause)]
+                    if len(executable_clauses) == 1:
+                        candidate = executable_clauses[0]
+                if _coverage_fragment_is_context_only(candidate):
+                    continue
+                evidence = _coverage_evidence(candidate)
+                if evidence is None:
+                    continue
+                fragments.append(
+                    {
+                        "fragment": candidate,
+                        "sentence": stripped_sentence,
+                        "sentence_index": sentence_index,
+                        "condition_context": condition_context,
+                        "conditional_antecedent": conditional_antecedent,
+                        **evidence,
+                    }
+                )
     return fragments
 
 
@@ -1586,6 +2136,42 @@ def _coverage_entry_matches(source: Dict[str, Any], entry: Dict[str, Any]) -> bo
     if not _coverage_operations_overlap(source, represented):
         return False
     return bool(set(source["objects"]).intersection(represented["objects"]))
+
+
+def _annotate_conditional_occurrence_requirements(sources: List[Dict[str, Any]]) -> None:
+    """Mark only repeated executable conditional antecedents with distinct objects."""
+    for source in sources:
+        source["conditional_occurrence_objects"] = {}
+    for operation in _COVERAGE_OPERATION_STEMS:
+        candidates = [
+            source
+            for source in sources
+            if source.get("conditional_antecedent")
+            and source["operations"] == [operation]
+        ]
+        for source in candidates:
+            source_objects = set(source["operation_objects"].get(operation) or source["objects"])
+            related = [
+                other
+                for other in candidates
+                if other is not source
+                and source_objects.intersection(
+                    other["operation_objects"].get(operation) or other["objects"]
+                )
+            ]
+            if not related:
+                continue
+            common_objects = set(source_objects)
+            for other in related:
+                common_objects.intersection_update(
+                    other["operation_objects"].get(operation) or other["objects"]
+                )
+            distinguishing = source_objects - common_objects
+            if distinguishing and all(
+                set(other["operation_objects"].get(operation) or other["objects"]) - common_objects
+                for other in related
+            ):
+                source["conditional_occurrence_objects"][operation] = sorted(distinguishing)
 
 
 def _coverage_operations_overlap(source: Dict[str, Any], represented: Dict[str, Any]) -> bool:
@@ -1655,9 +2241,126 @@ def _coverage_entry_represents_operation(
             if entry.get("kind") == "decision_semantics"
             else represented["operation_objects"].get(represented_operation) or represented["objects"]
         )
+        if not source_objects.intersection(represented_objects):
+            continue
         if source_objects.intersection(represented_objects):
             return True
     return False
+
+
+def _conditional_occurrence_uncovered_operations(
+    source: Dict[str, Any],
+    entries: List[Dict[str, Any]],
+) -> List[str]:
+    uncovered: List[str] = []
+    for operation, required_objects in source.get("conditional_occurrence_objects", {}).items():
+        if any(
+            entry.get("kind") == "action"
+            and _coverage_entry_represents_operation(
+                source=source,
+                source_operation=operation,
+                entry=entry,
+            )
+            and set(required_objects).intersection((entry.get("evidence") or {}).get("objects") or [])
+            for entry in entries
+        ):
+            continue
+        uncovered.append(operation)
+    return uncovered
+
+
+def _has_explicit_active_source_actor(source: Dict[str, Any]) -> bool:
+    if re.match(r"^(?:after|based|before|during|upon)\b", source["fragment"].strip(), re.IGNORECASE):
+        return False
+    tokens = _tokenize(source["fragment"])
+    occurrences = _coverage_operation_occurrences(
+        tokens,
+        entity_modifier_indices=_coverage_entity_modifier_indices(source["fragment"], tokens),
+    )
+    if not occurrences:
+        return False
+    operation_index = occurrences[0][0]
+    subject_tokens = tokens[:operation_index]
+    if not 1 <= len(subject_tokens) <= 3:
+        return False
+    normalized_subject = {_stem_ownership_token(token) for token in subject_tokens}
+    actor_tokens = normalized_subject - _OWNERSHIP_TOKEN_STOPWORDS
+    return any(len(token) >= 3 for token in actor_tokens) and not normalized_subject.intersection(
+        {"be", "he", "i", "it", "process", "she", "that", "they", "thi", "we", "which", "who"}
+    ) and not any(token.lower() in {"is", "are", "was", "were", "been"} for token in subject_tokens)
+
+
+def _has_explicit_acronym_source_actor(source: Dict[str, Any]) -> bool:
+    return bool(re.match(r"^(?:[Tt]he\s+)?[A-Z]{3,}\b", source["fragment"].strip()))
+
+
+def _action_tolerantly_represents_operation(
+    source: Dict[str, Any],
+    operation: str,
+    entry: Dict[str, Any],
+) -> bool:
+    represented = entry.get("evidence")
+    if not represented or entry.get("kind") != "action":
+        return False
+    if not any(
+        operation == represented_operation
+        or _coverage_operations_are_equivalent(
+            source_operation=operation,
+            represented_operation=represented_operation,
+            source=source,
+            represented=represented,
+        )
+        for represented_operation in represented["operations"]
+    ):
+        return False
+    return bool(set(source["objects"]).intersection(represented["objects"]))
+
+
+def _control_only_uncovered_operations(
+    source: Dict[str, Any],
+    entries: List[Dict[str, Any]],
+) -> List[str]:
+    if len(source["operations"]) < 2 or not _has_explicit_active_source_actor(source):
+        return []
+    shared_objects = set(source["operation_objects"].get(source["operations"][0]) or source["objects"])
+    for operation in source["operations"][1:]:
+        shared_objects.intersection_update(
+            source["operation_objects"].get(operation) or source["objects"]
+        )
+    if not shared_objects:
+        return []
+    action_entries = [entry for entry in entries if entry.get("kind") == "action"]
+    control_entries = [entry for entry in entries if entry.get("kind") == "decision_semantics"]
+    if not any(_coverage_entry_matches(source, entry) for entry in control_entries):
+        return []
+    return [
+        operation
+        for operation in source["operations"]
+        if not any(
+            _action_tolerantly_represents_operation(source, operation, entry)
+            for entry in action_entries
+        )
+    ]
+
+
+def _simple_acronym_action_uncovered_operations(
+    source: Dict[str, Any],
+    entries: List[Dict[str, Any]],
+) -> List[str]:
+    if len(source["operations"]) != 1 or not _has_explicit_acronym_source_actor(source):
+        return []
+    operation = source["operations"][0]
+    if any(
+        entry.get("kind") == "action"
+        and _coverage_entry_represents_operation(
+            source=source,
+            source_operation=operation,
+            entry=entry,
+        )
+        for entry in entries
+    ):
+        return []
+    return [operation]
 
 
 def _uncovered_coverage_operations(
@@ -1794,6 +2497,23 @@ def _coverage_scope_hint(
     return None
 
 
+def _coverage_preserves_unresolved_scope(
+    source: Dict[str, Any],
+    *,
+    high_confidence_pattern: bool,
+    uncovered_operations: List[str],
+) -> bool:
+    if high_confidence_pattern:
+        return True
+    return (
+        len(source["operations"]) == 1
+        and len(uncovered_operations) == 1
+        and source.get("condition_context") is None
+        and not re.search(r"\b(?:and|or|who|which)\b", source["fragment"], re.IGNORECASE)
+        and _has_explicit_acronym_source_actor(source)
+    )
+
+
 def validate_semantic_coverage_against_evidence(
     process_text: str,
     *,
@@ -1806,12 +2526,20 @@ def validate_semantic_coverage_against_evidence(
     entries = _semantic_coverage_entries(artifact, plan)
     candidate_issues: List[Dict[str, Any]] = []
 
-    for source_index, source in enumerate(_coverage_fragments(process_text)):
-        if len(source["operations"]) == 1 and any(
+    sources = _coverage_fragments(process_text)
+    _annotate_conditional_occurrence_requirements(sources)
+    for source_index, source in enumerate(sources):
+        conditional_uncovered = _conditional_occurrence_uncovered_operations(source, entries)
+        control_only_uncovered = _control_only_uncovered_operations(source, entries)
+        simple_unresolved = _simple_acronym_action_uncovered_operations(source, entries)
+        high_confidence_uncovered = sorted(
+            set(conditional_uncovered + control_only_uncovered + simple_unresolved)
+        )
+        if not high_confidence_uncovered and len(source["operations"]) == 1 and any(
             _coverage_entry_matches(source, entry) for entry in entries
         ):
             continue
-        uncovered_operations = _uncovered_coverage_operations(source, entries)
+        uncovered_operations = high_confidence_uncovered or _uncovered_coverage_operations(source, entries)
         if not uncovered_operations:
             continue
         scope_hint = _coverage_scope_hint(
@@ -1821,7 +2549,11 @@ def validate_semantic_coverage_against_evidence(
             artifact=artifact,
             entries=entries,
         )
-        if scope_hint is None:
+        if scope_hint is None and not _coverage_preserves_unresolved_scope(
+            source,
+            high_confidence_pattern=bool(high_confidence_uncovered),
+            uncovered_operations=uncovered_operations,
+        ):
             continue
         uncovered_requirements = _uncovered_coverage_requirements(
             source=source,
@@ -1879,8 +2611,17 @@ def validate_semantic_coverage_against_evidence(
 
     if candidate_issues:
         strongest_issue = min(candidate_issues, key=_coverage_issue_priority)
-        strongest_issue.pop("source_index", None)
-        raise SemanticCoverageEvidenceValidationError([strongest_issue])
+        strongest_scope = strongest_issue["scope_hint"]
+        selected_issues = [strongest_issue]
+        if strongest_scope is not None:
+            selected_issues = [
+                issue
+                for issue in candidate_issues
+                if issue["scope_hint"] == strongest_scope
+            ]
+        for issue in selected_issues:
+            issue.pop("source_index", None)
+        raise SemanticCoverageEvidenceValidationError(selected_issues)
     return plan
 
 
@@ -2700,6 +3441,37 @@ def _parse_semantic_sketch_plan_payload(raw_output: str) -> Dict[str, Any]:
     return parsed_json
 
 
+def _canonicalize_redundant_semantic_branch_metadata(
+    semantic_plan: Dict[str, Any],
+    *,
+    topology_artifact: Dict[str, Any],
+) -> Dict[str, Any]:
+    canonical = copy.deepcopy(semantic_plan)
+    branch_plans = canonical.get("branch_plans")
+    if not isinstance(branch_plans, list):
+        return canonical
+
+    structures_by_id = {
+        structure.get("id"): structure
+        for structure in topology_artifact.get("structures") or []
+        if isinstance(structure, dict)
+    }
+    allowed_fields = {"structure_id", "branch", "intent", "steps", "target_slot_id"}
+    redundant_fields = {"purpose", "type"}
+    for branch_plan in branch_plans:
+        if not isinstance(branch_plan, dict):
+            continue
+        if set(branch_plan) - allowed_fields - redundant_fields:
+            continue
+        structure = structures_by_id.get(branch_plan.get("structure_id"))
+        if not structure or branch_plan.get("branch") not in (structure.get("branches") or []):
+            continue
+        for field in redundant_fields:
+            if field in branch_plan and branch_plan[field] == structure.get(field):
+                branch_plan.pop(field)
+    return canonical
+
+
 def _log_invalid_semantic_branch_plans(*, raw_output: str, parsed_payload: Dict[str, Any]) -> List[Dict[str, Any]]:
     invalid_branch_plans = find_invalid_semantic_branch_plans(parsed_payload)
     for invalid_branch_plan in invalid_branch_plans:
@@ -2752,40 +3524,41 @@ def generate_semantic_sketch_plan(
         keyword_hints=keyword_hints,
     )
     planner_attempts: List[Dict[str, Any]] = []
+    seen_correction_states: set[str] = set()
+    applied_deterministic_repairs: set[str] = set()
     current_prompt = prompt
+    initial_call = _call_semantic_planner(model=model, prompt=prompt)
+    raw_output = initial_call["raw_output"]
+    response_mode = initial_call["response_mode"]
+    fallback_reason = initial_call["fallback_reason"]
     parsed_payload: Dict[str, Any] | None = None
     invalid_branch_plans: List[Dict[str, Any]] = []
     artifact: Dict[str, Any] | None = None
-    raw_output = ""
-    response_mode = "structured_output"
-    fallback_reason = None
     last_exc: Exception | None = None
-    for correction_attempt in range(_MAX_CORRECTION_ATTEMPTS + 1):
-        planner_call = _call_semantic_planner(
-            model=model,
-            prompt=current_prompt,
-        )
-        raw_output = planner_call["raw_output"]
-        response_mode = planner_call["response_mode"]
-        fallback_reason = planner_call["fallback_reason"]
-        parsed_payload = None
-        invalid_branch_plans = []
-        artifact = None
+    pending_patch_audit: Dict[str, Any] | None = None
+    validation_cycle = 0
+    llm_correction_count = 0
+    deterministic_repair_count = 0
+    max_deterministic_repairs = sum(
+        len(structure["branches"])
+        for structure in normalized_topology_artifact.get("structures") or []
+    )
+
+    while True:
         try:
-            parsed_payload = _parse_semantic_sketch_plan_payload(raw_output)
-            invalid_branch_plans = _log_invalid_semantic_branch_plans(
-                raw_output=raw_output,
-                parsed_payload=parsed_payload,
-            )
+            if parsed_payload is None:
+                parsed_payload = _parse_semantic_sketch_plan_payload(raw_output)
+                parsed_payload = _canonicalize_redundant_semantic_branch_metadata(
+                    parsed_payload,
+                    topology_artifact=normalized_topology_artifact,
+                )
+                invalid_branch_plans = _log_invalid_semantic_branch_plans(
+                    raw_output=raw_output,
+                    parsed_payload=parsed_payload,
+                )
             candidate_artifact = _revalidate_semantic_plan_against_topology(
                 topology_artifact=normalized_topology_artifact,
                 semantic_plan=parsed_payload,
-            )
-            previous_attempt = planner_attempts[-1] if planner_attempts else None
-            candidate_artifact = _enforce_semantic_correction_preservation(
-                previous_plan=previous_attempt.get("parsed_output") if previous_attempt else None,
-                current_plan=candidate_artifact,
-                previous_validation_error=previous_attempt.get("validation_error") if previous_attempt else None,
             )
             candidate_artifact = validate_semantic_ownership_against_evidence(
                 process_text,
@@ -2800,13 +3573,14 @@ def generate_semantic_sketch_plan(
             artifact = candidate_artifact
             planner_attempts.append(
                 {
-                    "attempt_index": correction_attempt,
+                    "attempt_index": validation_cycle,
                     "prompt": current_prompt,
                     "raw_output": raw_output,
                     "parsed_output": parsed_payload,
                     "response_mode": response_mode,
                     "fallback_reason": fallback_reason,
                     "validation_error": None,
+                    "correction_audit": pending_patch_audit,
                 }
             )
             break
@@ -2814,26 +3588,111 @@ def generate_semantic_sketch_plan(
             last_exc = exc
             planner_attempts.append(
                 {
-                    "attempt_index": correction_attempt,
+                    "attempt_index": validation_cycle,
                     "prompt": current_prompt,
                     "raw_output": raw_output,
                     "parsed_output": parsed_payload,
                     "response_mode": response_mode,
                     "fallback_reason": fallback_reason,
                     "validation_error": str(exc),
+                    "correction_audit": pending_patch_audit,
                 }
             )
-            if correction_attempt >= _MAX_CORRECTION_ATTEMPTS:
+            if parsed_payload is None:
                 break
-            current_prompt = _build_semantic_correction_prompt(
-                base_prompt=prompt,
+            correction_state = _normalized_correction_state(parsed_payload, str(exc))
+            if correction_state in seen_correction_states:
+                last_exc = ValueError(
+                    "Semantic correction stopped because the normalized plan and diagnostic state repeated"
+                )
+                break
+            seen_correction_states.add(correction_state)
+            editable_coordinates = _diagnostic_editable_coordinates(str(exc))
+            if not editable_coordinates:
+                last_exc = ValueError(
+                    "Semantic validation diagnostic has no safe local editable coordinates. "
+                    f"Original diagnostic: {exc}"
+                )
+                break
+            deterministic_target = _deterministic_target_slot_correction(str(exc))
+            if not deterministic_target and llm_correction_count >= _MAX_CORRECTION_ATTEMPTS:
+                break
+            current_prompt = _semantic_patch_prompt(
                 process_text=process_text,
                 topology_artifact=normalized_topology_artifact,
-                invalid_semantic_output=raw_output,
-                parsed_semantic_output=parsed_payload,
+                previous_plan=parsed_payload,
                 validation_error=str(exc),
-                correction_attempt=correction_attempt + 1,
+                editable_coordinates=editable_coordinates,
+                correction_attempt=llm_correction_count + 1,
             )
+            if deterministic_target:
+                deterministic_signature = json.dumps(
+                    deterministic_target["patch"],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                if deterministic_signature in applied_deterministic_repairs:
+                    last_exc = ValueError(
+                        "Semantic correction stopped because the same exact deterministic target repair "
+                        "was requested again after application"
+                    )
+                    break
+                if deterministic_repair_count >= max_deterministic_repairs:
+                    last_exc = ValueError(
+                        "Semantic correction stopped because deterministic target repairs exceeded the "
+                        "topology-bounded repair count"
+                    )
+                    break
+                patch_call = {
+                    "raw_output": json.dumps(deterministic_target["patch"]),
+                    "response_mode": "deterministic_target_slot_patch",
+                    "fallback_reason": None,
+                }
+            else:
+                patch_call = _call_semantic_patch_planner(model=model, prompt=current_prompt)
+                llm_correction_count += 1
+            patch_raw_output = patch_call["raw_output"]
+            try:
+                patch_payload = _parse_semantic_patch(patch_raw_output)
+                patched_plan, pending_patch_audit = _apply_semantic_patch(
+                    previous_plan=parsed_payload,
+                    patch=patch_payload,
+                    editable_coordinates=editable_coordinates,
+                    topology_artifact=normalized_topology_artifact,
+                )
+                if deterministic_target and patched_plan == parsed_payload:
+                    raise ValueError("Deterministic target repair produced no effective state change")
+            except Exception as patch_exc:
+                last_exc = patch_exc
+                planner_attempts.append(
+                    {
+                        "attempt_index": validation_cycle + 1,
+                        "prompt": current_prompt,
+                        "raw_output": patch_raw_output,
+                        "parsed_output": parsed_payload,
+                        "response_mode": patch_call["response_mode"],
+                        "fallback_reason": patch_call["fallback_reason"],
+                        "validation_error": f"Semantic correction patch rejected: {patch_exc}",
+                        "correction_audit": {
+                            "editable_coordinates": editable_coordinates,
+                            "changed_coordinates": [],
+                            "unchanged_action_inventory": _action_inventory(parsed_payload),
+                            "dropped_actions": [],
+                            "relocated_actions": [],
+                        },
+                    }
+                )
+                break
+            if deterministic_target:
+                applied_deterministic_repairs.add(deterministic_signature)
+                deterministic_repair_count += 1
+            parsed_payload = patched_plan
+            raw_output = patch_raw_output
+            response_mode = patch_call["response_mode"]
+            fallback_reason = patch_call["fallback_reason"]
+            invalid_branch_plans = []
+            validation_cycle += 1
 
     if artifact is None:
         exc = last_exc or ValueError("SemanticSketchPlan validation failed")
@@ -2851,6 +3710,8 @@ def generate_semantic_sketch_plan(
                 "semantic_fallback_reason": fallback_reason,
                 "semantic_validation_error": str(exc),
                 "semantic_attempts": planner_attempts,
+                "llm_correction_count": llm_correction_count,
+                "deterministic_repair_count": deterministic_repair_count,
             },
         ) from exc
     return {
@@ -2861,6 +3722,8 @@ def generate_semantic_sketch_plan(
         "response_mode": response_mode,
         "fallback_reason": fallback_reason,
         "planner_attempts": planner_attempts,
+        "llm_correction_count": llm_correction_count,
+        "deterministic_repair_count": deterministic_repair_count,
     }
 
 

@@ -160,6 +160,16 @@ def test_rate_limit_stop_preserves_earlier_checkpoints_and_stops_later_cases(tmp
     assert not runner._workflow_output_path(tmp_path, workflows[2]).exists()
 
 
+def test_rate_limit_detection_accepts_observed_wrapped_openai_error() -> None:
+    error = Exception(
+        "Failed to call LLM, error Error code: 429 - "
+        "{'error': {'message': 'Rate limit reached for gpt-4o on tokens per min (TPM).', "
+        "'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}"
+    )
+
+    assert runner._is_rate_limit_failure(error)
+
+
 def test_failed_case_is_retryable_later(tmp_path: Path, monkeypatch) -> None:
     workflows = [_workflow("1-1"), _workflow("2-1")]
     _write_checkpoint(tmp_path, workflows[0], _completed_payload("1-1"))
