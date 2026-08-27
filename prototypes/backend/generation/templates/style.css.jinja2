@@ -470,6 +470,7 @@ table td {
     background-color: {{ styling.text_color }};
     color: {{ styling.background_color }};
     box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+}
 
 {% elif styling.style_type == StyleType.ABSTRACT %}
 body {
@@ -713,3 +714,34 @@ table td {
 }
 
 {% endif %}
+
+/* --- AI-managed columns and custom actions (M05/M07 visibility) --- */
+.ai-badge {
+    display: inline-block;
+    font-size: 0.65em;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+    padding: 0.1em 0.4em;
+    margin-left: 0.35em;
+    border-radius: 3px;
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+th.ai-managed-header {
+    cursor: help;
+}
+
+td.ai-managed-cell {
+    background: rgba(79, 70, 229, 0.06);
+}
+
+input.custom-action-button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+form.custom-action-pending {
+    opacity: 0.7;
+}
