@@ -33,41 +33,9 @@
     </table>
 </div>
 
-<div>
-    <h3>Register</h3>
-    <table>
-        <form action="register" method="POST">
-            {% raw %}{% csrf_token %}{% endraw %}
-            <tr>
-                <td>
-                    <input type="text" name="username" placeholder="Username" required>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="password" name="password" placeholder="Password" required>
-                </td>
-            </tr>
-            <tr>
-                {% for user_type in user_types %}
-                <td class="stacked">
-                    <input type="radio" id="is_{{ user_type }}" name="user_type" value="{{ user_type }}" required>
-                    <label for="is_{{ user_type }}">{{ user_type }}</label>
-                </td>
-                {% endfor %}
-            </tr>
-            <tr>
-                <td>
-                    <p style="color:{% raw %}{{ reg_mess_color }}{% endraw %};font-size:16px;">{% raw %}{{ reg_mess }}{% endraw %}</p>
-                <td>
-            </tr>
-            <tr>
-                <td>
-                    <input value="Register" type="submit" required>
-                </td>
-            </tr>
-        </form>
-    </table>
-</div>
+{#- Self-service registration is intentionally hidden from the study UI: participants
+    use the pre-seeded demo_librarian / demo_member accounts so that role assignment is
+    controlled. The register route and view still exist; restore this form block to
+    re-expose them. #}
 
 {% raw %}{% endblock %}{% endraw %}

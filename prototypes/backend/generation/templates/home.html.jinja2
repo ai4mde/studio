@@ -27,9 +27,9 @@
             </div>
         </div>
         {% raw %}{% endif %}{% endraw %}
+        {% raw %}{% if active_process_nodes %}{% endraw %}
         <div class="active-processes">
             <h3>Tasks to complete</h3>
-            {% raw %}{% if active_process_nodes %}{% endraw %}
                 <div class="process-list">
                     {% raw %}{% for active_process_node in active_process_nodes %}{% endraw %}
                         <div class="process-item">
@@ -84,10 +84,8 @@
                         </div>
                     {% raw %}{% endfor %}{% endraw %}
                 </div>
-            {% raw %}{% else %}{% endraw %}
-                <p class="no-processes">You currently have no ongoing tasks.</p>
-            {% raw %}{% endif %}{% endraw %}
         </div>
+        {% raw %}{% endif %}{% endraw %}
     </div>
 {% endif %}
 
