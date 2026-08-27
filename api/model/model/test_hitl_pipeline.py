@@ -6,6 +6,7 @@ from uuid import uuid4
 from django.db import close_old_connections
 from django.test import TestCase, TransactionTestCase
 
+from diagram.models import Diagram
 from llm.converter import convert_to_ai4mde
 from metadata.models import (
     ProvisionalCandidate,
@@ -98,6 +99,176 @@ def _candidate(project, index):
             },
         },
     }
+
+
+class CandidateGenerationFailureCleanupTests(TestCase):
+    class GenerationFailure(Exception):
+        pass
+
+    def _candidate_row(self, project, *, selected_system=None):
+        return ProvisionalCandidate.objects.create(
+            project=project,
+            session_id=f"Session_{uuid4().hex[:12]}",
+            candidate_index=1,
+            candidate_count=3,
+            process_text=PROCESS_TEXT,
+            pipeline_profile="semantic_deterministic",
+            activity_graph=GRAPH,
+            ai4mde_export={},
+            selected_system=selected_system,
+        )
+
+    def _run_failed_generation(self, project):
+        failure = self.GenerationFailure("topology generation failed")
+        with (
+            patch(
+                "model.experiment_pipeline.resolve_experiment_project",
+                return_value=project,
+            ),
+            patch(
+                "model.experiment_pipeline.generate_and_convert_candidates",
+                side_effect=failure,
+            ),
+        ):
+            with self.assertRaises(self.GenerationFailure) as raised:
+                run_pipeline(
+                    PROCESS_TEXT,
+                    "refinement",
+                    pipeline_profile="semantic_deterministic",
+                )
+        self.assertIs(raised.exception, failure)
+
+    def test_failed_generation_deletes_only_its_new_empty_project(self):
+        failed_project = Project.objects.create(name="Failed", description="Empty")
+        ordinary_project = Project.objects.create(name="Ordinary", description="Keep")
+
+        self._run_failed_generation(failed_project)
+
+        self.assertFalse(Project.objects.filter(pk=failed_project.pk).exists())
+        self.assertTrue(Project.objects.filter(pk=ordinary_project.pk).exists())
+
+    def test_successful_generation_keeps_project(self):
+        project = Project.objects.create(name="Successful", description="Keep")
+        generated = [_candidate(project, index) for index in range(1, 4)]
+        with (
+            patch(
+                "model.experiment_pipeline.resolve_experiment_project",
+                return_value=project,
+            ),
+            patch(
+                "model.experiment_pipeline.generate_and_convert_candidates",
+                return_value=generated,
+            ),
+        ):
+            run_pipeline(
+                PROCESS_TEXT,
+                "refinement",
+                pipeline_profile="semantic_deterministic",
+            )
+
+        self.assertTrue(Project.objects.filter(pk=project.pk).exists())
+        self.assertEqual(project.provisional_candidates.count(), 3)
+
+    def test_project_with_system_is_not_deleted(self):
+        project = Project.objects.create(name="System", description="Keep")
+        System.objects.create(project=project, name="Official", description="Model")
+
+        self._run_failed_generation(project)
+
+        self.assertTrue(Project.objects.filter(pk=project.pk).exists())
+
+    def test_project_with_diagram_is_not_deleted(self):
+        project = Project.objects.create(name="Diagram", description="Keep")
+        system = System.objects.create(project=project, name="Official", description="Model")
+        Diagram.objects.create(
+            system=system,
+            type="activity",
+            name="Official",
+            description="Model",
+        )
+
+        self._run_failed_generation(project)
+
+        self.assertTrue(Project.objects.filter(pk=project.pk).exists())
+
+    def test_project_with_revision_is_not_deleted(self):
+        project = Project.objects.create(name="Revision", description="Keep")
+        system = System.objects.create(project=project, name="Official", description="Model")
+        SystemRevision.objects.create(
+            system=system,
+            revision_index=0,
+            process_text=PROCESS_TEXT,
+            pipeline_profile="semantic_deterministic",
+            activity_graph=GRAPH,
+            ai4mde_export={},
+        )
+
+        self._run_failed_generation(project)
+
+        self.assertTrue(Project.objects.filter(pk=project.pk).exists())
+
+    def test_project_with_provisional_candidate_is_not_deleted(self):
+        project = Project.objects.create(name="Candidate", description="Keep")
+        self._candidate_row(project)
+
+        self._run_failed_generation(project)
+
+        self.assertTrue(Project.objects.filter(pk=project.pk).exists())
+
+    def test_selected_candidate_project_is_not_deleted(self):
+        project = Project.objects.create(name="Selected", description="Keep")
+        system = System.objects.create(project=project, name="Official", description="Model")
+        self._candidate_row(project, selected_system=system)
+
+        self._run_failed_generation(project)
+
+        self.assertTrue(Project.objects.filter(pk=project.pk).exists())
+
+    def test_existing_project_id_is_never_cleanup_eligible(self):
+        project = Project.objects.create(name="Existing", description="Keep")
+        failure = self.GenerationFailure("topology generation failed")
+        with patch(
+            "model.experiment_pipeline.generate_and_convert_candidates",
+            side_effect=failure,
+        ):
+            with self.assertRaises(self.GenerationFailure):
+                run_pipeline(
+                    PROCESS_TEXT,
+                    "refinement",
+                    project_id=str(project.id),
+                    pipeline_profile="semantic_deterministic",
+                )
+
+        self.assertTrue(Project.objects.filter(pk=project.pk).exists())
+
+    def test_cleanup_failure_does_not_replace_generation_failure(self):
+        project = Project.objects.create(name="Cleanup failure", description="Keep")
+        generation_failure = self.GenerationFailure("topology generation failed")
+        cleanup_failure = RuntimeError("cleanup failed")
+        with (
+            patch(
+                "model.experiment_pipeline.resolve_experiment_project",
+                return_value=project,
+            ),
+            patch(
+                "model.experiment_pipeline.generate_and_convert_candidates",
+                side_effect=generation_failure,
+            ),
+            patch(
+                "model.experiment_pipeline._delete_failed_empty_project",
+                side_effect=cleanup_failure,
+            ),
+            self.assertLogs("model.experiment_pipeline", level="ERROR"),
+        ):
+            with self.assertRaises(self.GenerationFailure) as raised:
+                run_pipeline(
+                    PROCESS_TEXT,
+                    "refinement",
+                    pipeline_profile="semantic_deterministic",
+                )
+
+        self.assertIs(raised.exception, generation_failure)
+        self.assertTrue(Project.objects.filter(pk=project.pk).exists())
 
 
 class CandidateSelectionContractTests(TestCase):

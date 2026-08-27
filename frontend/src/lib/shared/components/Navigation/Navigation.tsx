@@ -1,5 +1,13 @@
 import { useAuthStore } from "$lib/features/auth/state/auth";
-import { Bot, Box, LayoutDashboard, List, LogOut, User } from "lucide-react";
+import {
+    Bot,
+    Box,
+    FlaskConical,
+    LayoutDashboard,
+    List,
+    LogOut,
+    User,
+} from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
 
@@ -8,8 +16,8 @@ export const Navigation: React.FC = () => {
     const { isAuthenticated, logout } = useAuthStore();
 
     const linkClassName =
-        "flex items-center justify-between hover:text-gray-800 " +
-        "flex-row gap-3 p-3 pr-4 box-border hover:bg-gray-200 " +
+        "flex items-center justify-start hover:text-gray-800 " +
+        "flex-row gap-3 p-3 pr-4 box-border hover:bg-gray-200 [&>svg]:shrink-0 " +
         "hover:border-l-blue-700 border-l-4 border-solid";
 
     const activeLink = "text-gray-800 bg-gray-200 border-l-blue-700";
@@ -41,6 +49,19 @@ export const Navigation: React.FC = () => {
                 >
                     <Bot size={20} />
                     <span className="font-bold text-sm">Build</span>
+                </a>
+                <a
+                    className={
+                        linkClassName +
+                        " " +
+                        (pathname.startsWith("/process-generation")
+                            ? activeLink
+                            : inactiveLink)
+                    }
+                    href="/process-generation/"
+                >
+                    <FlaskConical size={20} />
+                    <span className="font-bold text-sm">Process Generation</span>
                 </a>
                 <a
                     className={

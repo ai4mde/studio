@@ -13,11 +13,13 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { markHitlPipeline, saveHitlCandidateSession } from "../hitlStorage";
 import { HitlCandidateGenerationResponse, Pipeline } from "../types";
 import HitlCandidateWorkflow from "./HitlCandidateWorkflow";
 
 export const InitialGenerationFlow: React.FC = () => {
+    const navigate = useNavigate();
     const [requirements, setRequirements] = useState("");
     const preparedPipeline = useRef<Pipeline | null>(null);
     const [workflow, setWorkflow] = useState<{
@@ -61,6 +63,7 @@ export const InitialGenerationFlow: React.FC = () => {
             setWorkflow({ pipeline, candidates });
             setStatusMessage(null);
             queryClient.invalidateQueries({ queryKey: ["pipelines"] });
+            navigate(`/process-generation/${pipeline.id}`, { replace: true });
         },
         onError: () => {
             setStatusMessage({

@@ -70,9 +70,13 @@ export const HitlPanel: React.FC<Props> = ({ diagramId }) => {
     } | null>(null);
     const [revisionToRestore, setRevisionToRestore] = useState<HitlRevision | null>(null);
     const activeOperation = useHitlOperation((state) => state.activeOperation);
-    const pendingEditorSaves = useEditorPersistence((state) => state.pendingCount);
+    const pendingEditorSaves = useEditorPersistence(
+        (state) => state.pendingByDiagram[diagramId] ?? 0,
+    );
     const editorSaveFailures = useEditorPersistence((state) => state.failures);
-    const hasEditorSaveFailure = Object.keys(editorSaveFailures).length > 0;
+    const hasEditorSaveFailure = Object.values(editorSaveFailures).some(
+        (failure) => failure.diagramId === diagramId,
+    );
     const revisionOperationPending = activeOperation !== null;
 
     const currentRevision = useMemo(
@@ -83,7 +87,7 @@ export const HitlPanel: React.FC<Props> = ({ diagramId }) => {
     const syncMutation = useMutation({
         mutationFn: async () => {
             await runHitlOperation("sync", async () => {
-                await waitForEditorPersistence();
+                await waitForEditorPersistence(diagramId);
                 await authAxios.post("/v1/synchronize-human-edit", {
                     system_id: systemId,
                 });

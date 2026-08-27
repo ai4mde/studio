@@ -1,10 +1,10 @@
-import { ListPipelines } from "$lib/features/ai/components/ListPipelines";
+import { InitialGenerationFlow } from "$lib/features/ai/components/InitialGenerationFlow";
 import { Steps } from "$lib/features/ai/components/Steps";
 import React from "react";
 
 type Props = Record<string, never>;
 
-export const BuildIndex: React.FC<Props> = () => {
+export const ProcessGenerationIndex: React.FC<Props> = () => {
     return (
         <div className="flex h-full w-full flex-col gap-4 p-4">
             <div className="flex flex-col">
@@ -15,12 +15,12 @@ export const BuildIndex: React.FC<Props> = () => {
             </div>
             <div className="w-full rounded-md bg-gray-100 p-4">
                 <div className="p-1">
-                    <Steps step={1} />
+                    <Steps step={1} variant="hitl" />
                 </div>
             </div>
-            <ListPipelines />
+            <InitialGenerationFlow />
         </div>
     );
 };
 
-export default BuildIndex;
+export default ProcessGenerationIndex;

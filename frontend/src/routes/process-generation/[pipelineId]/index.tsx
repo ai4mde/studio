@@ -1,10 +1,8 @@
 import { authAxios } from "$auth/state/auth";
-import { AddToDiagram } from "$lib/features/ai/components/AddToDiagram";
-import { RunModel } from "$lib/features/ai/components/RunModel";
-import { SelectModel } from "$lib/features/ai/components/SelectModel";
+import HitlCandidateWorkflow from "$lib/features/ai/components/HitlCandidateWorkflow";
 import { Steps } from "$lib/features/ai/components/Steps";
 import { UploadRequirements } from "$lib/features/ai/components/UploadRequirements";
-import { isHitlPipeline } from "$lib/features/ai/hitlStorage";
+import { clearHitlPipeline, isHitlPipeline } from "$lib/features/ai/hitlStorage";
 import { usePipeline } from "$lib/features/ai/queries";
 import { Button, IconButton, LinearProgress } from "@mui/joy";
 import { useMutation } from "@tanstack/react-query";
@@ -14,14 +12,15 @@ import { Navigate, useNavigate, useParams } from "react-router";
 
 type Props = Record<string, never>;
 
-export const PipelineIndex: React.FC<Props> = () => {
+export const ProcessGenerationPipeline: React.FC<Props> = () => {
     const { pipelineId } = useParams();
     const { isSuccess, data } = usePipeline(pipelineId);
     const navigate = useNavigate();
     const deletePipeline = useMutation({
         mutationFn: async () => {
             await authAxios.delete(`/v1/prose/pipelines/${pipelineId}/`);
-            navigate("/build/");
+            clearHitlPipeline(pipelineId!);
+            navigate("/process-generation/");
         },
     });
 
@@ -29,8 +28,8 @@ export const PipelineIndex: React.FC<Props> = () => {
         return <></>;
     }
 
-    if (isHitlPipeline(pipelineId)) {
-        return <Navigate to={`/process-generation/${pipelineId}`} replace />;
+    if (!isHitlPipeline(pipelineId)) {
+        return <Navigate to={`/build/${pipelineId}`} replace />;
     }
 
     if (!isSuccess) {
@@ -40,7 +39,7 @@ export const PipelineIndex: React.FC<Props> = () => {
     return (
         <div className="flex h-full w-full flex-col gap-4 p-4">
             <div className="flex w-full flex-row gap-2">
-                <IconButton component="a" href="/build/">
+                <IconButton component="a" href="/process-generation/">
                     <ArrowLeft size={16} />
                 </IconButton>
                 <div className="flex flex-col">
@@ -64,15 +63,16 @@ export const PipelineIndex: React.FC<Props> = () => {
 
             <div className="w-full rounded-md bg-gray-100 p-4">
                 <div className="p-1">
-                    <Steps step={data.step} />
+                    <Steps step={data.step >= 3 ? 3 : data.step} variant="hitl" />
                 </div>
             </div>
-            {data.step < 3 && <UploadRequirements pipeline={data} />}
-            {data.step == 3 && <SelectModel pipeline={data} />}
-            {data.step == 4 && <RunModel pipeline={data} />}
-            {data.step == 5 && <AddToDiagram pipeline={data} />}
+            {data.step < 3 ? (
+                <UploadRequirements pipeline={data} />
+            ) : (
+                <HitlCandidateWorkflow pipeline={data} />
+            )}
         </div>
     );
 };
 
-export default PipelineIndex;
+export default ProcessGenerationPipeline;

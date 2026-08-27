@@ -2,44 +2,60 @@ import { authAxios } from "$auth/state/auth";
 import { create } from "zustand";
 
 type EditorPersistenceState = {
-    pendingCount: number;
-    failures: Record<string, string>;
+    pendingByDiagram: Record<string, number>;
+    failures: Record<string, { diagramId: string; message: string }>;
 };
 
 export const useEditorPersistence = create<EditorPersistenceState>(() => ({
-    pendingCount: 0,
+    pendingByDiagram: {},
     failures: {},
 }));
 
-const requestKeys = new WeakMap<object, string>();
-const idleWaiters = new Set<() => void>();
+type TrackedRequest = {
+    diagramId: string;
+    key: string;
+};
+
+const requestKeys = new WeakMap<object, TrackedRequest>();
+const idleWaiters = new Map<string, Set<() => void>>();
 let installed = false;
 
-const isEditorWrite = (method?: string, url?: string) =>
-    Boolean(
-        method &&
-            url &&
-            ["delete", "patch", "post", "put"].includes(method.toLowerCase()) &&
-            /\/v1\/diagram\//.test(url),
-    );
+const editorWriteDiagram = (method?: string, url?: string) => {
+    if (
+        !method ||
+        !url ||
+        !["delete", "patch", "post", "put"].includes(method.toLowerCase())
+    ) {
+        return null;
+    }
+    return url.match(/\/v1\/diagram\/([^/]+)/)?.[1] ?? null;
+};
 
-const finishRequest = (key: string, error?: unknown) => {
+const finishRequest = ({ diagramId, key }: TrackedRequest, error?: unknown) => {
     useEditorPersistence.setState((state) => {
         const failures = { ...state.failures };
+        const pendingByDiagram = { ...state.pendingByDiagram };
         if (error) {
-            failures[key] = "The editor could not save a recent change.";
+            failures[key] = {
+                diagramId,
+                message: "The editor could not save a recent change.",
+            };
         } else {
             delete failures[key];
         }
+        pendingByDiagram[diagramId] = Math.max(
+            0,
+            (pendingByDiagram[diagramId] ?? 0) - 1,
+        );
         return {
-            pendingCount: Math.max(0, state.pendingCount - 1),
+            pendingByDiagram,
             failures,
         };
     });
 
-    if (useEditorPersistence.getState().pendingCount === 0) {
-        idleWaiters.forEach((resolve) => resolve());
-        idleWaiters.clear();
+    if ((useEditorPersistence.getState().pendingByDiagram[diagramId] ?? 0) === 0) {
+        idleWaiters.get(diagramId)?.forEach((resolve) => resolve());
+        idleWaiters.delete(diagramId);
     }
 };
 
@@ -51,11 +67,15 @@ export const installEditorPersistenceTracking = () => {
 
     authAxios.interceptors.request.use(
         (config) => {
-            if (isEditorWrite(config.method, config.url)) {
+            const diagramId = editorWriteDiagram(config.method, config.url);
+            if (diagramId) {
                 const key = `${config.method?.toLowerCase()}:${config.url}`;
-                requestKeys.set(config, key);
+                requestKeys.set(config, { diagramId, key });
                 useEditorPersistence.setState((state) => ({
-                    pendingCount: state.pendingCount + 1,
+                    pendingByDiagram: {
+                        ...state.pendingByDiagram,
+                        [diagramId]: (state.pendingByDiagram[diagramId] ?? 0) + 1,
+                    },
                 }));
             }
             return config;
@@ -82,11 +102,19 @@ export const installEditorPersistenceTracking = () => {
     );
 };
 
-export const waitForEditorPersistence = async () => {
-    if (useEditorPersistence.getState().pendingCount > 0) {
-        await new Promise<void>((resolve) => idleWaiters.add(resolve));
+export const waitForEditorPersistence = async (diagramId: string) => {
+    if ((useEditorPersistence.getState().pendingByDiagram[diagramId] ?? 0) > 0) {
+        await new Promise<void>((resolve) => {
+            const waiters = idleWaiters.get(diagramId) ?? new Set();
+            waiters.add(resolve);
+            idleWaiters.set(diagramId, waiters);
+        });
     }
-    if (Object.keys(useEditorPersistence.getState().failures).length > 0) {
+    if (
+        Object.values(useEditorPersistence.getState().failures).some(
+            (failure) => failure.diagramId === diagramId,
+        )
+    ) {
         throw new Error("Recent editor changes have not been saved successfully.");
     }
 };

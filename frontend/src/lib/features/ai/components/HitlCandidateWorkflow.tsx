@@ -33,6 +33,16 @@ type Props = {
 const candidateLabel = (candidate: HitlCandidate) =>
     `Candidate ${candidate.candidate_index} of ${candidate.candidate_count}`;
 
+export const thesisDiagramPath = (payload: HitlSelectedCandidateResponse) => {
+    if (payload.diagram_id) {
+        return `/process-generation/diagram/${payload.diagram_id}`;
+    }
+    if (payload.ui_path?.startsWith("/diagram/")) {
+        return `/process-generation${payload.ui_path}`;
+    }
+    return payload.ui_path ?? "/process-generation";
+};
+
 export const HitlCandidateWorkflow: React.FC<Props> = ({
     pipeline,
     initialCandidateSession,
@@ -108,7 +118,7 @@ export const HitlCandidateWorkflow: React.FC<Props> = ({
             setSelectionMessage("Candidate selected. Opening the editor.");
             queryClient.invalidateQueries({ queryKey: ["projects"] });
             queryClient.invalidateQueries({ queryKey: ["systems", payload.project_id] });
-            navigate(payload.ui_path ?? `/diagram/${payload.diagram_id}`);
+            navigate(thesisDiagramPath(payload));
         },
         onMutate: () => {
             setSelectionMessage(null);
@@ -227,7 +237,10 @@ export const HitlCandidateWorkflow: React.FC<Props> = ({
                                         )}
                                     </Button>
                                 </div>
-                                <CandidatePreview candidate={candidate} />
+                                <CandidatePreview
+                                    candidate={candidate}
+                                    initialPositions={candidateLayouts[candidate.candidate_id]}
+                                />
                                 <Button
                                     variant="outlined"
                                     color="neutral"

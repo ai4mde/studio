@@ -11,6 +11,7 @@ Session model
 """
 from __future__ import annotations
 from copy import deepcopy
+import logging
 import uuid
 from typing import Any, Dict, List, Literal, Optional
 
@@ -50,6 +51,7 @@ from llm.refinement_generator import (
 )
 
 Mode = Literal["baseline", "refinement"]
+logger = logging.getLogger(__name__)
 
 
 def _diff_topology_artifact(
@@ -328,6 +330,33 @@ def resolve_experiment_project(
     return create_experiment_project(mode=mode, session_id=session_id)
 
 
+def _delete_failed_empty_project(project_id: str) -> bool:
+    from diagram.models import Diagram
+
+    with transaction.atomic():
+        project = Project.objects.select_for_update().filter(pk=project_id).first()
+        if project is None:
+            return False
+
+        candidates = ProvisionalCandidate.objects.filter(project=project)
+        has_protected_state = (
+            System.objects.filter(project=project).exists()
+            or Diagram.objects.filter(system__project=project).exists()
+            or SystemRevision.objects.filter(system__project=project).exists()
+            or candidates.filter(selected_system__isnull=False).exists()
+            or candidates.exists()
+        )
+        if has_protected_state:
+            logger.warning(
+                "Skipped cleanup for failed generation project %s because it contains persistent model state.",
+                project_id,
+            )
+            return False
+
+        project.delete()
+        return True
+
+
 def import_to_ai4mde(project: Project, systems_export: List[Dict[str, Any]]) -> None:
     """
     Validate and import a wrapped single-system AI4MDE export into ``project``.
@@ -461,17 +490,28 @@ def run_pipeline(
                 }
             ]
         else:
-            candidate_exports = generate_and_convert_candidates(
-                process_text,
-                n=3,
-                project_id=resolved_project_id,
-                pipeline_profile=pipeline_config["pipeline_profile"],
-                enable_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
-                enable_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
-                enable_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
-                name_prefix=f"{session_id}_Model",
-                description_template=f"Experiment session {session_id}",
-            )
+            try:
+                candidate_exports = generate_and_convert_candidates(
+                    process_text,
+                    n=3,
+                    project_id=resolved_project_id,
+                    pipeline_profile=pipeline_config["pipeline_profile"],
+                    enable_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
+                    enable_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
+                    enable_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
+                    name_prefix=f"{session_id}_Model",
+                    description_template=f"Experiment session {session_id}",
+                )
+            except Exception:
+                if not project_id:
+                    try:
+                        _delete_failed_empty_project(resolved_project_id)
+                    except Exception:
+                        logger.exception(
+                            "Failed to clean up empty project %s after candidate generation failed.",
+                            resolved_project_id,
+                        )
+                raise
     else:
         raise ValueError("mode must be 'baseline' or 'refinement'")
 

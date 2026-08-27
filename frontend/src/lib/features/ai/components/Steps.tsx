@@ -6,7 +6,7 @@ type Props = {
     variant?: "hitl" | "legacy";
 };
 
-export const Steps: React.FC<Props> = ({ step, variant = "hitl" }) => {
+export const Steps: React.FC<Props> = ({ step, variant = "legacy" }) => {
     const labels =
         variant === "hitl"
             ? [

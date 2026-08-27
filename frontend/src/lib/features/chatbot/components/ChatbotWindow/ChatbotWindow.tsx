@@ -25,7 +25,7 @@ import { wsURL } from "$lib/shared/globals";
 export const ChatbotWindow: React.FC = () => {
     const [chatbotOpen, setChatbotOpen] = useAtom(chatbotOpenAtom);
     const close = () => setChatbotOpen(false);
-    const diagramMatch = useMatch("/diagram/:diagramId");
+    const diagramMatch = useMatch("/process-generation/diagram/:diagramId");
     const diagramId = diagramMatch?.params?.diagramId;
     const { data: diagramData } = useDiagram(diagramId ?? "");
     const { sendMessage, lastJsonMessage, readyState } = useWebSocket(
@@ -78,7 +78,7 @@ export const ChatbotWindow: React.FC = () => {
         }
     }, [lastJsonMessage, setMessageHistory]);
 
-    if (diagramId && diagramData?.system_id) {
+    if (diagramId) {
         return (
             <Modal open={chatbotOpen} onClose={close} hideBackdrop>
                 <ModalDialog>
@@ -115,7 +115,7 @@ export const ChatbotWindow: React.FC = () => {
                             />
                             <Button
                                 type="submit"
-                                disabled={activeOperation !== null}
+                                disabled={!diagramData?.system_id || activeOperation !== null}
                             >
                                 {activeOperation === "refinement" ? (
                                     <CircularProgress size="sm" />
