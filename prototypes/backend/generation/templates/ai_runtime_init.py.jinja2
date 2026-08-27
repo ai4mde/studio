@@ -24,7 +24,7 @@ def _build_output_schema(write_back, allowed_values):
     return create_model("AiOutput", **{write_back: (annotation, ...)})
 
 
-def invoke(ai_config, instance):
+def invoke(ai_config, instance, created=None):
     """Step 7 - full runtime for one AI-managed attribute. Orchestrates
     M02 context -> M01 render -> M06 route -> M03 parse, logs a full trace, and returns the
     parsed write-back value (or None). The generated hook performs the ORM write-back.
@@ -65,6 +65,7 @@ def invoke(ai_config, instance):
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "event": "invoke",
         "trigger": ai_config.get("trigger", {}).get("type"),
+        "created": created,
         "model": instance.__class__.__name__,
         "pk": instance.pk,
         "model_profile": model_profile,

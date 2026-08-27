@@ -2,6 +2,14 @@
 # Mechanisms M01-M06 live in ai_runtime; this module only wires domain post_save
 # events to ai_runtime.invoke(ai_config, instance). Wiring (import via apps.ready)
 # is added at Step 5.
+#
+# Recomputation policy (M07): the AI-managed value is recomputed whenever the owning
+# model instance is saved, on both creation and update. Context fields declared on
+# related objects are read at invocation time; changes to those related objects do
+# not independently trigger recomputation in this demonstrator. Each invocation
+# records the `created` flag in the trace, so creation-triggered and update-triggered
+# recomputations remain distinguishable. The generated UI marks such columns as
+# AI-managed; the exact refresh trigger stays at configuration level.
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -17,7 +25,7 @@ def _ai__{{ h.model }}__{{ h.func_suffix }}(sender, instance, created, **kwargs)
         from ai_runtime import invoke  # provided at Step 5; absent before that
     except ImportError:
         return  # ai_runtime not present yet: safe no-op
-    value = invoke({{ h.config_name }}, instance)
+    value = invoke({{ h.config_name }}, instance, created=created)
     if value is None:
         return
     # recursion-safe: QuerySet.update() does NOT emit post_save
