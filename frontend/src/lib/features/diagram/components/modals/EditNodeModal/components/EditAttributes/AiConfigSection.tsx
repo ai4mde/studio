@@ -198,6 +198,7 @@ const EditableAiConfigSection: React.FC<
                 <Switch
                     size="sm"
                     checked={enabled}
+                    disabled={!enabled && Boolean(attribute?.derived)}
                     onChange={(event) => {
                         if (event.target.checked) enableAiConfig();
                         else disableAiConfig();
@@ -207,6 +208,13 @@ const EditableAiConfigSection: React.FC<
                     AI-managed attribute
                 </FormLabel>
             </FormControl>
+            {!enabled && Boolean(attribute?.derived) && (
+                <p className="text-[10px] leading-tight text-gray-500">
+                    Not available: a derived property is generated as a read-only
+                    <code> @property</code>, so it cannot also be written by an AI model.
+                    Turn off <em>derived</em> first.
+                </p>
+            )}
 
             {enabled && (
                 <div className="flex flex-col gap-2">

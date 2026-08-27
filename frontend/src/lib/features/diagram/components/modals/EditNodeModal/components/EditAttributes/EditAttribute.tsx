@@ -22,6 +22,12 @@ const EditAttribute: React.FC<{
     const [openEditMenu, setOpenEditMenu] = useState(false);
     const [openGenerateModal, setOpenGenerateModal] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
+    // An attribute is either a plain field, a derived @property, or AI-managed.
+    // models.py.jinja2 renders `derived and body` as a read-only @property, which
+    // would shadow the database column that ai_config.output.write_back needs to
+    // write into. The two are therefore mutually exclusive, enforced in both
+    // directions (see also AiConfigSection.tsx).
+    const aiManaged = Boolean(attribute?.ai_config);
     const LLMOptions = [
         { value: 'openai/gpt-oss-20b', label: 'gpt-oss-20b (Groq)' },
         { value: 'gpt-5.1', label: 'gpt-5.1 (OpenAI)' },
@@ -107,17 +113,24 @@ const EditAttribute: React.FC<{
                 <Tooltip
                     size="sm"
                     placement="left"
-                    title={`Make attribute ${attribute?.derived ? "public" : "derived"
-                        }`}
+                    title={aiManaged
+                        ? "Not available: an AI-managed attribute is stored as a database column, so it cannot also be a derived property."
+                        : `Make attribute ${attribute?.derived ? "public" : "derived"}`
+                    }
                 >
-                    <button
-                        className="p-2"
-                        onClick={() => {
-                            update({ ...attribute, derived: !attribute?.derived });
-                        }}
-                    >
-                        {attribute?.derived ? "/" : "+"}
-                    </button>
+                    <span>
+                        <button
+                            className="p-2"
+                            disabled={aiManaged}
+                            style={aiManaged ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+                            onClick={() => {
+                                if (aiManaged) return;
+                                update({ ...attribute, derived: !attribute?.derived });
+                            }}
+                        >
+                            {attribute?.derived ? "/" : "+"}
+                        </button>
+                    </span>
                 </Tooltip>
                 {attribute?.derived &&
                     <Tooltip
