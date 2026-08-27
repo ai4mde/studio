@@ -1,1 +1,5 @@
 .DS_Store
+site/
+docs/backend/build/
+docs/guides/build/
+docs/backend/source/api/

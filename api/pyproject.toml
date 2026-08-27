@@ -46,3 +46,9 @@ django_settings_module = "model.settings"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "model.settings"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^8.1.3"
+myst-parser = "^4.0.0"
+sphinx-autodoc-typehints = "^3.0.0"
+furo = "^2024.8.6"
