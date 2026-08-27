@@ -11,7 +11,7 @@ packages = []
 python = "^3.10"
 django = "5.0.2"
 psycopg2-binary = "^2.9.9"
-django-ninja = "^1.1.0"
+django-ninja = "1.2.1"
 pyjwt = "^2.8.0"
 django-cors-headers = "^4.3.1"
 daphne = "^4.0.0"
@@ -24,7 +24,7 @@ openai = "^1.47.0"
 networkx = "^3.4.2"
 numpy = "^2.2.1"
 groq = "^0.15.0"
-httpx = "0.27.2"   # pinned: openai 1.47 passes `proxies=` which httpx>=0.28 removed (BUG-01)
+httpx = "0.27.2"   # pinned for validated provider runtime compatibility (BUG-01)
 pydantic = "^2.0"
 
 
