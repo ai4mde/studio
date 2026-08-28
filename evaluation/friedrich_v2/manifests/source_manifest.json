@@ -1,0 +1,477 @@
+{
+  "cases": [
+    {
+      "case_id": "1-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/Ex1 - bycicle manufacturing.txt",
+      "process_text_sha256": "9b745e3b6175b37450f5763683006f907a1873b339ae131bb4542c4dc64cd891",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/_Solutions/HU Ex1.diagram.zip",
+      "reference_model_sha256": "581d24a3c39b4a0d07b3182eb033d137483441559d85eb77f01740f8754f6abd",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "1-2",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/Ex2 - Computer Repair.txt",
+      "process_text_sha256": "6f093370f78374d3394dbc9954a0c74e0a8a1a90bf90078c2e71eec84f8bd09b",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/_Solutions/HU Ex2.diagram.zip",
+      "reference_model_sha256": "4592aae4d05316ec1f95a0b309744b020fdd76db9b2e65b415849a60eac06122",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "1-3",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/Ex3 - Hotel Service.txt",
+      "process_text_sha256": "fbf94d1dd66084b23a152f84d8684f9a5354f7250d09e1dbc5e04d3915bba53c",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/_Solutions/HU Ex3.diagram.zip",
+      "reference_model_sha256": "ba0432b1bdfda1b0e62a9572377bd1b147d89673c981e54200d5397f6e75633f",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "1-4",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/Ex4 - Underwriters.txt",
+      "process_text_sha256": "a826c0170088ce41d435cfb1de570cd14946f065889dca503efc173ca97606ff",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/HU/_Solutions/HU Ex4.diagram.zip",
+      "reference_model_sha256": "5ef656b84db2f141a563dcd302c3bbb82b80c2255d6f7f9831e2e22e27ea95d1",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "2-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/TU Berlin - SLA Violation.txt",
+      "process_text_sha256": "8d48279770e2eaf59961e5c6d6699fd0f07f31444b824b866fd6dd4a7a615a64",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/_solutions/TU-Berlin - SLA Violation.diagram.zip",
+      "reference_model_sha256": "155e9c9f277cd75591c6d7931d174f08b94b32749955fc329db18e2089087c3c",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "2-2",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/TU Berlin - Supplier Switch.txt",
+      "process_text_sha256": "2b0c9d7fcd22c81c1ae3ad9cbf5f840f0adffde16b0b48bc32a48b38bda338a7",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/_solutions/TU-Berlin - Supplier Switch.diagram.zip",
+      "reference_model_sha256": "8eb969aabd829099ebada9c0484b9924ac1473cb83e190a9c01c049b3105a595",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "3-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/2009-1 MC Finalise SCT Warrant Possession.txt",
+      "process_text_sha256": "5779029ac61589589d8e9277bdd8fae7113e582b689e9430c0bacf5c7fe34acb",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2009-1.diagram.zip",
+      "reference_model_sha256": "0faf3c1fea4b068468cf99a92b742fd2e8b2d5490474337a8984e7f1bcf74142",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "3-2",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/2009-2 Conduct Directions Hearing.txt",
+      "process_text_sha256": "f6fcd1f963d5e7534a7026c81340038c96876fad52be95698ff8af19a76ebf24",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2009-2.diagram.zip",
+      "reference_model_sha256": "70260ba1bdd63023bd51b47f5df68f3c93538fcf6432a8a4ef96fd5aec98f99e",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "3-3",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/2009-3 repetition-cycles.txt",
+      "process_text_sha256": "db9f6aee07100114fb8e6231e92a86d115ac4a097fa4cec93591d82f268e1525",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2009-3.diagram.zip",
+      "reference_model_sha256": "3f86b0f596859f4795af96204f18a885be2687f9793ae2192e4aadc6069f93aa",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "3-4",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/2009-4 event based gateways.txt",
+      "process_text_sha256": "aa9f7aeffdd5052d718d3d7de9ba8517f12d4ecc48c34da8e300294de2035dcc",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2009-4.diagram.zip",
+      "reference_model_sha256": "71a858a7d18c66506950ac39a3666ea8da439a8ef489e2ec99145f1a84a81eb8",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "3-5",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/2009-5 PandE - Lodge Originating Document by Post.txt",
+      "process_text_sha256": "b22088cf2ebc7837bcd841b3efcf010420afb900593c69d6e6a7d784a1250e6b",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2009-5.diagram.zip",
+      "reference_model_sha256": "0b95e890ecb5dc501d6b3cc56761fdce026514f5bb4b8cd298eabed49f761877",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "3-6",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/2010-1 Claims Notification.txt",
+      "process_text_sha256": "31de74996d2c02081a6d24986a0cc4fabe7e344fba6d221c42c2062218583ba8",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2010-1.diagram.zip",
+      "reference_model_sha256": "cd0295c16f8cbd8e3688ff32c06a0a5fcdeac3a04e22aedd7c050033efb38886",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "3-7",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/2010-2 Claims Creation.txt",
+      "process_text_sha256": "3e9f1c94aaf0f26bf34362951e63b432cd192f4b429f13be4828fdcb72e5edda",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2010-2.diagram.zip",
+      "reference_model_sha256": "17eaabc9bee23e8172248202adf05ff61ad76af04ae4981999eac25f0a891c9c",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "3-8",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/2010-3 Claims handling process.txt",
+      "process_text_sha256": "72b1b6edd894c1f24157e8101719a95736a368026c42e395be778d4340d9d1ae",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/QUT/_solutions/2010-3.diagram.zip",
+      "reference_model_sha256": "632d3b9c1ce27f70074b1766ca8977206babc79a824e94bfa2c00e6562faa0ea",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "4-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/Reijers Workflow.txt",
+      "process_text_sha256": "85a840ddf42fc769f0c4742a7558f75395292eb03e2b0035d272ad16c4326768",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/_solutions/Hajo Reijers - PhD.diagram.zip",
+      "reference_model_sha256": "97fd7d50816cacce4efa29de3f7b89a27586ac009dd210292af2ca432f3da008",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "5-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/Active VOS - tutorial.txt",
+      "process_text_sha256": "5a06cf887e0b8854bf2dfe27fc8a5affd5826d7a5488cdf991f69e3efa837f58",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/_SOlutions/Active VOS.diagram.zip",
+      "reference_model_sha256": "ba7ecf26ab25b29a1569cfc26045062825dc998175409834c73dff853910d7dc",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "5-2",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/BizAgi - tutorial1.txt",
+      "process_text_sha256": "42db90ecdff0cab4025da44268e0dacdd46673e755ac696951fc373e3b46402d",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/_SOlutions/BizAgi1.diagram.zip",
+      "reference_model_sha256": "7f9b176d324f55ec9dc1f24edc865079fa2dc428f7f45bc3f508426bd3c418ac",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "5-3",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/BizAgi - tutorial2.txt",
+      "process_text_sha256": "17d69c838c7445a74e01d8d3b9efc0ec85603460de6048ad668dfdff1a9f71f3",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/_SOlutions/BizAgi2.diagram.zip",
+      "reference_model_sha256": "31fdc1168fb8378f5926bd06d02742a2ca242c24b90b1d83943b19e5108f1c04",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "5-4",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/Oracle - Expense Report Process - eng.txt",
+      "process_text_sha256": "52f25310b8ad0fee9a0ebc89e21fd9539c62ccfcfeb2761557b1f4a5d6913d4b",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/vendor tutorial/_SOlutions/Oracle.diagram.zip",
+      "reference_model_sha256": "879e8e45d3a9b4c1c96ba1955092e4695c05d649a4ec27f36f70a061908ce172",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "6-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/ACME - eng.txt",
+      "process_text_sha256": "2747272143cf789c0ecb628c07910c4aa2fcba8b499565b2a4b63f728b174c84",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/_Solutions/inubit ACME.diagram.zip",
+      "reference_model_sha256": "7cf7043167e8e16f66953f90523748b22d1f82ad4449803a1206a8ec396fbdfe",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "6-2",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/Tutorial - eng.txt",
+      "process_text_sha256": "cac73a01405b23761a93a7070f716177a226a99b1338864a8a945ec1c3114256",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/_Solutions/inubit Tutorial.diagram.zip",
+      "reference_model_sha256": "0fcc7e410f34f47eaf2cce9daa25d55eaae6ba74d36a081ea8dcc663c233f854",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "6-3",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/Powerlicht - eng.txt",
+      "process_text_sha256": "b8c7158eb4064e4276f29893b40291f29f88b6b9cecfa5187a070255fc50dd88",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/_Solutions/inubit Powerlicht.diagram.zip",
+      "reference_model_sha256": "3af91f8fca301658d9d62d174bb665c9e2be62916ce6bfd60335015ed3774fa3",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "6-4",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/Turbopixel - eng.txt",
+      "process_text_sha256": "291fa9e3f6e7705028bf5abd54086361b397486ef355e78e488de187bbc8468d",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/inubit/_Solutions/inubit University.diagram.zip",
+      "reference_model_sha256": "f798865c88482deb60b92850649ca6da2a40b60ea2f9bb4a467d0aa21dc00a60",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "7-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/Frank - loop example.txt",
+      "process_text_sha256": "3548c3423ffbf6cc61cc0956a3d09fdd4be090efbe149f270373adba2cf390ff",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/others/_solutions/Frank - loop example.model",
+      "reference_model_sha256": "5b8f48db809488ecccb0eaeebc6223406450d9301d56a7cb36e72433fbebf4d7",
+      "source_format": "processeditor_model",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "8-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Practical handbook/150 - Simple HR-Process - eng.txt",
+      "process_text_sha256": "b1c4869d601b6494b192fdf7c14ecc518d49f5161d44d4d7f19873ba0c3b380b",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Practical handbook/_Solutions/PH BPMN 4.2-150.diagram.zip",
+      "reference_model_sha256": "a12fb45fef76fa0189c7f1d6a3643a26519b7acaa4d679924bd33bd5ea08888c",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "8-2",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Practical handbook/153 - HR Process - HR department - eng.txt",
+      "process_text_sha256": "435cc55f6608be2029df88ac6917dfdce0f7e8ce6277a573b36c480397c95f29",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Practical handbook/_Solutions/PH BPMN 4.3-153.diagram.zip",
+      "reference_model_sha256": "fd209ff7d0e50ea2f5a5a7c65c689bc4ac2697f2e844f12a31ad0324de6e7108",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "8-3",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Practical handbook/154 - HR Process - functional department - eng.txt",
+      "process_text_sha256": "32ca00f66e0652b00738fe272c746e4bc506479755bf367856540bce879b770b",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Practical handbook/_Solutions/PH BPMN 4.3-154.diagram.zip",
+      "reference_model_sha256": "4cf421408a2956d708093b386b9ad8c2d74aee98577ce33439664007d703bb0b",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "9-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/Ex1.txt",
+      "process_text_sha256": "b0554267466e1c9fe08142dd5216f6611a91e834edcce5fea077cb78c55c1eaf",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/_solution/BPMN MRG Ex1.diagram.zip",
+      "reference_model_sha256": "454a3f5df010345490218ceee1e5fcc15876b0de1ff231739bf691a2bfda9b1e",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "9-2",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/Ex2.txt",
+      "process_text_sha256": "d9079f611711f728b6074448f61e6f1040028d109711f5de1de048defec9a5ea",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/_solution/BPMN MRG Ex2.diagram.zip",
+      "reference_model_sha256": "fb10cfa6ae07583efbf581a6a965ca13db2b11cec241ee45ebbc42610ae55486",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "9-3",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/Ex3a.txt",
+      "process_text_sha256": "f9dc05f173a612ff834609d76571eccd59c4b2e8d5b26987e345c12fd469a1da",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/_solution/BPMN MRG Ex3a.diagram.zip",
+      "reference_model_sha256": "7dc9140e2ef1282df11d1767fa8608bc670fe37e8246a3b3e3f1ee359c1593c5",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "9-4",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/Ex3b.txt",
+      "process_text_sha256": "3abece65b676d244c5acca4014f3847c224248e747af73f8eedbc00457158781",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/_solution/BPMN MRG Ex3b.diagram.zip",
+      "reference_model_sha256": "307a4a4ca63b0efaa310c3664947eecedc8bd1faf7010012f54472dfc3303696",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "9-5",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/Ex4.txt",
+      "process_text_sha256": "5cc2f8fedc392c0596b5977f19cbe24bcf80cce37d97fc954a760b51267160b1",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/_solution/BPMN MRG Ex4.diagram.zip",
+      "reference_model_sha256": "0d3fbefaa1b5e3e2ebf29ae99a02f3fd0606f5d25b7182963c5e22356a8e5b3b",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "9-6",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/Ex5.txt",
+      "process_text_sha256": "911dd83e64b18c03849bd266db023defce76f87f512ceac2f03d5ffce1dbf620",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/BPMN Modeling and reference guide/_solution/BPMN MRG Ex5.diagram.zip",
+      "reference_model_sha256": "1df5bd54017cde6c28ab01a083c403b69abef6071b364243a3ee31ff2554fd68",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-1",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/B2 - eng.txt",
+      "process_text_sha256": "822161f5ac360296feab43db418472d14bcaf0ed7feb00dd1db75a200b3a6360",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B2-eng.diagram.zip",
+      "reference_model_sha256": "1e7dcfb6243e0a9e86b8a6e4a2f085d85344233e0fc326744c9f204b9330294b",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-2",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/B3 - eng.txt",
+      "process_text_sha256": "d410abdf4365d81feebfafdf057bf38021ce312bbdf266d29e794ccc2280989e",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B3-eng.diagram.zip",
+      "reference_model_sha256": "377c6115400d19829d63bbc4e1209453bb322bfb54407261dff2713229ca1dd7",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-3",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/B4 - eng.txt",
+      "process_text_sha256": "5cb6bc2ba0282146a11d3129b287fedd691b96f5cd78463840224b68c8d80041",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B4-eng.diagram.zip",
+      "reference_model_sha256": "3448848653bd550867c6d088c34b83978e92e499f5cef2c7323bcb2e1ff21513",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-4",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/B5.1 - eng .txt",
+      "process_text_sha256": "76467a435941e177b62f3e84925be973b2eae1942e6a206255f7cf25c5a64855",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B5.1-eng.diagram.zip",
+      "reference_model_sha256": "cc61f64286d3b78dd01c6ca963d7668d1e4b9b240a4b718c9cac536df7d125f9",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-5",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/B5.2 - eng.txt",
+      "process_text_sha256": "8034f22184d573191b182859e1310a7981e89e2f1ee64cd1af5f6c9fa0f29e16",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B5.2-eng.diagram.zip",
+      "reference_model_sha256": "4019c9f9a7483c04361c21c5cb4e3b8bee290eb4f64df3bf3ea88eb7d652fc85",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-6",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/B6 - eng.txt",
+      "process_text_sha256": "6b50e6304a76d7bf94c2690c252116f0782ddbf945ad3dcb000a0471f11a9be9",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B6-eng.diagram.zip",
+      "reference_model_sha256": "8a2981c4ab557db593a34753c4147e5398c2f12938a8e598837803f5f0f76533",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-7",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/B7 - eng.txt",
+      "process_text_sha256": "1847eca7504d89ea16908bb16d8d87174c5d95b60de64a4391e030f4d05a29db",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B7-eng.diagram.zip",
+      "reference_model_sha256": "2b1c7375d4c9a2efbfee10cecff8eaf48206fddca7b1784ade57eb3006a05126",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-8",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/B8 - eng.txt",
+      "process_text_sha256": "d4458620cc8d06a9d00858a401e1b749df585e04c494423b1208ceb12dbd3d22",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/B8-eng.diagram.zip",
+      "reference_model_sha256": "457b45dc29a91c6f6571cdc03b5d581882278ad3fd30de069c805a023abcd06a",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-9",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/C1 - eng.txt",
+      "process_text_sha256": "99cf8d348b8bdd8ef0df6a19a6ff57daad5157a036819c90ee6f25d1a13628c5",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/C1-eng.diagram.zip",
+      "reference_model_sha256": "7915bc3c64589e5ff7aabb2a735c169030a9465bac620ef6c72d0b0dae1a004f",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-10",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/C2 - eng.txt",
+      "process_text_sha256": "f132b7a99027c4a802e699ac561c6d5d84a06f09a01bf31ab4b71a9ab59a6e67",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/C2-eng.diagram.zip",
+      "reference_model_sha256": "cbd0ba8b1d48d208651894389d1c3eff9523137738cb1ced701f8c0d0533dd96",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-11",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/C3 - eng.txt",
+      "process_text_sha256": "4e147c8a0a1975b16ed25a39d110596c99f683d00fbe4f86acd380f5837ee832",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/C3-eng.diagram.zip",
+      "reference_model_sha256": "40b3c3bcff98391af5beae4e5ef5c0c9413ec8ff1ef2d18af8145cc7dd1b3e8f",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-12",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/D1 - eng.txt",
+      "process_text_sha256": "691dd077680def1b90dc66285b7b00b1e2b3ca7f03a889229e90961954ff36c8",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/D1-eng.diagram.zip",
+      "reference_model_sha256": "c9de47bba217b263f02b039984f89ed55bafb7bce0ae1ba0346dee34acaf6262",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-13",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/D2 - eng.txt",
+      "process_text_sha256": "cf40c4bd178592ca089d9a83ab8ca25c4d9b56320910aa07c63c30d8dc0d2ca0",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/D2-eng.diagram.zip",
+      "reference_model_sha256": "c091677e4f1557131d003cb61d9f38c3a95c2a857b84a4a92da80056fe7a7411",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    },
+    {
+      "case_id": "10-14",
+      "language": "en",
+      "process_text_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/D3 - eng.txt",
+      "process_text_sha256": "726cde59134d80043f9727961ce54febefc9204a689c2d9e23cc577f764b3171",
+      "reference_model_path": "/Users/queenie/Desktop/evaluation-data/Text2Process/TestData/Messwesen/_Solutions/D3-eng.diagram.zip",
+      "reference_model_sha256": "bb0203ff99d2f2e8a02604752b96d2ff0d7fcadcfb0355c855dc6070766ed733",
+      "source_format": "inubit_diagram_zip",
+      "source_repository_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
+    }
+  ],
+  "schema_version": "friedrich-v2-source-manifest/v1",
+  "source_repository": "https://github.com/FabianFriedrich/Text2Process.git",
+  "source_root": "/Users/queenie/Desktop/evaluation-data/Text2Process"
+}

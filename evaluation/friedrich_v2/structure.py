@@ -1,0 +1,168 @@
+from __future__ import annotations
+
+from collections import Counter, deque
+from dataclasses import dataclass
+from typing import Any
+
+from .action import ActionResult
+from .core import AutomaticItem, Counts, EvalGraph, evaluation_item_id, reachable, strongly_connected_components
+
+
+Fact = tuple[str, str, tuple[str, ...]]
+
+
+@dataclass(frozen=True, slots=True)
+class StructureResult:
+    case_id: str
+    candidate_id: str
+    reference_facts: tuple[Fact, ...]
+    generated_facts: tuple[Fact, ...]
+    counts: Counts
+    coverage: float
+    unscorable: tuple[str, ...]
+    items: tuple[AutomaticItem, ...]
+
+
+def _distances(graph: EvalGraph, start: str) -> dict[str, int]:
+    distances = {start: 0}
+    queue = deque([start])
+    while queue:
+        node = queue.popleft()
+        for target in graph.outgoing[node]:
+            if target not in distances:
+                distances[target] = distances[node] + 1
+                queue.append(target)
+    return distances
+
+
+def _nearest_common(graph: EvalGraph, starts: tuple[str, ...], preferred: str) -> str | None:
+    maps = [_distances(graph, start) for start in starts]
+    common = set.intersection(*(set(item) for item in maps)) if maps else set()
+    candidates = [node for node in common if graph.by_id[node].type == preferred]
+    if not candidates:
+        candidates = list(common)
+    return min(candidates, key=lambda node: (max(item[node] for item in maps), sum(item[node] for item in maps), node), default=None)
+
+
+def _anchor_map(actions: ActionResult, generated: bool) -> dict[str, str]:
+    return actions.generated_to_reference if generated else {key: key for key in actions.reference_to_generated}
+
+
+def _nearest_anchor(graph: EvalGraph, start: str, anchors: dict[str, str], reverse: bool = False) -> str:
+    adjacency = graph.incoming if reverse else graph.outgoing
+    queue = deque([(start, 0)])
+    seen = {start}
+    found: list[tuple[int, str]] = []
+    while queue:
+        node, distance = queue.popleft()
+        if node in anchors and (node != start or not reverse):
+            found.append((distance, anchors[node]))
+            continue
+        for target in adjacency[node]:
+            if target not in seen:
+                seen.add(target)
+                queue.append((target, distance + 1))
+    return min(found, default=(0, "END" if not reverse else "START"))[1]
+
+
+def _branch_signature(graph: EvalGraph, start: str, closure: str | None, anchors: dict[str, str]) -> tuple[str, ...]:
+    allowed = reachable(graph, start, {closure} if closure else set()) | {start}
+    return tuple(sorted({anchors[node] for node in allowed if node in anchors})) or ("EMPTY",)
+
+
+def extract_structure_facts(graph: EvalGraph, anchors: dict[str, str]) -> tuple[list[Fact], list[str], int]:
+    facts: list[Fact] = []
+    unscorable = [f"{node.id}:{node.semantic_type}" for node in graph.nodes if node.type == "unsupported_control"]
+    if unscorable:
+        return facts, unscorable, len(unscorable)
+    regions = 0
+    cyclic_nodes: set[str] = set()
+    for component in strongly_connected_components(graph):
+        is_cycle = len(component) > 1 or any(edge.source == edge.target and edge.source in component for edge in graph.edges)
+        if not is_cycle:
+            continue
+        cyclic_nodes.update(component)
+        controllers = [
+            node for node in component
+            if any(target in component for target in graph.outgoing[node])
+            and any(target not in component for target in graph.outgoing[node])
+        ]
+        if len(controllers) != 1:
+            unscorable.append("ambiguous_loop:" + ",".join(sorted(component)))
+            continue
+        controller = controllers[0]
+        entry = _nearest_anchor(graph, controller, anchors, reverse=True)
+        exits = [target for target in graph.outgoing[controller] if target not in component]
+        exit_anchor = _nearest_anchor(graph, exits[0], anchors) if exits else "END"
+        key = f"{entry}->{exit_anchor}"
+        body = tuple(sorted({anchors[node] for node in component if node in anchors})) or ("EMPTY",)
+        facts.extend([("mode", key, ("loop",)), ("loop_body", key, body), ("loop_exit", key, (exit_anchor,))])
+        regions += 1
+    for node in sorted(graph.nodes, key=lambda item: item.id):
+        if node.id in cyclic_nodes or node.type not in {"decision", "fork"} or len(graph.outgoing[node.id]) < 2:
+            continue
+        successors = graph.outgoing[node.id]
+        preferred = "merge" if node.type == "decision" else "join"
+        closure = _nearest_common(graph, successors, preferred)
+        entry = _nearest_anchor(graph, node.id, anchors, reverse=True)
+        continuation = _nearest_anchor(graph, closure, anchors) if closure else "END"
+        key = f"{entry}->{continuation}"
+        mode = "exclusive" if node.type == "decision" else "parallel"
+        facts.append(("mode", key, (mode,)))
+        for signature in sorted(_branch_signature(graph, successor, closure, anchors) for successor in successors):
+            facts.append(("branch", key, (mode,) + signature))
+        if closure:
+            kind = "exclusive_convergence" if mode == "exclusive" else "parallel_synchronization"
+            facts.append((kind, key, (continuation,)))
+        regions += 1
+    return facts, unscorable, regions
+
+
+def evaluate_structure(
+    case_id: str, candidate_id: str, reference: EvalGraph, generated: EvalGraph, actions: ActionResult
+) -> StructureResult:
+    ref_facts, ref_unscorable, ref_regions = extract_structure_facts(reference, _anchor_map(actions, False))
+    gen_facts, gen_unscorable, _ = extract_structure_facts(generated, _anchor_map(actions, True))
+    unscorable = [f"reference:{item}" for item in ref_unscorable] + [f"generated:{item}" for item in gen_unscorable]
+    if unscorable:
+        items = tuple(
+            AutomaticItem(case_id, candidate_id, "Structure",
+                evaluation_item_id(case_id, candidate_id, "structure", "unscorable", str(index)), "UNSCORABLE",
+                {"reason": reason}, {}, "Control behavior could not be represented without semantic loss.")
+            for index, reason in enumerate(unscorable)
+        )
+        return StructureResult(
+            case_id, candidate_id, tuple(sorted(ref_facts)), tuple(sorted(gen_facts)),
+            Counts(), 0.0, tuple(unscorable), items,
+        )
+    ref_counter, gen_counter = Counter(ref_facts), Counter(gen_facts)
+    common = ref_counter & gen_counter
+    items: list[AutomaticItem] = []
+    def evidence(fact: Fact) -> dict[str, Any]:
+        tokens = set(fact[2])
+        tokens.update(fact[1].split("->"))
+        return {
+            "fact": fact,
+            "reference_action_labels": {
+                token: reference.by_id[token].label
+                for token in sorted(tokens)
+                if token in reference.by_id and reference.by_id[token].type == "action"
+            },
+        }
+    for label, counter, rationale in (
+        ("TP", common, "Required behavioral Structure fact is preserved."),
+        ("FN", ref_counter - gen_counter, "Required reference behavioral Structure fact is missing."),
+        ("FP", gen_counter - ref_counter, "Generated model adds an unsupported behavioral Structure fact."),
+    ):
+        for fact, count in sorted(counter.items()):
+            for occurrence in range(count):
+                items.append(AutomaticItem(case_id, candidate_id, "Structure",
+                    evaluation_item_id(case_id, candidate_id, "structure", label.lower(), str(len(items))), label,
+                    {"fact": fact, "occurrence": occurrence}, evidence(fact), rationale))
+    tp = sum(common.values())
+    counts = Counts(tp, sum(gen_counter.values()) - tp, sum(ref_counter.values()) - tp)
+    coverage = ref_regions / (ref_regions + len(ref_unscorable)) if ref_regions + len(ref_unscorable) else 1.0
+    return StructureResult(
+        case_id, candidate_id, tuple(sorted(ref_facts)), tuple(sorted(gen_facts)),
+        counts, coverage, tuple(unscorable), tuple(items),
+    )

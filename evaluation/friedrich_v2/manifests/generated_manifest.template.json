@@ -1,0 +1,19 @@
+{
+  "schema_version": "friedrich-v2-generated-manifest/v3",
+  "cohort_id": "UNRESOLVED",
+  "cohort_stage": "development_validation",
+  "condition": "ai_only_three_candidate_baseline",
+  "expected_candidate_count": 3,
+  "human_selection": false,
+  "maximum_attempts_per_candidate": 3,
+  "run_integrity_status": "UNRESOLVED",
+  "generation_provenance": {
+    "generated_system_commit": "",
+    "pipeline_profile": "semantic_deterministic",
+    "generation_configuration": "mode=refinement; candidates=3; experimental_compiler=false; optional_agents=false",
+    "model_identifier": "UNRESOLVED",
+    "runtime_environment": "UNRESOLVED",
+    "retry_failure_policy": "UNRESOLVED"
+  },
+  "cases": []
+}

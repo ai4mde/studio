@@ -1,0 +1,18 @@
+{
+  "files": {
+    "evaluation/friedrich_v2/__init__.py": "54b61f9600b937eaab9b7b7d1be1edaa752c565d2e737fa94fd152eaa9a00f26",
+    "evaluation/friedrich_v2/action.py": "54a96aee5c143b191a33996c65ef6c9b892031224c8e8de6e8a600eaacf2620c",
+    "evaluation/friedrich_v2/adapters.py": "30a628bc84529abb856c6b53fd58a2e079edff0fb9a181eb09cfbc18a5df06c4",
+    "evaluation/friedrich_v2/core.py": "2592a07af459c091e054bfad0b72a90ceae187eeff158c350e7aeaa3deff42c7",
+    "evaluation/friedrich_v2/diagnostics.py": "69d772ca5f00fc6db27980f0a56f3115729599b5333e3e07c8d523193fad54f3",
+    "evaluation/friedrich_v2/flow.py": "ae25b39e466c51d89276690f29ccc28972c7530b958cedd00193eb3733949511",
+    "evaluation/friedrich_v2/generation.py": "9fb52f3ad1792b2c6ab27a24fc854a4fd509ebf4289c446d475693a13dae1e40",
+    "evaluation/friedrich_v2/human_review.py": "01e2217eedd76e804e4f0f41463b51cd3642b5834931db74ef809c99296bc123",
+    "evaluation/friedrich_v2/manifests.py": "6e2d419ab7625676b54e412cfda88ac79c2f61fd8c220ccaf8d1a5a878d03c4e",
+    "evaluation/friedrich_v2/requirements-action.txt": "c09dd7885df0c29d9129eab822bde8fe97e98ae90441d02fb8d370a43c9cfc9e",
+    "evaluation/friedrich_v2/runner.py": "9c8bef4efe161ec1ee24131b19ee2e03f53db7d8f6718c6cb273385a860b02c5",
+    "evaluation/friedrich_v2/structure.py": "994ee4f4e2f158ce0cb182a48deeb8085481007317ec2f65f8b8e342c929c944"
+  },
+  "schema_version": "friedrich-v2-evaluator-snapshot/v1",
+  "snapshot_id": "9783f5d67306995ccf17431105dca8f864dd6dc0fd090d440cf4e9bdb9f4cb18"
+}
