@@ -23,9 +23,9 @@ from .action import (
     SimilarityProvider,
     evaluate_actions,
 )
-from .adapters import friedrich_reference_to_eval_graph, load_generated_graph
+from .adapters import friedrich_reference_review_evidence, friedrich_reference_to_eval_graph, load_generated_graph
 from .core import AutomaticItem, Counts, EvalGraph, canonical_json, evaluation_item_id, sha256_file
-from .diagnostics import find_redundant_control_nodes
+from .diagnostics import find_model_validity_diagnostics, find_redundant_control_nodes
 from .flow import evaluate_flow
 from .generation import load_small_validation_config
 from .human_review import build_review_rows, load_review_csv, review_adjusted_counts, write_review_csv
@@ -44,16 +44,20 @@ CANDIDATE_SUMMARY_FIELDS = (
     "case_id", "candidate_id", "generation_status", "attempt_count", "failure_reason", "failure_stage",
     "action_tp", "action_fp", "action_fn", "action_precision", "action_recall", "action_f1",
     "flow_tp", "flow_fp", "flow_fn", "flow_precision", "flow_recall", "flow_f1", "flow_coverage",
+    "flow_action_anchor_coverage", "flow_occurrence_ambiguous_fact_count", "flow_occurrence_ambiguous_fact_rate",
+    "flow_contested_fact_count", "flow_contested_fact_rate", "flow_review_pending_fact_count", "flow_review_pending_fact_rate",
     "structure_tp", "structure_fp", "structure_fn", "structure_precision", "structure_recall", "structure_f1",
-    "structure_coverage", "redundant_control_node_count", "unscorable_count", "unscorable_status",
+    "structure_coverage", "structure_anchor_coverage", "structure_anchor_limited_count", "structure_anchor_limited_rate",
+    "validity_status", "validity_diagnostic_count", "redundant_control_node_count", "unscorable_count", "unscorable_status",
 )
 CASE_SUMMARY_FIELDS = (
     "case_id", "case_status", "candidate_count", "successful_candidate_count", "failed_candidate_count",
     *(f"{metric}_{score}_{stat}" for metric in METRICS for score in SCORE_NAMES for stat in ("mean", "min", "max")),
     *(f"secondary_successful_{metric}_{score}_{stat}" for metric in METRICS for score in SCORE_NAMES for stat in ("mean", "min", "max")),
-    *(f"{metric}_coverage_{stat}" for metric in ("flow", "structure") for stat in ("mean", "min", "max")),
-    *(f"secondary_successful_{metric}_coverage_{stat}" for metric in ("flow", "structure") for stat in ("mean", "min", "max")),
+    *(f"{metric}_{stat}" for metric in ("flow_coverage", "flow_action_anchor_coverage", "structure_coverage", "structure_anchor_coverage") for stat in ("mean", "min", "max")),
+    *(f"secondary_successful_{metric}_{stat}" for metric in ("flow_coverage", "flow_action_anchor_coverage", "structure_coverage", "structure_anchor_coverage") for stat in ("mean", "min", "max")),
     *(f"redundant_control_node_count_{stat}" for stat in ("mean", "min", "max")),
+    *(f"validity_diagnostic_count_{stat}" for stat in ("mean", "min", "max")),
     *(f"unscorable_count_{stat}" for stat in ("mean", "min", "max")),
 )
 
@@ -90,6 +94,7 @@ def _candidate_summary_row(
     flow: Any,
     structure: Any,
     redundant: int,
+    validity: Any,
 ) -> dict[str, Any]:
     row: dict[str, Any] = {
         "case_id": case_id, "candidate_id": candidate_id, "generation_status": "success",
@@ -98,7 +103,19 @@ def _candidate_summary_row(
     for name, result in (("action", action), ("flow", flow), ("structure", structure)):
         row.update({f"{name}_{key}": value for key, value in result.counts.to_dict().items()})
     row["flow_coverage"] = flow.coverage
+    row["flow_action_anchor_coverage"] = flow.action_anchor_coverage
+    row["flow_occurrence_ambiguous_fact_count"] = flow.occurrence_ambiguous_fact_count
+    row["flow_occurrence_ambiguous_fact_rate"] = flow.occurrence_ambiguous_fact_rate
+    row["flow_contested_fact_count"] = flow.contested_fact_count
+    row["flow_contested_fact_rate"] = flow.contested_fact_rate
+    row["flow_review_pending_fact_count"] = flow.review_pending_fact_count
+    row["flow_review_pending_fact_rate"] = flow.review_pending_fact_rate
     row["structure_coverage"] = structure.coverage
+    row["structure_anchor_coverage"] = structure.anchor_coverage
+    row["structure_anchor_limited_count"] = structure.anchor_limited_count
+    row["structure_anchor_limited_rate"] = structure.anchor_limited_rate
+    row["validity_status"] = validity.status
+    row["validity_diagnostic_count"] = validity.diagnostic_count
     row["redundant_control_node_count"] = redundant
     row["unscorable_count"] = len(flow.unscorable) + len(structure.unscorable)
     row["unscorable_status"] = "unscorable" if row["unscorable_count"] else "scorable"
@@ -119,7 +136,14 @@ def _failed_candidate_summary_row(case_id: str, candidate: CandidateInput) -> di
             row[f"{metric}_{field}"] = None
     row.update({
         "flow_coverage": None,
+        "flow_action_anchor_coverage": None,
+        "flow_occurrence_ambiguous_fact_count": None, "flow_occurrence_ambiguous_fact_rate": None,
+        "flow_contested_fact_count": None, "flow_contested_fact_rate": None,
+        "flow_review_pending_fact_count": None, "flow_review_pending_fact_rate": None,
         "structure_coverage": None,
+        "structure_anchor_coverage": None, "structure_anchor_limited_count": None,
+        "structure_anchor_limited_rate": None, "validity_status": "not_applicable_generation_failure",
+        "validity_diagnostic_count": None,
         "redundant_control_node_count": None,
         "unscorable_count": None,
         "unscorable_status": "not_applicable_generation_failure",
@@ -133,6 +157,9 @@ def evaluate_case_candidates(
     generated_candidates: Sequence[CandidateInput],
     similarity: SimilarityProvider,
     threshold: float,
+    *,
+    source_text: str | None = None,
+    reference_review_evidence: Sequence[Mapping[str, Any]] = (),
 ) -> tuple[list[dict[str, Any]], list[AutomaticItem], int]:
     if len(generated_candidates) != EXPECTED_CANDIDATE_COUNT:
         raise ValueError(f"Case {case_id} requires exactly 3 generated candidates")
@@ -163,17 +190,23 @@ def evaluate_case_candidates(
         control_node_count += sum(
             node.type in {"decision", "merge", "fork", "join"} for node in generated_graph.nodes
         )
-        action = evaluate_actions(case_id, candidate_id, reference_graph, generated_graph, similarity, threshold)
+        action = evaluate_actions(
+            case_id, candidate_id, reference_graph, generated_graph, similarity, threshold,
+            source_text=source_text, reference_review_evidence=reference_review_evidence,
+        )
         flow = evaluate_flow(case_id, candidate_id, reference_graph, generated_graph, action)
         structure = evaluate_structure(case_id, candidate_id, reference_graph, generated_graph, action)
         candidates, diagnostic_items = find_redundant_control_nodes(
             case_id, candidate_id, generated_graph, action
         )
+        validity = find_model_validity_diagnostics(
+            case_id, candidate_id, generated_graph, reference_graph, action
+        )
         high_confidence = sum(candidate.confidence == "High" for candidate in candidates)
-        row = _candidate_summary_row(case_id, candidate_id, action, flow, structure, high_confidence)
+        row = _candidate_summary_row(case_id, candidate_id, action, flow, structure, high_confidence, validity)
         row["attempt_count"] = candidate.attempt_count
         rows.append(row)
-        items.extend((*action.items, *flow.items, *structure.items, *diagnostic_items))
+        items.extend((*action.items, *flow.items, *structure.items, *diagnostic_items, *validity.items))
     return rows, items, control_node_count
 
 
@@ -209,14 +242,19 @@ def build_case_summary(candidate_rows: Iterable[Mapping[str, Any]]) -> list[dict
                 for stat in ("mean", "min", "max"):
                     summary[f"{metric}_{score}_{stat}"] = primary.get(stat)
                     summary[f"secondary_successful_{metric}_{score}_{stat}"] = secondary.get(stat)
-        for metric in ("flow", "structure"):
-            primary = _stats([row[f"{metric}_coverage"] for row in successful]) if case_status == "complete" else {}
-            secondary = _stats([row[f"{metric}_coverage"] for row in successful]) if successful else {}
+        coverage_fallback = {
+            "flow_action_anchor_coverage": "flow_coverage",
+            "structure_anchor_coverage": "structure_coverage",
+        }
+        for metric in ("flow_coverage", "flow_action_anchor_coverage", "structure_coverage", "structure_anchor_coverage"):
+            values = [row.get(metric, row[coverage_fallback.get(metric, metric)]) for row in successful]
+            primary = _stats(values) if case_status == "complete" else {}
+            secondary = _stats(values) if successful else {}
             for stat in ("mean", "min", "max"):
-                summary[f"{metric}_coverage_{stat}"] = primary.get(stat)
-                summary[f"secondary_successful_{metric}_coverage_{stat}"] = secondary.get(stat)
-        for field in ("redundant_control_node_count", "unscorable_count"):
-            values = [row[field] for row in successful]
+                summary[f"{metric}_{stat}"] = primary.get(stat)
+                summary[f"secondary_successful_{metric}_{stat}"] = secondary.get(stat)
+        for field in ("redundant_control_node_count", "validity_diagnostic_count", "unscorable_count"):
+            values = [row.get(field, 0) for row in successful]
             stats = _stats(values) if case_status == "complete" else {}
             for stat in ("mean", "min", "max"):
                 summary[f"{field}_{stat}"] = stats.get(stat)
@@ -346,6 +384,19 @@ def build_aggregate_summary(
         )
         for metric in ("flow", "structure")
     })
+    for metric in ("flow_action_anchor", "structure_anchor"):
+        aggregate["model_quality"]["coverage"][f"{metric}_complete_case_macro_mean"] = (
+            sum(float(row[f"{metric}_coverage_mean"]) for row in complete_cases) / len(complete_cases)
+            if complete_cases else None
+        )
+        aggregate["model_quality"]["coverage"][f"{metric}_secondary_successful_candidate_mean"] = (
+            sum(float(row.get(f"{metric}_coverage", row[f"{metric.split('_')[0]}_coverage"])) for row in successful_rows) / len(successful_rows)
+            if successful_rows else None
+        )
+    aggregate["model_validity"] = {
+        "status": "issues_detected" if any(int(row.get("validity_diagnostic_count", 0)) for row in successful_rows) else "pass",
+        "diagnostic_count": sum(int(row.get("validity_diagnostic_count", 0)) for row in successful_rows),
+    }
     redundant = sum(int(row["redundant_control_node_count"]) for row in successful_rows)
     aggregate["redundant_control_nodes"] = {
         "count": redundant,
@@ -413,6 +464,12 @@ def run(args: argparse.Namespace) -> None:
         for source_case in sorted(source["cases"], key=lambda case: case["case_id"]):
             case_id = source_case["case_id"]
             reference_graph = friedrich_reference_to_eval_graph(source_case["reference_model_path"])
+            process_path = Path(source_case["process_text_path"])
+            try:
+                source_text = process_path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                source_text = process_path.read_text(encoding="cp1252")
+            reference_evidence = friedrich_reference_review_evidence(source_case["reference_model_path"])
             generated_candidates = [
                 CandidateInput(
                     candidate_id=candidate["candidate_id"],
@@ -430,7 +487,8 @@ def run(args: argparse.Namespace) -> None:
                 for candidate in generated_by_id[case_id]["candidates"]
             ]
             rows, items, control_count = evaluate_case_candidates(
-                case_id, reference_graph, generated_candidates, similarity, args.action_threshold
+                case_id, reference_graph, generated_candidates, similarity, args.action_threshold,
+                source_text=source_text, reference_review_evidence=reference_evidence,
             )
             candidate_rows.extend(rows)
             all_items.extend(items)
@@ -457,6 +515,14 @@ def run(args: argparse.Namespace) -> None:
         provenance = {
             "schema_version": EVALUATOR_SCHEMA,
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "evaluator_snapshot": {
+                "path": str((Path(__file__).resolve().parent / "evaluator_snapshot.json")),
+                "sha256": sha256_file(Path(__file__).resolve().parent / "evaluator_snapshot.json"),
+                "snapshot_id": json.loads(
+                    (Path(__file__).resolve().parent / "evaluator_snapshot.json").read_text(encoding="utf-8")
+                )["snapshot_id"],
+                "status": "pre-commit evaluation snapshot; not yet final-frozen",
+            },
             "source_manifest": {"path": str(source_path), "sha256": sha256_file(source_path)},
             "small_validation_config": (
                 {

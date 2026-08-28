@@ -7,8 +7,10 @@ import tempfile
 import unittest
 
 from evaluation.friedrich_v2.adapters import friedrich_reference_to_eval_graph
-from evaluation.friedrich_v2.core import AutomaticItem
-from evaluation.friedrich_v2.human_review import REVIEW_FIELDS, build_review_rows, load_review_csv, write_review_csv
+from evaluation.friedrich_v2.core import AutomaticItem, Counts
+from evaluation.friedrich_v2.human_review import (
+    REVIEW_FIELDS, build_review_rows, load_review_csv, review_adjusted_counts, write_review_csv,
+)
 from evaluation.friedrich_v2.manifests import ManifestError, load_generated_manifest, load_source_manifest
 
 
@@ -43,24 +45,63 @@ class BoundaryTests(unittest.TestCase):
         self.assertEqual((gateway.type, gateway.semantic_type), ("unsupported_control", "InclusiveGateway"))
         self.assertEqual(next(node.label for node in result.nodes if node.id == "a"), "work")
 
-    def test_review_queue_contains_errors_redundancy_and_seeded_tp(self):
+    def test_review_queue_is_targeted_and_keeps_redundancy_and_seeded_tp(self):
         items = [
             AutomaticItem("1", "candidate_1", "Action", "1:candidate_1:fp", "FP", {}, {}, "error"),
             AutomaticItem("1", "candidate_1", "Redundant Control Nodes", "1:candidate_1:r", "CANDIDATE", {}, {}, "candidate"),
         ] + [AutomaticItem("1", "candidate_1", "Flow", f"1:candidate_1:tp-{i}", "TP", {}, {}, "ok") for i in range(10)]
         rows = build_review_rows(items, seed=7)
         triggers = [row["review_trigger"] for row in rows]
-        self.assertIn("automatic_error", triggers)
+        self.assertNotIn("automatic_error", triggers)
         self.assertIn("redundancy_candidate", triggers)
         self.assertEqual(triggers.count("seeded_tp_audit"), 5)
 
     def test_review_schema_round_trip(self):
         row = {field: "" for field in REVIEW_FIELDS}
-        row.update({"case_id": "1", "candidate_id": "candidate_1", "metric": "Action", "item_id": "x", "review_trigger": "automatic_error", "automatic_label": "FP"})
+        member = {
+            "case_id": "1", "candidate_id": "candidate_1", "metric": "Action", "item_id": "x",
+            "automatic_label": "FP", "issue_type": "automatic_error",
+            "semantic_concept": {}, "local_context": {},
+        }
+        row.update({
+            "case_id": "1", "candidate_id": "candidate_1", "metric": "Action", "item_id": "x",
+            "review_trigger": "automatic_error", "automatic_label": "FP", "review_cluster_id": "hrc-test",
+            "cluster_member_count": "1", "cluster_members": json.dumps([member], sort_keys=True, separators=(",", ":")),
+        })
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "review.csv"
             write_review_csv(path, [row])
             self.assertEqual(load_review_csv(path)[0]["item_id"], "x")
+
+    def test_review_clusters_retain_every_candidate_item_and_propagate_adjudication(self):
+        items = [
+            AutomaticItem(
+                "1", candidate, "Action", f"1:{candidate}:extra", "FP",
+                {"generated_id": "g", "review_triggers": ["source_scope_ambiguity"]},
+                {"generated_label": "notify customer", "generated_context": {"incoming": [], "outgoing": []}},
+                "ambiguous scope",
+            )
+            for candidate in ("candidate_1", "candidate_2")
+        ]
+        rows = build_review_rows(items, seed=7)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(len({row["review_cluster_id"] for row in rows}), 1)
+        self.assertEqual({row["candidate_id"] for row in rows}, {"candidate_1", "candidate_2"})
+        self.assertTrue(all(row["cluster_member_count"] == "2" for row in rows))
+        members = json.loads(rows[0]["cluster_members"])
+        self.assertEqual({member["item_id"] for member in members}, {item.item_id for item in items})
+        rows[0]["reviewer_verdict"] = "overturn"
+        rows[0]["explanation_category"] = "plausible_modelling_variation"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "review.csv"
+            write_review_csv(path, rows)
+            loaded = load_review_csv(path)
+        self.assertEqual([row["reviewer_verdict"] for row in loaded], ["overturn", "overturn"])
+        for candidate in ("candidate_1", "candidate_2"):
+            adjusted = review_adjusted_counts(
+                Counts(fp=1), "Action", loaded, case_id="1", candidate_id=candidate
+            )
+            self.assertEqual(adjusted.fp, 0)
 
 
 if __name__ == "__main__":

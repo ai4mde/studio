@@ -50,7 +50,7 @@
   "evaluation": {
     "evaluator_identity_type": "pre-commit code snapshot",
     "evaluator_snapshot_path": "evaluation/friedrich_v2/evaluator_snapshot.json",
-    "evaluator_snapshot_id": "9783f5d67306995ccf17431105dca8f864dd6dc0fd090d440cf4e9bdb9f4cb18",
+    "evaluator_snapshot_id": "2d8600a0c88c4806e163e2bf8770efeaeea43dcfd3af070031834e243b589225",
     "python": "3.12.13",
     "action_model": "sentence-transformers/all-MiniLM-L6-v2",
     "action_model_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
@@ -58,7 +58,7 @@
     "action_normalization": "Unicode NFKC; casefold; underscores and hyphens to spaces; punctuation to spaces; collapse whitespace; trim",
     "embedding_normalization": "L2 normalized",
     "similarity": "dot product of L2-normalized embeddings",
-    "assignment": "deterministic maximum-weight one-to-one Hungarian assignment over similarities at or above threshold",
+    "assignment": "lexicographic one-to-one assignment: maximize threshold-eligible cardinality, then total semantic similarity; exact duplicate normalized reference occurrences use precedence order when comparable",
     "sentence_transformers": "5.7.0",
     "torch": "2.13.0",
     "transformers": "5.15.0",

@@ -24,6 +24,7 @@ Friedrich raw dataset
 -> Flow evaluation
 -> Structure evaluation
 -> Redundant Control Nodes
+-> Model-validity diagnostics
 -> Human Review
 -> Final results
 ```
@@ -39,7 +40,7 @@ Friedrich raw dataset
 | `action.py` | Explicitly configured semantic one-to-one Action matching | Evaluation code |
 | `flow.py` | Non-redundant matched-action precedence scoring | Evaluation code |
 | `structure.py` | Atomic exclusive, parallel, and loop behavioral facts | Evaluation code |
-| `diagnostics.py` | Conservative Redundant Control Nodes candidates | Evaluation code |
+| `diagnostics.py` | Redundant-control and separate model-validity diagnostics | Evaluation code |
 | `human_review.py` | Review queue, validation, and review-adjusted sensitivity logic | Evaluation code |
 | `runner.py` | Immutable end-to-end evaluator and provenance writer | Evaluation code |
 | `results/` | Documentation for generated result runs; actual run directories go here | Never manually edit generated run files |
@@ -63,8 +64,8 @@ Each successful run creates exactly six derived files in a new immutable directo
   outputs from incomplete cases appear only under explicitly secondary fields.
 * `automatic_items.jsonl`: Action correspondences, Flow relations, Structure facts,
   diagnostic candidates, candidate identity, evidence, and every automatic label.
-* `human_review.csv`: all FP/FN, unsupported items, redundancy candidates, and a
-  deterministic TP audit sample.
+* `human_review.csv`: deterministic ambiguity triggers, unsupported items,
+  redundancy candidates, generation failures, and a deterministic TP audit sample.
 * `aggregate_summary.json`: separate generation reliability and model-quality sections,
   complete-case primary macro denominators, complete-case variability, secondary
   successful-output micro aggregates, diagnostics, review categories, and optional
@@ -83,7 +84,7 @@ reporting/statistical unit is therefore the Friedrich case (`N = 47`), not `N = 
 
 ## Metric rules
 
-Action uses maximum-weight one-to-one semantic matching. The embedding model,
+Action uses one-to-one semantic matching. The embedding model,
 immutable model revision, local cache, and threshold are all required CLI inputs;
 V2 does not load old cached correspondences.
 
@@ -94,30 +95,82 @@ The frozen small-validation Action configuration was recovered from the original
 * revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`;
 * L2-normalized embeddings and cosine-equivalent dot product;
 * inclusive threshold `0.44`;
-* deterministic maximum-weight one-to-one assignment.
+* lexicographic assignment: maximum threshold-eligible cardinality first, then
+  maximum total semantic similarity.
 
 The V2 matcher uses the original full normalized labels. It does not import the later
 V1 linguistic-operation guards or topology-assisted correspondence rules. The recovered
 CPU dependency pins are in `requirements-action.txt`; real runs load the immutable model
 revision from a supplied local cache without downloading it.
 
+Action correctness is semantic rather than exact-string based. Longer paraphrases may
+match when the frozen matcher places them at or above `0.44`. Exact duplicate normalized
+reference labels alone use graph precedence to align comparable occurrences. Parallel or
+otherwise incomparable duplicates retain deterministic assignments but are marked
+occurrence-ambiguous. Raw split/combined disagreements remain one-to-one FP/FN; possible
+one-to-many or many-to-one clusters are sent to Human Review without partial credit.
+
 Flow projects reachability onto matched actions and deterministically removes
 transitive relations. Unmatched generated actions remain traversable, so `A -> X -> B`
 can preserve reference precedence `A -> B`. Cyclic ordering belongs to Structure,
 and parallel siblings do not become precedence facts.
 
+Flow precision/recall/F1 is conditional on matched Action anchors. Reference fact
+coverage uses the transitive reduction over all reference Actions as its denominator
+and counts only facts whose two endpoints are matched; an empty denominator has coverage
+`1.0`. Action-anchor coverage is reported separately, as are facts depending on
+occurrence-ambiguous, contested, or Human-Review-pending anchors. No coverage-weighted
+F1 is produced.
+
 Structure compares equally weighted atomic behavioral facts: mode, one fact per
 branch, convergence/synchronization, and loop body/exit. It does not compare exact
 gateway IDs or whole-region topology. Internal sequential order remains a Flow concern.
+Mode identity is independent of the exact convergence continuation where possible;
+branch and convergence differences remain separate facts. Topology-level mode facts are
+always extracted, control-node labels never become Actions, and anchor-dependent facts
+are marked `anchor_limited`. Structure anchor coverage is reported separately.
+When both exclusive regions provide complete, unique, identically normalized guard
+vocabularies, guard-to-branch-outcome mappings are additional Structure facts. Reversed
+outcomes therefore reduce raw Structure credit. Missing, duplicated, differently worded,
+or otherwise non-comparable guards remain unscored and are retained as review evidence.
 
 Behaviorally neutral control nodes are excluded from Structure F1 and reported as
 **Redundant Control Nodes**. Automatic candidates require unchanged Action
 reachability and Structure facts after contraction. Every candidate still requires
 Human Review; low-confidence UML/BPMN notation differences are never auto-confirmed.
 
+Automatic evaluation consists of raw Action, conditional Flow, and behavioral Structure
+scores. Human Review is targeted to deterministic uncertainty such as contested or
+duplicate Action correspondence, split/combined granularity, ignored BPMN-specific
+evidence, task/control interpretation, anchor-limited Structure, and guard/outcome or
+scope ambiguity. Model-validity and redundant-control findings remain separate
+diagnostics and do not form another F1.
+
+Every triggered automatic item receives its own candidate-aware review row. Conceptually
+equivalent rows share a deterministic cluster id and carry the complete cluster member
+inventory, allowing one adjudication to propagate without losing candidate/item identity.
+
 Human Review rows always retain both `case_id` and `candidate_id`. Review adjustments
 are applied to each candidate first, then summarized across three candidates per case,
 then macro-averaged across 47 cases. No global count subtraction replaces this nesting.
+
+Reviewers classify source scope as `in_scope_executable_action`, `trigger_event`,
+`precondition`, `postcondition`, `out_of_scope_interaction`, or
+`reference_only_modelling_addition`. A deviation may be accepted only when the source
+text explicitly states or logically entails it and it does not remove required behavior,
+introduce an unsupported alternative, impose unsupported ordering, or reverse a required
+branch outcome. Ambiguity permits multiple reasonable interpretations, not every one.
+
+Normalized branch guards are preserved as evidence. Clearly comparable guard mappings
+contribute raw Structure facts; missing, duplicate/conflicting, non-comparable, and
+reference-inconsistent mappings remain deterministic review evidence. The evaluator does
+not use an LLM guard scorer or automatically adjudicate unsafe semantics.
+
+Model-validity diagnostics inventory unreachable nodes, disconnected components,
+non-final dead ends, initial/final and final-reachability anomalies, cycles without exits,
+actionless branches, malformed gateway degrees or fork/join pairing, guard issues, and
+likely duplicate generated Actions. Status/count reporting is separate from primary F1;
+a behavioral defect may additionally appear as a Structure error.
 
 ## Generation failures
 

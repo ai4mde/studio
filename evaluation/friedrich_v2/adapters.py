@@ -157,6 +157,45 @@ def friedrich_reference_to_eval_graph(path: str | Path) -> EvalGraph:
     return _process_editor(root)
 
 
+def friedrich_reference_review_evidence(path: str | Path) -> tuple[dict[str, Any], ...]:
+    """Extract ignored BPMN-specific evidence without promoting it to EvalGraph actions."""
+    root = ET.fromstring(_reference_xml(Path(path)))
+    evidence: list[dict[str, Any]] = []
+    modules = [element for element in root.iter() if _local(element.tag) == "WorkflowModule"]
+    names = {
+        module_id: normalize_label(_child_text(module, "ModuleName"))
+        for module in modules if (module_id := _child_text(module, "ModuleId"))
+    }
+    for module in modules:
+        source = _child_text(module, "ModuleId")
+        module_type = module.get("moduleType")
+        if module_type in {"StartEvent", "StopEvent", "IntermediateEvent", "Pool", "Participant"}:
+            evidence.append({
+                "kind": normalize_label(module_type) or "event_or_participant",
+                "id": source or "", "label": names.get(source or ""),
+            })
+        for connection in module:
+            if _local(connection.tag) != "Connection" or connection.get("type") == "SequenceFlow":
+                continue
+            target = connection.get("moduleOutId") or ""
+            evidence.append({
+                "kind": normalize_label(connection.get("type")) or "ignored_connection",
+                "label": normalize_label(_child_text(connection, "ConnectionName")),
+                "source_id": source or "", "source_label": names.get(source or ""),
+                "target_id": target, "target_label": names.get(target),
+            })
+    if not modules:
+        for element in root.iter():
+            props = _properties(element)
+            class_name = props.get("#type", "").rsplit(".", 1)[-1]
+            if any(token in class_name for token in ("Event", "Pool", "Participant", "MessageFlow")):
+                evidence.append({
+                    "kind": normalize_label(class_name) or "bpmn_specific",
+                    "id": props.get("#id", ""), "label": normalize_label(props.get("text")),
+                })
+    return tuple(sorted(evidence, key=lambda item: tuple(str(item.get(key) or "") for key in sorted(item))))
+
+
 def activity_graph_to_eval_graph(payload: Mapping[str, Any]) -> EvalGraph:
     if "activity_graph" in payload:
         nested = payload["activity_graph"]

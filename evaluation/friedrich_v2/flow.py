@@ -17,6 +17,13 @@ class FlowResult:
     generated_facts: tuple[Relation, ...]
     counts: Counts
     coverage: float
+    action_anchor_coverage: float
+    occurrence_ambiguous_fact_count: int
+    occurrence_ambiguous_fact_rate: float
+    contested_fact_count: int
+    contested_fact_rate: float
+    review_pending_fact_count: int
+    review_pending_fact_rate: float
     unscorable: tuple[str, ...]
     items: tuple[AutomaticItem, ...]
 
@@ -47,6 +54,9 @@ def _transitive_reduction(relations: set[Relation]) -> set[Relation]:
 def evaluate_flow(
     case_id: str, candidate_id: str, reference: EvalGraph, generated: EvalGraph, actions: ActionResult
 ) -> FlowResult:
+    ref_matched = set(actions.reference_to_generated)
+    all_ref = {node.id for node in reference.nodes if node.type == "action"}
+    action_anchor_coverage = len(ref_matched) / len(all_ref) if all_ref else 1.0
     unsupported = [
         f"{side}:{node.id}:{node.semantic_type}"
         for side, graph in (("reference", reference), ("generated", generated))
@@ -60,12 +70,11 @@ def evaluate_flow(
                 "Flow semantics cannot be preserved through an unsupported control construct.")
             for index, reason in enumerate(unsupported)
         )
-        return FlowResult(case_id, candidate_id, (), (), Counts(), 0.0, tuple(unsupported), items)
-    ref_matched = set(actions.reference_to_generated)
+        return FlowResult(case_id, candidate_id, (), (), Counts(), 0.0, action_anchor_coverage,
+                          0, 0.0, 0, 0.0, 0, 0.0, tuple(unsupported), items)
     gen_matched = set(actions.generated_to_reference)
-    all_ref = {node.id for node in reference.nodes if node.type == "action"}
     all_ref_facts = _transitive_reduction(_precedence(reference, all_ref))
-    ref_facts = _transitive_reduction(_precedence(reference, ref_matched))
+    ref_facts = {fact for fact in all_ref_facts if fact[0] in ref_matched and fact[1] in ref_matched}
     generated_raw = _transitive_reduction(_precedence(generated, gen_matched))
     gen_to_ref = actions.generated_to_reference
     gen_facts = {(gen_to_ref[a], gen_to_ref[b]) for a, b in generated_raw}
@@ -77,13 +86,43 @@ def evaluate_flow(
         ("FP", fp, "Generated model imposes unsupported matched-action precedence."),
     ):
         for source, target in sorted(facts):
+            ambiguous = bool({source, target} & actions.occurrence_ambiguous_reference_ids)
+            contested = bool({source, target} & actions.contested_reference_ids)
+            review_pending = bool({source, target} & actions.review_pending_reference_ids)
+            triggers = []
+            if ambiguous:
+                triggers.append("occurrence_ambiguous_anchor")
+            if contested:
+                triggers.append("contested_action_anchor")
+            if review_pending:
+                triggers.append("human_review_pending_anchor")
+            uncertain_anchors = sorted(
+                {source, target}
+                & (actions.occurrence_ambiguous_reference_ids
+                   | actions.contested_reference_ids
+                   | actions.review_pending_reference_ids)
+            )
             items.append(AutomaticItem(case_id, candidate_id, "Flow",
                 evaluation_item_id(case_id, candidate_id, "flow", label.lower(), source, target), label,
-                {"source_reference_action": source, "target_reference_action": target},
+                {"source_reference_action": source, "target_reference_action": target,
+                 "review_triggers": triggers, "occurrence_ambiguous": ambiguous,
+                 "contested": contested, "review_pending": review_pending,
+                 "review_cluster_concept": {"uncertain_action_anchors": uncertain_anchors}},
                 {"reference_relation": [source, target], "source_label": reference.by_id[source].label,
                  "target_label": reference.by_id[target].label}, rationale))
-    coverage = min(1.0, len(ref_facts) / len(all_ref_facts)) if all_ref_facts else 1.0
+    coverage = len(ref_facts) / len(all_ref_facts) if all_ref_facts else 1.0
+    scored_facts = ref_facts | gen_facts
+    denominator = len(scored_facts)
+    def dependent_count(anchor_ids: frozenset[str]) -> int:
+        return sum(bool({source, target} & anchor_ids) for source, target in scored_facts)
+    ambiguous_count = dependent_count(actions.occurrence_ambiguous_reference_ids)
+    contested_count = dependent_count(actions.contested_reference_ids)
+    review_count = dependent_count(actions.review_pending_reference_ids)
     return FlowResult(
         case_id, candidate_id, tuple(sorted(ref_facts)), tuple(sorted(gen_facts)),
-        Counts(len(tp), len(fp), len(fn)), coverage, (), tuple(items),
+        Counts(len(tp), len(fp), len(fn)), coverage, action_anchor_coverage,
+        ambiguous_count, ambiguous_count / denominator if denominator else 0.0,
+        contested_count, contested_count / denominator if denominator else 0.0,
+        review_count, review_count / denominator if denominator else 0.0,
+        (), tuple(items),
     )
