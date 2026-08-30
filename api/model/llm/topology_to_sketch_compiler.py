@@ -19,7 +19,6 @@ def _normalize_artifact(topology_artifact: Dict[str, Any] | TopologyArtifact) ->
 
 
 def _preorder_structures(artifact: TopologyArtifact) -> List[TopologyStructure]:
-    by_id = {structure.id: structure for structure in artifact.structures}
     children_by_parent: Dict[str, List[TopologyStructure]] = defaultdict(list)
     for structure in artifact.structures:
         children_by_parent[structure.parent].append(structure)
@@ -274,17 +273,28 @@ def compile_topology_artifact_to_activity_sketch(
                 branch_payload["returns_to_main_flow"] = False
             branches.append(branch_payload)
 
+        requires_merge = structure.type == "parallel"
+        if structure.type == "decision":
+            requires_merge = _decision_requires_merge(
+                branches,
+                exit_to=exit_to,
+                exit_to_step_id=exit_to_step_id,
+            )
+
         block = {
             "block_id": structure.id,
             "type": structure.type,
             "entry_after": entry_after,
             "entry_after_step_id": entry_after_step_id,
             "branches": branches,
-            "requires_merge": False if structure.type == "loop" else True,
+            "requires_merge": requires_merge,
             "exit_to": exit_to,
             "exit_to_step_id": exit_to_step_id,
-            "loop_back_to": entry_after if structure.type == "loop" else None,
+            "loop_back_to": entry_after if structure.type == "loop" and entry_after_step_id else None,
             "loop_back_to_step_id": entry_after_step_id if structure.type == "loop" else None,
+            "loop_back_to_block_id": (
+                structure.id if structure.type == "loop" and not entry_after_step_id else None
+            ),
             "notes": structure.purpose,
         }
         control_blocks.append(block)
@@ -374,6 +384,31 @@ def _root_ancestor_map(ordered_structures: List[TopologyStructure]) -> Dict[str,
             current = by_id[current.parent]
         ancestors[structure.id] = current.id
     return ancestors
+
+
+def _decision_requires_merge(
+    branches: List[Dict[str, Any]],
+    *,
+    exit_to: str | None,
+    exit_to_step_id: str | None,
+) -> bool:
+    route_counts: Dict[Tuple[str, str], int] = {}
+    shared_exit = str(exit_to_step_id or exit_to or "").strip()
+    shared_exit_kind = "step" if exit_to_step_id else "text"
+
+    for branch in branches:
+        if branch.get("next_block_id") or branch.get("child_block_ids"):
+            return bool(shared_exit)
+        reconnect_step_id = str(branch.get("reconnect_to_step_id") or "").strip()
+        if reconnect_step_id:
+            target = ("step", reconnect_step_id)
+        elif bool(branch.get("returns_to_main_flow")) and shared_exit:
+            target = (shared_exit_kind, shared_exit)
+        else:
+            continue
+        route_counts[target] = route_counts.get(target, 0) + 1
+
+    return any(count >= 2 for count in route_counts.values())
 
 
 def compile_topology_and_semantics_to_activity_sketch(
@@ -483,17 +518,28 @@ def compile_topology_and_semantics_to_activity_sketch(
                 branch_payload["returns_to_main_flow"] = False
             branches.append(branch_payload)
 
+        requires_merge = structure.type == "parallel"
+        if structure.type == "decision":
+            requires_merge = _decision_requires_merge(
+                branches,
+                exit_to=exit_to,
+                exit_to_step_id=exit_to_step_id,
+            )
+
         block = {
             "block_id": structure.id,
             "type": structure.type,
             "entry_after": entry_after,
             "entry_after_step_id": entry_after_step_id,
             "branches": branches,
-            "requires_merge": False if structure.type == "loop" else True,
+            "requires_merge": requires_merge,
             "exit_to": exit_to,
             "exit_to_step_id": exit_to_step_id,
-            "loop_back_to": entry_after if structure.type == "loop" else None,
+            "loop_back_to": entry_after if structure.type == "loop" and entry_after_step_id else None,
             "loop_back_to_step_id": entry_after_step_id if structure.type == "loop" else None,
+            "loop_back_to_block_id": (
+                structure.id if structure.type == "loop" and not entry_after_step_id else None
+            ),
             "notes": structure.purpose,
         }
         control_blocks.append(block)

@@ -451,13 +451,112 @@ def _normalize_updated_root_action_entries(entries: Any) -> List[Dict[str, Any]]
     return normalized_entries
 
 
+def _current_step_payloads(steps: Any) -> List[Dict[str, Any]]:
+    payloads: List[Dict[str, Any]] = []
+    if not isinstance(steps, list):
+        return payloads
+    for step in steps:
+        if hasattr(step, "action"):
+            action = str(step.action or "").strip()
+            source_action_ids = list(getattr(step, "source_action_ids", []) or [])
+        elif isinstance(step, dict):
+            action = str(step.get("action") or "").strip()
+            source_action_ids = [
+                str(source_action_id).strip()
+                for source_action_id in step.get("source_action_ids", []) or []
+                if str(source_action_id).strip()
+            ]
+        else:
+            continue
+        if action:
+            payloads.append(
+                {
+                    "action": action,
+                    "source_action_ids": source_action_ids,
+                }
+            )
+    return payloads
+
+
+def _instruction_requests_direct_action_rename(instruction: str) -> bool:
+    normalized_instruction = " ".join(str(instruction or "").split())
+    return bool(
+        re.search(r"\b(?:rename|relabel)\b.+\bto\b", normalized_instruction, re.IGNORECASE)
+        or re.search(
+            r"\bchange\s+(?:the\s+)?(?:name|label|wording)\b.+\bto\b",
+            normalized_instruction,
+            re.IGNORECASE,
+        )
+    )
+
+
+def _reconcile_step_traceability(
+    *,
+    updated_steps: Any,
+    current_steps: Any,
+    instruction: str,
+) -> List[Dict[str, Any]]:
+    normalized_updated_steps = _current_step_payloads(updated_steps)
+    normalized_current_steps = _current_step_payloads(current_steps)
+    unmatched_current_indexes = list(range(len(normalized_current_steps)))
+    reconciled_steps: List[Dict[str, Any] | None] = [None] * len(normalized_updated_steps)
+
+    for updated_index, updated_step in enumerate(normalized_updated_steps):
+        updated_key = " ".join(updated_step["action"].split()).casefold()
+        matching_current_index = next(
+            (
+                current_index
+                for current_index in unmatched_current_indexes
+                if " ".join(normalized_current_steps[current_index]["action"].split()).casefold()
+                == updated_key
+            ),
+            None,
+        )
+        if matching_current_index is None:
+            continue
+        unmatched_current_indexes.remove(matching_current_index)
+        reconciled_steps[updated_index] = {
+            "action": updated_step["action"],
+            "source_action_ids": list(
+                normalized_current_steps[matching_current_index]["source_action_ids"]
+            ),
+        }
+
+    unmatched_updated_indexes = [
+        index
+        for index, reconciled_step in enumerate(reconciled_steps)
+        if reconciled_step is None
+    ]
+    if (
+        _instruction_requests_direct_action_rename(instruction)
+        and len(unmatched_updated_indexes) == 1
+        and len(unmatched_current_indexes) == 1
+    ):
+        updated_index = unmatched_updated_indexes.pop()
+        current_index = unmatched_current_indexes.pop()
+        reconciled_steps[updated_index] = {
+            "action": normalized_updated_steps[updated_index]["action"],
+            "source_action_ids": list(normalized_current_steps[current_index]["source_action_ids"]),
+        }
+
+    return [
+        reconciled_step
+        if reconciled_step is not None
+        else {
+            "action": normalized_updated_steps[index]["action"],
+            "source_action_ids": [],
+        }
+        for index, reconciled_step in enumerate(reconciled_steps)
+    ]
+
+
 def _current_root_action_sequence(
     *,
     expected_root_slot_ids: List[str],
     current_semantic_sketch_plan: SemanticSketchPlan,
-) -> List[List[str]]:
+) -> List[List[Dict[str, Any]]]:
     current_root_action_map = {
-        entry.slot_id.strip(): [step.action.strip() for step in entry.actions if step.action.strip()]
+        entry.slot_id.strip(): _current_step_payloads(entry.actions)
         for entry in current_semantic_sketch_plan.root_actions
     }
     return [current_root_action_map.get(slot_id, []) for slot_id in expected_root_slot_ids]
@@ -595,7 +694,7 @@ def _reconcile_root_action_sequence(
     *,
     expected_root_slot_ids: List[str],
     updated_root_action_entries: List[Dict[str, Any]],
-    current_root_actions: List[List[str]],
+    current_root_actions: List[List[Dict[str, Any]]],
     instruction: str,
 ) -> List[Dict[str, Any]]:
     if not expected_root_slot_ids:
@@ -609,10 +708,53 @@ def _reconcile_root_action_sequence(
         return [
             {
                 "slot_id": entry["slot_id"],
+                "actions": _reconcile_step_traceability(
+                    updated_steps=entry["actions"],
+                    current_steps=normalized_current_actions[index],
+                    instruction=instruction,
+                ),
+            }
+            for index, entry in enumerate(updated_root_action_entries)
+        ]
+
+    compressed_entries: List[Dict[str, Any]] = []
+    seen_slot_ids: set[str] = set()
+    for entry in updated_root_action_entries:
+        slot_id = entry["slot_id"]
+        if slot_id not in expected_root_slot_ids or slot_id in seen_slot_ids:
+            continue
+        compressed_entries.append(
+            {
+                "slot_id": slot_id,
                 "actions": entry["actions"],
             }
-            for entry in updated_root_action_entries
+        )
+        seen_slot_ids.add(slot_id)
+    if [entry["slot_id"] for entry in compressed_entries] == expected_root_slot_ids:
+        return [
+            {
+                "slot_id": entry["slot_id"],
+                "actions": _reconcile_step_traceability(
+                    updated_steps=entry["actions"],
+                    current_steps=normalized_current_actions[index],
+                    instruction=instruction,
+                ),
+            }
+            for index, entry in enumerate(compressed_entries)
         ]
+
+    if len(updated_root_action_entries) < len(expected_root_slot_ids):
+        present_slot_ids = [entry["slot_id"] for entry in updated_root_action_entries]
+        missing_slot_ids = [
+            slot_id
+            for slot_id in expected_root_slot_ids
+            if slot_id not in present_slot_ids
+        ]
+        raise ValueError(
+            "Refinement planner produced an incomplete root action sequence for the updated topology. "
+            f"missing_root_slots={missing_slot_ids}, "
+            f"missing_root_structures={[slot_id[len('AFTER_'):] for slot_id in missing_slot_ids if slot_id.startswith('AFTER_')]}"
+        )
 
     compressed_entries: List[Dict[str, Any]] = []
     seen_slot_ids: set[str] = set()
@@ -644,7 +786,10 @@ def _reconcile_root_action_sequence(
         )
 
     planner_actions = [tuple(step["action"] for step in entry["actions"]) for entry in updated_root_action_entries]
-    normalized_current_action_tuples = [tuple(actions) for actions in normalized_current_actions]
+    normalized_current_action_tuples = [
+        tuple(step["action"] for step in actions)
+        for actions in normalized_current_actions
+    ]
     if _planner_actions_match_current_sequence(
         planner_actions=planner_actions,
         current_root_actions=normalized_current_action_tuples,
@@ -665,9 +810,13 @@ def _reconcile_root_action_sequence(
     return [
         {
             "slot_id": slot_id,
-            "actions": [{"action": action} for action in actions],
+            "actions": _reconcile_step_traceability(
+                updated_steps=[{"action": action} for action in actions],
+                current_steps=normalized_current_actions[index],
+                instruction=instruction,
+            ),
         }
-        for slot_id, actions in zip(expected_root_slot_ids, reconciled_actions)
+        for index, (slot_id, actions) in enumerate(zip(expected_root_slot_ids, reconciled_actions))
     ]
 
 
@@ -919,12 +1068,19 @@ def _reconcile_semantic_plan_to_topology(
         for branch in structure.branches:
             structure_id = structure.id
             branch_key = (structure_id, branch)
-            branch_plan = preserved_branch_plan_map.get(branch_key)
-            if branch_plan is not None:
-                if hasattr(branch_plan, "model_dump"):
-                    reconciled_branch_plans.append(branch_plan.model_dump(mode="json"))
-                else:
-                    reconciled_branch_plans.append(dict(branch_plan))
+            updated_branch_plan = updated_branch_plan_map.get(branch_key)
+            current_branch_plan = current_branch_plan_map.get(branch_key)
+            if updated_branch_plan is not None:
+                reconciled_branch_plan = dict(updated_branch_plan)
+                reconciled_branch_plan["steps"] = _reconcile_step_traceability(
+                    updated_steps=updated_branch_plan.get("steps") or [],
+                    current_steps=current_branch_plan.steps if current_branch_plan is not None else [],
+                    instruction=instruction,
+                )
+                reconciled_branch_plans.append(reconciled_branch_plan)
+                continue
+            if current_branch_plan is not None:
+                reconciled_branch_plans.append(current_branch_plan.model_dump(mode="json"))
                 continue
             reconciled_branch_plans.append(
                 {

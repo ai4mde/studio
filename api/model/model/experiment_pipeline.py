@@ -41,10 +41,16 @@ from llm.human_edit_synchronizer import (
 from llm.refinement_planner import generate_refinement_plan
 from llm.sketch_repair import repair_activity_sketch
 from llm.topology_to_sketch_compiler import compile_topology_and_semantics_to_activity_sketch
+from llm.technical_validity import (
+    TechnicalValidityError,
+    merge_technical_validity_reports,
+    normalize_and_validate_activity_graph,
+)
 from llm.converter import convert_to_ai4mde, unwrap_ai4mde_systems_export, validate_ai4mde_json
 from llm.pipeline_profiles import PipelineProfile, resolve_pipeline_config
 from llm.refinement_generator import (
     _get_clean_model,
+    _raise_for_unresolved_explicit_loop_targets,
     generate_and_convert_candidates,
     model_activity_with_experimental_compiler,
     refine_activity_model,
@@ -272,7 +278,8 @@ def _run_semantic_refinement_from_artifacts(
         updated_artifacts["updated_topology_artifact"],
         updated_artifacts["updated_semantic_sketch_plan"],
     )
-    repaired_sketch, _ = repair_activity_sketch(deterministic_sketch)
+    repaired_sketch, repair_report = repair_activity_sketch(deterministic_sketch)
+    _raise_for_unresolved_explicit_loop_targets(repair_report)
     clean_graph = compile_activity_sketch(repaired_sketch)
     return {
         "planner_result": planner_result,
@@ -365,6 +372,38 @@ def import_to_ai4mde(project: Project, systems_export: List[Dict[str, Any]]) -> 
     project.import_systems_from_json(systems_export)
 
 
+def _convert_candidate_graph(
+    clean_graph: Dict[str, Any],
+    *,
+    system_id: str,
+    diagram_id: str,
+    name: str,
+    description: str,
+    project_id: str,
+    prior_report: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    clean_graph, final_report = normalize_and_validate_activity_graph(clean_graph)
+    report = merge_technical_validity_reports(prior_report, final_report)
+    try:
+        ai4mde = convert_to_ai4mde(
+            clean_model=clean_graph,
+            system_id=system_id,
+            diagram_id=diagram_id,
+            name=name,
+            description=description,
+            project_id=project_id,
+        )
+    except Exception as exc:
+        report["technical_accepted"] = False
+        report["conversion_result"] = "failed"
+        report["failure_reason"] = str(exc)
+        raise TechnicalValidityError(
+            f"ActivityGraph failed AI4MDE conversion: {exc}", report=report
+        ) from exc
+    report["conversion_result"] = "accepted"
+    return {"clean": clean_graph, "ai4mde": ai4mde, "technical_validity": report}
+
+
 def run_pipeline(
     process_text: str,
     mode: Mode,
@@ -433,20 +472,23 @@ def run_pipeline(
                 enable_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
             )
             clean_model = debug_bundle["parsed"]
-        candidate_exports = [
-            {
-                "clean": clean_model,
-                "ai4mde": convert_to_ai4mde(
-                    clean_model=clean_model,
-                    system_id=str(uuid.uuid4()),
-                    diagram_id=str(uuid.uuid4()),
-                    name=f"{session_id}_Model_1",
-                    description=f"Experiment session {session_id}",
-                    project_id=resolved_project_id,
-                ),
-                "debug_bundle": debug_bundle,
-            }
-        ]
+        candidate_export = _convert_candidate_graph(
+            clean_model,
+            system_id=str(uuid.uuid4()),
+            diagram_id=str(uuid.uuid4()),
+            name=f"{session_id}_Model_1",
+            description=f"Experiment session {session_id}",
+            project_id=resolved_project_id,
+            prior_report=(
+                ((debug_bundle.get("stage_artifacts") or {}).get("validation") or {}).get(
+                    "technical_validity"
+                )
+                if debug_bundle is not None
+                else None
+            ),
+        )
+        candidate_export["debug_bundle"] = debug_bundle
+        candidate_exports = [candidate_export]
     elif mode == "refinement":
         if use_experimental_compiler:
             raise ValueError("experimental compiler is currently supported only for baseline mode")
@@ -472,23 +514,23 @@ def run_pipeline(
                 refinement_instruction=refinement_instruction,
             )
             updated_artifacts = refinement_result["updated_artifacts"]
-            candidate_exports = [
+            candidate_export = _convert_candidate_graph(
+                refinement_result["clean_graph"],
+                system_id=str(uuid.uuid4()),
+                diagram_id=str(uuid.uuid4()),
+                name=f"{session_id}_Refined_Model_1",
+                description=f"Refinement session {session_id}",
+                project_id=resolved_project_id,
+            )
+            candidate_export.update(
                 {
-                    "clean": refinement_result["clean_graph"],
-                    "ai4mde": convert_to_ai4mde(
-                        clean_model=refinement_result["clean_graph"],
-                        system_id=str(uuid.uuid4()),
-                        diagram_id=str(uuid.uuid4()),
-                        name=f"{session_id}_Refined_Model_1",
-                        description=f"Refinement session {session_id}",
-                        project_id=resolved_project_id,
-                    ),
                     "updated_topology_artifact": updated_artifacts["updated_topology_artifact"],
                     "updated_semantic_sketch_plan": updated_artifacts["updated_semantic_sketch_plan"],
                     "artifact_diff": refinement_result["artifact_diff"],
                     "refinement_trace": updated_artifacts.get("refinement_trace"),
                 }
-            ]
+            )
+            candidate_exports = [candidate_export]
         else:
             try:
                 candidate_exports = generate_and_convert_candidates(
@@ -515,6 +557,31 @@ def run_pipeline(
     else:
         raise ValueError("mode must be 'baseline' or 'refinement'")
 
+    provisional_candidates: List[ProvisionalCandidate] = []
+    if provisional_candidate_generation:
+        for candidate_index, candidate in enumerate(candidate_exports, start=1):
+            candidate_stage_artifacts = (
+                (candidate.get("debug_bundle") or {}).get("stage_artifacts") or {}
+            )
+            provisional_candidates.append(
+                ProvisionalCandidate(
+                    project=project,
+                    session_id=session_id,
+                    candidate_index=candidate_index,
+                    candidate_count=len(candidate_exports),
+                    process_text=process_text,
+                    pipeline_profile=pipeline_config["pipeline_profile"],
+                    activity_graph=candidate["clean"],
+                    ai4mde_export=candidate["ai4mde"],
+                    topology_artifact=candidate_stage_artifacts.get("topology_artifact"),
+                    semantic_sketch_plan=candidate_stage_artifacts.get("semantic_plan"),
+                )
+            )
+        # Persist the complete selectable set atomically so a failed write cannot
+        # leave an incomplete multi-candidate request behind.
+        with transaction.atomic():
+            ProvisionalCandidate.objects.bulk_create(provisional_candidates)
+
     for candidate in candidate_exports:
         systems_export = candidate["ai4mde"]
         system_json = unwrap_ai4mde_systems_export(systems_export)
@@ -531,11 +598,14 @@ def run_pipeline(
             "import_error": None,
             "activity_graph": candidate["clean"],
             "ai4mde": systems_export,
+            "technical_validity": candidate.get("technical_validity"),
         }
         candidate_debug_bundle = candidate.get("debug_bundle")
         if candidate_debug_bundle is not None:
             entry["executed_stages"] = candidate_debug_bundle.get("executed_stages") or []
             stage_artifacts = candidate_debug_bundle.get("stage_artifacts") or {}
+            if stage_artifacts.get("control_evidence") is not None:
+                entry["control_evidence"] = stage_artifacts["control_evidence"]
             if stage_artifacts.get("topology_artifact") is not None:
                 entry["topology_artifact"] = stage_artifacts["topology_artifact"]
             if stage_artifacts.get("semantic_plan") is not None:
@@ -553,18 +623,7 @@ def run_pipeline(
             semantic_sketch_plan = entry.get("semantic_sketch_plan")
             if provisional_candidate_generation:
                 candidate_index = len(results) + 1
-                provisional_candidate = ProvisionalCandidate.objects.create(
-                    project=project,
-                    session_id=session_id,
-                    candidate_index=candidate_index,
-                    candidate_count=len(candidate_exports),
-                    process_text=process_text,
-                    pipeline_profile=pipeline_config["pipeline_profile"],
-                    activity_graph=candidate["clean"],
-                    ai4mde_export=systems_export,
-                    topology_artifact=topology_artifact,
-                    semantic_sketch_plan=semantic_sketch_plan,
-                )
+                provisional_candidate = provisional_candidates[candidate_index - 1]
                 entry.update(
                     {
                         "candidate_id": str(provisional_candidate.id),
@@ -576,6 +635,8 @@ def run_pipeline(
             else:
                 with transaction.atomic():
                     import_to_ai4mde(project, systems_export)
+                    if candidate.get("technical_validity") is not None:
+                        candidate["technical_validity"]["import_result"] = "accepted"
                     revision_meta = _create_revision_snapshot(
                         system_id=system_json["id"],
                         process_text=process_text,
@@ -596,8 +657,16 @@ def run_pipeline(
                 entry.update(revision_meta)
                 entry["current_revision_id"] = revision_meta["revision_id"]
                 entry["provisional"] = False
-        except Exception as exc:  # noqa: BLE001 — surface any import failure to client
-            entry["import_error"] = str(exc)
+        except TechnicalValidityError:
+            raise
+        except Exception as exc:
+            report = candidate.get("technical_validity") or {}
+            report["technical_accepted"] = False
+            report["import_result"] = "failed"
+            report["failure_reason"] = str(exc)
+            raise TechnicalValidityError(
+                f"ActivityGraph failed AI4MDE import: {exc}", report=report
+            ) from exc
         results.append(entry)
 
         # Keep the exported ids visible to the caller for debugging/UI linkage.

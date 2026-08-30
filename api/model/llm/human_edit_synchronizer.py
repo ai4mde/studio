@@ -327,6 +327,33 @@ def _choose_closure_node(
     )
 
 
+def _closure_free_decision_final(
+    cursor: _GraphCursor,
+    branch_starts: List[str],
+    *,
+    diagnostics: Dict[str, Any],
+) -> Optional[str]:
+    reachable_sets = [cursor.reachable_from(start_id) for start_id in branch_starts]
+    if not reachable_sets:
+        return None
+    common = set.intersection(*reachable_sets)
+    if any(cursor.node_type(node_id) != "final" for node_id in common):
+        return None
+
+    final_ids: List[str] = []
+    for branch_start in branch_starts:
+        _, terminal_node_id = _walk_actions_until_boundary(
+            cursor,
+            branch_start,
+            stop_node_ids=set(),
+            diagnostics=diagnostics,
+        )
+        if cursor.node_type(terminal_node_id) != "final":
+            return None
+        final_ids.append(str(terminal_node_id))
+    return final_ids[0] if len(set(final_ids)) == 1 else None
+
+
 def _parse_structure(
     cursor: _GraphCursor,
     control_node_id: str,
@@ -363,6 +390,7 @@ def _parse_structure(
 
     branch_starts = [str(edge.get("target") or "") for edge in outgoing]
     closure_node_id = _choose_closure_node(cursor, branch_starts, expected_type=closure_type)
+    closure_free_final_id: Optional[str] = None
     if closure_node_id is None:
         if node_type == "decision" and predecessor_action:
             predecessor_reachable = any(
@@ -376,12 +404,19 @@ def _parse_structure(
                     diagnostics=diagnostics,
                     details={"node_id": control_node_id},
                 )
-        raise _make_sync_error(
-            "missing_structure_closure",
-            "Synchronization could not identify the required closure node for a control structure.",
-            diagnostics=diagnostics,
-            details={"node_id": control_node_id, "expected_closure_type": closure_type},
-        )
+        if node_type == "decision":
+            closure_free_final_id = _closure_free_decision_final(
+                cursor,
+                branch_starts,
+                diagnostics=diagnostics,
+            )
+        if closure_free_final_id is None:
+            raise _make_sync_error(
+                "missing_structure_closure",
+                "Synchronization could not identify the required closure node for a control structure.",
+                diagnostics=diagnostics,
+                details={"node_id": control_node_id, "expected_closure_type": closure_type},
+            )
 
     structure_id = f"T{id_counter[0]}"
     id_counter[0] += 1
@@ -403,10 +438,10 @@ def _parse_structure(
         branch_actions, terminal_node_id = _walk_actions_until_boundary(
             cursor,
             str(edge.get("target") or ""),
-            stop_node_ids={closure_node_id},
+            stop_node_ids={closure_node_id} if closure_node_id is not None else set(),
             diagnostics=diagnostics,
         )
-        if terminal_node_id == closure_node_id:
+        if closure_node_id is not None and terminal_node_id == closure_node_id:
             branch_intent = "continue"
         elif cursor.node_type(terminal_node_id) == "final":
             branch_intent = "terminate"
@@ -430,8 +465,12 @@ def _parse_structure(
             }
         )
 
-    next_node_id = _unique_successor_or_none(cursor, closure_node_id)
-    if next_node_id is None and cursor.outgoing(closure_node_id):
+    next_node_id = (
+        _unique_successor_or_none(cursor, closure_node_id)
+        if closure_node_id is not None
+        else closure_free_final_id
+    )
+    if closure_node_id is not None and next_node_id is None and cursor.outgoing(closure_node_id):
         raise _make_sync_error(
             "ambiguous_structure_exit",
             "Synchronization found a structure closure with multiple outgoing continuations.",
@@ -572,6 +611,13 @@ def _derive_topology_and_semantics_from_graph(
         branch_plans.extend(structure_result.child_branch_plans)
         root_slot_id = f"AFTER_{structure_result.topology_structure['id']}"
         current_node_id = structure_result.next_node_id
+        if current_node_id is None:
+            raise _make_sync_error(
+                "missing_root_continuation",
+                "Synchronization requires an explicit root-scope continuation action after a root control structure.",
+                diagnostics=diagnostics,
+                details={"structure_id": structure_result.topology_structure["id"]},
+            )
 
     topology_artifact = TopologyArtifact.model_validate(
         {"structures": topology_structures}

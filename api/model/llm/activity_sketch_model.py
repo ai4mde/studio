@@ -53,6 +53,7 @@ class ControlBlock(BaseModel):
     exit_to_step_id: Optional[str] = None
     loop_back_to: Optional[str] = None
     loop_back_to_step_id: Optional[str] = None
+    loop_back_to_block_id: Optional[str] = None
     notes: Optional[str] = None
 
     @model_validator(mode="after")
@@ -60,6 +61,13 @@ class ControlBlock(BaseModel):
         if self.requires_merge is None:
             self.requires_merge = False if self.type == "loop" else True
         return self
+
+    @model_serializer(mode="wrap")
+    def serialize_without_empty_block_loop_target(self, handler):
+        data = handler(self)
+        if data.get("loop_back_to_block_id") is None:
+            data.pop("loop_back_to_block_id", None)
+        return data
 
 
 class ActivitySketch(BaseModel):

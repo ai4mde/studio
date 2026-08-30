@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any, Dict, Iterable, List, Optional, Set
 
-from .topology_analysis import _adjacency, _reverse_adjacency, _reachable
+from .topology_analysis import _adjacency, _reachable
 
 
 SketchAlignmentReport = Dict[str, Any]
@@ -161,6 +161,29 @@ def _planner_binding_strength(
     return "weak"
 
 
+def _decision_requires_effective_merge(block: Dict[str, Any]) -> Optional[bool]:
+    if not bool(block.get("requires_merge", False)):
+        return False
+    route_counts: Counter[tuple[str, str]] = Counter()
+    exit_to_step_id = str(block.get("exit_to_step_id") or "").strip()
+    exit_to = str(block.get("exit_to") or "").strip()
+    shared_exit = exit_to_step_id or exit_to
+    shared_exit_kind = "step" if exit_to_step_id else "text"
+
+    for branch in block.get("branches") or []:
+        if not isinstance(branch, dict):
+            continue
+        if branch.get("next_block_id") or branch.get("child_block_ids"):
+            return None
+        reconnect_step_id = str(branch.get("reconnect_to_step_id") or "").strip()
+        if reconnect_step_id:
+            route_counts[("step", reconnect_step_id)] += 1
+        elif bool(branch.get("returns_to_main_flow")) and shared_exit:
+            route_counts[(shared_exit_kind, shared_exit)] += 1
+
+    return any(count >= 2 for count in route_counts.values())
+
+
 def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[str, Any]) -> SketchAlignmentReport:
     """
     Run lightweight alignment checks between a TopologyPlan and a realized ActivityGraph.
@@ -200,12 +223,18 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
         if isinstance(node, dict) and str(node.get("origin_block_id", "")).strip()
     }
     decision_node_ids_by_block: Dict[str, List[str]] = {}
+    merge_node_ids_by_block: Dict[str, List[str]] = {}
     unbound_decision_node_ids: List[str] = []
     for node in nodes:
-        if not isinstance(node, dict) or str(node.get("type", "")) != "decision":
+        if not isinstance(node, dict):
             continue
+        node_type = str(node.get("type", ""))
         node_id = str(node.get("id", "")).strip()
         origin_block_id = str(node.get("origin_block_id", "")).strip()
+        if node_type == "merge" and origin_block_id:
+            merge_node_ids_by_block.setdefault(origin_block_id, []).append(node_id)
+        if node_type != "decision":
+            continue
         if origin_block_id:
             decision_node_ids_by_block.setdefault(origin_block_id, []).append(node_id)
         elif node_id:
@@ -219,7 +248,6 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
     }
     type_counts = Counter(node_types.values())
     neighbors, _ = _adjacency(edges)
-    incoming = _reverse_adjacency(edges)
 
     reachable_map: Dict[str, Set[str]] = {
         node_id: _reachable([node_id], neighbors)
@@ -298,6 +326,11 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
 
         if block_type == "decision":
             normalized_block_id = str(block_id or "").strip()
+            decision_merge_requirement = _decision_requires_effective_merge(block)
+            decision_requires_merge = decision_merge_requirement is True or (
+                decision_merge_requirement is None
+                and bool(merge_node_ids_by_block.get(normalized_block_id))
+            )
             matched_decision_node_ids = decision_node_ids_by_block.get(normalized_block_id, [])
             if matched_decision_node_ids:
                 decision_resolution_mode = "origin_block_id"
@@ -310,8 +343,9 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
                 block_issues.append("missing_decision_node")
             if branch_count >= 2 and type_counts.get("decision", 0) == 0:
                 block_issues.append("decision_branching_not_realized")
-            if requires_merge and type_counts.get("merge", 0) == 0:
+            if decision_requires_merge and not merge_node_ids_by_block.get(normalized_block_id):
                 block_issues.append("missing_merge_for_decision")
+            if decision_requires_merge:
                 expected_closure = "merge"
         elif block_type == "parallel":
             if type_counts.get("fork", 0) == 0:
@@ -331,8 +365,8 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
             if requires_merge:
                 block_issues.append("loop_requires_merge_semantics")
 
-        if expected_closure is None and requires_merge:
-            expected_closure = "merge" if block_type == "decision" else "join" if block_type == "parallel" else None
+        if expected_closure is None and requires_merge and block_type == "parallel":
+            expected_closure = "join"
 
         entry_after_id, entry_after_resolution_mode = _resolve_graph_action_reference(
             nodes,
@@ -406,11 +440,16 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
         closure_realized = False
         if expected_closure is not None:
             expected_merges += 1
-            closure_realized = (
-                expected_closure == "merge" and type_counts.get("merge", 0) > 0
-            ) or (
-                expected_closure == "join" and type_counts.get("join", 0) > 0
-            )
+            if expected_closure == "merge" and block_type == "decision":
+                closure_realized = bool(
+                    merge_node_ids_by_block.get(str(block_id or "").strip())
+                )
+            else:
+                closure_realized = (
+                    expected_closure == "merge" and type_counts.get("merge", 0) > 0
+                ) or (
+                    expected_closure == "join" and type_counts.get("join", 0) > 0
+                )
             if closure_realized:
                 realized_merges += 1
 

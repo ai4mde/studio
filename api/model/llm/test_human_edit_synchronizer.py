@@ -3,6 +3,7 @@ import pytest
 from .human_edit_synchronizer import (
     HumanEditSynchronizationError,
     _derive_topology_and_semantics_from_graph,
+    synchronize_persisted_human_edit,
 )
 
 
@@ -170,3 +171,40 @@ def test_human_sync_rejects_disconnected_manual_edit():
         _derive_topology_and_semantics_from_graph(graph)
 
     assert exc_info.value.diagnostics["issues"][0]["code"] == "graph_validation_failed"
+
+
+def test_human_sync_accepts_closure_free_terminating_decision():
+    graph = {
+        "nodes": [
+            {"id": "i", "type": "initial"},
+            {"id": "review", "type": "action", "name": "review item"},
+            {"id": "decision", "type": "decision", "label": "choose outcome?"},
+            {"id": "archive", "type": "action", "name": "archive item"},
+            {"id": "reject", "type": "action", "name": "reject item"},
+            {"id": "f", "type": "final"},
+        ],
+        "edges": [
+            {"source": "i", "target": "review", "type": "control"},
+            {"source": "review", "target": "decision", "type": "control"},
+            {"source": "decision", "target": "archive", "type": "control", "label": "archive"},
+            {"source": "decision", "target": "reject", "type": "control", "label": "reject"},
+            {"source": "archive", "target": "f", "type": "control"},
+            {"source": "reject", "target": "f", "type": "control"},
+        ],
+    }
+
+    result = synchronize_persisted_human_edit(graph)
+
+    assert result["diagnostics"]["issues"] == []
+    assert result["topology_artifact"]["structures"][0]["type"] == "decision"
+    assert {
+        plan["branch"]: plan["intent"]
+        for plan in result["semantic_sketch_plan"]["branch_plans"]
+    } == {"archive": "terminate", "reject": "terminate"}
+    assert result["semantic_sketch_plan"]["root_actions"][-1] == {
+        "slot_id": "AFTER_T1",
+        "actions": [],
+    }
+    assert not any(
+        node["type"] == "merge" for node in result["activity_graph"]["nodes"]
+    )

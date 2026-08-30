@@ -49,7 +49,7 @@ def _graph_node_id(graph: dict, *, node_type: str, origin_block_id: str) -> str:
     )
 
 
-def test_topology_analysis_flags_missing_merge_and_branch_labels() -> None:
+def test_topology_analysis_allows_terminal_alternatives_and_flags_branch_labels() -> None:
     graph = {
         "nodes": [
             {"id": "n1", "type": "initial"},
@@ -70,7 +70,30 @@ def test_topology_analysis_flags_missing_merge_and_branch_labels() -> None:
     report = analyze_activity_graph(graph)
 
     assert "decision_unlabeled_branch" in report["issues"]
-    assert "possible_missing_merge" in report["issues"]
+    assert "possible_missing_merge" not in report["issues"]
+
+
+def test_topology_analysis_flags_unmerged_nonterminal_convergence() -> None:
+    graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "decision", "label": "route?"},
+            {"id": "n3", "type": "action", "name": "action a"},
+            {"id": "n4", "type": "action", "name": "action b"},
+            {"id": "n5", "type": "action", "name": "shared action"},
+            {"id": "n6", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2"},
+            {"source": "n2", "target": "n3", "label": "a"},
+            {"source": "n2", "target": "n4", "label": "b"},
+            {"source": "n3", "target": "n5"},
+            {"source": "n4", "target": "n5"},
+            {"source": "n5", "target": "n6"},
+        ],
+    }
+
+    assert "possible_missing_merge" in analyze_activity_graph(graph)["issues"]
 
 
 def test_compare_sketch_generation_reports_better_topology_with_sketch() -> None:
@@ -616,13 +639,14 @@ def test_repair_activity_sketch_removes_invalid_references_and_normalizes_loop_m
     block = sketch["control_blocks"][0]
     assert "entry_after_step_id" not in block
     assert block["requires_merge"] is False
-    assert "loop_back_to_step_id" not in block
+    assert block["loop_back_to_step_id"] == "S7"
     assert "next_block_id" not in block["branches"][0]
     assert block["branches"][0]["child_block_ids"] == []
     assert report["metrics"]["invalid_reference_count"] >= 3
     assert report["metrics"]["merge_normalization_count"] >= 1
     assert report["metrics"]["child_block_repair_count"] >= 1
     assert report["critical_defects"]
+    assert "B1:unresolved_loop_back" in report["critical_defects"]
 
 
 def test_repair_activity_sketch_preserves_valid_reconnect_to_step_id() -> None:
@@ -955,6 +979,29 @@ def test_repair_activity_sketch_preserves_loop_back_and_success_semantics() -> N
     retry, successful = repaired["control_blocks"][0]["branches"]
     assert retry["returns_to_main_flow"] is False
     assert successful["returns_to_main_flow"] is True
+
+
+def test_repair_preserves_internal_loop_target_and_flags_unresolved_target() -> None:
+    base = {
+        "main_flow": [{"step_id": "S1", "action": "prepare item"}],
+        "control_blocks": [
+            {
+                "block_id": "L1",
+                "type": "loop",
+                "entry_after_step_id": "S1",
+                "entry_after": "prepare item",
+                "branches": [{"label": "retry", "returns_to_main_flow": False, "steps": []}],
+                "loop_back_to_block_id": "L1",
+            }
+        ],
+    }
+    repaired, report = repair_activity_sketch(base)
+    assert repaired["control_blocks"][0]["loop_back_to_block_id"] == "L1"
+    assert "L1:unresolved_loop_back" not in report["critical_defects"]
+
+    base["control_blocks"][0]["loop_back_to_block_id"] = "unknown"
+    _, invalid_report = repair_activity_sketch(base)
+    assert "L1:unresolved_loop_back" in invalid_report["critical_defects"]
 
 
 def test_repair_activity_sketch_leaves_valid_sketch_semantically_unchanged() -> None:

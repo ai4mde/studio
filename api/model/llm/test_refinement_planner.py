@@ -5,6 +5,8 @@ import pytest
 
 from llm.refinement_planner import (
     RefinementPlannerError,
+    _reconcile_semantic_plan_to_topology,
+    _reconcile_step_traceability,
     build_refinement_planner_prompt,
     generate_refinement_plan,
     parse_refinement_planner_json,
@@ -29,6 +31,10 @@ def _canonical_root_actions(entries):
             }
         )
     return canonical
+
+
+def _source_ids(step):
+    return step.get("source_action_ids", [])
 
 
 CURRENT_TOPOLOGY = {
@@ -1435,3 +1441,201 @@ def test_generate_refinement_plan_multiple_root_lifecycle_edits_do_not_preserve_
         {"slot_id": "AFTER_T2", "action": "finalize approval"},
         {"slot_id": "AFTER_T3", "action": "close request"},
     ])
+
+
+@pytest.mark.parametrize(
+    ("instruction", "updated_actions", "expected_actions", "expected_ids"),
+    [
+        (
+            "Keep the process unchanged.",
+            ["receive request", "review request"],
+            ["receive request", "review request"],
+            [["source-1"], ["source-2"]],
+        ),
+        (
+            "Reorder the existing actions.",
+            ["review request", "receive request"],
+            ["review request", "receive request"],
+            [["source-2"], ["source-1"]],
+        ),
+        (
+            "Rename review request to inspect request.",
+            ["receive request", "inspect request"],
+            ["receive request", "inspect request"],
+            [["source-1"], ["source-2"]],
+        ),
+        (
+            "Insert log request after receiving it.",
+            ["receive request", "log request", "review request"],
+            ["receive request", "log request", "review request"],
+            [["source-1"], [], ["source-2"]],
+        ),
+        (
+            "Delete review request.",
+            ["receive request"],
+            ["receive request"],
+            [["source-1"]],
+        ),
+    ],
+)
+def test_refinement_preserves_root_action_traceability(
+    instruction,
+    updated_actions,
+    expected_actions,
+    expected_ids,
+) -> None:
+    current_semantics = {
+        "root_actions": [
+            {
+                "slot_id": "ROOT_START",
+                "actions": [
+                    {"action": "receive request", "source_action_ids": ["source-1"]},
+                    {"action": "review request", "source_action_ids": ["source-2"]},
+                ],
+            }
+        ],
+        "branch_plans": [],
+    }
+    updated_semantics = {
+        "root_actions": [
+            {
+                "slot_id": "ROOT_START",
+                "actions": [{"action": action} for action in updated_actions],
+            }
+        ],
+        "branch_plans": [],
+    }
+
+    result = _reconcile_semantic_plan_to_topology(
+        updated_topology_artifact={"structures": []},
+        updated_semantic_sketch_plan=updated_semantics,
+        current_semantic_sketch_plan=current_semantics,
+        instruction=instruction,
+    )
+
+    steps = result["root_actions"][0]["actions"]
+    assert [step["action"] for step in steps] == expected_actions
+    assert [_source_ids(step) for step in steps] == expected_ids
+
+
+@pytest.mark.parametrize(
+    ("instruction", "updated_actions", "expected_actions", "expected_ids"),
+    [
+        (
+            "Keep the process unchanged.",
+            ["check request", "approve request"],
+            ["check request", "approve request"],
+            [["branch-1"], ["branch-2"]],
+        ),
+        (
+            "Reorder the existing branch actions.",
+            ["approve request", "check request"],
+            ["approve request", "check request"],
+            [["branch-2"], ["branch-1"]],
+        ),
+        (
+            "Relabel approve request to accept request.",
+            ["check request", "accept request"],
+            ["check request", "accept request"],
+            [["branch-1"], ["branch-2"]],
+        ),
+        (
+            "Insert notify requester before approval.",
+            ["check request", "notify requester", "approve request"],
+            ["check request", "notify requester", "approve request"],
+            [["branch-1"], [], ["branch-2"]],
+        ),
+        (
+            "Delete check request.",
+            ["approve request"],
+            ["approve request"],
+            [["branch-2"]],
+        ),
+    ],
+)
+def test_refinement_preserves_branch_action_traceability(
+    instruction,
+    updated_actions,
+    expected_actions,
+    expected_ids,
+) -> None:
+    current_semantics = {
+        "root_actions": CURRENT_SEMANTICS["root_actions"],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "approved",
+                "intent": "continue",
+                "steps": [
+                    {"action": "check request", "source_action_ids": ["branch-1"]},
+                    {"action": "approve request", "source_action_ids": ["branch-2"]},
+                ],
+            },
+            CURRENT_SEMANTICS["branch_plans"][1],
+        ],
+    }
+    updated_semantics = {
+        "root_actions": CURRENT_SEMANTICS["root_actions"],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": "approved",
+                "intent": "continue",
+                "steps": [{"action": action} for action in updated_actions],
+            },
+            CURRENT_SEMANTICS["branch_plans"][1],
+        ],
+    }
+
+    result = _reconcile_semantic_plan_to_topology(
+        updated_topology_artifact=CURRENT_TOPOLOGY,
+        updated_semantic_sketch_plan=updated_semantics,
+        current_semantic_sketch_plan=current_semantics,
+        instruction=instruction,
+    )
+
+    approved_plan = next(plan for plan in result["branch_plans"] if plan["branch"] == "approved")
+    assert [step["action"] for step in approved_plan["steps"]] == expected_actions
+    assert [_source_ids(step) for step in approved_plan["steps"]] == expected_ids
+
+
+def test_refinement_legacy_steps_and_planner_ids_cannot_fabricate_traceability() -> None:
+    reconciled = _reconcile_step_traceability(
+        updated_steps=[
+            {"action": "legacy action", "source_action_ids": ["fabricated"]},
+            {"action": "new action", "source_action_ids": ["also-fabricated"]},
+        ],
+        current_steps=[{"action": "legacy action"}],
+        instruction="Insert a new action.",
+    )
+
+    assert [_source_ids(step) for step in reconciled] == [[], []]
+
+
+@pytest.mark.parametrize(
+    ("current_steps", "updated_steps"),
+    [
+        (
+            [{"action": "review and approve request", "source_action_ids": ["source-1", "source-2"]}],
+            [{"action": "review request"}, {"action": "approve request"}],
+        ),
+        (
+            [
+                {"action": "review request", "source_action_ids": ["source-1"]},
+                {"action": "approve request", "source_action_ids": ["source-2"]},
+            ],
+            [{"action": "review and approve request"}],
+        ),
+    ],
+)
+def test_refinement_does_not_guess_split_or_combined_action_traceability(
+    current_steps,
+    updated_steps,
+) -> None:
+    reconciled = _reconcile_step_traceability(
+        updated_steps=updated_steps,
+        current_steps=current_steps,
+        instruction="Restructure these actions.",
+    )
+
+    assert all(_source_ids(step) == [] for step in reconciled)

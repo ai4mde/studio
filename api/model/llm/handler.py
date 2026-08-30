@@ -168,6 +168,7 @@ ACTIVITY_SKETCH_SCHEMA: Dict[str, Any] = {
                     "exit_to_step_id": {"type": ["string", "null"]},
                     "loop_back_to": {"type": ["string", "null"]},
                     "loop_back_to_step_id": {"type": ["string", "null"]},
+                    "loop_back_to_block_id": {"type": ["string", "null"]},
                     "notes": {"type": ["string", "null"]},
                 },
                 "required": [
@@ -180,6 +181,7 @@ ACTIVITY_SKETCH_SCHEMA: Dict[str, Any] = {
                     "exit_to_step_id",
                     "loop_back_to",
                     "loop_back_to_step_id",
+                    "loop_back_to_block_id",
                     "notes",
                 ],
                 "additionalProperties": False,

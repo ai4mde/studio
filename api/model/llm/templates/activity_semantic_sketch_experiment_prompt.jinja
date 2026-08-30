@@ -20,6 +20,16 @@ These are soft semantic signals extracted from the process text. Use them only w
 {{ keyword_hints | tojson(indent=2) }}
 
 {% endif %}
+{% if source_action_candidates %}
+Source action candidates:
+These are a conservative, non-exhaustive inventory of explicit actions in the process text.
+For each generated semantic action, set `source_action_ids` to the candidate IDs whose source concepts it represents.
+One semantic action may reference multiple IDs when concepts are combined, and one ID may appear on multiple steps when a concept is split.
+Use only IDs listed below. Use an empty list when no listed candidate applies. Do not copy offsets or add rationale.
+
+{{ source_action_candidates | tojson(indent=2) }}
+
+{% endif %}
 Output goal:
 Return only semantic content that a deterministic builder can merge into the authoritative topology.
 
@@ -104,6 +114,7 @@ Rules:
 - An empty `steps` list is valid only when that branch genuinely performs no business action of its own in the process text
 - A `terminate` or `loop_back` branch must not return `steps=[]`; if the process text describes reject, cancel, close, archive, retry, revise, rework, correct, update, or resubmit behavior on that branch, put that action in `steps`
 - Use concise action names derived from the process text
+- Include `source_action_ids` on every semantic action step, using only the listed source action candidate IDs
 - If a branch is a rejection/cancellation/closure path and no later shared behavior applies to it, use `intent="terminate"`
 - If a branch is a retry/rework path inside a loop, use `intent="loop_back"`
 - Otherwise, use `intent="continue"`
@@ -125,7 +136,8 @@ Return a JSON object with this structure:
       "slot_id": "ROOT_START",
       "actions": [
         {
-          "action": "submit request"
+          "action": "submit request",
+          "source_action_ids": {% if source_action_candidates %}["{{ source_action_candidates[0].source_action_id }}"]{% else %}[]{% endif %}
         }
       ]
     }
@@ -137,7 +149,8 @@ Return a JSON object with this structure:
       "intent": "loop_back",
       "steps": [
         {
-          "action": "perform corrective action"
+          "action": "perform corrective action",
+          "source_action_ids": []
         }
       ]
     }

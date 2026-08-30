@@ -60,6 +60,24 @@ def _issue_summary(issues: List[str]) -> str:
     return "topology unstable: " + ", ".join(issues)
 
 
+def _decision_has_unmerged_nonterminal_convergence(
+    decision_id: str,
+    *,
+    neighbors: dict[str, list[str]],
+    node_types: Dict[str, str],
+) -> bool:
+    branch_starts = list(dict.fromkeys(neighbors.get(decision_id, [])))
+    if len(branch_starts) < 2:
+        return False
+    reachable_sets = [_reachable([branch_start], neighbors) for branch_start in branch_starts]
+    common = set.intersection(*reachable_sets)
+    if decision_id in common:
+        return False
+    if any(node_types.get(node_id) == "merge" for node_id in common):
+        return False
+    return any(node_types.get(node_id) != "final" for node_id in common)
+
+
 def analyze_activity_graph(graph: Dict[str, Any]) -> TopologyReport:
     """
     Run lightweight topology checks on an ActivityGraph.
@@ -132,7 +150,15 @@ def analyze_activity_graph(graph: Dict[str, Any]) -> TopologyReport:
             if in_degree.get(node_id, 0) < 2:
                 issues.append("join_underconnected")
 
-    if type_counts.get("decision", 0) > type_counts.get("merge", 0):
+    if any(
+        _decision_has_unmerged_nonterminal_convergence(
+            node_id,
+            neighbors=neighbors,
+            node_types=node_types,
+        )
+        for node_id, node_type in node_types.items()
+        if node_type == "decision"
+    ):
         issues.append("possible_missing_merge")
     if type_counts.get("fork", 0) > type_counts.get("join", 0):
         issues.append("possible_missing_join")

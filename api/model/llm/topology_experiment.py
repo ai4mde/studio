@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from jinja2 import Environment, FileSystemLoader
 
+from .control_completeness_guard import extract_control_requirements
+from .control_evidence import extract_control_evidence
 from .handler import call_openai
 from .keyword_hints import extract_keyword_hints, extract_parallel_evidence
 from .topology_artifact_model import TopologyArtifact
@@ -683,20 +685,29 @@ def _validate_topology_artifact_against_process_text(
     artifact = TopologyArtifact.model_validate(topology_artifact)
     normalized_text = _normalize_text(process_text)
     parallel_evidence = extract_parallel_evidence(process_text)
+    control_requirements = extract_control_requirements(process_text)
     unsupported_structures: List[Dict[str, Any]] = []
 
-    if _has_explicit_sentence_level_disjunction(normalized_text) and not any(
-        structure.type == "decision" for structure in artifact.structures
-    ):
-        unsupported_structures.append(
-            {
-                "id": "MISSING_DECISION",
-                "type": "decision",
-                "reason": "missing decision structure for explicit branching evidence",
-                "branches": [],
-                "structure": None,
-            }
-        )
+    present_types = {structure.type for structure in artifact.structures}
+    missing_issue_ids = {item["id"] for item in unsupported_structures}
+    for topology_kind in ("parallel", "decision", "loop"):
+        requirements = [
+            requirement
+            for requirement in control_requirements
+            if requirement["required_topology_kind"] == topology_kind
+        ]
+        issue_id = f"MISSING_{topology_kind.upper()}"
+        if requirements and topology_kind not in present_types and issue_id not in missing_issue_ids:
+            unsupported_structures.append(
+                {
+                    "id": issue_id,
+                    "type": topology_kind,
+                    "reason": "missing topology type for explicit high-certainty control requirement",
+                    "branches": [],
+                    "structure": None,
+                    "requirements": requirements,
+                }
+            )
 
     for structure in artifact.structures:
         structure_payload = structure.model_dump(mode="json")
@@ -798,6 +809,7 @@ def generate_topology_artifact(
     model: str = "gpt-4o",
 ) -> Dict[str, Any]:
     keyword_hints = extract_keyword_hints(process_text)
+    control_evidence = extract_control_evidence(process_text)
     prompt = build_topology_experiment_prompt(
         process_text,
         keyword_hints=keyword_hints,
@@ -867,6 +879,7 @@ def generate_topology_artifact(
             f"TopologyArtifact validation failed: {exc}",
             debug_artifacts={
                 "process_text": process_text,
+                "control_evidence": control_evidence,
                 "keyword_hints": keyword_hints,
                 "topology_prompt": prompt,
                 "topology_raw_output": raw_output,
@@ -878,6 +891,7 @@ def generate_topology_artifact(
             },
         ) from exc
     return {
+        "control_evidence": control_evidence,
         "keyword_hints": keyword_hints,
         "prompt": current_prompt,
         "raw_output": raw_output,

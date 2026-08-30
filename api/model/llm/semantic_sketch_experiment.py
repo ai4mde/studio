@@ -15,6 +15,11 @@ from .semantic_sketch_plan_model import (
     apply_semantic_branch_plan_schema_constraints,
     find_invalid_semantic_branch_plans,
 )
+from .source_action_candidates import (
+    SourceActionCandidate,
+    calculate_source_action_coverage,
+    harvest_source_action_candidates,
+)
 from .topology_artifact_model import TopologyArtifact, TopologyStructure
 from .topology_to_sketch_compiler import validate_semantic_plan_against_topology
 
@@ -715,6 +720,7 @@ def build_semantic_sketch_experiment_prompt(
     *,
     topology_artifact: Dict[str, Any] | TopologyArtifact,
     keyword_hints: Optional[Dict[str, Any]] = None,
+    source_action_candidates: Optional[List[SourceActionCandidate]] = None,
 ) -> str:
     artifact = _normalize_topology_artifact(topology_artifact)
     template = _env.get_template("activity_semantic_sketch_experiment_prompt.jinja")
@@ -722,6 +728,13 @@ def build_semantic_sketch_experiment_prompt(
         process_text=process_text,
         topology_artifact=artifact.model_dump(mode="json"),
         keyword_hints=keyword_hints,
+        source_action_candidates=[
+            {
+                "source_action_id": candidate["source_action_id"],
+                "source_text": candidate["source_span"]["text"],
+            }
+            for candidate in (source_action_candidates or [])
+        ],
         root_slots=_build_root_slots(artifact),
         branch_slots=_build_branch_slots(artifact),
     ).rstrip() + "\n"
@@ -791,10 +804,12 @@ def generate_semantic_sketch_plan(
 ) -> Dict[str, Any]:
     normalized_topology_artifact = _normalize_topology_artifact(topology_artifact).model_dump(mode="json")
     keyword_hints = extract_keyword_hints(process_text)
+    source_action_candidates = harvest_source_action_candidates(process_text)
     prompt = build_semantic_sketch_experiment_prompt(
         process_text,
         topology_artifact=normalized_topology_artifact,
         keyword_hints=keyword_hints,
+        source_action_candidates=source_action_candidates,
     )
     planner_attempts: List[Dict[str, Any]] = []
     current_prompt = prompt
@@ -875,6 +890,7 @@ def generate_semantic_sketch_plan(
                 "process_text": process_text,
                 "topology_artifact": normalized_topology_artifact,
                 "keyword_hints": keyword_hints,
+                "source_action_candidates": source_action_candidates,
                 "semantic_prompt": prompt,
                 "semantic_raw_output": raw_output,
                 "semantic_parsed_output": parsed_payload,
@@ -885,8 +901,11 @@ def generate_semantic_sketch_plan(
                 "semantic_attempts": planner_attempts,
             },
         ) from exc
+    source_action_coverage = calculate_source_action_coverage(source_action_candidates, artifact)
     return {
         "keyword_hints": keyword_hints,
+        "source_action_candidates": source_action_candidates,
+        "source_action_coverage": source_action_coverage,
         "prompt": current_prompt,
         "raw_output": raw_output,
         "artifact": artifact,

@@ -61,6 +61,34 @@ def _step_id_to_text(entries: Iterable[Any]) -> Dict[str, str]:
     return lookup
 
 
+def _all_step_text_to_id(sketch: Dict[str, Any]) -> Dict[str, str]:
+    candidates: Dict[str, Set[str]] = {}
+
+    def add(step: Any) -> None:
+        if not isinstance(step, dict):
+            return
+        step_id = str(step.get("step_id") or "").strip()
+        action = _normalize_text(step.get("action"))
+        if step_id and action:
+            candidates.setdefault(action, set()).add(step_id)
+
+    for step in sketch.get("main_flow") or []:
+        add(step)
+    for control_block in sketch.get("control_blocks") or []:
+        if not isinstance(control_block, dict):
+            continue
+        for branch in control_block.get("branches") or []:
+            if not isinstance(branch, dict):
+                continue
+            for step in branch.get("steps") or []:
+                add(step)
+    return {
+        action: next(iter(step_ids))
+        for action, step_ids in candidates.items()
+        if len(step_ids) == 1
+    }
+
+
 def _main_flow_step_ids(main_flow: List[Any]) -> List[str]:
     step_ids: List[str] = []
     for entry in main_flow:
@@ -189,6 +217,7 @@ def repair_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Tuple[Optional[D
     main_flow_step_id_set = set(main_flow_step_ids)
     all_step_ids = _all_step_ids(repaired)
     step_text_lookup = _step_text_to_id(main_flow)
+    all_step_text_lookup = _all_step_text_to_id(repaired)
     step_id_text_lookup = _step_id_to_text(main_flow)
     valid_block_ids = _block_ids(repaired)
     structural_reference_texts = _structural_reference_texts(repaired)
@@ -253,13 +282,32 @@ def repair_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Tuple[Optional[D
                 repairs.append(f"{block_id or 'block'}:normalized_exit_to_to_next_main_flow")
 
         loop_step_id = str(block.get("loop_back_to_step_id") or "").strip()
-        if loop_step_id and loop_step_id not in all_step_ids:
+        loop_block_id = str(block.get("loop_back_to_block_id") or "").strip()
+        loop_text = _normalize_text(block.get("loop_back_to"))
+        if not loop_step_id and not loop_block_id and loop_text:
+            mapped_loop_step_id = all_step_text_lookup.get(loop_text)
+            if mapped_loop_step_id:
+                block["loop_back_to_step_id"] = mapped_loop_step_id
+                loop_step_id = mapped_loop_step_id
+                repairs.append(f"{block_id or 'block'}:normalized_loop_back_to_step_id")
+
+        unresolved_loop_target = False
+        if loop_step_id:
+            unresolved_loop_target = loop_step_id not in all_step_ids
+            if not unresolved_loop_target:
+                block.pop("loop_back_to_block_id", None)
+        elif loop_block_id:
+            unresolved_loop_target = loop_block_id not in valid_block_ids or loop_block_id != block_id
+            if not unresolved_loop_target:
+                block.pop("loop_back_to", None)
+                block.pop("loop_back_to_step_id", None)
+        elif loop_text:
+            unresolved_loop_target = True
+
+        if unresolved_loop_target:
             invalid_reference_count += 1
-            block.pop("loop_back_to_step_id", None)
-            block.pop("loop_back_to", None)
-            repairs.append(f"{block_id or 'block'}:removed_invalid_loop_back")
-            if str(block.get("type") or "") == "loop":
-                critical_defects.append(f"{block_id or 'block'}:missing_loop_back")
+            repairs.append(f"{block_id or 'block'}:unresolved_loop_back")
+            critical_defects.append(f"{block_id or 'block'}:unresolved_loop_back")
 
         if str(block.get("type") or "") == "loop" and bool(block.get("requires_merge")):
             block["requires_merge"] = False

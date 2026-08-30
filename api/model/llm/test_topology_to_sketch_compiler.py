@@ -8,6 +8,7 @@ from llm.topology_to_sketch_compiler import (
     compile_topology_and_semantics_to_activity_sketch,
     compile_topology_artifact_to_activity_sketch,
 )
+from llm.experimental_compiler import compile_activity_sketch
 
 
 def test_compile_topology_artifact_to_activity_sketch_preserves_branch_local_child() -> None:
@@ -102,7 +103,7 @@ def test_compare_topology_artifact_to_activity_sketch_flags_shared_branch_owners
                         "child_block_ids": [],
                     },
                 ],
-                "requires_merge": True,
+                "requires_merge": False,
                 "exit_to": "root_scope_2",
                 "exit_to_step_id": "S2",
                 "loop_back_to": None,
@@ -258,6 +259,86 @@ def test_compile_topology_and_semantics_to_activity_sketch_uses_semantic_actions
     assert control_blocks["T3"]["branches"][1]["returns_to_main_flow"] is False
 
 
+def test_nested_loop_under_actionless_parent_branch_uses_internal_block_target() -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "D1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["revise", "ready"],
+                "purpose": "review outcome",
+            },
+            {
+                "id": "L1",
+                "type": "loop",
+                "parent": "D1",
+                "parent_branch": "revise",
+                "branches": ["retry", "complete"],
+                "purpose": "repeat revision until complete",
+            },
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "action": "review submission"},
+            {"slot_id": "AFTER_D1", "action": "archive submission"},
+        ],
+        "branch_plans": [
+            {"structure_id": "D1", "branch": "revise", "intent": "continue", "steps": []},
+            {"structure_id": "D1", "branch": "ready", "intent": "continue", "steps": []},
+            {
+                "structure_id": "L1",
+                "branch": "retry",
+                "intent": "loop_back",
+                "steps": [{"action": "revise submission"}],
+            },
+            {"structure_id": "L1", "branch": "complete", "intent": "continue", "steps": []},
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+    loop = next(block for block in sketch["control_blocks"] if block["block_id"] == "L1")
+
+    assert loop["loop_back_to_block_id"] == "L1"
+    assert loop["loop_back_to_step_id"] is None
+    assert loop["loop_back_to"] is None
+    assert not any(
+        str(block.get("loop_back_to") or "").startswith("scope_")
+        for block in sketch["control_blocks"]
+    )
+
+    graph = compile_activity_sketch(sketch)
+    loop_entry = next(node for node in graph["nodes"] if node.get("origin_block_id") == "L1")
+    retry_action = next(node for node in graph["nodes"] if node.get("name") == "revise submission")
+    archive = next(node for node in graph["nodes"] if node.get("name") == "archive submission")
+    edge_pairs = {(edge["source"], edge["target"]) for edge in graph["edges"]}
+    assert (retry_action["id"], loop_entry["id"]) in edge_pairs
+    assert any(edge["target"] == archive["id"] for edge in graph["edges"])
+
+
+def test_root_loop_keeps_concrete_step_target() -> None:
+    sketch = compile_topology_artifact_to_activity_sketch(
+        {
+            "structures": [
+                {
+                    "id": "L1",
+                    "type": "loop",
+                    "parent": "ROOT",
+                    "parent_branch": None,
+                    "branches": ["retry", "complete"],
+                    "purpose": "repeat work until complete",
+                }
+            ]
+        }
+    )
+    loop = sketch["control_blocks"][0]
+
+    assert loop["loop_back_to_step_id"] == "S1"
+    assert "loop_back_to_block_id" not in loop
+
+
 def test_compile_topology_and_semantics_to_activity_sketch_lowers_target_slot_id_to_reconnect_step_id() -> None:
     topology_artifact = {
         "structures": [
@@ -369,7 +450,7 @@ def test_compile_topology_and_semantics_to_activity_sketch_preserves_output_when
                         "child_block_ids": [],
                     },
                 ],
-                "requires_merge": True,
+                "requires_merge": False,
                 "exit_to": "finalize request",
                 "exit_to_step_id": "S2",
                 "loop_back_to": None,
@@ -653,3 +734,56 @@ def test_validate_semantic_plan_against_topology_rejects_placeholder_root_action
 
     with pytest.raises(SemanticPlanTopologyValidationError, match="placeholder_root_actions"):
         compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+
+
+@pytest.mark.parametrize(
+    ("intents", "after_actions", "expected_requires_merge"),
+    [
+        (("terminate", "terminate"), [], False),
+        (("continue", "terminate"), ["shared action"], False),
+        (("continue", "continue"), ["shared action"], True),
+        (("continue", "continue"), [], False),
+    ],
+)
+def test_decision_requires_merge_only_for_multiple_routes_to_nonterminal_continuation(
+    intents,
+    after_actions,
+    expected_requires_merge,
+) -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["a", "b"],
+                "purpose": "choose route",
+            }
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review item"}]},
+            {
+                "slot_id": "AFTER_T1",
+                "actions": [{"action": action} for action in after_actions],
+            },
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": branch,
+                "intent": intent,
+                "steps": [{"action": f"action {branch}"}],
+            }
+            for branch, intent in zip(("a", "b"), intents)
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(
+        topology_artifact,
+        semantic_plan,
+    )
+
+    assert sketch["control_blocks"][0]["requires_merge"] is expected_requires_merge

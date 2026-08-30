@@ -162,6 +162,190 @@ def test_generate_topology_artifact_retries_after_validation_failure() -> None:
     assert "missing explicit branching evidence" in retry_prompt
 
 
+def test_control_evidence_is_observational_only_for_prompt_acceptance_and_retries() -> None:
+    process_text = "A is processed while B is reviewed."
+    raw_output = '{"structures": []}'
+    expected_prompt = build_topology_experiment_prompt(
+        process_text,
+        keyword_hints=extract_keyword_hints(process_text),
+    )
+
+    with patch(
+        "llm.topology_experiment.call_openai", return_value=raw_output
+    ) as mocked_call:
+        result = generate_topology_artifact(process_text, model="gpt-4o")
+
+    assert result["prompt"] == expected_prompt
+    assert mocked_call.call_args.kwargs["prompt"] == expected_prompt
+    assert "control_evidence" not in expected_prompt
+    assert "temporal_overlap_activities" not in expected_prompt
+    assert result["artifact"] == {"structures": []}
+    assert len(result["planner_attempts"]) == 1
+    assert result["planner_attempts"][0]["validation_error"] is None
+    assert result["control_evidence"]["summary"][
+        "high_confidence_control_kinds"
+    ] == ["parallel"]
+
+
+def test_control_evidence_content_does_not_change_topology_correction_behavior() -> None:
+    process_text = "A request is submitted and archived."
+    invalid_output = """
+    {
+      "structures": [
+        {
+          "id": "T1",
+          "type": "decision",
+          "parent": "ROOT",
+          "parent_branch": null,
+          "branches": ["approved", "rejected"]
+        }
+      ]
+    }
+    """
+    valid_output = '{"structures": []}'
+    empty_report = {
+        "schema_version": "1.0",
+        "evidence": [],
+        "summary": {
+            "high_confidence_control_kinds": [],
+            "supporting_control_kinds": [],
+            "ambiguous_control_kinds": [],
+        },
+    }
+    rich_report = {
+        **empty_report,
+        "evidence": [{"classification": "high_confidence"}],
+        "summary": {
+            **empty_report["summary"],
+            "high_confidence_control_kinds": ["parallel"],
+        },
+    }
+
+    runs = []
+    for report in (empty_report, rich_report):
+        with patch(
+            "llm.topology_experiment.extract_control_evidence",
+            return_value=report,
+        ), patch(
+            "llm.topology_experiment.call_openai",
+            side_effect=[invalid_output, valid_output],
+        ) as mocked_call:
+            result = generate_topology_artifact(process_text, model="gpt-4o")
+            runs.append(
+                {
+                    "artifact": result["artifact"],
+                    "attempts": result["planner_attempts"],
+                    "prompts": [call.kwargs["prompt"] for call in mocked_call.call_args_list],
+                }
+            )
+
+    assert runs[0] == runs[1]
+    assert runs[0]["artifact"] == {"structures": []}
+    assert len(runs[0]["attempts"]) == 2
+
+
+@pytest.mark.parametrize(
+    ("process_text", "missing_id"),
+    [
+        (
+            "The clerk reviews the request and the manager checks the record simultaneously.",
+            "MISSING_PARALLEL",
+        ),
+        ("If required, perform the audit.", "MISSING_DECISION"),
+        ("Repeat the check until it passes.", "MISSING_LOOP"),
+    ],
+)
+def test_minimal_control_guard_rejects_absent_required_type(
+    process_text: str,
+    missing_id: str,
+) -> None:
+    with pytest.raises(ValueError, match=missing_id):
+        _validate_topology_artifact_against_process_text(
+            process_text=process_text,
+            topology_artifact={"structures": []},
+        )
+
+
+@pytest.mark.parametrize(
+    ("process_text", "topology_kind", "branches"),
+    [
+        (
+            "The clerk reviews the request and the manager checks the record simultaneously.",
+            "parallel",
+            ["review", "check"],
+        ),
+        ("If required, perform the audit.", "decision", ["audit", "skip"]),
+        ("Repeat the check until it passes.", "loop", ["retry", "passed"]),
+    ],
+)
+def test_minimal_control_guard_accepts_present_required_type(
+    process_text: str,
+    topology_kind: str,
+    branches: list[str],
+) -> None:
+    artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": topology_kind,
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": branches,
+                "purpose": process_text,
+            }
+        ]
+    }
+
+    assert _validate_topology_artifact_against_process_text(
+        process_text=process_text,
+        topology_artifact=artifact,
+    ) == artifact
+
+
+def test_minimal_control_guard_uses_existing_correction_loop() -> None:
+    process_text = (
+        "The clerk reviews the request and the manager checks the record simultaneously."
+    )
+    corrected_output = """
+    {
+      "structures": [
+        {
+          "id": "T1",
+          "type": "parallel",
+          "parent": "ROOT",
+          "parent_branch": null,
+          "branches": ["review", "check"]
+        }
+      ]
+    }
+    """
+
+    with patch(
+        "llm.topology_experiment.call_openai",
+        side_effect=['{"structures": []}', corrected_output],
+    ) as mocked_call:
+        result = generate_topology_artifact(process_text, model="gpt-4o")
+
+    assert mocked_call.call_count == 2
+    assert len(result["planner_attempts"]) == 2
+    assert "MISSING_PARALLEL" in result["planner_attempts"][0]["validation_error"]
+    assert result["artifact"]["structures"][0]["type"] == "parallel"
+
+
+def test_minimal_control_guard_does_not_expand_correction_attempt_ceiling() -> None:
+    with patch(
+        "llm.topology_experiment.call_openai",
+        return_value='{"structures": []}',
+    ) as mocked_call:
+        with pytest.raises(TopologyArtifactGenerationError, match="MISSING_LOOP"):
+            generate_topology_artifact(
+                "Repeat the check until it passes.",
+                model="gpt-4o",
+            )
+
+    assert mocked_call.call_count == 3
+
+
 def test_generate_topology_artifact_retry_exhaustion_returns_clear_failure() -> None:
     invalid_output = """
     {
@@ -419,14 +603,20 @@ def test_validate_topology_artifact_accepts_supported_sentence_level_exclusive_d
         "The GO rejects the application of the MSPN or the GO confirmes the application of the MSPN.",
     ],
 )
-def test_validate_topology_artifact_rejects_empty_topology_for_supported_sentence_level_disjunctions(
+def test_validate_topology_artifact_allows_empty_topology_for_non_binding_sentence_level_disjunctions(
     process_text: str,
 ) -> None:
-    with pytest.raises(ValueError, match="missing decision structure for explicit branching evidence"):
-        _validate_topology_artifact_against_process_text(
-            process_text=process_text,
-            topology_artifact={"structures": []},
-        )
+    assert _validate_topology_artifact_against_process_text(
+        process_text=process_text,
+        topology_artifact={"structures": []},
+    ) == {"structures": []}
+
+
+def test_validate_topology_artifact_does_not_bind_coordinated_status_values() -> None:
+    assert _validate_topology_artifact_against_process_text(
+        process_text="The system stores either the approved or rejected status.",
+        topology_artifact={"structures": []},
+    ) == {"structures": []}
 
 
 def test_correction_prompt_does_not_tell_model_to_remove_supported_sentence_level_decision() -> None:
@@ -466,7 +656,7 @@ def test_correction_prompt_does_not_tell_model_to_remove_supported_sentence_leve
     assert "missing explicit branching evidence in process text" not in retry_prompt
 
 
-def test_generate_topology_artifact_retries_when_sentence_level_exclusive_disjunction_is_omitted() -> None:
+def test_generate_topology_artifact_retries_when_minimal_guard_decision_is_omitted() -> None:
     invalid_output = """
     {
       "structures": []
@@ -480,7 +670,7 @@ def test_generate_topology_artifact_retries_when_sentence_level_exclusive_disjun
           "type": "decision",
           "parent": "ROOT",
           "parent_branch": null,
-          "branches": ["rejected", "confirmed"],
+          "branches": ["approved", "rejected"],
           "purpose": "determine the application outcome"
         }
       ]
@@ -489,7 +679,7 @@ def test_generate_topology_artifact_retries_when_sentence_level_exclusive_disjun
 
     with patch("llm.topology_experiment.call_openai", side_effect=[invalid_output, valid_output]) as mocked_call:
         result = generate_topology_artifact(
-            "An employee rejects the application or confirms it.",
+            "If the application is valid, the employee approves it; otherwise, the employee rejects it.",
             model="gpt-4o",
         )
 
@@ -500,13 +690,13 @@ def test_generate_topology_artifact_retries_when_sentence_level_exclusive_disjun
                 "type": "decision",
                 "parent": "ROOT",
                 "parent_branch": None,
-                "branches": ["rejected", "confirmed"],
+                "branches": ["approved", "rejected"],
                 "purpose": "determine the application outcome",
             }
         ]
     }
     retry_prompt = mocked_call.call_args_list[1].kwargs["prompt"]
-    assert "missing decision structure for explicit branching evidence" in retry_prompt
+    assert "missing topology type for explicit high-certainty control requirement" in retry_prompt
 
 
 def test_generate_topology_artifact_retries_when_shared_post_branch_control_is_duplicated() -> None:

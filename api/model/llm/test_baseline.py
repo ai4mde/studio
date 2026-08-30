@@ -1004,6 +1004,15 @@ def test_model_activity_explicit_overrides_win_over_pipeline_profile() -> None:
 
 
 def test_model_activity_semantic_deterministic_profile_routes_through_semantic_builder() -> None:
+    control_evidence = {
+        "schema_version": "1.0",
+        "evidence": [],
+        "summary": {
+            "high_confidence_control_kinds": [],
+            "supporting_control_kinds": [],
+            "ambiguous_control_kinds": [],
+        },
+    }
     topology_artifact = {
         "structures": [
             {
@@ -1066,7 +1075,7 @@ def test_model_activity_semantic_deterministic_profile_routes_through_semantic_b
         ],
     }
 
-    with patch("llm.refinement_generator.generate_topology_artifact", return_value={"artifact": topology_artifact, "prompt": "topo prompt", "raw_output": "{}", "keyword_hints": {}, "response_mode": "fallback_json_mode", "fallback_reason": "x"}), patch(
+    with patch("llm.refinement_generator.generate_topology_artifact", return_value={"artifact": topology_artifact, "prompt": "topo prompt", "raw_output": "{}", "keyword_hints": {}, "control_evidence": control_evidence, "response_mode": "fallback_json_mode", "fallback_reason": "x"}), patch(
         "llm.refinement_generator.generate_semantic_sketch_plan",
         return_value={"artifact": semantic_plan, "prompt": "semantic prompt", "raw_output": "{}", "keyword_hints": {}, "response_mode": "fallback_json_mode", "fallback_reason": "x"},
     ), patch(
@@ -1086,6 +1095,7 @@ def test_model_activity_semantic_deterministic_profile_routes_through_semantic_b
 
     assert bundle["pipeline_config"]["pipeline_profile"] == "semantic_deterministic"
     assert bundle["stage_artifacts"]["topology_artifact"] == topology_artifact
+    assert bundle["stage_artifacts"]["control_evidence"] == control_evidence
     assert bundle["stage_artifacts"]["semantic_plan"] == semantic_plan
     assert bundle["stage_artifacts"]["deterministic_sketch"] == deterministic_sketch
     assert bundle["stage_artifacts"]["compiled_activity_graph"] == compiled_graph

@@ -4,13 +4,17 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 
 MODEL_ROOT = Path(__file__).resolve().parents[1]
 if str(MODEL_ROOT) not in sys.path:
     sys.path.insert(0, str(MODEL_ROOT))
 
-from llm.experimental_compiler import compile_activity_sketch
+from llm.experimental_compiler import ActivitySketchTechnicalError, compile_activity_sketch
 from llm.refinement_generator import debug_model_activity_with_experimental_compiler
+from llm.sketch_alignment import validate_graph_against_sketch
+from llm.topology_analysis import analyze_activity_graph
 
 
 def _reachable_node_ids(graph: dict) -> set[str]:
@@ -40,6 +44,68 @@ def _unreachable_convergence_nodes(graph: dict) -> list[dict]:
         if str(node.get("type") or "") in {"merge", "join"}
         and str(node["id"]) not in reachable
     ]
+
+
+def test_compiler_resolves_explicit_internal_loop_target_and_preserves_exit() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "prepare item"},
+                {"step_id": "S2", "action": "publish item"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "L1",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "prepare item",
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "R1", "action": "revise item"}],
+                        },
+                        {"label": "complete", "returns_to_main_flow": True, "steps": []},
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "publish item",
+                    "loop_back_to_block_id": "L1",
+                }
+            ],
+        }
+    )
+    by_origin = {node.get("origin_step_id"): node["id"] for node in graph["nodes"]}
+    loop_entry = next(node["id"] for node in graph["nodes"] if node.get("origin_block_id") == "L1")
+    edge_pairs = {(edge["source"], edge["target"]) for edge in graph["edges"]}
+
+    assert (by_origin["R1"], loop_entry) in edge_pairs
+    assert any(target == by_origin["S2"] for _, target in edge_pairs)
+    assert not any(str(node.get("type") or "") == "merge" for node in graph["nodes"])
+
+
+def test_compiler_rejects_unresolved_explicit_loop_target() -> None:
+    with pytest.raises(ActivitySketchTechnicalError, match="unresolved loop-back target"):
+        compile_activity_sketch(
+            {
+                "main_flow": [{"step_id": "S1", "action": "prepare item"}],
+                "control_blocks": [
+                    {
+                        "block_id": "L1",
+                        "type": "loop",
+                        "entry_after_step_id": "S1",
+                        "branches": [
+                            {
+                                "label": "retry",
+                                "returns_to_main_flow": False,
+                                "steps": [{"step_id": "R1", "action": "revise item"}],
+                            }
+                        ],
+                        "loop_back_to_block_id": "missing-block",
+                    }
+                ],
+            }
+        )
 
 
 def test_experimental_compiler_realizes_reconnect_to_existing_step_without_duplication() -> None:
@@ -792,7 +858,6 @@ def test_experimental_compiler_collapses_redundant_terminal_merge_chain() -> Non
         if edge["source"] == completion_id and edge["type"] == "control"
     ]
     assert len(outgoing_from_completion) == 1
-    final_merge_id = outgoing_from_completion[0]["target"]
 
     final_incoming = [
         edge for edge in graph["edges"]
@@ -805,7 +870,7 @@ def test_experimental_compiler_collapses_redundant_terminal_merge_chain() -> Non
     assert reject_id in final_incoming_sources
 
 
-def test_experimental_compiler_excludes_terminating_branch_from_shared_continuation() -> None:
+def test_experimental_compiler_excludes_terminating_branch_without_one_route_merge() -> None:
     graph = compile_activity_sketch(
         {
             "main_flow": [
@@ -852,19 +917,12 @@ def test_experimental_compiler_excludes_terminating_branch_from_shared_continuat
     }
     continue_id = node_ids["continue processing"]
     reject_id = node_ids["reject request"]
-    merge = next(
-        node
-        for node in graph["nodes"]
-        if str(node.get("type") or "") == "merge"
-        and str(node.get("origin_block_id") or "") == "T1"
-    )
-    merge_incoming = [edge for edge in graph["edges"] if edge["target"] == merge["id"]]
+    approve_id = node_ids["approve request"]
 
     assert not any(edge["source"] == reject_id and edge["target"] == continue_id for edge in graph["edges"])
     assert not any(edge["target"] == continue_id and edge["source"] == reject_id for edge in graph["edges"])
-    assert merge["id"] in _reachable_node_ids(graph)
-    assert len(merge_incoming) == 1
-    assert merge_incoming[0]["source"] != reject_id
+    assert any(edge["source"] == approve_id and edge["target"] == continue_id for edge in graph["edges"])
+    assert not any(str(node.get("type") or "") == "merge" for node in graph["nodes"])
 
 
 def test_experimental_compiler_terminating_branch_does_not_reach_downstream_root_activity() -> None:
@@ -1407,10 +1465,8 @@ def test_experimental_compiler_friedrich_10_7_fixture_preserves_terminal_and_con
     assign_id = node_ids["GO assigns the MSPN"]
     last_inform_id = node_ids["GO informs SP about the assignment of MSPN"]
 
-    merge_id = next(node["id"] for node in graph["nodes"] if str(node.get("type") or "") == "merge")
-
-    assert any(edge["source"] == confirm_id and edge["target"] == merge_id for edge in graph["edges"])
-    assert any(edge["source"] == merge_id and edge["target"] == assign_id for edge in graph["edges"])
+    assert not any(str(node.get("type") or "") == "merge" for node in graph["nodes"])
+    assert any(edge["source"] == confirm_id and edge["target"] == assign_id for edge in graph["edges"])
     assert not any(edge["source"] == reject_id and edge["target"] == assign_id for edge in graph["edges"])
 
     incoming_to_final = [edge for edge in graph["edges"] if edge["target"] == final_id]
@@ -1830,7 +1886,7 @@ def test_experimental_compiler_friedrich_3_6_fixture_does_not_collapse_when_main
                         {
                             "label": "retry",
                             "returns_to_main_flow": False,
-                            "steps": [{"action": "check updated forms for completeness"}],
+                            "steps": [{"step_id": "T4_RETRY", "action": "check updated forms for completeness"}],
                             "next_block_id": None,
                             "child_block_ids": [],
                         },
@@ -1845,8 +1901,9 @@ def test_experimental_compiler_friedrich_3_6_fixture_does_not_collapse_when_main
                     "requires_merge": False,
                     "exit_to": None,
                     "exit_to_step_id": None,
-                    "loop_back_to": "inform claimant to update forms",
+                    "loop_back_to": None,
                     "loop_back_to_step_id": None,
+                    "loop_back_to_block_id": "T4",
                     "notes": "recheck forms until complete",
                 },
             ],
@@ -1913,7 +1970,7 @@ def test_experimental_compiler_type_b_empty_slot_fixture_keeps_following_control
     assert all("root_scope_" not in str(node.get("name") or "") for node in graph["nodes"])
 
 
-def test_experimental_compiler_preserves_merges_separated_by_intervening_actions() -> None:
+def test_experimental_compiler_does_not_merge_single_routes_or_final_only_routes() -> None:
     graph = compile_activity_sketch(
         {
             "main_flow": [
@@ -1957,8 +2014,7 @@ def test_experimental_compiler_preserves_merges_separated_by_intervening_actions
         }
     )
 
-    merge_nodes = [node for node in graph["nodes"] if str(node.get("type") or "") == "merge"]
-    assert len(merge_nodes) == 2
+    assert not any(str(node.get("type") or "") == "merge" for node in graph["nodes"])
 
 
 def test_experimental_compiler_preserves_retry_loop_back_edges_after_merge_canonicalization() -> None:
@@ -2279,6 +2335,218 @@ def test_experimental_compiler_root_decision_precedes_post_control_action() -> N
     assert register_id in _reachable_node_ids(graph)
 
 
+@pytest.mark.parametrize("branch_count", [2, 3])
+def test_decision_terminal_alternatives_connect_directly_to_final(branch_count: int) -> None:
+    branches = [
+        {
+            "label": f"outcome_{index}",
+            "returns_to_main_flow": False,
+            "steps": [{"action": f"terminal action {index}"}],
+            "next_block_id": None,
+            "child_block_ids": [],
+        }
+        for index in range(1, branch_count + 1)
+    ]
+    sketch = {
+        "main_flow": [{"step_id": "S1", "action": "review item"}],
+        "control_blocks": [
+            {
+                "block_id": "T1",
+                "type": "decision",
+                "entry_after_step_id": "S1",
+                "branches": branches,
+                "requires_merge": True,
+                "exit_to": None,
+                "exit_to_step_id": None,
+            }
+        ],
+    }
+
+    graph = compile_activity_sketch(sketch)
+    final_id = next(node["id"] for node in graph["nodes"] if node["type"] == "final")
+    terminal_ids = {
+        node["id"]
+        for node in graph["nodes"]
+        if str(node.get("name") or "").startswith("terminal action")
+    }
+
+    assert not any(node["type"] == "merge" for node in graph["nodes"])
+    assert terminal_ids == {
+        edge["source"] for edge in graph["edges"] if edge["target"] == final_id
+    }
+    decision_edges = [
+        edge
+        for edge in graph["edges"]
+        if any(node["id"] == edge["source"] and node["type"] == "decision" for node in graph["nodes"])
+    ]
+    assert {edge.get("label") for edge in decision_edges} == {
+        f"outcome_{index}" for index in range(1, branch_count + 1)
+    }
+    alignment = validate_graph_against_sketch(sketch, graph)
+    assert "missing_merge_for_decision" not in alignment["issues"]
+    assert "possible_missing_merge" not in analyze_activity_graph(graph)["issues"]
+
+
+def test_decision_merges_two_of_three_routes_before_shared_continuation() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review item"},
+                {"step_id": "S2", "action": "shared action"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {"label": "a", "returns_to_main_flow": True, "steps": [{"action": "action a"}]},
+                        {"label": "b", "returns_to_main_flow": True, "steps": [{"action": "action b"}]},
+                        {"label": "stop", "returns_to_main_flow": False, "steps": [{"action": "stop action"}]},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                }
+            ],
+        }
+    )
+
+    merge = next(node for node in graph["nodes"] if node["type"] == "merge")
+    incoming_names = {
+        source.get("name")
+        for edge in graph["edges"]
+        if edge["target"] == merge["id"]
+        for source in graph["nodes"]
+        if source["id"] == edge["source"]
+    }
+    shared_id = next(node["id"] for node in graph["nodes"] if node.get("name") == "shared action")
+
+    assert incoming_names == {"action a", "action b"}
+    assert any(edge["source"] == merge["id"] and edge["target"] == shared_id for edge in graph["edges"])
+
+
+def test_decision_empty_continuing_route_participates_in_merge() -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review item"},
+                {"step_id": "S2", "action": "shared action"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {"label": "skip", "returns_to_main_flow": True, "steps": []},
+                        {"label": "perform", "returns_to_main_flow": True, "steps": [{"action": "perform work"}]},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                }
+            ],
+        }
+    )
+
+    merge = next(node for node in graph["nodes"] if node["type"] == "merge")
+    incoming = [edge for edge in graph["edges"] if edge["target"] == merge["id"]]
+    assert len(incoming) == 2
+    assert {edge.get("label") for edge in incoming} == {"skip", None}
+
+
+@pytest.mark.parametrize("shared_target", [True, False])
+def test_decision_reconnect_routes_merge_only_for_same_target(shared_target: bool) -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review item"},
+                {"step_id": "S2", "action": "target one"},
+                {"step_id": "S3", "action": "target two"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {
+                            "label": "a",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "action a"}],
+                            "reconnect_to_step_id": "S2",
+                        },
+                        {
+                            "label": "b",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "action b"}],
+                            "reconnect_to_step_id": "S2" if shared_target else "S3",
+                        },
+                    ],
+                    "requires_merge": True,
+                }
+            ],
+        }
+    )
+
+    merges = [node for node in graph["nodes"] if node["type"] == "merge"]
+    assert len(merges) == (1 if shared_target else 0)
+
+
+@pytest.mark.parametrize(
+    ("child_requires_merge", "expected_merge_owner"),
+    [(False, "T1"), (True, "T2")],
+)
+def test_nested_decision_uses_exactly_one_closure_at_effective_exit(
+    child_requires_merge: bool,
+    expected_merge_owner: str,
+) -> None:
+    graph = compile_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review item"},
+                {"step_id": "S2", "action": "shared action"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "T1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "branches": [
+                        {
+                            "label": "inspect",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "child_block_ids": ["T2"],
+                        },
+                        {
+                            "label": "stop",
+                            "returns_to_main_flow": False,
+                            "steps": [{"action": "stop action"}],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                },
+                {
+                    "block_id": "T2",
+                    "type": "decision",
+                    "entry_after": "nested scope",
+                    "branches": [
+                        {"label": "a", "returns_to_main_flow": True, "steps": [{"action": "action a"}]},
+                        {"label": "b", "returns_to_main_flow": True, "steps": [{"action": "action b"}]},
+                    ],
+                    "requires_merge": child_requires_merge,
+                    "exit_to_step_id": "S2",
+                },
+            ],
+        }
+    )
+
+    merges = [node for node in graph["nodes"] if node["type"] == "merge"]
+    assert len(merges) == 1
+    assert merges[0].get("origin_block_id") == expected_merge_owner
+
+
 def test_experimental_compiler_root_loop_precedes_post_loop_continuation() -> None:
     graph = compile_activity_sketch(
         {
@@ -2293,7 +2561,7 @@ def test_experimental_compiler_root_loop_precedes_post_loop_continuation() -> No
                         {
                             "label": "retry",
                             "returns_to_main_flow": False,
-                            "steps": [{"action": "correct request"}],
+                            "steps": [{"step_id": "T1_RETRY", "action": "correct request"}],
                             "next_block_id": None,
                             "child_block_ids": [],
                         },
@@ -2308,8 +2576,9 @@ def test_experimental_compiler_root_loop_precedes_post_loop_continuation() -> No
                     "requires_merge": False,
                     "exit_to": "archive request",
                     "exit_to_step_id": "S1",
-                    "loop_back_to": "correct request",
+                    "loop_back_to": None,
                     "loop_back_to_step_id": None,
+                    "loop_back_to_block_id": "T1",
                     "notes": "request complete",
                 }
             ],
@@ -2442,11 +2711,10 @@ def test_experimental_compiler_chains_root_controls_across_empty_slot() -> None:
         (target["type"], target.get("name"))
         for target in _initial_targets(graph)
     ] == [("action", "submit request")]
-    first_merge_id = next(
-        str(node["id"])
-        for node in graph["nodes"]
-        if str(node.get("type") or "") == "merge"
-        and str(node.get("origin_block_id") or "") == "T1"
+    first_decision_id = _node_id(
+        graph,
+        node_type="decision",
+        text="request accepted?",
     )
     second_decision_id = _node_id(
         graph,
@@ -2454,7 +2722,9 @@ def test_experimental_compiler_chains_root_controls_across_empty_slot() -> None:
         text="request complete?",
     )
     assert any(
-        edge["source"] == first_merge_id and edge["target"] == second_decision_id
+        edge["source"] == first_decision_id
+        and edge["target"] == second_decision_id
+        and edge.get("label") == "accepted"
         for edge in graph["edges"]
     )
 
@@ -2611,7 +2881,7 @@ def test_experimental_compiler_friedrich_3_6_root_entry_has_no_registration_bypa
                         {
                             "label": "retry",
                             "returns_to_main_flow": False,
-                            "steps": [{"action": "check forms again"}],
+                            "steps": [{"step_id": "T4_RETRY", "action": "check forms again"}],
                             "next_block_id": None,
                             "child_block_ids": [],
                         },
@@ -2626,8 +2896,9 @@ def test_experimental_compiler_friedrich_3_6_root_entry_has_no_registration_bypa
                     "requires_merge": False,
                     "exit_to": "register claim",
                     "exit_to_step_id": "S1",
-                    "loop_back_to": "request form update",
+                    "loop_back_to": None,
                     "loop_back_to_step_id": None,
+                    "loop_back_to_block_id": "T4",
                     "notes": "updated forms complete",
                 },
             ],

@@ -78,7 +78,6 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from pydantic import ValidationError
 
-from .activity_model import ActivityModel
 from .activity_sketch_model import ActivitySketch
 from .handler import call_openai, _activity_response_format, _activity_sketch_response_format
 from .converter import convert_to_ai4mde, unwrap_ai4mde_systems_export
@@ -100,6 +99,11 @@ from .sketch_repair import repair_activity_sketch, sketch_requires_retry
 from .topology_analysis import analyze_activity_graph
 from .topology_experiment import generate_topology_artifact
 from .topology_to_sketch_compiler import compile_topology_and_semantics_to_activity_sketch
+from .technical_validity import (
+    TechnicalValidityError,
+    merge_technical_validity_reports,
+    normalize_and_validate_activity_graph,
+)
 
 ActivityDebugResult = Dict[str, Any]
 logger = logging.getLogger(__name__)
@@ -333,7 +337,9 @@ def _prepare_json_payload(raw_output: str) -> str:
     return raw_output
 
 
-def _parse_and_validate_activity_graph_json(raw_output: str) -> dict:
+def _parse_and_validate_activity_graph_json(
+    raw_output: str, *, include_report: bool = False
+) -> dict | tuple[dict, dict]:
     # Parse LLM output and validate the ActivityGraph schema (nodes / edges).
     json_payload = _prepare_json_payload(raw_output)
     try:
@@ -341,20 +347,40 @@ def _parse_and_validate_activity_graph_json(raw_output: str) -> dict:
     except json.JSONDecodeError as exc:
         raise ValueError("LLM activity modelling output is not valid JSON.") from exc
 
-    normalized_payload = normalize_activity_graph(parsed_json)
-
     try:
-        parsed = ActivityModel.model_validate(normalized_payload)
-    except ValidationError as exc:
-        raise ValueError(
-            f"LLM activity modelling output failed Pydantic validation: {exc}"
+        parsed, report = normalize_and_validate_activity_graph(parsed_json)
+    except TechnicalValidityError as exc:
+        raise TechnicalValidityError(
+            f"LLM activity modelling output failed technical validation: {exc}",
+            report=exc.report,
         ) from exc
-    except ValueError as exc:
-        raise ValueError(
-            f"LLM activity modelling output failed semantic validation: {exc}"
-        ) from exc
+    return (parsed, report) if include_report else parsed
 
-    return parsed.model_dump(exclude_none=True)
+
+def _raise_for_unresolved_explicit_loop_targets(repair_report: Optional[dict]) -> None:
+    unresolved = [
+        str(defect)
+        for defect in (repair_report or {}).get("critical_defects") or []
+        if str(defect).endswith(":unresolved_loop_back")
+    ]
+    if not unresolved:
+        return
+    report = {
+        "technical_accepted": False,
+        "failure_reason": "unresolved explicit loop target",
+        "unresolved_explicit_references": unresolved,
+        "normalization_applied": False,
+        "normalizations": [],
+        "dropped_edges": [],
+        "quality_warnings": [],
+        "conversion_result": "not_checked",
+        "import_result": "not_checked",
+    }
+    raise TechnicalValidityError(
+        "ActivitySketch has an unresolved explicit loop-back target: "
+        + ", ".join(unresolved),
+        report=report,
+    )
 
 
 def _parse_and_validate_activity_sketch_json(raw_output: str) -> dict:
@@ -793,6 +819,8 @@ def _generate_activity_sketch(
             probe_report=probe_report,
         )
 
+    _raise_for_unresolved_explicit_loop_targets(repair_report)
+
     return keyword_hints, prompt, raw_output, repaired_sketch, repair_report, {
         "topology_artifact": topology_artifact,
         "topology_artifact_prompt": topology_artifact_prompt,
@@ -891,7 +919,9 @@ def _activity_llm_roundtrip(
     caller = llm_caller if llm_caller is not None else _default_activity_llm_caller
     executed_stages.append("Graph Realizer")
     raw_output = caller(prompt)
-    parsed = _parse_and_validate_activity_graph_json(raw_output)
+    parsed, technical_validity = _parse_and_validate_activity_graph_json(
+        raw_output, include_report=True
+    )
     stage_artifacts["initial_graph"] = parsed
     sketch_alignment = validate_graph_against_sketch(sketch, parsed) if sketch is not None else None
     semantic_analysis = analyze_semantic_graph(parsed, sketch=sketch, keyword_hints=keyword_hints)
@@ -913,7 +943,12 @@ def _activity_llm_roundtrip(
                 activity_sketch=sketch,
             )
             repaired_raw_output = caller(repair_prompt)
-            parsed = _parse_and_validate_activity_graph_json(repaired_raw_output)
+            parsed, repaired_validity = _parse_and_validate_activity_graph_json(
+                repaired_raw_output, include_report=True
+            )
+            technical_validity = merge_technical_validity_reports(
+                technical_validity, repaired_validity
+            )
             raw_output = repaired_raw_output
             prompt = repair_prompt
             executed_stages.append("Graph Repair Agent")
@@ -927,6 +962,7 @@ def _activity_llm_roundtrip(
         "sketch_alignment": sketch_alignment,
         "semantic_analysis": semantic_analysis,
         "topology_report": analyze_activity_graph(parsed),
+        "technical_validity": technical_validity,
     }
 
     if sketch is not None:
@@ -1120,11 +1156,14 @@ def debug_model_activity_with_semantic_deterministic_profile(
         semantic_plan,
     )
     repaired_sketch, sketch_repair = repair_activity_sketch(deterministic_sketch)
-    parsed = compile_activity_sketch(repaired_sketch)
+    _raise_for_unresolved_explicit_loop_targets(sketch_repair)
+    compiled_graph = compile_activity_sketch(repaired_sketch)
+    parsed, technical_validity = normalize_and_validate_activity_graph(compiled_graph)
     keyword_hints = semantic_result["keyword_hints"]
     sketch_alignment = validate_graph_against_sketch(repaired_sketch, parsed)
     semantic_analysis = analyze_semantic_graph(parsed, sketch=repaired_sketch, keyword_hints=keyword_hints)
     stage_artifacts = {
+        "control_evidence": topology_result.get("control_evidence"),
         "topology_artifact": topology_artifact,
         "topology_artifact_prompt": topology_result.get("prompt"),
         "topology_artifact_raw_output": topology_result.get("raw_output"),
@@ -1132,6 +1171,8 @@ def debug_model_activity_with_semantic_deterministic_profile(
         "topology_artifact_fallback_reason": topology_result.get("fallback_reason"),
         "topology_artifact_planner_attempts": topology_result.get("planner_attempts"),
         "semantic_plan": semantic_plan,
+        "source_action_candidates": semantic_result.get("source_action_candidates"),
+        "source_action_coverage": semantic_result.get("source_action_coverage"),
         "semantic_prompt": semantic_result.get("prompt"),
         "semantic_raw_output": semantic_result.get("raw_output"),
         "semantic_response_mode": semantic_result.get("response_mode"),
@@ -1155,6 +1196,7 @@ def debug_model_activity_with_semantic_deterministic_profile(
             "sketch_alignment": sketch_alignment,
             "semantic_analysis": semantic_analysis,
             "topology_report": analyze_activity_graph(parsed),
+            "technical_validity": technical_validity,
         },
         "executed_stages": [
             "Topology Artifact",
@@ -1420,39 +1462,60 @@ def generate_and_convert_candidates(
     results: List[Dict[str, Any]] = []
     for i in range(1, n + 1):
         debug_bundle: Optional[ActivityDebugResult] = None
-        if pipeline_profile == "semantic_deterministic":
-            debug_bundle = model_activity(
-                process_text=process_text,
-                debug=True,
-                use_sketch=use_sketch,
-                pipeline_profile=pipeline_profile,
-                enable_sketch_review_agent=enable_sketch_review_agent,
-                enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
-                enable_graph_repair_agent=enable_graph_repair_agent,
-                use_topology_artifact_guidance=use_topology_artifact_guidance,
-            )
-            clean = debug_bundle["parsed"]
+        generated = model_activity(
+            process_text=process_text,
+            debug=True,
+            use_sketch=use_sketch,
+            pipeline_profile=pipeline_profile,
+            enable_sketch_review_agent=enable_sketch_review_agent,
+            enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+            enable_graph_repair_agent=enable_graph_repair_agent,
+            use_topology_artifact_guidance=use_topology_artifact_guidance,
+        )
+        if isinstance(generated, dict) and "parsed" in generated:
+            debug_bundle = generated
+            clean = generated["parsed"]
         else:
-            clean = model_activity(
-                process_text=process_text,
-                use_sketch=use_sketch,
-                pipeline_profile=pipeline_profile,
-                enable_sketch_review_agent=enable_sketch_review_agent,
-                enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
-                enable_graph_repair_agent=enable_graph_repair_agent,
-                use_topology_artifact_guidance=use_topology_artifact_guidance,
-            )
+            # Keep compatibility with injected/offline model_activity callables.
+            clean = generated
         system_id = str(uuid.uuid4())
         diagram_id = str(uuid.uuid4())
-        ai4mde = convert_to_ai4mde(
-            clean_model=clean,
-            system_id=system_id,
-            diagram_id=diagram_id,
-            name=f"{name_prefix} {i}",
-            description=description_template.format(index=i),
-            project_id=project_id,
+        clean, final_validity = normalize_and_validate_activity_graph(clean)
+        initial_validity = None
+        if debug_bundle is not None:
+            validation = (debug_bundle.get("stage_artifacts") or {}).get("validation") or {}
+            initial_validity = validation.get("technical_validity")
+        technical_validity = merge_technical_validity_reports(
+            initial_validity, final_validity
         )
-        results.append({"clean": clean, "ai4mde": ai4mde, "debug_bundle": debug_bundle})
+        try:
+            ai4mde = convert_to_ai4mde(
+                clean_model=clean,
+                system_id=system_id,
+                diagram_id=diagram_id,
+                name=f"{name_prefix} {i}",
+                description=description_template.format(index=i),
+                project_id=project_id,
+            )
+        except Exception as exc:
+            technical_validity["technical_accepted"] = False
+            technical_validity["conversion_result"] = "failed"
+            technical_validity["failure_reason"] = str(exc)
+            raise TechnicalValidityError(
+                f"ActivityGraph failed AI4MDE conversion: {exc}",
+                report=technical_validity,
+            ) from exc
+        technical_validity["conversion_result"] = "accepted"
+        if debug_bundle is not None:
+            debug_bundle["stage_artifacts"]["validation"]["technical_validity"] = technical_validity
+        results.append(
+            {
+                "clean": clean,
+                "ai4mde": ai4mde,
+                "debug_bundle": debug_bundle,
+                "technical_validity": technical_validity,
+            }
+        )
     return results
 
 

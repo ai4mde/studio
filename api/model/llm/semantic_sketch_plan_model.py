@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, model_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_serializer, model_validator
 
 
 SemanticBranchIntent = Literal["continue", "terminate", "loop_back"]
@@ -32,6 +32,31 @@ class SemanticBranchStep(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     action: str
+    source_action_ids: List[str] = Field(default_factory=list)
+
+    @field_validator("source_action_ids", mode="before")
+    @classmethod
+    def normalize_source_action_ids(cls, value: Any) -> List[str]:
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            return value
+        normalized: List[str] = []
+        for source_action_id in value:
+            if not isinstance(source_action_id, str):
+                normalized.append(source_action_id)
+                continue
+            source_action_id = source_action_id.strip()
+            if source_action_id and source_action_id not in normalized:
+                normalized.append(source_action_id)
+        return normalized
+
+    @model_serializer(mode="wrap")
+    def serialize_without_empty_source_action_ids(self, handler):
+        data = handler(self)
+        if not data.get("source_action_ids"):
+            data.pop("source_action_ids", None)
+        return data
 
 
 class SemanticBranchPlan(BaseModel):
@@ -129,6 +154,15 @@ def apply_semantic_branch_plan_schema_constraints(schema: Dict[str, Any]) -> Dic
     all_of = branch_plan_schema.setdefault("allOf", [])
     if _REQUIRED_BRANCH_STEP_CONDITIONAL not in all_of:
         all_of.append(_REQUIRED_BRANCH_STEP_CONDITIONAL)
+
+    branch_step_schema = defs.get("SemanticBranchStep")
+    if isinstance(branch_step_schema, dict):
+        source_action_ids_schema = branch_step_schema.get("properties", {}).get("source_action_ids")
+        if isinstance(source_action_ids_schema, dict):
+            source_action_ids_schema.pop("default", None)
+        required_step_fields = branch_step_schema.setdefault("required", [])
+        if "source_action_ids" not in required_step_fields:
+            required_step_fields.append("source_action_ids")
     return schema
 
 
