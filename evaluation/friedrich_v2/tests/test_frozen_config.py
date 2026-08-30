@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import unittest
 
-from evaluation.friedrich_v2.generation import load_small_validation_config
+from evaluation.friedrich_v2.generation import load_run_config, load_small_validation_config
 from evaluation.friedrich_v2.manifests import load_source_manifest
 
 
@@ -29,8 +29,10 @@ class FrozenConfigurationTests(unittest.TestCase):
     def test_config_snapshot_source_and_selected_cases_resolve(self):
         config_path = V2 / "config" / "small_validation_config.json"
         config = load_small_validation_config(config_path)
-        snapshot = json.loads((V2 / "evaluator_snapshot.json").read_text(encoding="utf-8"))
-        self.assertEqual(config["evaluation"]["evaluator_snapshot_id"], snapshot["snapshot_id"])
+        self.assertEqual(
+            config["evaluation"]["evaluator_snapshot_id"],
+            "2d8600a0c88c4806e163e2bf8770efeaeea43dcfd3af070031834e243b589225",
+        )
         source_path = ROOT / config["source"]["source_manifest_path"]
         source = load_source_manifest(source_path, verify_files=True)
         self.assertEqual(
@@ -39,6 +41,13 @@ class FrozenConfigurationTests(unittest.TestCase):
         )
         source_ids = {case["case_id"] for case in source["cases"]}
         self.assertTrue(set(config["small_validation"]["case_ids"]) <= source_ids)
+
+    def test_v2_run_configs_reference_current_snapshot(self):
+        source_path = V2 / "manifests" / "source_manifest.json"
+        snapshot = json.loads((V2 / "evaluator_snapshot.json").read_text(encoding="utf-8"))
+        for name in ("v2_preflight_20260830.json", "v2_formal_47x3.template.json"):
+            config = load_run_config(V2 / "config" / name, source_path)
+            self.assertEqual(config["evaluator_snapshot_id"], snapshot["snapshot_id"])
 
 
 if __name__ == "__main__":

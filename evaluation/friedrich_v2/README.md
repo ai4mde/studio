@@ -293,3 +293,39 @@ python3 -m evaluation.friedrich_v2.generation \
 Generated cohort directories are runtime artifacts and must not be committed. Evaluate
 the resulting five-case manifest with `--small-validation-config`; omitting that option
 retains the full 47-case behavior.
+
+## Versioned V2 run configuration
+
+The historical `config/small_validation_config.json` remains the immutable V1
+small-validation execution record. Revised Generator V2 uses the strict
+`friedrich-v2-run-config/v1` schema instead. It permits only two run types:
+
+* `preflight`: exactly cases `3-1`, `3-6`, `3-2`, `3-3`, and `4-1`;
+* `formal_47x3`: exactly all 47 source-manifest cases.
+
+Both modes require three permanent candidate slots, the frozen maximum of three
+top-level attempts, the frozen semantic-deterministic profile, and the frozen Action
+and Human Review settings. Configured cohort and result paths are mandatory and cannot
+be overridden to point at historical output directories.
+
+The V2 preflight configuration is `config/v2_preflight_20260830.json`. The future
+formal configuration is `config/v2_formal_47x3.template.json`; its
+`planned_not_authorized` status prevents generation until separately approved.
+
+```bash
+python3 -m evaluation.friedrich_v2.generation \
+  --config evaluation/friedrich_v2/config/v2_preflight_20260830.json \
+  --source-manifest evaluation/friedrich_v2/manifests/source_manifest.json \
+  --generation-worktree /Users/queenie/Desktop/studio-final-v2
+
+python3 -m evaluation.friedrich_v2.runner \
+  --run-config evaluation/friedrich_v2/config/v2_preflight_20260830.json \
+  --source-manifest evaluation/friedrich_v2/manifests/source_manifest.json \
+  --generated-manifest evaluation/friedrich_v2/cohorts/v2_preflight_20260830/generated_manifest.json \
+  --output-dir evaluation/friedrich_v2/results/v2_preflight_20260830 \
+  --model-cache /absolute/path/to/local/model-cache
+```
+
+This is an execution/run-configuration revision only. Action, Flow, Structure,
+diagnostics, Human Review, failure handling, and case-level aggregation remain the
+frozen methodology.

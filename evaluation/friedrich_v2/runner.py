@@ -27,7 +27,7 @@ from .adapters import friedrich_reference_review_evidence, friedrich_reference_t
 from .core import AutomaticItem, Counts, EvalGraph, canonical_json, evaluation_item_id, sha256_file
 from .diagnostics import find_model_validity_diagnostics, find_redundant_control_nodes
 from .flow import evaluate_flow
-from .generation import load_small_validation_config
+from .generation import RUN_TYPE_TO_COHORT_STAGE, load_run_config, load_small_validation_config
 from .human_review import build_review_rows, load_review_csv, review_adjusted_counts, write_review_csv
 from .manifests import (
     EXPECTED_CANDIDATE_COUNT,
@@ -424,6 +424,23 @@ def _write_csv(path: Path, fields: Sequence[str], rows: Iterable[Mapping[str, An
         writer.writerows(rows)
 
 
+def _validate_generated_manifest_for_run(
+    run_config: Mapping[str, Any], generated: Mapping[str, Any]
+) -> None:
+    if generated.get("cohort_id") != run_config["run_id"]:
+        raise ValueError("Generated manifest cohort_id differs from the V2 run_id")
+    expected_stage = RUN_TYPE_TO_COHORT_STAGE[str(run_config["run_type"])]
+    if generated.get("cohort_stage") != expected_stage:
+        raise ValueError("Generated manifest cohort_stage differs from the V2 run_type")
+    provenance = generated.get("generation_provenance")
+    if not isinstance(provenance, Mapping):
+        raise ValueError("Generated manifest is missing generation provenance")
+    if provenance.get("generated_system_commit") != run_config["generator_commit"]:
+        raise ValueError("Generated manifest commit differs from the V2 run configuration")
+    if provenance.get("pipeline_profile") != run_config["generation"]["pipeline_profile"]:
+        raise ValueError("Generated manifest profile differs from the V2 run configuration")
+
+
 def run(args: argparse.Namespace) -> None:
     output = Path(args.output_dir).resolve()
     if output.exists():
@@ -434,8 +451,40 @@ def run(args: argparse.Namespace) -> None:
     source = load_source_manifest(source_path)
     selected_case_ids: list[str] | None = None
     validation_config: dict[str, Any] | None = None
-    if args.small_validation_config:
-        validation_config = load_small_validation_config(args.small_validation_config)
+    run_config_path = getattr(args, "run_config", None)
+    small_validation_path = getattr(args, "small_validation_config", None)
+    if run_config_path and small_validation_path:
+        raise ValueError("Use either --run-config or --small-validation-config, not both")
+    if run_config_path:
+        validation_config = load_run_config(run_config_path, source_path)
+        expected_output = (
+            Path(run_config_path).resolve().parents[3]
+            / validation_config["artifacts"]["results_output_root"]
+        ).resolve()
+        if output != expected_output:
+            raise ValueError("Result output directory differs from the V2 run configuration")
+        snapshot_path = Path(__file__).resolve().parent / "evaluator_snapshot.json"
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        if snapshot.get("snapshot_id") != validation_config["evaluator_snapshot_id"]:
+            raise ValueError("Current evaluator snapshot differs from the V2 run configuration")
+        frozen_evaluation = validation_config["evaluation"]
+        supplied_action = (args.action_model, args.action_model_revision, args.action_threshold)
+        frozen_action = (
+            frozen_evaluation["action_model"],
+            frozen_evaluation["action_model_revision"],
+            frozen_evaluation["action_threshold"],
+        )
+        if supplied_action != frozen_action:
+            raise ValueError("Action matcher arguments differ from the V2 run configuration")
+        if args.review_seed != frozen_evaluation["human_review_seed"]:
+            raise ValueError("Human Review seed differs from the V2 run configuration")
+        selected_case_ids = list(validation_config["case_ids"])
+        selected = set(selected_case_ids)
+        source["cases"] = [case for case in source["cases"] if case["case_id"] in selected]
+        if len(source["cases"]) != len(selected):
+            raise ValueError("Configured V2 cases do not all exist in the source manifest")
+    elif small_validation_path:
+        validation_config = load_small_validation_config(small_validation_path)
         frozen_evaluation = validation_config["evaluation"]
         supplied_action = (args.action_model, args.action_model_revision, args.action_threshold)
         frozen_action = (
@@ -454,6 +503,8 @@ def run(args: argparse.Namespace) -> None:
             raise ValueError("Frozen small-validation cases do not all exist in the source manifest")
     case_ids = {case["case_id"] for case in source["cases"]}
     generated = load_generated_manifest(generated_path, case_ids)
+    if run_config_path:
+        _validate_generated_manifest_for_run(validation_config, generated)
     generated_by_id = {case["case_id"]: case for case in generated["cases"]}
     similarity = SentenceTransformerSimilarity(args.action_model, args.action_model_revision, args.model_cache)
     temp = Path(tempfile.mkdtemp(prefix=f".{output.name}-", dir=output.parent))
@@ -521,16 +572,37 @@ def run(args: argparse.Namespace) -> None:
                 "snapshot_id": json.loads(
                     (Path(__file__).resolve().parent / "evaluator_snapshot.json").read_text(encoding="utf-8")
                 )["snapshot_id"],
-                "status": "pre-commit evaluation snapshot; not yet final-frozen",
+                "status": "execution/run-configuration revision only; evaluation methodology unchanged",
             },
             "source_manifest": {"path": str(source_path), "sha256": sha256_file(source_path)},
             "small_validation_config": (
                 {
-                    "path": str(Path(args.small_validation_config).resolve()),
-                    "sha256": sha256_file(args.small_validation_config),
+                    "path": str(Path(small_validation_path).resolve()),
+                    "sha256": sha256_file(small_validation_path),
                     "selected_case_ids": selected_case_ids,
                 }
-                if validation_config is not None else None
+                if small_validation_path else None
+            ),
+            "run_config": (
+                {
+                    "path": str(Path(run_config_path).resolve()),
+                    "sha256": sha256_file(run_config_path),
+                    "run_id": validation_config["run_id"],
+                    "run_type": validation_config["run_type"],
+                    "evaluation_version": validation_config["evaluation_version"],
+                    "generator_commit": validation_config["generator_commit"],
+                    "generator_branch": validation_config["generator_branch"],
+                    "generator_worktree": validation_config["generator_worktree"],
+                    "evaluator_base_commit": validation_config["evaluator_base_commit"],
+                    "evaluator_snapshot_id": validation_config["evaluator_snapshot_id"],
+                    "dataset_commit": validation_config["dataset_commit"],
+                    "case_ids": selected_case_ids,
+                    "candidates_per_case": validation_config["candidates_per_case"],
+                    "generation_profile": validation_config["generation"]["pipeline_profile"],
+                    "cohort_output_root": validation_config["artifacts"]["output_root"],
+                    "results_output_root": validation_config["artifacts"]["results_output_root"],
+                }
+                if run_config_path else None
             ),
             "generated_manifest": {
                 "path": str(generated_path), "sha256": sha256_file(generated_path),
@@ -566,7 +638,9 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--source-manifest", required=True)
     result.add_argument("--generated-manifest", required=True)
     result.add_argument("--output-dir", required=True)
-    result.add_argument("--small-validation-config")
+    config_group = result.add_mutually_exclusive_group()
+    config_group.add_argument("--small-validation-config")
+    config_group.add_argument("--run-config")
     result.add_argument("--action-model", default=ACTION_MODEL_NAME)
     result.add_argument("--action-model-revision", default=ACTION_MODEL_REVISION)
     result.add_argument("--action-threshold", default=ACTION_SIMILARITY_THRESHOLD, type=float)
