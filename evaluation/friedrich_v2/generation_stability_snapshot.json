@@ -1,0 +1,8 @@
+{
+  "schema_version": "friedrich-v2-generation-stability-snapshot/v1",
+  "revision": "Isolated 47x1 generation-only stability orchestration",
+  "files": {
+    "evaluation/friedrich_v2/generation_stability.py": "9717bf4b7f15292e66d81edaeab3676877288a7c1479b99e3cd549731fd9c9f0"
+  },
+  "snapshot_id": "fe06351b5f0924c79a07d16aaae8a1a4ae53e878314a23d521c29262d95fa0e5"
+}
