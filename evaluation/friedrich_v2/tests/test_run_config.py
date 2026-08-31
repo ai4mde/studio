@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -23,7 +24,8 @@ from evaluation.friedrich_v2.runner import run as run_evaluation
 ROOT = Path(__file__).resolve().parents[3]
 V2 = ROOT / "evaluation" / "friedrich_v2"
 SOURCE = V2 / "manifests" / "source_manifest.json"
-PREFLIGHT = V2 / "config" / "v2_preflight_20260830.json"
+PREFLIGHT = V2 / "config" / "v2_preflight_post_action_fix_20260831.json"
+HISTORICAL_PREFLIGHT = V2 / "config" / "v2_preflight_20260830.json"
 FORMAL = V2 / "config" / "v2_formal_47x3.template.json"
 
 
@@ -57,6 +59,17 @@ def _terminal_state(config: dict) -> dict:
 
 
 class VersionedRunConfigurationTests(unittest.TestCase):
+    def test_superseded_preflight_remains_readable_historical_evidence(self):
+        payload = json.loads(HISTORICAL_PREFLIGHT.read_text(encoding="utf-8"))
+        self.assertEqual(
+            hashlib.sha256(HISTORICAL_PREFLIGHT.read_bytes()).hexdigest(),
+            "1e6bd8b463f18f5a578a0abe11d7c47df7f239f65d247342582f1aff22098126",
+        )
+        self.assertEqual(payload["generator_commit"], "6c835b99e7d73e62bc95ed40be0795329114609b")
+        self.assertEqual(payload["generator_branch"], "codex/final-v2-integration")
+        with self.assertRaisesRegex(ValueError, "generator commit differs"):
+            load_run_config(HISTORICAL_PREFLIGHT, SOURCE)
+
     def test_historical_v1_configuration_is_byte_identical(self):
         import hashlib
 
@@ -72,6 +85,26 @@ class VersionedRunConfigurationTests(unittest.TestCase):
         self.assertEqual(tuple(preflight["case_ids"]), PREFLIGHT_CASE_IDS)
         self.assertEqual(len(formal["case_ids"]), 47)
         self.assertEqual(len(set(formal["case_ids"])), 47)
+        self.assertEqual(preflight["preflight"]["status"], "ready_for_generation")
+        self.assertEqual(formal["preflight"]["status"], "planned_not_authorized")
+
+    def test_superseded_generator_commit_and_branch_are_rejected_for_new_runs(self):
+        payload = _payload()
+        payload["generator_commit"] = "6c835b99e7d73e62bc95ed40be0795329114609b"
+        payload["generation"]["system_commit"] = payload["generator_commit"]
+        with self.assertRaisesRegex(ValueError, "generator commit differs"):
+            _load_mutation(payload)
+
+        payload = _payload()
+        payload["generator_branch"] = "codex/final-v2-integration"
+        with self.assertRaisesRegex(ValueError, "generator branch differs"):
+            _load_mutation(payload)
+
+    def test_generator_worktree_identity_is_frozen(self):
+        payload = _payload()
+        payload["generator_worktree"] = "/tmp/different-worktree"
+        with self.assertRaisesRegex(ValueError, "generator worktree differs"):
+            _load_mutation(payload)
 
     def test_arbitrary_preflight_subset_is_rejected(self):
         payload = _payload()
@@ -160,7 +193,7 @@ class VersionedRunConfigurationTests(unittest.TestCase):
         payload = _payload()
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            config_path = root / "evaluation/friedrich_v2/config/v2_preflight_20260830.json"
+            config_path = root / "evaluation/friedrich_v2/config/v2_preflight_post_action_fix_20260831.json"
             config_path.parent.mkdir(parents=True)
             config_path.write_text(json.dumps(payload), encoding="utf-8")
             args = SimpleNamespace(

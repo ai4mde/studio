@@ -218,17 +218,18 @@ class GenerationDriverTests(unittest.TestCase):
             self.assertEqual(len(loaded["cases"]), 5)
             self.assertEqual(len(fake.calls), 15)
 
-    def test_v2_preflight_config_builds_fifteen_slots_without_api(self):
+    def test_post_action_fix_preflight_builds_fifteen_slots_without_api(self):
         repository = Path(__file__).resolve().parents[3]
         source_path = repository / "evaluation/friedrich_v2/manifests/source_manifest.json"
-        template_path = repository / "evaluation/friedrich_v2/config/v2_preflight_20260830.json"
+        config_name = "v2_preflight_post_action_fix_20260831.json"
+        template_path = repository / "evaluation/friedrich_v2/config" / config_name
         fake = FakeGenerator([response() for _ in range(15)])
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            config_path = root / "evaluation/friedrich_v2/config/v2_preflight_20260830.json"
+            config_path = root / "evaluation/friedrich_v2/config" / config_name
             config_path.parent.mkdir(parents=True)
             config_path.write_bytes(template_path.read_bytes())
-            output = root / "evaluation/friedrich_v2/cohorts/v2_preflight_20260830"
+            output = root / "evaluation/friedrich_v2/cohorts/v2_preflight_post_action_fix_20260831"
             manifest_path = run(config_path, source_path, output, fake)
             loaded = load_generated_manifest(
                 manifest_path, {"3-1", "3-6", "3-2", "3-3", "4-1"}, verify_files=True
@@ -236,7 +237,7 @@ class GenerationDriverTests(unittest.TestCase):
             self.assertEqual(len(loaded["cases"]), 5)
             self.assertEqual(sum(len(case["candidates"]) for case in loaded["cases"]), 15)
             self.assertEqual(loaded["generation_provenance"]["generated_system_commit"],
-                             "6c835b99e7d73e62bc95ed40be0795329114609b")
+                             "56e82629f7cf45358049cb3b8bd2c34e5ac12684")
             self.assertEqual(len(fake.calls), 15)
 
 

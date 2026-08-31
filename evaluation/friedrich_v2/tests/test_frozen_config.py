@@ -16,6 +16,10 @@ V2 = ROOT / "evaluation" / "friedrich_v2"
 class FrozenConfigurationTests(unittest.TestCase):
     def test_snapshot_hashes_match_executable_files(self):
         snapshot = json.loads((V2 / "evaluator_snapshot.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            snapshot["revision"],
+            "Authoritative Final V2 provenance update only — evaluation methodology unchanged",
+        )
         actual = {
             path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
             for path in snapshot["files"]
@@ -45,7 +49,10 @@ class FrozenConfigurationTests(unittest.TestCase):
     def test_v2_run_configs_reference_current_snapshot(self):
         source_path = V2 / "manifests" / "source_manifest.json"
         snapshot = json.loads((V2 / "evaluator_snapshot.json").read_text(encoding="utf-8"))
-        for name in ("v2_preflight_20260830.json", "v2_formal_47x3.template.json"):
+        for name in (
+            "v2_preflight_post_action_fix_20260831.json",
+            "v2_formal_47x3.template.json",
+        ):
             config = load_run_config(V2 / "config" / name, source_path)
             self.assertEqual(config["evaluator_snapshot_id"], snapshot["snapshot_id"])
 

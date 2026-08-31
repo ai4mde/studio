@@ -1,7 +1,7 @@
 {
   "schema_version": "friedrich-v2-run-config/v1",
-  "run_id": "v2_formal_47x3",
-  "run_type": "formal_47x3",
+  "run_id": "v2_preflight_post_action_fix_20260831",
+  "run_type": "preflight",
   "evaluation_version": "Revised Generator V2",
   "generator_commit": "56e82629f7cf45358049cb3b8bd2c34e5ac12684",
   "generator_branch": "feature/final-v2-integration",
@@ -10,11 +10,11 @@
   "evaluator_base_commit": "b14870429d8cdf39712314e714d3228bca0ab3f2",
   "evaluator_snapshot_id": "ee7cbf7b7f155706100f2f48acb4daa44018d3fb968720057f405b82186fbdfe",
   "case_ids": [
-    "1-1", "1-2", "1-3", "1-4", "2-1", "2-2", "3-1", "3-2", "3-3", "3-4",
-    "3-5", "3-6", "3-7", "3-8", "4-1", "5-1", "5-2", "5-3", "5-4", "6-1",
-    "6-2", "6-3", "6-4", "7-1", "8-1", "8-2", "8-3", "9-1", "9-2", "9-3",
-    "9-4", "9-5", "9-6", "10-1", "10-2", "10-3", "10-4", "10-5", "10-6", "10-7",
-    "10-8", "10-9", "10-10", "10-11", "10-12", "10-13", "10-14"
+    "3-1",
+    "3-6",
+    "3-2",
+    "3-3",
+    "4-1"
   ],
   "candidates_per_case": 3,
   "source": {
@@ -69,13 +69,13 @@
     "aggregation_policy": "three candidates nested within each case; arithmetic mean/minimum/maximum only for complete 3-of-3 cases"
   },
   "artifacts": {
-    "output_root": "evaluation/friedrich_v2/cohorts/v2_formal_47x3",
-    "results_output_root": "evaluation/friedrich_v2/results/v2_formal_47x3",
+    "output_root": "evaluation/friedrich_v2/cohorts/v2_preflight_post_action_fix_20260831",
+    "results_output_root": "evaluation/friedrich_v2/results/v2_preflight_post_action_fix_20260831",
     "attempt_provenance_policy": "ordered candidate-aware records after every attempt; preserve terminal slots across resume",
     "hash_policy": "SHA-256 of every evaluated ActivityGraph and all run identity inputs"
   },
   "preflight": {
-    "status": "planned_not_authorized",
-    "purpose": "formal 47-case cohort template; generation requires separate authorization"
+    "status": "ready_for_generation",
+    "purpose": "post-Action-fix pipeline correctness only; excluded from formal V2 performance statistics"
   }
 }

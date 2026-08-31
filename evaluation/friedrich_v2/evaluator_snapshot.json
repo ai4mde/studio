@@ -6,13 +6,14 @@
     "evaluation/friedrich_v2/core.py": "2592a07af459c091e054bfad0b72a90ceae187eeff158c350e7aeaa3deff42c7",
     "evaluation/friedrich_v2/diagnostics.py": "3a0113f3b22fbf9fa9fa431a54f7859d3c19348c71064c2e088e95f3841dafbe",
     "evaluation/friedrich_v2/flow.py": "2e8cf1cf5ba00bec6408c7fff75b0546403560ebce54a7719ff56a53f008762c",
-    "evaluation/friedrich_v2/generation.py": "b338c57448dd6737d93f12c29ad075fc6317bfb33cd7533f425e777dad306eca",
+    "evaluation/friedrich_v2/generation.py": "2ed933dccbfd24527c7f79188a79af785620a178a9c29f27d3ef88d937444cd4",
     "evaluation/friedrich_v2/human_review.py": "06b97e2d04ceb8569aa895ec4823f39ef2ba3679d9fe8bdfedcc27b097a15a45",
     "evaluation/friedrich_v2/manifests.py": "6e2d419ab7625676b54e412cfda88ac79c2f61fd8c220ccaf8d1a5a878d03c4e",
     "evaluation/friedrich_v2/requirements-action.txt": "c09dd7885df0c29d9129eab822bde8fe97e98ae90441d02fb8d370a43c9cfc9e",
     "evaluation/friedrich_v2/runner.py": "a41213622a808e399e0734e1013ac166cbcb597f56fa1696fe39870a976d701e",
     "evaluation/friedrich_v2/structure.py": "836d9e8ced7f19dc734f051e7c423a117b8d6fa392a677042854f870c69e13f0"
   },
+  "revision": "Authoritative Final V2 provenance update only — evaluation methodology unchanged",
   "schema_version": "friedrich-v2-evaluator-snapshot/v1",
-  "snapshot_id": "24e1100de94efa40f2d23196938bacb2adea2f7f7eac1c46ddc9321aedffeb5f"
+  "snapshot_id": "ee7cbf7b7f155706100f2f48acb4daa44018d3fb968720057f405b82186fbdfe"
 }

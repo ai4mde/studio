@@ -308,21 +308,24 @@ top-level attempts, the frozen semantic-deterministic profile, and the frozen Ac
 and Human Review settings. Configured cohort and result paths are mandatory and cannot
 be overridden to point at historical output directories.
 
-The V2 preflight configuration is `config/v2_preflight_20260830.json`. The future
-formal configuration is `config/v2_formal_47x3.template.json`; its
+The active post-Action-fix V2 preflight configuration is
+`config/v2_preflight_post_action_fix_20260831.json`. The superseded
+`config/v2_preflight_20260830.json` remains immutable historical evidence and is not
+accepted for a new run. The future formal configuration is
+`config/v2_formal_47x3.template.json`; its
 `planned_not_authorized` status prevents generation until separately approved.
 
 ```bash
 python3 -m evaluation.friedrich_v2.generation \
-  --config evaluation/friedrich_v2/config/v2_preflight_20260830.json \
+  --config evaluation/friedrich_v2/config/v2_preflight_post_action_fix_20260831.json \
   --source-manifest evaluation/friedrich_v2/manifests/source_manifest.json \
   --generation-worktree /Users/queenie/Desktop/studio-final-v2
 
 python3 -m evaluation.friedrich_v2.runner \
-  --run-config evaluation/friedrich_v2/config/v2_preflight_20260830.json \
+  --run-config evaluation/friedrich_v2/config/v2_preflight_post_action_fix_20260831.json \
   --source-manifest evaluation/friedrich_v2/manifests/source_manifest.json \
-  --generated-manifest evaluation/friedrich_v2/cohorts/v2_preflight_20260830/generated_manifest.json \
-  --output-dir evaluation/friedrich_v2/results/v2_preflight_20260830 \
+  --generated-manifest evaluation/friedrich_v2/cohorts/v2_preflight_post_action_fix_20260831/generated_manifest.json \
+  --output-dir evaluation/friedrich_v2/results/v2_preflight_post_action_fix_20260831 \
   --model-cache /absolute/path/to/local/model-cache
 ```
 
