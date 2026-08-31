@@ -173,15 +173,6 @@ def _dedupe_edges(edges: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return deduped
 
 
-def _next_node_id(nodes: List[Dict[str, Any]]) -> str:
-    max_index = 0
-    for node in nodes:
-        node_id = str(node.get("id") or "")
-        if node_id.startswith("n") and node_id[1:].isdigit():
-            max_index = max(max_index, int(node_id[1:]))
-    return f"n{max_index + 1}"
-
-
 def _incoming_edges(edges: List[Dict[str, Any]], node_id: str) -> List[Dict[str, Any]]:
     return [edge for edge in edges if str(edge.get("target") or "") == node_id]
 
@@ -238,41 +229,6 @@ def _canonicalize_merge_chains(graph: Dict[str, Any]) -> Dict[str, Any]:
 
         if changed:
             continue
-
-        final_nodes = [node for node in nodes if str(node.get("type") or "") == "final"]
-        if len(final_nodes) == 1:
-            final_id = str(final_nodes[0].get("id") or "")
-            incoming_to_final = _incoming_edges(edges, final_id)
-            if len(incoming_to_final) > 1:
-                final_edge_kinds = {
-                    str(edge.get(_FINAL_EDGE_KIND) or "").strip()
-                    for edge in incoming_to_final
-                }
-                if len(final_edge_kinds) <= 1:
-                    merge_id = _next_node_id(nodes)
-                    nodes.append({"id": merge_id, "type": "merge"})
-                    redirected_to_merge: List[Dict[str, Any]] = []
-                    for edge in incoming_to_final:
-                        redirected_edge = dict(edge)
-                        redirected_edge["target"] = merge_id
-                        redirected_to_merge.append(redirected_edge)
-                    edges = [
-                        edge
-                        for edge in edges
-                        if str(edge.get("target") or "") != final_id
-                    ]
-                    edges.extend(redirected_to_merge)
-                    merge_edge: Dict[str, Any] = {
-                        "source": merge_id,
-                        "target": final_id,
-                        "type": "control",
-                    }
-                    only_kind = next(iter(final_edge_kinds), "")
-                    if only_kind:
-                        merge_edge[_FINAL_EDGE_KIND] = only_kind
-                    edges.append(merge_edge)
-                    edges = _dedupe_edges(edges)
-                    changed = True
 
         if not changed:
             break
@@ -341,6 +297,17 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     def connect_refs(refs: Iterable[TerminalRef], target_id: str) -> None:
         for source_id, label in refs:
             builder.add_edge(source_id, target_id, label=label)
+
+    def distinct_refs(refs: Iterable[TerminalRef]) -> List[TerminalRef]:
+        seen: set[TerminalRef] = set()
+        distinct: List[TerminalRef] = []
+        for source_id, label in refs:
+            normalized_ref = (source_id, label)
+            if normalized_ref in seen:
+                continue
+            seen.add(normalized_ref)
+            distinct.append(normalized_ref)
+        return distinct
 
     def connect_refs_to_final(refs: Iterable[TerminalRef], kind: str, final_id: str) -> None:
         for source_id, label in refs:
@@ -431,6 +398,7 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
         branch_outputs: List[List[TerminalRef]] = []
         terminal_branch_outputs: List[List[TerminalRef]] = []
+        reconnect_outputs: Dict[str, List[TerminalRef]] = {}
         for branch_index, branch in enumerate(block.get("branches") or [], start=1):
             branch_label = None if block_type == "parallel" else (str(branch.get("label") or "").strip() or None)
             refs: List[TerminalRef] = [(entry_node_id, branch_label)]
@@ -466,7 +434,10 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
             if reconnect_step_id:
                 reconnect_target_id = step_lookup_node(reconnect_step_id, None)
                 if reconnect_target_id is not None:
-                    connect_refs(refs, reconnect_target_id)
+                    if block_type == "decision":
+                        reconnect_outputs.setdefault(reconnect_target_id, []).extend(refs)
+                    else:
+                        connect_refs(refs, reconnect_target_id)
                     terminal_branch_outputs.append(branch_terminal_refs)
                     continue
 
@@ -494,11 +465,23 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
             terminal_branch_outputs.append(branch_terminal_refs)
 
         requires_merge = bool(block.get("requires_merge", False))
+        has_shared_nonterminal_continuation = bool(
+            str(block.get("exit_to_step_id") or block.get("exit_to") or "").strip()
+        )
         realized_branch_outputs = [refs for refs in branch_outputs if refs]
-        if block_type == "decision" and requires_merge and realized_branch_outputs:
+        effective_continuation_refs = distinct_refs(
+            ref
+            for refs in realized_branch_outputs
+            for ref in refs
+        )
+        if (
+            block_type == "decision"
+            and requires_merge
+            and has_shared_nonterminal_continuation
+            and len(effective_continuation_refs) >= 2
+        ):
             merge_id = builder.add_node("merge", origin_block_id=block_id)
-            for refs in realized_branch_outputs:
-                connect_refs(refs, merge_id)
+            connect_refs(effective_continuation_refs, merge_id)
             continuation_refs = [(merge_id, None)]
         elif block_type == "parallel" and requires_merge and realized_branch_outputs:
             join_id = builder.add_node("join", origin_block_id=block_id)
@@ -506,7 +489,16 @@ def compile_activity_sketch(sketch: Optional[Dict[str, Any]]) -> Dict[str, Any]:
                 connect_refs(refs, join_id)
             continuation_refs = [(join_id, None)]
         else:
-            continuation_refs = [ref for refs in realized_branch_outputs for ref in refs]
+            continuation_refs = effective_continuation_refs
+
+        for reconnect_target_id, reconnect_refs in reconnect_outputs.items():
+            effective_reconnect_refs = distinct_refs(reconnect_refs)
+            if requires_merge and len(effective_reconnect_refs) >= 2:
+                merge_id = builder.add_node("merge", origin_block_id=block_id)
+                connect_refs(effective_reconnect_refs, merge_id)
+                builder.add_edge(merge_id, reconnect_target_id)
+            else:
+                connect_refs(effective_reconnect_refs, reconnect_target_id)
 
         block_refs = {
             "continuation": continuation_refs,

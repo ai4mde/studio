@@ -369,7 +369,7 @@ def test_compile_topology_and_semantics_to_activity_sketch_preserves_output_when
                         "child_block_ids": [],
                     },
                 ],
-                "requires_merge": True,
+                "requires_merge": False,
                 "exit_to": "finalize request",
                 "exit_to_step_id": "S2",
                 "loop_back_to": None,
@@ -653,3 +653,56 @@ def test_validate_semantic_plan_against_topology_rejects_placeholder_root_action
 
     with pytest.raises(SemanticPlanTopologyValidationError, match="placeholder_root_actions"):
         compile_topology_and_semantics_to_activity_sketch(topology_artifact, semantic_plan)
+
+
+@pytest.mark.parametrize(
+    ("intents", "after_actions", "expected_requires_merge"),
+    [
+        (("terminate", "terminate"), [], False),
+        (("continue", "terminate"), ["shared action"], False),
+        (("continue", "continue"), ["shared action"], True),
+        (("continue", "continue"), [], False),
+    ],
+)
+def test_decision_requires_merge_only_for_multiple_routes_to_nonterminal_continuation(
+    intents,
+    after_actions,
+    expected_requires_merge,
+) -> None:
+    topology_artifact = {
+        "structures": [
+            {
+                "id": "T1",
+                "type": "decision",
+                "parent": "ROOT",
+                "parent_branch": None,
+                "branches": ["a", "b"],
+                "purpose": "choose route",
+            }
+        ]
+    }
+    semantic_plan = {
+        "root_actions": [
+            {"slot_id": "ROOT_START", "actions": [{"action": "review item"}]},
+            {
+                "slot_id": "AFTER_T1",
+                "actions": [{"action": action} for action in after_actions],
+            },
+        ],
+        "branch_plans": [
+            {
+                "structure_id": "T1",
+                "branch": branch,
+                "intent": intent,
+                "steps": [{"action": f"action {branch}"}],
+            }
+            for branch, intent in zip(("a", "b"), intents)
+        ],
+    }
+
+    sketch = compile_topology_and_semantics_to_activity_sketch(
+        topology_artifact,
+        semantic_plan,
+    )
+
+    assert sketch["control_blocks"][0]["requires_merge"] is expected_requires_merge
