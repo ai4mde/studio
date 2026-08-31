@@ -50,7 +50,7 @@ class FrozenConfigurationTests(unittest.TestCase):
         source_path = V2 / "manifests" / "source_manifest.json"
         snapshot = json.loads((V2 / "evaluator_snapshot.json").read_text(encoding="utf-8"))
         for name in (
-            "v2_preflight_post_action_fix_20260831.json",
+            "v2_preflight_stable_final_20260831.json",
             "v2_formal_47x3.template.json",
         ):
             config = load_run_config(V2 / "config" / name, source_path)

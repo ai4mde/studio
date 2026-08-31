@@ -26,9 +26,9 @@ CONFIG_SCHEMA = "friedrich-v2-small-validation-config/v1"
 RUN_CONFIG_SCHEMA = "friedrich-v2-run-config/v1"
 STATE_SCHEMA = "friedrich-v2-generation-state/v1"
 
-V2_GENERATOR_COMMIT = "56e82629f7cf45358049cb3b8bd2c34e5ac12684"
-V2_GENERATOR_BRANCH = "feature/final-v2-integration"
-V2_EVALUATION_VERSION = "Revised Generator V2"
+V2_GENERATOR_COMMIT = "4be4c5b7b30aaff0433d4406056a0cf5c8fc63a9"
+V2_GENERATOR_BRANCH = "feature/final-v2-stable"
+V2_EVALUATION_VERSION = "Revised Generator V2 / Final V2"
 V2_DATASET_COMMIT = "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
 HISTORICAL_EVALUATOR_COMMIT = "b14870429d8cdf39712314e714d3228bca0ab3f2"
 PREFLIGHT_CASE_IDS = ("3-1", "3-6", "3-2", "3-3", "4-1")
@@ -233,7 +233,7 @@ def load_run_config(path: str | Path, source_manifest_path: str | Path) -> dict[
     if payload.get("generator_branch") != V2_GENERATOR_BRANCH:
         raise ValueError("V2 generator branch differs from the frozen Revised Generator V2 branch")
     if Path(str(payload.get("generator_worktree", ""))).resolve() != Path(
-        "/Users/queenie/Desktop/studio-final-v2"
+        "/Users/queenie/Desktop/studio-final-v2-stable"
     ):
         raise ValueError("V2 generator worktree differs from the frozen Revised Generator V2 worktree")
     if payload.get("dataset_commit") != V2_DATASET_COMMIT:

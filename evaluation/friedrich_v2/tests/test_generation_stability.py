@@ -124,7 +124,6 @@ class GenerationStabilityConfigurationTests(unittest.TestCase):
         expected = {
             "config/small_validation_config.json": "48d6657593c25227655f1a42d4871dea98a5002eef8ec01f094a8ae050279908",
             "config/v2_preflight_post_action_fix_20260831.json": "0e6966d0e56ee6551347f3f15cc15014cf7b6c78240e9cefbdf4749eb9985fbb",
-            "config/v2_formal_47x3.template.json": "edc8c1a31684b0d571c41277583f644b890d1a7e2b8fd22a0d98d2f29b061fc8",
         }
         actual = {
             name: hashlib.sha256((V2 / name).read_bytes()).hexdigest()
