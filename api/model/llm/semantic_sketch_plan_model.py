@@ -134,7 +134,11 @@ _REQUIRED_BRANCH_STEP_CONDITIONAL: Dict[str, Any] = {
 }
 
 
-def apply_semantic_branch_plan_schema_constraints(schema: Dict[str, Any]) -> Dict[str, Any]:
+def apply_semantic_branch_plan_schema_constraints(
+    schema: Dict[str, Any],
+    *,
+    include_source_action_ids: bool = True,
+) -> Dict[str, Any]:
     defs = schema.get("$defs")
     if not isinstance(defs, dict):
         return schema
@@ -157,12 +161,18 @@ def apply_semantic_branch_plan_schema_constraints(schema: Dict[str, Any]) -> Dic
 
     branch_step_schema = defs.get("SemanticBranchStep")
     if isinstance(branch_step_schema, dict):
-        source_action_ids_schema = branch_step_schema.get("properties", {}).get("source_action_ids")
-        if isinstance(source_action_ids_schema, dict):
-            source_action_ids_schema.pop("default", None)
         required_step_fields = branch_step_schema.setdefault("required", [])
-        if "source_action_ids" not in required_step_fields:
-            required_step_fields.append("source_action_ids")
+        if include_source_action_ids:
+            source_action_ids_schema = branch_step_schema.get("properties", {}).get("source_action_ids")
+            if isinstance(source_action_ids_schema, dict):
+                source_action_ids_schema.pop("default", None)
+            if "source_action_ids" not in required_step_fields:
+                required_step_fields.append("source_action_ids")
+        else:
+            branch_step_schema.get("properties", {}).pop("source_action_ids", None)
+            required_step_fields[:] = [
+                field for field in required_step_fields if field != "source_action_ids"
+            ]
     return schema
 
 

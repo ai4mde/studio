@@ -16,7 +16,6 @@ from .semantic_sketch_plan_model import (
     find_invalid_semantic_branch_plans,
 )
 from .source_action_candidates import (
-    SourceActionCandidate,
     calculate_source_action_coverage,
     harvest_source_action_candidates,
 )
@@ -35,7 +34,8 @@ logger = logging.getLogger(__name__)
 _MAX_CORRECTION_ATTEMPTS = 2
 
 SEMANTIC_SKETCH_PLAN_SCHEMA: Dict[str, Any] = apply_semantic_branch_plan_schema_constraints(
-    SemanticSketchPlan.model_json_schema()
+    SemanticSketchPlan.model_json_schema(),
+    include_source_action_ids=False,
 )
 
 _DECISION_STRUCTURE_STOPWORDS = {
@@ -720,7 +720,6 @@ def build_semantic_sketch_experiment_prompt(
     *,
     topology_artifact: Dict[str, Any] | TopologyArtifact,
     keyword_hints: Optional[Dict[str, Any]] = None,
-    source_action_candidates: Optional[List[SourceActionCandidate]] = None,
 ) -> str:
     artifact = _normalize_topology_artifact(topology_artifact)
     template = _env.get_template("activity_semantic_sketch_experiment_prompt.jinja")
@@ -728,13 +727,6 @@ def build_semantic_sketch_experiment_prompt(
         process_text=process_text,
         topology_artifact=artifact.model_dump(mode="json"),
         keyword_hints=keyword_hints,
-        source_action_candidates=[
-            {
-                "source_action_id": candidate["source_action_id"],
-                "source_text": candidate["source_span"]["text"],
-            }
-            for candidate in (source_action_candidates or [])
-        ],
         root_slots=_build_root_slots(artifact),
         branch_slots=_build_branch_slots(artifact),
     ).rstrip() + "\n"
@@ -809,7 +801,6 @@ def generate_semantic_sketch_plan(
         process_text,
         topology_artifact=normalized_topology_artifact,
         keyword_hints=keyword_hints,
-        source_action_candidates=source_action_candidates,
     )
     planner_attempts: List[Dict[str, Any]] = []
     current_prompt = prompt

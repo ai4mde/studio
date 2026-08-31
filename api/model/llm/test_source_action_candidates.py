@@ -212,13 +212,12 @@ def test_coverage_reports_uncovered_and_unknown_ids_without_rejecting_plan() -> 
     assert len(report["warnings"]) == 2
 
 
-def test_semantic_step_schema_requires_minimal_traceability_field() -> None:
+def test_semantic_planner_schema_excludes_diagnostic_traceability_field() -> None:
     schema = semantic_sketch_plan_response_format()["json_schema"]["schema"]
     step_schema = schema["$defs"]["SemanticBranchStep"]
 
-    assert "source_action_ids" in step_schema["required"]
-    assert step_schema["properties"]["source_action_ids"]["type"] == "array"
-    assert "default" not in step_schema["properties"]["source_action_ids"]
+    assert "source_action_ids" not in step_schema["required"]
+    assert "source_action_ids" not in step_schema["properties"]
 
 
 def test_old_semantic_payload_remains_backward_compatible() -> None:
@@ -244,32 +243,27 @@ def test_semantic_payload_preserves_source_action_ids() -> None:
     assert parse_semantic_sketch_plan_json(json.dumps(payload)) == payload
 
 
-def test_prompt_supplies_only_candidate_ids_and_exact_text() -> None:
+def test_prompt_does_not_expose_diagnostic_source_action_inventory() -> None:
     process_text = "The clerk receives the request."
-    candidates = harvest_source_action_candidates(process_text)
 
     prompt = build_semantic_sketch_experiment_prompt(
         process_text,
         topology_artifact={"structures": []},
-        source_action_candidates=candidates,
     )
 
-    assert '"source_action_id": "SA1"' in prompt
-    assert '"source_text": "receives the request"' in prompt
-    assert '"start"' not in prompt
-    assert '"end"' not in prompt
-    assert "One semantic action may reference multiple IDs" in prompt
+    assert "Source action candidates:" not in prompt
+    assert "source_action_id" not in prompt
+    assert "source_action_ids" not in prompt
 
 
-def test_prompt_does_not_demonstrate_an_unknown_id_when_inventory_is_empty() -> None:
+def test_prompt_uses_earlier_action_only_response_example() -> None:
     prompt = build_semantic_sketch_experiment_prompt(
         "The file remains open.",
         topology_artifact={"structures": []},
-        source_action_candidates=[],
     )
 
-    assert '"source_action_ids": []' in prompt
-    assert '"source_action_ids": ["SA1"]' not in prompt
+    assert '"action": "submit request"' in prompt
+    assert "source_action_ids" not in prompt
 
 
 def test_uncovered_candidate_is_observational_and_does_not_retry() -> None:
