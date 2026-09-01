@@ -31,6 +31,7 @@ HISTORICAL_PREFLIGHT = V2 / "config" / "v2_preflight_20260830.json"
 HISTORICAL_CORRECTED_PREFLIGHT = V2 / "config" / "v2_preflight_post_action_fix_20260831.json"
 HISTORICAL_FORMAL = V2 / "config" / "v2_formal_47x3.template.json"
 FORMAL = V2 / "config" / "v2_formal_40x3_20260901.json"
+CONTROLLED_V1 = V2 / "config" / "v1_controlled_40x3_20260901.json"
 
 
 def _payload(path: Path = PREFLIGHT) -> dict:
@@ -97,19 +98,80 @@ class VersionedRunConfigurationTests(unittest.TestCase):
     def test_preflight_and_supported_formal_case_sets_are_exact(self):
         preflight = load_run_config(PREFLIGHT, SOURCE)
         formal = load_run_config(FORMAL, SOURCE)
+        controlled_v1 = load_run_config(CONTROLLED_V1, SOURCE)
         self.assertEqual(tuple(preflight["case_ids"]), PREFLIGHT_CASE_IDS)
         self.assertEqual(tuple(formal["case_ids"]), FORMAL_SUPPORTED_CASE_IDS)
+        self.assertEqual(tuple(controlled_v1["case_ids"]), FORMAL_SUPPORTED_CASE_IDS)
         self.assertEqual(len(formal["case_ids"]), 40)
         self.assertEqual(len(set(formal["case_ids"])), 40)
-        self.assertEqual(formal["evaluation_support"]["formal_reporting_n"], 40)
-        self.assertEqual(formal["evaluation_support"]["formal_candidate_slots"], 120)
-        self.assertEqual(
-            [item["case_id"] for item in formal["evaluation_support"]["excluded_cases"]],
-            list(FORMAL_EXCLUDED_CASE_REASONS),
-        )
-        self.assertTrue(set(FORMAL_EXCLUDED_CASE_REASONS).isdisjoint(formal["case_ids"]))
+        for config in (formal, controlled_v1):
+            self.assertEqual(config["candidates_per_case"], 3)
+            self.assertEqual(config["evaluation_support"]["formal_reporting_n"], 40)
+            self.assertEqual(config["evaluation_support"]["formal_candidate_slots"], 120)
+            self.assertEqual(
+                [item["case_id"] for item in config["evaluation_support"]["excluded_cases"]],
+                list(FORMAL_EXCLUDED_CASE_REASONS),
+            )
+            self.assertTrue(set(FORMAL_EXCLUDED_CASE_REASONS).isdisjoint(config["case_ids"]))
         self.assertEqual(preflight["preflight"]["status"], "ready_for_generation")
         self.assertEqual(formal["preflight"]["status"], "ready_for_generation")
+        self.assertEqual(controlled_v1["preflight"]["status"], "ready_for_generation")
+
+    def test_generator_identities_are_separately_allowlisted(self):
+        final_v2 = load_run_config(FORMAL, SOURCE)
+        controlled_v1 = load_run_config(CONTROLLED_V1, SOURCE)
+        self.assertEqual(final_v2["evaluation_version"], "Revised Generator V2 / Final V2")
+        self.assertEqual(final_v2["generator_commit"], "4be4c5b7b30aaff0433d4406056a0cf5c8fc63a9")
+        self.assertEqual(final_v2["generator_branch"], "feature/final-v2-stable")
+        self.assertEqual(controlled_v1["evaluation_version"], "Initial Stable Generator V1")
+        self.assertEqual(controlled_v1["generator_commit"], "8b3cdab756622cab7ecd1ed143b4a736d14f46ed")
+        self.assertEqual(controlled_v1["generator_branch"], "feature/thesis-ui-isolation")
+
+    def test_cross_version_generator_identities_are_rejected(self):
+        final_v2 = _payload(FORMAL)
+        controlled_v1 = _payload(CONTROLLED_V1)
+
+        mislabeled_v1 = deepcopy(controlled_v1)
+        for field in ("evaluation_version", "generator_commit", "generator_branch", "generator_worktree"):
+            mislabeled_v1[field] = final_v2[field]
+        mislabeled_v1["generation"]["system_commit"] = final_v2["generator_commit"]
+        with self.assertRaisesRegex(ValueError, "V1 evaluation_version differs"):
+            _load_mutation(mislabeled_v1)
+
+        mislabeled_v2 = deepcopy(final_v2)
+        for field in ("evaluation_version", "generator_commit", "generator_branch", "generator_worktree"):
+            mislabeled_v2[field] = controlled_v1[field]
+        mislabeled_v2["generation"]["system_commit"] = controlled_v1["generator_commit"]
+        with self.assertRaisesRegex(ValueError, "V2 evaluation_version differs"):
+            _load_mutation(mislabeled_v2)
+
+        mislabeled_repository = deepcopy(controlled_v1)
+        mislabeled_repository["generation"]["repository_identity"] = (
+            final_v2["generation"]["repository_identity"]
+        )
+        with self.assertRaisesRegex(ValueError, "V1 generator repository identity differs"):
+            _load_mutation(mislabeled_repository)
+
+    def test_controlled_v1_and_final_v2_share_frozen_protocol(self):
+        final_v2 = load_run_config(FORMAL, SOURCE)
+        controlled_v1 = load_run_config(CONTROLLED_V1, SOURCE)
+        self.assertEqual(controlled_v1["case_ids"], final_v2["case_ids"])
+        self.assertEqual(controlled_v1["evaluation_support"], final_v2["evaluation_support"])
+        self.assertEqual(controlled_v1["candidates_per_case"], final_v2["candidates_per_case"])
+        self.assertEqual(controlled_v1["generation"]["candidate_count"], 3)
+        self.assertEqual(
+            controlled_v1["generation"]["maximum_attempts_per_candidate"],
+            final_v2["generation"]["maximum_attempts_per_candidate"],
+        )
+        self.assertEqual(
+            controlled_v1["generation"]["candidate_retry_policy"],
+            final_v2["generation"]["candidate_retry_policy"],
+        )
+        for field in (
+            "action_model", "action_model_revision", "action_threshold", "human_review_seed",
+            "failure_policy", "aggregation_policy",
+        ):
+            self.assertEqual(controlled_v1["evaluation"][field], final_v2["evaluation"][field])
 
     def test_historical_formal_and_stability_configs_are_unchanged(self):
         expected = {
@@ -148,10 +210,12 @@ class VersionedRunConfigurationTests(unittest.TestCase):
             _load_mutation(payload)
 
     def test_incomplete_formal_case_set_is_rejected(self):
-        payload = _payload(FORMAL)
-        payload["case_ids"] = payload["case_ids"][:-1]
-        with self.assertRaisesRegex(ValueError, "40 supported formal cases"):
-            _load_mutation(payload)
+        for path in (FORMAL, CONTROLLED_V1):
+            with self.subTest(path=path.name):
+                payload = _payload(path)
+                payload["case_ids"] = payload["case_ids"][:-1]
+                with self.assertRaisesRegex(ValueError, "40 supported formal cases"):
+                    _load_mutation(payload)
 
     def test_excluded_cases_and_changed_support_provenance_are_rejected(self):
         payload = _payload(FORMAL)
@@ -218,6 +282,7 @@ class VersionedRunConfigurationTests(unittest.TestCase):
         for path, expected_cases, expected_stage in (
             (PREFLIGHT, 5, "development_validation"),
             (FORMAL, 40, "final_baseline"),
+            (CONTROLLED_V1, 40, "final_baseline"),
         ):
             with self.subTest(path=path.name):
                 config = load_run_config(path, SOURCE)

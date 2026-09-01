@@ -29,6 +29,9 @@ STATE_SCHEMA = "friedrich-v2-generation-state/v1"
 V2_GENERATOR_COMMIT = "4be4c5b7b30aaff0433d4406056a0cf5c8fc63a9"
 V2_GENERATOR_BRANCH = "feature/final-v2-stable"
 V2_EVALUATION_VERSION = "Revised Generator V2 / Final V2"
+V1_GENERATOR_COMMIT = "8b3cdab756622cab7ecd1ed143b4a736d14f46ed"
+V1_GENERATOR_BRANCH = "feature/thesis-ui-isolation"
+V1_EVALUATION_VERSION = "Initial Stable Generator V1"
 V2_DATASET_COMMIT = "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
 HISTORICAL_EVALUATOR_COMMIT = "b14870429d8cdf39712314e714d3228bca0ab3f2"
 PREFLIGHT_CASE_IDS = ("3-1", "3-6", "3-2", "3-3", "4-1")
@@ -52,6 +55,29 @@ RUN_TYPE_TO_COHORT_STAGE = {
     "preflight": "development_validation",
     "formal_47x3": "final_baseline",
     "formal_40x3": "final_baseline",
+    "v1_controlled_40x3": "final_baseline",
+}
+GENERATOR_IDENTITIES = {
+    "final_v2": {
+        "evaluation_version": V2_EVALUATION_VERSION,
+        "repository_identity": "AI4MDE Studio Revised Generator V2 / Final V2",
+        "commit": V2_GENERATOR_COMMIT,
+        "branch": V2_GENERATOR_BRANCH,
+        "worktree": "/Users/queenie/Desktop/studio-final-v2-stable",
+    },
+    "initial_v1": {
+        "evaluation_version": V1_EVALUATION_VERSION,
+        "repository_identity": "AI4MDE Studio Initial Stable Generator V1",
+        "commit": V1_GENERATOR_COMMIT,
+        "branch": V1_GENERATOR_BRANCH,
+        "worktree": "/Users/queenie/Desktop/studio-thesis-ui-isolation",
+    },
+}
+RUN_TYPE_TO_GENERATOR_IDENTITY = {
+    "preflight": "final_v2",
+    "formal_47x3": "final_v2",
+    "formal_40x3": "final_v2",
+    "v1_controlled_40x3": "initial_v1",
 }
 HISTORICAL_OUTPUT_ROOTS = {
     "evaluation/friedrich_v2/cohorts/small_validation_20260828",
@@ -214,6 +240,7 @@ def _validate_v2_output_root(value: Any, *, run_type: str, run_id: str, kind: st
         "preflight": "v2_preflight_",
         "formal_47x3": "v2_formal_47x3",
         "formal_40x3": "v2_formal_40x3_",
+        "v1_controlled_40x3": "v1_controlled_40x3_",
     }
     run_prefix = run_prefixes[run_type]
     expected_parent = f"evaluation/friedrich_v2/{kind}"
@@ -239,8 +266,10 @@ def load_run_config(path: str | Path, source_manifest_path: str | Path) -> dict[
         raise ValueError("A Friedrich V2 versioned run configuration is required")
     run_type = payload.get("run_type")
     if run_type not in RUN_TYPE_TO_COHORT_STAGE:
-        raise ValueError("V2 run_type must be preflight, formal_47x3, or formal_40x3")
-    if run_type == "formal_40x3":
+        raise ValueError(
+            "Run type must be preflight, formal_47x3, formal_40x3, or v1_controlled_40x3"
+        )
+    if run_type in {"formal_40x3", "v1_controlled_40x3"}:
         required_root_fields.add("evaluation_support")
     if set(payload) != required_root_fields:
         raise ValueError("V2 run configuration contains missing or unexpected root fields")
@@ -249,16 +278,17 @@ def load_run_config(path: str | Path, source_manifest_path: str | Path) -> dict[
     run_id = payload.get("run_id")
     if not isinstance(run_id, str) or not run_id.strip():
         raise ValueError("V2 run_id must be a non-empty string")
-    if payload.get("evaluation_version") != V2_EVALUATION_VERSION:
-        raise ValueError("V2 evaluation_version is not the frozen Revised Generator V2 identity")
-    if payload.get("generator_commit") != V2_GENERATOR_COMMIT:
-        raise ValueError("V2 generator commit differs from the frozen Revised Generator V2 commit")
-    if payload.get("generator_branch") != V2_GENERATOR_BRANCH:
-        raise ValueError("V2 generator branch differs from the frozen Revised Generator V2 branch")
-    if Path(str(payload.get("generator_worktree", ""))).resolve() != Path(
-        "/Users/queenie/Desktop/studio-final-v2-stable"
-    ):
-        raise ValueError("V2 generator worktree differs from the frozen Revised Generator V2 worktree")
+    identity_name = RUN_TYPE_TO_GENERATOR_IDENTITY[run_type]
+    identity = GENERATOR_IDENTITIES[identity_name]
+    identity_label = "V1" if identity_name == "initial_v1" else "V2"
+    if payload.get("evaluation_version") != identity["evaluation_version"]:
+        raise ValueError(f"{identity_label} evaluation_version differs from its allowlisted identity")
+    if payload.get("generator_commit") != identity["commit"]:
+        raise ValueError(f"{identity_label} generator commit differs from its allowlisted identity")
+    if payload.get("generator_branch") != identity["branch"]:
+        raise ValueError(f"{identity_label} generator branch differs from its allowlisted identity")
+    if Path(str(payload.get("generator_worktree", ""))).resolve() != Path(identity["worktree"]):
+        raise ValueError(f"{identity_label} generator worktree differs from its allowlisted identity")
     if payload.get("dataset_commit") != V2_DATASET_COMMIT:
         raise ValueError("V2 dataset commit differs from the frozen Friedrich dataset")
     if payload.get("evaluator_base_commit") != HISTORICAL_EVALUATOR_COMMIT:
@@ -295,15 +325,17 @@ def load_run_config(path: str | Path, source_manifest_path: str | Path) -> dict[
         "preflight": PREFLIGHT_CASE_IDS,
         "formal_47x3": source_ids,
         "formal_40x3": FORMAL_SUPPORTED_CASE_IDS,
+        "v1_controlled_40x3": FORMAL_SUPPORTED_CASE_IDS,
     }[run_type]
     if not isinstance(case_ids, list) or tuple(case_ids) != expected_ids:
         expected = {
             "preflight": "the five frozen developmental cases",
             "formal_47x3": "all 47 source cases",
             "formal_40x3": "the 40 supported formal cases",
+            "v1_controlled_40x3": "the 40 supported formal cases",
         }[run_type]
         raise ValueError(f"V2 {run_type} must contain exactly {expected} in frozen order")
-    if run_type == "formal_40x3":
+    if run_type in {"formal_40x3", "v1_controlled_40x3"}:
         support = payload.get("evaluation_support")
         expected_support = {
             "formal_reporting_n": 40,
@@ -339,6 +371,8 @@ def load_run_config(path: str | Path, source_manifest_path: str | Path) -> dict[
         raise ValueError("V2 generation configuration contains missing or unexpected fields")
     if generation.get("system_commit") != payload["generator_commit"]:
         raise ValueError("V2 generation system commit disagrees with run identity")
+    if generation.get("repository_identity") != identity["repository_identity"]:
+        raise ValueError(f"{identity_label} generator repository identity differs from its allowlist")
     for key, expected in FROZEN_GENERATION_SETTINGS.items():
         if generation.get(key) != expected:
             raise ValueError(f"V2 generation setting {key} must equal {expected!r}")

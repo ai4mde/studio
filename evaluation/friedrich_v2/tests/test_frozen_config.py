@@ -18,7 +18,7 @@ class FrozenConfigurationTests(unittest.TestCase):
         snapshot = json.loads((V2 / "evaluator_snapshot.json").read_text(encoding="utf-8"))
         self.assertEqual(
             snapshot["revision"],
-            "Formal 40-case supported-cohort configuration — evaluation methodology unchanged",
+            "Controlled V1 comparison orchestration — evaluation methodology unchanged",
         )
         actual = {
             path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
@@ -46,11 +46,19 @@ class FrozenConfigurationTests(unittest.TestCase):
         source_ids = {case["case_id"] for case in source["cases"]}
         self.assertTrue(set(config["small_validation"]["case_ids"]) <= source_ids)
 
-    def test_active_formal_config_references_current_snapshot(self):
+    def test_controlled_v1_config_references_current_snapshot(self):
         source_path = V2 / "manifests" / "source_manifest.json"
         snapshot = json.loads((V2 / "evaluator_snapshot.json").read_text(encoding="utf-8"))
-        config = load_run_config(V2 / "config" / "v2_formal_40x3_20260901.json", source_path)
+        config = load_run_config(V2 / "config" / "v1_controlled_40x3_20260901.json", source_path)
         self.assertEqual(config["evaluator_snapshot_id"], snapshot["snapshot_id"])
+
+    def test_completed_final_v2_config_retains_its_original_snapshot(self):
+        source_path = V2 / "manifests" / "source_manifest.json"
+        config = load_run_config(V2 / "config" / "v2_formal_40x3_20260901.json", source_path)
+        self.assertEqual(
+            config["evaluator_snapshot_id"],
+            "0fcced61cb61085ed3d696acc6cf478cad4fea302b173acba48a978cba333859",
+        )
 
 
 if __name__ == "__main__":
