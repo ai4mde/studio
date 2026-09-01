@@ -1,0 +1,8 @@
+{
+  "schema_version": "friedrich-v3-review-sensitivity/v1",
+  "status": "not_adjudicated",
+  "raw_automatic_results_modified": false,
+  "many_to_many_anchors_synthesized": false,
+  "flow_or_structure_recomputed": false,
+  "message": "Populate and adjudicate human_review.csv before computing separate sensitivity counts; raw automatic outputs remain authoritative."
+}

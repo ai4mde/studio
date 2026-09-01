@@ -1,0 +1,9 @@
+{
+  "schema_version": "friedrich-v3-review-sensitivity/v1",
+  "status": "not_adjudicated",
+  "adjudicated_item_count": 0,
+  "raw_automatic_results_modified": false,
+  "many_to_many_anchors_synthesized": false,
+  "flow_or_structure_anchors_recomputed": false,
+  "candidate_counts": []
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "friedrich-v3-validation-config/v1",
+  "run_id": "formal_40x3_20260901_v3_1_0",
+  "run_type": "formal_40x3",
+  "methodology_version": "friedrich-unified-evaluation/v3.1.0",
+  "evaluator_version": "friedrich-v3.1.0",
+  "expected_case_count": 40,
+  "candidates_per_case": 3,
+  "expected_candidate_count": 120,
+  "case_ids": [
+    "1-1", "1-2", "2-1", "2-2", "3-1", "3-2", "3-3", "3-4", "3-5", "3-6",
+    "3-7", "3-8", "4-1", "5-1", "5-2", "5-3", "5-4", "6-1", "6-2", "6-3",
+    "6-4", "8-1", "8-2", "9-1", "9-3", "9-4", "9-5", "9-6", "10-1", "10-4",
+    "10-5", "10-6", "10-7", "10-8", "10-9", "10-10", "10-11", "10-12",
+    "10-13", "10-14"
+  ],
+  "source_manifest": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/manifests/source_manifest.json",
+  "generated_manifest": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/cohorts/v2_formal_40x3_20260901/generated_manifest.json",
+  "historical_results": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/results/v2_formal_40x3_20260901",
+  "model_cache": "/private/tmp/friedrich-hf-cache",
+  "review_seed": 20260827
+}

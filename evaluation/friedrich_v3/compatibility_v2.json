@@ -1,0 +1,39 @@
+{
+  "version": "action-compatibility-v2",
+  "operation_families": {
+    "accept": "approval", "approve": "approval", "authorize": "approval",
+    "reject": "rejection", "decline": "rejection", "deny": "rejection",
+    "send": "transmission", "dispatch": "transmission", "forward": "transmission", "submit": "transmission",
+    "receive": "reception", "retrieve": "reception", "collect": "reception",
+    "create": "creation", "generate": "creation", "prepare": "creation", "produce": "creation", "write": "creation",
+    "review": "inspection", "check": "inspection", "inspect": "inspection", "examine": "inspection", "verify": "inspection",
+    "repeat": "repetition", "retry": "repetition",
+    "update": "modification", "edit": "modification", "modify": "modification", "revise": "modification",
+    "inform": "notification", "notify": "notification",
+    "determine": "determination", "decide": "determination",
+    "conduct": "execution", "conducts": "execution", "perform": "execution",
+    "assign": "assignment", "allocate": "assignment",
+    "register": "registration", "enroll": "registration",
+    "hand": "distribution", "distribute": "distribution", "pass": "transmission",
+    "record": "recording", "log": "recording",
+    "plan": "planning", "plans": "planning",
+    "open": "opening", "close": "closing", "cancel": "cancellation", "archive": "archival"
+  },
+  "incompatible_family_pairs": [
+    ["approval", "rejection"], ["transmission", "reception"],
+    ["creation", "transmission"], ["creation", "reception"],
+    ["creation", "repetition"], ["inspection", "modification"],
+    ["inspection", "repetition"], ["rejection", "notification"],
+    ["rejection", "transmission"], ["rejection", "registration"],
+    ["determination", "execution"], ["assignment", "creation"],
+    ["assignment", "transmission"], ["registration", "transmission"],
+    ["planning", "execution"], ["distribution", "creation"],
+    ["recording", "reception"], ["opening", "closing"]
+  ],
+  "negative_tokens": ["not", "never", "without", "failed", "invalid"],
+  "concrete_objects": [
+    "application", "invoice", "claim", "request", "order", "payment", "contract",
+    "document", "report", "recommendation", "form", "record", "shipment", "ticket",
+    "meeting", "cards", "notice", "patient", "file"
+  ]
+}

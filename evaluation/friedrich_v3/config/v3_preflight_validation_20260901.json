@@ -1,0 +1,12 @@
+{
+  "schema_version": "friedrich-v3-validation-config/v1",
+  "run_id": "v3_preflight_validation_20260901_clean",
+  "methodology_version": "friedrich-unified-evaluation/v3.0.0",
+  "evaluator_version": "friedrich-v3.0.0",
+  "case_ids": ["3-1", "3-6", "3-2", "3-3", "4-1"],
+  "source_manifest": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/manifests/source_manifest.json",
+  "generated_manifest": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/cohorts/v2_preflight_stable_final_20260831/generated_manifest.json",
+  "historical_results": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/results/v2_preflight_stable_final_20260831",
+  "model_cache": "/private/tmp/friedrich-hf-cache",
+  "review_seed": 20260827
+}

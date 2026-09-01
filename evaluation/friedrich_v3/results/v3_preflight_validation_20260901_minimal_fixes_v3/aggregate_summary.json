@@ -1,0 +1,45 @@
+{
+  "schema_version": "friedrich-v3-evaluator/v1",
+  "evaluator_version": "friedrich-v3.0.0",
+  "methodology_version": "friedrich-unified-evaluation/v3.0.0",
+  "case_count": 5,
+  "candidate_count": 15,
+  "raw_automatic": {
+    "action": {
+      "precision": 0.6766810966810967,
+      "recall": 0.7108187134502925,
+      "f1": 0.6884510727367871
+    },
+    "flow": {
+      "precision": 0.9225641025641025,
+      "recall": 0.9239682539682541,
+      "f1": 0.9231111111111112
+    },
+    "structure": {
+      "precision": 0.27083333333333337,
+      "recall": 0.2760416666666667,
+      "f1": 0.24305555555555558
+    }
+  },
+  "coverage": {
+    "action_anchor_coverage": 0.7108187134502923,
+    "flow_coverage": 0.61,
+    "flow_action_anchor_coverage": 0.7108187134502923,
+    "structure_component_coverage": 0.5029761904761905,
+    "structure_region_coverage": 0.5208333333333334,
+    "structure_anchor_coverage": 0.7108187134502923
+  },
+  "human_review": {
+    "prepared_row_count": 67,
+    "trigger_counts": {
+      "ambiguous_structure_region": 3,
+      "anchor_limited_flow_relation": 15,
+      "anchor_limited_structure_region": 10,
+      "guard_ambiguity": 7,
+      "possible_merge_action": 3,
+      "possible_split_action": 12,
+      "seeded_tp_audit": 14,
+      "source_scope_ambiguity": 15
+    }
+  }
+}
