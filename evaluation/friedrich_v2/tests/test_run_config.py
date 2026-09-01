@@ -11,6 +11,8 @@ from unittest.mock import patch
 
 from evaluation.friedrich_v2.generation import (
     CohortInfrastructureError,
+    FORMAL_EXCLUDED_CASE_REASONS,
+    FORMAL_SUPPORTED_CASE_IDS,
     PREFLIGHT_CASE_IDS,
     _load_or_create_state,
     build_generated_manifest,
@@ -27,7 +29,8 @@ SOURCE = V2 / "manifests" / "source_manifest.json"
 PREFLIGHT = V2 / "config" / "v2_preflight_stable_final_20260831.json"
 HISTORICAL_PREFLIGHT = V2 / "config" / "v2_preflight_20260830.json"
 HISTORICAL_CORRECTED_PREFLIGHT = V2 / "config" / "v2_preflight_post_action_fix_20260831.json"
-FORMAL = V2 / "config" / "v2_formal_47x3.template.json"
+HISTORICAL_FORMAL = V2 / "config" / "v2_formal_47x3.template.json"
+FORMAL = V2 / "config" / "v2_formal_40x3_20260901.json"
 
 
 def _payload(path: Path = PREFLIGHT) -> dict:
@@ -91,14 +94,34 @@ class VersionedRunConfigurationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "evaluation_version"):
             load_run_config(HISTORICAL_CORRECTED_PREFLIGHT, SOURCE)
 
-    def test_preflight_and_formal_case_sets_are_exact(self):
+    def test_preflight_and_supported_formal_case_sets_are_exact(self):
         preflight = load_run_config(PREFLIGHT, SOURCE)
         formal = load_run_config(FORMAL, SOURCE)
         self.assertEqual(tuple(preflight["case_ids"]), PREFLIGHT_CASE_IDS)
-        self.assertEqual(len(formal["case_ids"]), 47)
-        self.assertEqual(len(set(formal["case_ids"])), 47)
+        self.assertEqual(tuple(formal["case_ids"]), FORMAL_SUPPORTED_CASE_IDS)
+        self.assertEqual(len(formal["case_ids"]), 40)
+        self.assertEqual(len(set(formal["case_ids"])), 40)
+        self.assertEqual(formal["evaluation_support"]["formal_reporting_n"], 40)
+        self.assertEqual(formal["evaluation_support"]["formal_candidate_slots"], 120)
+        self.assertEqual(
+            [item["case_id"] for item in formal["evaluation_support"]["excluded_cases"]],
+            list(FORMAL_EXCLUDED_CASE_REASONS),
+        )
+        self.assertTrue(set(FORMAL_EXCLUDED_CASE_REASONS).isdisjoint(formal["case_ids"]))
         self.assertEqual(preflight["preflight"]["status"], "ready_for_generation")
-        self.assertEqual(formal["preflight"]["status"], "planned_not_authorized")
+        self.assertEqual(formal["preflight"]["status"], "ready_for_generation")
+
+    def test_historical_formal_and_stability_configs_are_unchanged(self):
+        expected = {
+            HISTORICAL_FORMAL: "bb423b4a3a2ba3c383c5739900c993f6f45ff2027664e00247b5aa948afcafd1",
+            V2 / "config" / "v2_stability_47x1_20260831.json": (
+                "9f53b958457aad525ae04034e4ed6d1341b7f3617db8eaf1ec09539ebb7d0d96"
+            ),
+        }
+        self.assertEqual(
+            {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in expected},
+            expected,
+        )
 
     def test_superseded_generator_commit_and_branch_are_rejected_for_new_runs(self):
         payload = _payload()
@@ -127,7 +150,18 @@ class VersionedRunConfigurationTests(unittest.TestCase):
     def test_incomplete_formal_case_set_is_rejected(self):
         payload = _payload(FORMAL)
         payload["case_ids"] = payload["case_ids"][:-1]
-        with self.assertRaisesRegex(ValueError, "all 47 source cases"):
+        with self.assertRaisesRegex(ValueError, "40 supported formal cases"):
+            _load_mutation(payload)
+
+    def test_excluded_cases_and_changed_support_provenance_are_rejected(self):
+        payload = _payload(FORMAL)
+        payload["case_ids"][0] = "1-3"
+        with self.assertRaisesRegex(ValueError, "40 supported formal cases"):
+            _load_mutation(payload)
+
+        payload = _payload(FORMAL)
+        payload["evaluation_support"]["formal_reporting_n"] = 47
+        with self.assertRaisesRegex(ValueError, "evaluation-support provenance"):
             _load_mutation(payload)
 
     def test_frozen_generation_and_evaluation_values_cannot_change(self):
@@ -183,7 +217,7 @@ class VersionedRunConfigurationTests(unittest.TestCase):
     def test_manifest_shapes_and_stages(self):
         for path, expected_cases, expected_stage in (
             (PREFLIGHT, 5, "development_validation"),
-            (FORMAL, 47, "final_baseline"),
+            (FORMAL, 40, "final_baseline"),
         ):
             with self.subTest(path=path.name):
                 config = load_run_config(path, SOURCE)

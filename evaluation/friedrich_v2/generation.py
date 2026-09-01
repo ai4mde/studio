@@ -32,9 +32,26 @@ V2_EVALUATION_VERSION = "Revised Generator V2 / Final V2"
 V2_DATASET_COMMIT = "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d"
 HISTORICAL_EVALUATOR_COMMIT = "b14870429d8cdf39712314e714d3228bca0ab3f2"
 PREFLIGHT_CASE_IDS = ("3-1", "3-6", "3-2", "3-3", "4-1")
+FORMAL_SUPPORTED_CASE_IDS = (
+    "1-1", "1-2", "2-1", "2-2", "3-1", "3-2", "3-3", "3-4", "3-5", "3-6",
+    "3-7", "3-8", "4-1", "5-1", "5-2", "5-3", "5-4", "6-1", "6-2", "6-3",
+    "6-4", "8-1", "8-2", "9-1", "9-3", "9-4", "9-5", "9-6", "10-1", "10-4",
+    "10-5", "10-6", "10-7", "10-8", "10-9", "10-10", "10-11", "10-12", "10-13",
+    "10-14",
+)
+FORMAL_EXCLUDED_CASE_REASONS = {
+    "1-3": "inclusive-choice behavior represented by two Inclusive gateways",
+    "1-4": "combined converging-diverging gateway",
+    "7-1": "explicit InclusiveGateway in the reference model",
+    "8-3": "combined converging-diverging gateway",
+    "9-2": "combined converging-diverging gateway",
+    "10-2": "inclusive-choice behavior represented by four Inclusive gateways",
+    "10-3": "inclusive-choice behavior represented by two Inclusive gateways",
+}
 RUN_TYPE_TO_COHORT_STAGE = {
     "preflight": "development_validation",
     "formal_47x3": "final_baseline",
+    "formal_40x3": "final_baseline",
 }
 HISTORICAL_OUTPUT_ROOTS = {
     "evaluation/friedrich_v2/cohorts/small_validation_20260828",
@@ -193,7 +210,12 @@ def _validate_v2_output_root(value: Any, *, run_type: str, run_id: str, kind: st
     normalized = path.as_posix()
     if normalized in HISTORICAL_OUTPUT_ROOTS or "small_validation_20260828" in path.parts:
         raise ValueError("V2 run configuration must not target historical V1 output paths")
-    run_prefix = "v2_preflight_" if run_type == "preflight" else "v2_formal_47x3"
+    run_prefixes = {
+        "preflight": "v2_preflight_",
+        "formal_47x3": "v2_formal_47x3",
+        "formal_40x3": "v2_formal_40x3_",
+    }
+    run_prefix = run_prefixes[run_type]
     expected_parent = f"evaluation/friedrich_v2/{kind}"
     if path.parent.as_posix() != expected_parent or not path.name.startswith(run_prefix):
         raise ValueError(f"V2 {kind} output root does not match run_type={run_type}")
@@ -215,14 +237,15 @@ def load_run_config(path: str | Path, source_manifest_path: str | Path) -> dict[
     }
     if not isinstance(payload, dict) or payload.get("schema_version") != RUN_CONFIG_SCHEMA:
         raise ValueError("A Friedrich V2 versioned run configuration is required")
+    run_type = payload.get("run_type")
+    if run_type not in RUN_TYPE_TO_COHORT_STAGE:
+        raise ValueError("V2 run_type must be preflight, formal_47x3, or formal_40x3")
+    if run_type == "formal_40x3":
+        required_root_fields.add("evaluation_support")
     if set(payload) != required_root_fields:
         raise ValueError("V2 run configuration contains missing or unexpected root fields")
     if _contains_secret_field(payload):
         raise ValueError("V2 run configuration must not contain secret fields")
-
-    run_type = payload.get("run_type")
-    if run_type not in RUN_TYPE_TO_COHORT_STAGE:
-        raise ValueError("V2 run_type must be preflight or formal_47x3")
     run_id = payload.get("run_id")
     if not isinstance(run_id, str) or not run_id.strip():
         raise ValueError("V2 run_id must be a non-empty string")
@@ -268,10 +291,39 @@ def load_run_config(path: str | Path, source_manifest_path: str | Path) -> dict[
         raise ValueError("V2 source manifest does not identify the frozen dataset commit")
 
     case_ids = payload.get("case_ids")
-    expected_ids = PREFLIGHT_CASE_IDS if run_type == "preflight" else source_ids
+    expected_ids = {
+        "preflight": PREFLIGHT_CASE_IDS,
+        "formal_47x3": source_ids,
+        "formal_40x3": FORMAL_SUPPORTED_CASE_IDS,
+    }[run_type]
     if not isinstance(case_ids, list) or tuple(case_ids) != expected_ids:
-        expected = "the five frozen developmental cases" if run_type == "preflight" else "all 47 source cases"
+        expected = {
+            "preflight": "the five frozen developmental cases",
+            "formal_47x3": "all 47 source cases",
+            "formal_40x3": "the 40 supported formal cases",
+        }[run_type]
         raise ValueError(f"V2 {run_type} must contain exactly {expected} in frozen order")
+    if run_type == "formal_40x3":
+        support = payload.get("evaluation_support")
+        expected_support = {
+            "formal_reporting_n": 40,
+            "formal_candidate_slots": 120,
+            "supported_case_ids": list(FORMAL_SUPPORTED_CASE_IDS),
+            "excluded_cases": [
+                {"case_id": case_id, "reason": reason}
+                for case_id, reason in FORMAL_EXCLUDED_CASE_REASONS.items()
+            ],
+            "exclusion_policy": (
+                "excluded from primary Action, Flow, and Structure macro averages; may be reported "
+                "separately as generation/stability evidence and evaluation-support exclusions"
+            ),
+            "policy_basis": (
+                "frozen adapter cannot reliably represent inclusive-choice or combined "
+                "converging-diverging gateway semantics for cross-notation behavioral scoring"
+            ),
+        }
+        if support != expected_support:
+            raise ValueError("V2 formal_40x3 evaluation-support provenance differs from the frozen policy")
 
     generation = payload.get("generation")
     if not isinstance(generation, Mapping):
