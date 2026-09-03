@@ -57,3 +57,11 @@ from .usecase_diagram import (
     Usecase,
 )
 
+from .interface import (
+    Category,
+    Interface,
+    Page,
+    PageSection,
+    SectionAttribute,
+    SectionComponent
+)

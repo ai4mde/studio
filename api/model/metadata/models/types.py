@@ -79,3 +79,14 @@ class OperatorType(models.TextChoices):
     LESS_THAN = "<"
     GREATER_THAN_OR_EQUAL = ">="
     LESS_THAN_OR_EQUAL = "<="
+
+
+class InterfaceStyle(models.TextChoices):
+    ABSTRACT = "abstract"
+    BASIC = "basic"
+    MODERN = "modern"
+
+
+class PageType(models.TextChoices):
+    NORMAL = "normal"
+    ACTIVITY = "activity"
