@@ -33,7 +33,22 @@ class ClassifierType(models.TextChoices):
 
 
 class RelationType(models.TextChoices):
-    TEST = "test"
+    # Class
+    ASSOCIATION = "association"
+    GENERALIZATION = "generalization"
+    COMPOSITION = "composition"
+    DEPENDENCY = "dependency"
+
+    # Activity
+    CONTROLFLOW = "controlflow"
+    
+    # Usecase
+    INTERACTION = "interaction"
+    EXTENSION = "extension"
+    INCLUSION = "inclusion"
+    
+    # Component
+    INTERFACE = "interface"
 
 
 class DataType(models.TextChoices):
@@ -47,3 +62,20 @@ class DataType(models.TextChoices):
 class ActivityScope(models.TextChoices):
     FLOW = "flow"
     ACTIVITY = "activity"
+
+
+class AggregatorType(models.TextChoices):
+    COUNT = "count"
+    SUM = "sum"
+    AVG = "avg"
+    MIN = "min"
+    MAX = "max"
+
+
+class OperatorType(models.TextChoices):
+    EQUAL = "=="
+    NOT_EQUAL = "!="
+    GREATER_THAN = ">"
+    LESS_THAN = "<"
+    GREATER_THAN_OR_EQUAL = ">="
+    LESS_THAN_OR_EQUAL = "<="

@@ -1,8 +1,8 @@
 from django.db import models
 
-from .classifier import ClassifierDataModel
-from .fields import PythonField
-from .types import DataType
+from ..classifier import ClassifierDataModel
+from ..fields import PythonField
+from ..types import DataType
 
 
 class Class(ClassifierDataModel):

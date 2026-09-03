@@ -1,6 +1,6 @@
 from django.db import models
 
-from .classifier import ClassifierDataModel
+from ..classifier import ClassifierDataModel
 
 
 class SystemBoundary(ClassifierDataModel):

@@ -59,3 +59,10 @@ class ValidationMixin:
             raise ValidationError({
                 field: message or f"{field} has an invalid type."
             })
+
+    def forbid_fields_if(self, condition, *fields):
+        if not condition:
+            return
+
+        for field in fields:
+            self.forbid_if(condition, field)

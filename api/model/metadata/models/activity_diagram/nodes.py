@@ -1,10 +1,11 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .classifier import ClassifierDataModel
-from .fields import CronField, PythonField
-from .types import ActivityScope, ClassifierType
-from .utils import ValidationMixin
+from ..classifier import ClassifierDataModel
+from ..fields import CronField, PythonField
+from ..types import ActivityScope, ClassifierType
+from ..utils import ValidationMixin
+
 
 class Swimlane(ValidationMixin, ClassifierDataModel):
     parent = models.ForeignKey(

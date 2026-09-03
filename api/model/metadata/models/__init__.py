@@ -11,6 +11,7 @@ from .general import (
 )
 
 from .class_diagram import (
+    # Nodes
     Class,
     Enum,
     EnumLiteral,
@@ -18,21 +19,36 @@ from .class_diagram import (
     Operation,
     Interface,
     Signal,
+    
+    # Relations
+    Association,
+    Composition,
+    Dependency,
+    EndpointLabel,
+    Multiplicity,
 )
 
 from .activity_diagram import (
+    # Nodes
     Swimlane,
     Action,
     Object,
     Event,
     Final,
     Initial,
+
+    # Relations
+    ControlFlow,
 )
 
 from .component_diagram import (
+    # Nodes
     System,
     Container,
     Component,
+    
+    # Relations
+    Interface,
 )
 
 from .usecase_diagram import (
