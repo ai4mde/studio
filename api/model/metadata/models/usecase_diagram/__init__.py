@@ -1,4 +1,4 @@
-from .nodes import (
+from .classifiers import (
     Actor,
     SystemBoundary,
     Usecase,
