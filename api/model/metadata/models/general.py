@@ -21,7 +21,4 @@ class System(models.Model):
     description = models.TextField()
 
     # TODO IMPLEMENT IMPORT
-
-
-
-# TODO ADD LEFT OVER CLASSES SUCH AS INTERFACE ....
+    # TOGETHER WITH RELEASE TABLE
