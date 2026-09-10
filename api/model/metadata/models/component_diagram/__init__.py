@@ -1,7 +1,7 @@
 from .classifiers import (
     Component,
     Container,
-    System,
+    SystemComponent,
 )
 
 from .relations import (

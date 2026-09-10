@@ -105,7 +105,7 @@ class Diagram(ImportMixin):
 
         return str(cls_obj.id)
 
-
+    # add_to_diagram
     def add_edge_and_relation(self, relation: dict, id_map: dict | None = None):
         """
         Ensure relation exists in the system. Create an edge in this diagram pointing to relation.

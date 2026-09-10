@@ -4,6 +4,7 @@ from ninja import ModelSchema, Schema
 from metadata.models import Project, System
 from metadata.api.schemas.system import ExportSystem, ImportSystem
 
+# DONE EXCEPT IMPORT/EXPORT
 
 class ReadProject(ModelSchema):
     class Meta:

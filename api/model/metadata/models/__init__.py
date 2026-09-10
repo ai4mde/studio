@@ -4,6 +4,7 @@
 # And make adding new attributes to certain classes as easy as possible
 
 from .classifier import Classifier
+from .relation import Relation
 
 from .general import (
     Project,
@@ -43,7 +44,7 @@ from .activity_diagram import (
 
 from .component_diagram import (
     # Nodes
-    System,
+    SystemComponent,
     Container,
     Component,
     

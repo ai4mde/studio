@@ -27,7 +27,7 @@ class ClassifierType(models.TextChoices):
 
 
     # Component
-    SYSTEM = "system"
+    SYSTEM = "systemcomponent"
     CONTAINER = "container"
     COMPONENT = "component"
 
