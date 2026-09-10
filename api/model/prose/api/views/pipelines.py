@@ -76,10 +76,15 @@ def add_to_diagram(request, pipeline_id: str, diagram_id: str, classifiers: List
     # Keep an old-new id mapping for the classifiers being cloned
     id_map: dict[str, str] = {}
 
-    for cls in classifiers:
-        diagram.add_node_and_classifier(cls, id_map=id_map)
-    for rel in relations:
-        diagram.add_edge_and_relation(rel, id_map=id_map)
+    # TODO These methods got deleted in the diagram model, probably need to be added to services
+    # In a new way, utilizing the new classifier ORM structure
+    # Omitted for now due to only being used in the Pipeline functionality
+    # See the older Diagram model in an older commit to see how these methods were implemented
+
+    # for cls in classifiers:
+    #     diagram.add_node_and_classifier(cls, id_map=id_map)
+    # for rel in relations:
+    #     diagram.add_edge_and_relation(rel, id_map=id_map)
 
     diagram.auto_layout()
     return diagram

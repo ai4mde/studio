@@ -2,7 +2,7 @@ from ninja import Router
 from django.http import HttpRequest
 from typing import List
 from diagram.api.schemas.diagram import FullDiagram
-from diagram.models import Diagram
+from api.model.diagram.models.node import Diagram
 from metadata.models import System
 
 system = Router()
