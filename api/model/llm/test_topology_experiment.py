@@ -1274,3 +1274,24 @@ def test_generate_topology_artifact_accepts_existing_working_topology_patterns(
 
     assert [structure["type"] for structure in result["artifact"]["structures"]] == expected_types
     assert [structure["parent"] for structure in result["artifact"]["structures"]] == expected_parents
+
+
+def test_bare_meantime_requires_two_activities_and_shared_continuation() -> None:
+    process_text = (
+        "The ready files are handed to the Associate, and meantime the Judge's Lawlist is "
+        "distributed to the relevant people. Afterwards, the directions hearings are conducted."
+    )
+
+    hints = extract_keyword_hints(process_text)
+
+    assert hints["flags"]["possible_parallelism"] is True
+    assert "bare_meantime_with_independent_activities_and_shared_continuation" in hints["evidence"]["parallel_terms"]
+
+
+def test_bare_meantime_without_shared_continuation_does_not_require_parallelism() -> None:
+    hints = extract_keyword_hints(
+        "The ready files are handed to the Associate, and meantime the Judge's Lawlist is distributed."
+    )
+
+    assert hints["flags"]["possible_parallelism"] is False
+

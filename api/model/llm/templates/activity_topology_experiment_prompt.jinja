@@ -107,7 +107,7 @@ Rules:
 - Treat phrases like "when both tasks are completed", "after both reviews are completed", or equivalent join wording as the boundary between branch-local scope and post-join scope
 - Create a loop only when the text explicitly indicates repetition, retry, rework, correction, resubmission, or iteration with an exit condition
 - Create a parallel block only when the text explicitly indicates concurrent work, two-or-more simultaneous branches, or an explicit join boundary such as `after both` or `once all branches finish`
-- Compound concurrency evidence can include separate executable activities linked by `in the meantime`, a `while A does X, B does Y` construction, multiple named activities executed in arbitrary order before shared continuation, or several named outputs synchronized before later work
+- Compound concurrency evidence can include separate executable activities linked by `in the meantime`, `and meantime`, or bare `meantime`; a `while A does X, B does Y` construction; multiple named activities executed in arbitrary order before shared continuation; or several named outputs synchronized before later work
 - Do not infer parallelism from `while`, `in the meantime`, or `arbitrary order` alone; require separate executable activities and any stated synchronization or shared continuation
 - Do not infer detailed execution wiring beyond parent and parent_branch
 - Do not explain the answer

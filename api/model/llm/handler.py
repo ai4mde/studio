@@ -4,8 +4,10 @@ import json
 import time
 import traceback
 import uuid
+from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Iterator, Optional
 
 try:
     from groq import Groq
@@ -39,6 +41,42 @@ from .prompts.prose import PROSE_GENERATE_METADATA
 # while preserving runtime behavior.
 
 logger = logging.getLogger(__name__)
+
+FROZEN_SEMANTIC_DETERMINISTIC_MODEL = "gpt-4.1-2025-04-14"
+FROZEN_SEMANTIC_DETERMINISTIC_SETTINGS: Dict[str, Any] = {
+    "temperature": 0.15,
+    "top_p": 1.0,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "n": 1,
+    "max_completion_tokens": 8192,
+}
+FROZEN_CANDIDATE_SEEDS = {
+    1: 20260910,
+    2: 20260911,
+    3: 20260912,
+}
+_CURRENT_FROZEN_CANDIDATE_SEED: ContextVar[int] = ContextVar(
+    "current_frozen_candidate_seed",
+    default=FROZEN_CANDIDATE_SEEDS[1],
+)
+
+
+@contextmanager
+def frozen_candidate_seed(candidate_index: int) -> Iterator[None]:
+    seed = FROZEN_CANDIDATE_SEEDS[candidate_index]
+    token = _CURRENT_FROZEN_CANDIDATE_SEED.set(seed)
+    try:
+        yield
+    finally:
+        _CURRENT_FROZEN_CANDIDATE_SEED.reset(token)
+
+
+def frozen_semantic_deterministic_request_settings() -> Dict[str, Any]:
+    return {
+        **FROZEN_SEMANTIC_DETERMINISTIC_SETTINGS,
+        "seed": _CURRENT_FROZEN_CANDIDATE_SEED.get(),
+    }
 
 ACTIVITY_SCHEMA: Dict[str, Any] = {
     "type": "object",
@@ -286,6 +324,7 @@ def call_openai(
     *,
     response_format: Optional[Dict[str, Any]] = None,
     require_structured_output: bool = False,
+    use_frozen_semantic_deterministic_settings: bool = False,
 ) -> str:
     run_id = f"call_openai_{uuid.uuid4().hex[:8]}"
     # region agent log
@@ -296,6 +335,7 @@ def call_openai(
     # endregion
     client = OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY"),
+        max_retries=2,
     )
 
     try:
@@ -308,6 +348,8 @@ def call_openai(
             ],
             "model": model,
         }
+        if use_frozen_semantic_deterministic_settings:
+            request_kwargs.update(frozen_semantic_deterministic_request_settings())
         structured_response_format = response_format
         if structured_response_format is None and model in {"gpt-4o-mini", "gpt-4o"} and _is_activity_prompt(prompt):
             structured_response_format = _activity_response_format()

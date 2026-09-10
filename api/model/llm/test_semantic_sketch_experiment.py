@@ -177,7 +177,10 @@ def test_build_semantic_sketch_experiment_prompt_includes_semantic_preservation_
         },
     )
 
-    assert "Every business action mentioned in the process text must appear exactly once somewhere in the semantic plan" in prompt
+    assert "Treat each independently asserted business operation at each explicit process occurrence as one business action" in prompt
+    assert "Use concise action names closely derived from the source wording" in prompt
+    assert "An explicit operation that establishes a later decision" in prompt
+    assert "never absorb the operation only into the decision purpose, label, or condition" in prompt
     assert "`branch_plans.intent` is control-flow only; it must never replace a business action" in prompt
     assert "For every branch plan, decide the branch-local business action text first and set `intent` second" in prompt
     assert "A `terminate` or `loop_back` branch must not return `steps=[]`" in prompt
@@ -486,6 +489,53 @@ def test_generate_semantic_sketch_plan_retries_for_label_independent_retry_conve
     assert len(result["planner_attempts"]) == 2
     assert "retry success T2/cycle_b cannot reach shared action" in result["planner_attempts"][0]["validation_error"]
     assert result["planner_attempts"][1]["validation_error"] is None
+
+
+@pytest.mark.parametrize("duplicate_shared_action", [False, True])
+def test_inferred_retry_ownership_errors_are_warning_only(duplicate_shared_action: bool) -> None:
+    process_text = (
+        "The submission is checked. If it passes, the submission is archived. "
+        "Otherwise, the submitter corrects it. The corrected submission is checked again until it passes."
+    )
+    semantic_plan = _label_independent_retry_plan(shared=duplicate_shared_action)
+    if duplicate_shared_action:
+        semantic_plan["branch_plans"][0]["steps"] = [{"action": "archive submission"}]
+
+    with pytest.raises(SemanticOwnershipEvidenceValidationError) as exc_info:
+        validate_semantic_ownership_against_evidence(
+            process_text,
+            topology_artifact=_label_independent_retry_topology(),
+            semantic_plan=semantic_plan,
+        )
+
+    assert exc_info.value.warning_only is True
+
+
+def test_retry_ownership_warning_is_recorded_and_accepted_after_correction_exhaustion() -> None:
+    process_text = (
+        "The submission is checked. If it passes, the submission is archived. "
+        "Otherwise, the submitter corrects it. The corrected submission is checked again until it passes."
+    )
+    warning_plan = _label_independent_retry_plan(shared=False)
+
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[json.dumps(warning_plan), json.dumps(warning_plan), json.dumps(warning_plan)],
+    ) as mocked_call:
+        result = generate_semantic_sketch_plan(
+            process_text,
+            topology_artifact=_label_independent_retry_topology(),
+            model="gpt-4o",
+        )
+
+    assert mocked_call.call_count == 3
+    assert result["artifact"] == warning_plan
+    assert len(result["planner_attempts"]) == 3
+    assert all(
+        "retry success T2/cycle_b cannot reach shared action" in attempt["validation_error"]
+        for attempt in result["planner_attempts"]
+    )
+    assert "Shared-continuation correction" in mocked_call.call_args_list[1].kwargs["prompt"]
 
 
 def test_semantic_ownership_validator_does_not_promote_unrelated_direct_branch_action() -> None:
@@ -1125,3 +1175,25 @@ def test_preserve_explicit_business_activities_does_not_modify_loop_retry_semant
             {"slot_id": "AFTER_T3", "actions": [{"action": "continue deployment process"}]},
         ],
     }
+
+
+def test_generate_semantic_sketch_plan_fails_closed_after_post_assignment_validation_errors() -> None:
+    process_text = (
+        "An analyst reviews the request. If approved, the analyst fulfills it. "
+        "Otherwise, the analyst rejects it. In either case, the analyst records the outcome."
+    )
+    invalid_plan = _decision_plan(shared_actions=[], approved_steps=["fulfill request", "record outcome"])
+
+    with patch(
+        "llm.semantic_sketch_experiment.call_openai",
+        side_effect=[json.dumps(invalid_plan), json.dumps(invalid_plan), json.dumps(invalid_plan)],
+    ):
+        with pytest.raises(SemanticSketchPlanGenerationError, match="validation failed") as exc_info:
+            generate_semantic_sketch_plan(
+                process_text,
+                topology_artifact=_decision_topology(),
+                model="gpt-4o",
+            )
+
+    assert len(exc_info.value.debug_artifacts["semantic_attempts"]) == 3
+    assert all(attempt["validation_error"] for attempt in exc_info.value.debug_artifacts["semantic_attempts"])

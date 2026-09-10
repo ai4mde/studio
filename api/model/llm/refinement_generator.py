@@ -74,13 +74,19 @@ import logging
 import os
 import re
 import uuid
+from contextlib import nullcontext
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from pydantic import ValidationError
 
 from .activity_model import ActivityModel
 from .activity_sketch_model import ActivitySketch
-from .handler import call_openai, _activity_response_format, _activity_sketch_response_format
+from .handler import (
+    _activity_response_format,
+    _activity_sketch_response_format,
+    call_openai,
+    frozen_candidate_seed,
+)
 from .converter import convert_to_ai4mde, unwrap_ai4mde_systems_export
 from .experimental_compiler import compile_activity_sketch
 from .keyword_hints import extract_keyword_hints
@@ -1362,18 +1368,24 @@ def generate_initial_candidates(
         return []
 
     models: List[dict] = []
-    for _ in range(n):
-        models.append(
-            model_activity(
-                process_text=process_text,
-                use_sketch=use_sketch,
-                pipeline_profile=pipeline_profile,
-                enable_sketch_review_agent=enable_sketch_review_agent,
-                enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
-                enable_graph_repair_agent=enable_graph_repair_agent,
-                use_topology_artifact_guidance=use_topology_artifact_guidance,
-            )
+    for i in range(1, n + 1):
+        candidate_seed_context = (
+            frozen_candidate_seed(i)
+            if pipeline_profile == "semantic_deterministic"
+            else nullcontext()
         )
+        with candidate_seed_context:
+            models.append(
+                model_activity(
+                    process_text=process_text,
+                    use_sketch=use_sketch,
+                    pipeline_profile=pipeline_profile,
+                    enable_sketch_review_agent=enable_sketch_review_agent,
+                    enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+                    enable_graph_repair_agent=enable_graph_repair_agent,
+                    use_topology_artifact_guidance=use_topology_artifact_guidance,
+                )
+            )
     return models
 
 
@@ -1421,16 +1433,17 @@ def generate_and_convert_candidates(
     for i in range(1, n + 1):
         debug_bundle: Optional[ActivityDebugResult] = None
         if pipeline_profile == "semantic_deterministic":
-            debug_bundle = model_activity(
-                process_text=process_text,
-                debug=True,
-                use_sketch=use_sketch,
-                pipeline_profile=pipeline_profile,
-                enable_sketch_review_agent=enable_sketch_review_agent,
-                enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
-                enable_graph_repair_agent=enable_graph_repair_agent,
-                use_topology_artifact_guidance=use_topology_artifact_guidance,
-            )
+            with frozen_candidate_seed(i):
+                debug_bundle = model_activity(
+                    process_text=process_text,
+                    debug=True,
+                    use_sketch=use_sketch,
+                    pipeline_profile=pipeline_profile,
+                    enable_sketch_review_agent=enable_sketch_review_agent,
+                    enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+                    enable_graph_repair_agent=enable_graph_repair_agent,
+                    use_topology_artifact_guidance=use_topology_artifact_guidance,
+                )
             clean = debug_bundle["parsed"]
         else:
             clean = model_activity(

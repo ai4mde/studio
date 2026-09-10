@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from jinja2 import Environment, FileSystemLoader
 
-from .handler import call_openai
+from .handler import FROZEN_SEMANTIC_DETERMINISTIC_MODEL, call_openai
 from .keyword_hints import extract_keyword_hints, extract_parallel_evidence
 from .topology_artifact_model import TopologyArtifact
 
@@ -295,6 +295,7 @@ def _call_topology_planner(
             prompt=prompt,
             response_format=topology_artifact_response_format(),
             require_structured_output=True,
+            use_frozen_semantic_deterministic_settings=True,
         )
     except Exception as exc:
         response_mode = "fallback_json_mode"
@@ -311,6 +312,7 @@ def _call_topology_planner(
         raw_output = call_openai(
             model=model,
             prompt=fallback_prompt,
+            use_frozen_semantic_deterministic_settings=True,
         )
     return {
         "raw_output": raw_output,
@@ -795,7 +797,7 @@ def parse_topology_artifact_json(raw_output: str) -> Dict[str, Any]:
 def generate_topology_artifact(
     process_text: str,
     *,
-    model: str = "gpt-4o",
+    model: str = FROZEN_SEMANTIC_DETERMINISTIC_MODEL,
 ) -> Dict[str, Any]:
     keyword_hints = extract_keyword_hints(process_text)
     prompt = build_topology_experiment_prompt(

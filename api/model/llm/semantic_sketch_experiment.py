@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
-from .handler import call_openai
+from .handler import FROZEN_SEMANTIC_DETERMINISTIC_MODEL, call_openai
 from .keyword_hints import extract_keyword_hints
 from .semantic_sketch_plan_model import (
     SemanticSketchPlan,
@@ -195,7 +195,9 @@ class SemanticSketchPlanGenerationError(Exception):
 
 
 class SemanticOwnershipEvidenceValidationError(ValueError):
-    pass
+    def __init__(self, message: str, *, warning_only: bool = False) -> None:
+        super().__init__(message)
+        self.warning_only = warning_only
 
 
 def _required_root_slot_ids(topology_artifact: Dict[str, Any] | TopologyArtifact) -> List[str]:
@@ -268,6 +270,7 @@ def _call_semantic_planner(
             prompt=prompt,
             response_format=semantic_sketch_plan_response_format(),
             require_structured_output=True,
+            use_frozen_semantic_deterministic_settings=True,
         )
     except Exception as exc:
         response_mode = "fallback_json_mode"
@@ -284,6 +287,7 @@ def _call_semantic_planner(
         raw_output = call_openai(
             model=model,
             prompt=fallback_prompt,
+            use_frozen_semantic_deterministic_settings=True,
         )
     return {
         "raw_output": raw_output,
@@ -420,11 +424,12 @@ def _root_ancestor_id(structure: TopologyStructure, by_id: Dict[str, TopologyStr
     return current.id
 
 
-def _raise_shared_ownership_contradiction(reason: str) -> None:
+def _raise_shared_ownership_contradiction(reason: str, *, warning_only: bool = False) -> None:
     raise SemanticOwnershipEvidenceValidationError(
         "SemanticSketchPlan contradicts strong shared-continuation evidence: "
         f"{reason}. Preserve branch-local actions, place shared behavior once in the post-structure slot, "
-        "and keep every path that must reach it continuing until that slot."
+        "and keep every path that must reach it continuing until that slot.",
+        warning_only=warning_only,
     )
 
 
@@ -528,11 +533,13 @@ def validate_semantic_ownership_against_evidence(
             if not matching_shared_actions:
                 _raise_shared_ownership_contradiction(
                     f"retry success {loop.id}/{loop_success_branch} cannot reach shared action "
-                    f"owned only by {decision.id}/{direct_branch}; move it to {post_slot_id}"
+                    f"owned only by {decision.id}/{direct_branch}; move it to {post_slot_id}",
+                    warning_only=True,
                 )
             _raise_shared_ownership_contradiction(
                 f"shared action remains duplicated inside {decision.id}/{direct_branch}; "
-                f"keep it only in {post_slot_id}"
+                f"keep it only in {post_slot_id}",
+                warning_only=True,
             )
 
     return plan
@@ -787,7 +794,7 @@ def generate_semantic_sketch_plan(
     process_text: str,
     *,
     topology_artifact: Dict[str, Any] | TopologyArtifact,
-    model: str = "gpt-4o",
+    model: str = FROZEN_SEMANTIC_DETERMINISTIC_MODEL,
 ) -> Dict[str, Any]:
     normalized_topology_artifact = _normalize_topology_artifact(topology_artifact).model_dump(mode="json")
     keyword_hints = extract_keyword_hints(process_text)
@@ -825,11 +832,39 @@ def generate_semantic_sketch_plan(
                 topology_artifact=normalized_topology_artifact,
                 semantic_plan=parsed_payload,
             )
-            artifact = validate_semantic_ownership_against_evidence(
-                process_text,
-                topology_artifact=normalized_topology_artifact,
-                semantic_plan=artifact,
-            )
+            try:
+                artifact = validate_semantic_ownership_against_evidence(
+                    process_text,
+                    topology_artifact=normalized_topology_artifact,
+                    semantic_plan=artifact,
+                )
+            except SemanticOwnershipEvidenceValidationError as exc:
+                if not exc.warning_only:
+                    raise
+                last_exc = exc
+                planner_attempts.append(
+                    {
+                        "attempt_index": correction_attempt,
+                        "prompt": current_prompt,
+                        "raw_output": raw_output,
+                        "parsed_output": parsed_payload,
+                        "response_mode": response_mode,
+                        "fallback_reason": fallback_reason,
+                        "validation_error": str(exc),
+                    }
+                )
+                if correction_attempt >= _MAX_CORRECTION_ATTEMPTS:
+                    break
+                current_prompt = _build_semantic_correction_prompt(
+                    base_prompt=prompt,
+                    process_text=process_text,
+                    topology_artifact=normalized_topology_artifact,
+                    invalid_semantic_output=raw_output,
+                    parsed_semantic_output=parsed_payload,
+                    validation_error=str(exc),
+                    correction_attempt=correction_attempt + 1,
+                )
+                continue
             planner_attempts.append(
                 {
                     "attempt_index": correction_attempt,
@@ -843,6 +878,7 @@ def generate_semantic_sketch_plan(
             )
             break
         except Exception as exc:
+            artifact = None
             last_exc = exc
             planner_attempts.append(
                 {

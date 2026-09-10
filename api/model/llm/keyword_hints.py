@@ -73,6 +73,7 @@ _EXECUTABLE_ACTIVITY_STEMS = (
     "execut",
     "fetch",
     "gather",
+    "hand",
     "inspect",
     "order",
     "prepar",
@@ -80,6 +81,7 @@ _EXECUTABLE_ACTIVITY_STEMS = (
     "provision",
     "readi",
     "record",
+    "distribut",
     "repair",
     "repeat",
     "review",
@@ -136,6 +138,30 @@ def _has_meanwhile_concurrency(text: str) -> bool:
     return _has_temporal_marker_concurrency(text, r"\bmeanwhile\b")
 
 
+def _has_bare_meantime_concurrency(text: str) -> bool:
+    for match in re.finditer(r"\b(?:and\s+)?meantime\b", text):
+        left = text[max(0, match.start() - 300) : match.start()]
+        right = text[match.end() : match.end() + 500]
+        left_sentences = [sentence for sentence in re.split(r"[.!?]", left) if sentence.strip()]
+        left_context = left_sentences[-1] if left_sentences else ""
+        right_sentences = [sentence for sentence in re.split(r"[.!?]", right) if sentence.strip()]
+        right_activity = right_sentences[0] if right_sentences else ""
+        later_context = ".".join(right_sentences[1:3])
+        has_shared_continuation = bool(
+            re.search(
+                r"\b(?:afterwards|afterward|after|once|when|then)\b",
+                later_context,
+            )
+        )
+        if (
+            _has_executable_activity(left_context)
+            and _has_executable_activity(right_activity)
+            and has_shared_continuation
+        ):
+            return True
+    return False
+
+
 def _has_while_clause_concurrency(text: str) -> bool:
     for match in re.finditer(r"\bwhile\s+([^,.;]+),\s*([^.;]+)", text):
         if _has_executable_activity(match.group(1)) and _has_executable_activity(match.group(2)):
@@ -182,6 +208,7 @@ def extract_parallel_evidence(process_text: str) -> List[str]:
     compound_checks = (
         ("in_the_meantime_with_independent_activities", _has_in_the_meantime_concurrency),
         ("meanwhile_with_independent_activities", _has_meanwhile_concurrency),
+        ("bare_meantime_with_independent_activities_and_shared_continuation", _has_bare_meantime_concurrency),
         ("while_with_independent_activities", _has_while_clause_concurrency),
         ("multiple_activities_in_arbitrary_order", _has_arbitrary_order_concurrency),
         ("multiple_outputs_synchronized_before_continuation", _has_multi_output_synchronization),

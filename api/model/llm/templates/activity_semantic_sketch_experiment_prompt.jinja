@@ -41,9 +41,10 @@ Produce only:
 - semantic continuation intent for each topology branch
 
 Semantic preservation rules:
-- Every business action mentioned in the process text must appear exactly once somewhere in the semantic plan
+- Treat each independently asserted business operation at each explicit process occurrence as one business action, and represent each occurrence exactly once. When a clause contains two distinct operations, such as `confirm the order and send the master data`, return two ordered actions. Do not split one operation into implementation substeps.
 - Represent each business action either in `root_actions` or in `branch_plans.steps`
 - Business actions must never silently disappear
+- An explicit operation that establishes a later decision, such as reviewing, inspecting, checking, validating, or verifying something, remains a business Action before that decision in source-consistent order. The decision represents only the resulting alternatives; never absorb the operation only into the decision purpose, label, or condition.
 - `branch_plans.intent` is control-flow only; it must never replace a business action
 - `continue`, `terminate`, and `loop_back` describe only branch behavior after the listed branch steps
 - If a branch performs a business action such as approve, reject, cancel, deploy, notify, review, revise, update, or retry, that action must appear in `branch_plans.steps` even when the branch intent is `continue`, `terminate`, or `loop_back`
@@ -103,7 +104,7 @@ Rules:
 - Use empty `steps` when no explicit branch-local action is described
 - An empty `steps` list is valid only when that branch genuinely performs no business action of its own in the process text
 - A `terminate` or `loop_back` branch must not return `steps=[]`; if the process text describes reject, cancel, close, archive, retry, revise, rework, correct, update, or resubmit behavior on that branch, put that action in `steps`
-- Use concise action names derived from the process text
+- Use concise action names closely derived from the source wording. Preserve the explicit operation and business object, and preserve the actor when it distinguishes responsibility. Do not replace an operation with a state, condition, broader summary, or generic synonym.
 - If a branch is a rejection/cancellation/closure path and no later shared behavior applies to it, use `intent="terminate"`
 - If a branch is a retry/rework path inside a loop, use `intent="loop_back"`
 - Otherwise, use `intent="continue"`
