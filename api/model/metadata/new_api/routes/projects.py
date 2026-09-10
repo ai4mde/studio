@@ -3,7 +3,7 @@ from uuid import UUID
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
-from metadata.new_api.helpers import update_instance
+from metadata.new_api.helpers import create_instance, update_instance
 from metadata.new_api.schemas.projects import (
     ProjectCreate, 
     ProjectRead, 
@@ -27,12 +27,7 @@ def read_project(request, project_id: UUID):
 
 @router.post("/", response=ProjectRead)
 def create_project(request, payload: ProjectCreate):
-    project = Project(**payload.model_dump())
-
-    project.full_clean()
-    project.save()
-
-    return project
+    return create_instance(Project, payload)
 
 
 @router.patch("/{project_id}", response=ProjectRead)
