@@ -2,10 +2,11 @@ from uuid import UUID
 
 from ninja import ModelSchema
 
+from diagram.new_api.schemas.diagram import DiagramRead
 from metadata.models import System
 
 class SystemRead(ModelSchema):
-    diagrams: list[UUID] = [] # TODO import the diagram schema here and use it
+    diagrams: list[DiagramRead]
 
     class Meta:
         model = System
