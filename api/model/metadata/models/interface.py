@@ -81,7 +81,7 @@ class SectionComponent(models.Model):
     name = models.CharField(max_length=255)
     text = models.CharField(max_length=255, blank=True, default="")
     uml_class = models.ForeignKey(
-        "Class",
+        "ClassClassifier",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

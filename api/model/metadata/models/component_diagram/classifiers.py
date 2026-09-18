@@ -3,7 +3,7 @@ from django.db import models
 from ..classifier import ClassifierDataModel
 
 
-class SystemComponent(ClassifierDataModel):         # Normally System, however, a class with that name already exists
+class SystemClassifier(ClassifierDataModel):
     name = models.CharField(max_length=255)
 
 

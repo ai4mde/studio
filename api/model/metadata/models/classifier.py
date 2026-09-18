@@ -22,8 +22,17 @@ class Classifier(models.Model):
     @property
     def data(self):
         # When creating a new ClassifierType make sure the reverse relation related name is the same as the ClassifierType value
+        # This will allow the Classifier to get the correct data model for the classifier type
+        # If this name is already taken, you can add a new entry to the CLASSIFIER_DATA_FIELDS dictionary below to map the ClassifierType to the correct related name
+        CLASSIFIER_DATA_FIELDS = {
+            ClassifierType.INTERFACE: "interfaceclassifier",
+            ClassifierType.SYSTEM: "systemclassifier",
+            ClassifierType.CLASS: "classclassifier",
+        }
+        field = CLASSIFIER_DATA_FIELDS.get(self.type) or self.type
+        
         try:
-            return getattr(self, self.type)
+            return getattr(self, field)
         except AttributeError:
             return None
 

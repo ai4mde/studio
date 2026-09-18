@@ -1,9 +1,9 @@
 from .classifiers import (
     Attribute,
-    Class,
+    ClassClassifier,
     Enum,
     EnumLiteral,
-    Interface,
+    InterfaceClassifier,
     Operation,
     Signal,
 )

@@ -1,9 +1,9 @@
 from .classifiers import (
     Component,
     Container,
-    SystemComponent,
+    SystemClassifier,
 )
 
 from .relations import (
-    Interface,
+    InterfaceRelation,
 )

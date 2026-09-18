@@ -3,8 +3,8 @@ from uuid import UUID
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
-from metadata.new_api.helpers import create_instance, update_instance
-from metadata.new_api.schemas.projects import (
+from metadata.api.helpers import create_instance, update_instance
+from metadata.api.schemas.projects import (
     ProjectCreate, 
     ProjectRead, 
     ProjectUpdate,

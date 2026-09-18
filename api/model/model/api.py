@@ -1,6 +1,6 @@
-from diagram.api import diagram_router
+from diagram.api import router as diagram_router
 from django.http import HttpResponse
-from metadata.api import metadata_router
+from metadata.api import router as metadata_router
 from prose.api import prose_router
 from generator.api import generator_router
 from ninja import NinjaAPI, Schema
@@ -14,8 +14,8 @@ api = NinjaAPI(
     auth=auth,
     csrf=False,  # TODO: Ensure this works with Axios frontend / XSRF Header
 )
-api.add_router("/metadata/", metadata_router)
-api.add_router("/diagram/", diagram_router)
+api.add_router("/", metadata_router)
+api.add_router("/", diagram_router)
 api.add_router("/prose/", prose_router)
 api.add_router("/generator/", generator_router)
 

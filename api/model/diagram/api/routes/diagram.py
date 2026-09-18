@@ -4,12 +4,12 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from diagram.models import Diagram
-from diagram.new_api.schemas.diagram import (
+from diagram.api.schemas.diagram import (
     DiagramCreate,
     DiagramRead,
     DiagramUpdate,
 )
-from metadata.new_api.helpers import create_instance, update_instance
+from metadata.api.helpers import create_instance, update_instance
 
 
 router = Router()

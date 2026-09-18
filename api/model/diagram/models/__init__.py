@@ -1,6 +1,6 @@
-from diagram import Diagram
-from edge import (
+from .diagram import Diagram
+from .edge import (
     Edge,
     EdgeControlPoint,
 )
-from node import Node
+from .node import Node

@@ -29,8 +29,15 @@ class Relation(models.Model):
     @property
     def data(self):
         # When creating a new RelationType make sure the reverse relation related name is the same as the RelationType value
+        # This will allow the Relation to get the correct data model for the relation type
+        # If this name is already taken, you can add a new entry to the RELATION_DATA_FIELDS dictionary below to map the RelationType to the correct related name
+        RELATION_DATA_FIELDS = {
+            RelationType.INTERFACE: "interfacerelation",
+        }
+        field = RELATION_DATA_FIELDS.get(self.type) or self.type
+
         try:
-            return getattr(self, self.type)
+            return getattr(self, field)
         except AttributeError:
             return None
 

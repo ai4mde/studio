@@ -93,7 +93,7 @@ class Action(ValidationMixin, ClassifierDataModel):
 class Object(ClassifierDataModel):
     name = models.CharField(max_length=255)
     uml_class = models.ForeignKey(
-        "Class",
+        "ClassClassifier",
         on_delete=models.SET_NULL,                     # An Object node should not be valid without a class attached, however,
         null=True,                                     # We want the user to be able to re-attach a new class if the old one is deleted
         blank=True,                                    # So this should be able to exist in this state

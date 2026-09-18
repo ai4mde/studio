@@ -5,7 +5,7 @@ from ..fields import PythonField
 from ..types import DataType
 
 
-class Class(ClassifierDataModel):
+class ClassClassifier(ClassifierDataModel):
     name = models.CharField(max_length=255)
 
 
@@ -28,7 +28,7 @@ class EnumLiteral(models.Model):
 
 class Attribute(models.Model):
     uml_class = models.ForeignKey(
-        Class,
+        ClassClassifier,
         on_delete=models.CASCADE,
         related_name="attributes",
     )
@@ -57,7 +57,7 @@ class Attribute(models.Model):
 
 class Operation(models.Model):
     uml_class = models.ForeignKey(
-        Class,
+        ClassClassifier,
         on_delete=models.CASCADE,
         related_name="methods",
     )
@@ -76,7 +76,7 @@ class Operation(models.Model):
     )
 
 
-class Interface(ClassifierDataModel):
+class InterfaceClassifier(ClassifierDataModel):
     name = models.CharField(max_length=255)
 
 

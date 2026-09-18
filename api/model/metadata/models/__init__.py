@@ -13,12 +13,12 @@ from .general import (
 
 from .class_diagram import (
     # Nodes
-    Class,
+    ClassClassifier,
     Enum,
     EnumLiteral,
     Attribute,
     Operation,
-    Interface,
+    InterfaceClassifier,
     Signal,
     
     # Relations
@@ -44,12 +44,12 @@ from .activity_diagram import (
 
 from .component_diagram import (
     # Nodes
-    SystemComponent,
+    SystemClassifier,
     Container,
     Component,
     
     # Relations
-    Interface,
+    InterfaceRelation,
 )
 
 from .usecase_diagram import (

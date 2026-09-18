@@ -3,7 +3,7 @@ from django.db import models
 from ..relation import RelationDataModel
 
 
-class Interface(RelationDataModel):
+class InterfaceRelation(RelationDataModel):
     required = models.ForeignKey(
         "Interface",
         on_delete=models.SET_NULL,

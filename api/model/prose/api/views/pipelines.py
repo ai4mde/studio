@@ -1,7 +1,7 @@
 from typing import List
 from ninja import Router
 from prose.api.schemas.pipelines import PipelineSchema, PipelineRequirementsSchema, PipelineModelSchema, PipelineResultsSchema
-from diagram.api.schemas import FullDiagram
+from diagram.api.schemas.diagram import DiagramRead
 
 from prose.models import Pipeline
 from diagram.models import Diagram
@@ -69,7 +69,7 @@ def run_model(request, pipeline_id: str, model="llama-3.3-70b-versatile"):
     return pipeline
 
 
-@pipelines.post('/{uuid:pipeline_id}/add_to_diagram/{uuid:diagram_id}/', response=FullDiagram)
+@pipelines.post('/{uuid:pipeline_id}/add_to_diagram/{uuid:diagram_id}/', response=DiagramRead)
 def add_to_diagram(request, pipeline_id: str, diagram_id: str, classifiers: List[dict], relations: List[dict]):
     diagram = Diagram.objects.get(id=diagram_id)
 
