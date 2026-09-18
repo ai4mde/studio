@@ -26,23 +26,22 @@ export const TopNavigation: React.FC<Props> = ({ back, navigation }) => {
                 </a>
             )}
             {navigation?.map(({ name, Icon, href, strict }) => (
-                <>
-                    <a
-                        className={[
-                            "flex flex-row gap-2 px-3 items-center border-b border-transparent hover:text-stone-900 hover:bg-stone-200",
-                            (strict
-                                ? pathname == href
-                                : matchPath(href, pathname)) &&
-                                "bg-stone-200 text-stone-900 !border-stone-900",
-                        ]
-                            .filter(Boolean)
-                            .join(" ")}
-                        href={href}
-                    >
-                        <Icon size={14} />
-                        {name}
-                    </a>
-                </>
+                <a
+                    key={href}
+                    className={[
+                        "flex flex-row gap-2 px-3 items-center border-b border-transparent hover:text-stone-900 hover:bg-stone-200",
+                        (strict
+                            ? pathname == href
+                            : matchPath(href, pathname)) &&
+                            "bg-stone-200 text-stone-900 !border-stone-900",
+                    ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    href={href}
+                >
+                    <Icon size={14} />
+                    {name}
+                </a>
             ))}
         </div>
     );

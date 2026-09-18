@@ -2,7 +2,7 @@ from uuid import UUID
 
 from ninja import ModelSchema
 
-from diagram.new_api.schemas.diagram import DiagramRead
+from diagram.api.schemas.diagram import DiagramRead
 from metadata.models import System
 
 class SystemRead(ModelSchema):
@@ -14,7 +14,7 @@ class SystemRead(ModelSchema):
     
     @staticmethod
     def resolve_diagrams(obj):
-        return list(obj.diagrams)
+        return obj.diagrams.all()
 
 
 class SystemCreate(ModelSchema):
@@ -23,6 +23,7 @@ class SystemCreate(ModelSchema):
     class Meta:
         model = System
         fields = ["name", "description"]
+        fields_optional = ["description"]
 
 
 class SystemUpdate(ModelSchema):

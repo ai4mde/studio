@@ -1,0 +1,4 @@
+how can we simplify the routes?
+
+Add to diagram -> describe it -> LLM might come up with a node that already exists but wiht new attributes -> merge
+Currenlty searching over classifiers/relations etc -> can be way more efficient with ORM.

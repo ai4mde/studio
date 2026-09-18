@@ -34,7 +34,6 @@ type Props = {
 export const CreateSystem: React.FC<Props> = ({ project }) => {
     const [open, setOpen] = useAtom(createSystemAtom);
     const close = () => setOpen(false);
-
     const { mutateAsync, isPending } = useMutation<
         SystemOutput,
         unknown,
@@ -44,7 +43,7 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
             const { data } = await authAxios.post(`v1/metadata/systems/`, {
                 name: name,
                 description: description,
-                project: project,
+                project_id: project,
             });
 
             return data;

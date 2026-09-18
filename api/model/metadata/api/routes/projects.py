@@ -20,7 +20,7 @@ def list_projects(request):
     return Project.objects.all()
 
 
-@router.get("/{project_id}", response=ProjectRead)
+@router.get("/{project_id}/", response=ProjectRead)
 def read_project(request, project_id: UUID):
     return get_object_or_404(Project, id=project_id)
 
@@ -30,7 +30,7 @@ def create_project(request, payload: ProjectCreate):
     return create_instance(Project, payload)
 
 
-@router.patch("/{project_id}", response=ProjectRead)
+@router.patch("/{project_id}/", response=ProjectRead)
 def update_project(
     request,
     project_id: UUID,
@@ -40,7 +40,7 @@ def update_project(
     return update_instance(project, payload)
 
 
-@router.delete("/{project_id}", response={204: None})
+@router.delete("/{project_id}/", response={204: None})
 def delete_project(request, project_id: UUID):
     project = get_object_or_404(Project, id=project_id)
     project.delete()

@@ -12,24 +12,21 @@ type FlatDiagram = {
     id: string;
     name: string;
     description: string;
+    type: string;
 };
 
 type SystemOut = {
     id: string;
     name: string;
     description?: string;
-    diagrams_by_type?: {
-        classes?: FlatDiagram[];
-        usecase?: FlatDiagram[];
-        activity?: FlatDiagram[];
-        component?: FlatDiagram[];
-    };
+    diagrams: FlatDiagram[];
 };
 
 type NewDiagram = {
     type: string;
     name: string;
 };
+
 
 const SystemDiagrams: React.FC = () => {
     const { systemId } = useParams();
@@ -49,7 +46,7 @@ const SystemDiagrams: React.FC = () => {
     const newDiagram = useMutation<unknown, unknown, NewDiagram>({
         mutationFn: async ({ type }) => {
             await authAxios.post(`/v1/diagram/`, {
-                system: systemId,
+                system_id: systemId,
                 type: type,
             });
             queryClient.refetchQueries({
@@ -58,33 +55,34 @@ const SystemDiagrams: React.FC = () => {
         },
     });
 
-    const { diagrams_by_type } = system.data ?? {};
+    const diagrams = system.data?.diagrams ?? [];
     const uiDiagrams = [
         {
-            type: "classes",
+            type: "class",
             name: "Class Diagram",
             Icon: Network,
-            diagrams: diagrams_by_type?.classes ?? [],
         },
         {
             type: "activity",
             name: "Activity Diagram",
             Icon: Workflow,
-            diagrams: diagrams_by_type?.activity ?? [],
         },
         {
             type: "usecase",
             name: "Usecase Diagram",
             Icon: User,
-            diagrams: diagrams_by_type?.usecase ?? [],
         },
         {
             type: "component",
             name: "Component Diagram",
             Icon: Component,
-            diagrams: diagrams_by_type?.component ?? [],
         },
-    ];
+    ].map((diagramType) => ({
+        ...diagramType,
+        diagrams: diagrams.filter(
+            (diagram) => diagram.type === diagramType.type
+        ),
+    }));
 
     const showMetadata = () => {
         setShowModal(true);
@@ -123,14 +121,14 @@ const SystemDiagrams: React.FC = () => {
                     <>
                         <div className="flex flex-col gap-3 p-3">
                             {uiDiagrams.map(({ name, Icon, diagrams, type }) => (
-                                <>
+                                <React.Fragment key={type}>
                                     <span className="flex flex-row items-center gap-2">
                                         <Icon size={24} />
                                         <h1 className="text-lg">{name}</h1>
                                     </span>
                                     <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2">
                                         {diagrams.map(({ id, name }) => (
-                                            <div className="relative">
+                                            <div key={id} className="relative">
                                                 <a
                                                     href={`/diagram/${id}`}
                                                     className="flex h-fit flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
@@ -160,7 +158,7 @@ const SystemDiagrams: React.FC = () => {
                                             <Plus />
                                         </button>
                                     </div>
-                                </>
+                                </React.Fragment>
                             ))}
                             <button
                                 className="flex h-full w-full items-center justify-center gap-1 rounded-md bg-stone-100 p-4 hover:bg-stone-200"

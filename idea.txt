@@ -1,0 +1,3 @@
+ensure valid data (db rewrite)
+Improve import export (small git like functionality)
+Add data validation/preprocessing in generator

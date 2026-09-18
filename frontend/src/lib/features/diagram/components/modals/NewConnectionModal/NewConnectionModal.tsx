@@ -16,8 +16,8 @@ import { ComponentConnectionFields } from "../ConnectionFields/ComponentConnecti
 import style from "./newconnectionmodal.module.css";
 
 const isConnectionValid = (diagramType: string, o: any): boolean => {
-    // classes: must have valid type etc
-    if (diagramType === "classes" || diagramType === "class") {
+    // class: must have valid type etc
+    if (diagramType === "class") {
         return isClassConnectionValid(o);
     }
 
@@ -120,7 +120,7 @@ export const NewConnectionModal: React.FC = () => {
                                     </div>
                                 </div>
                             </Alert>
-                            {type == "classes" || type == "class" ? (
+                            {type == "class" ? (
                                 <ClassConnectionFields
                                     object={object}
                                     setObject={setObject}

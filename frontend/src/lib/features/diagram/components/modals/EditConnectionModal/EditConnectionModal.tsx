@@ -65,8 +65,8 @@ export const EditConnectionModal: React.FC = () => {
     const nodeRef = React.useRef(null);
 
     const isValid = () => {
-        // Classes: must pass class validation (requires type)
-        if (type === "classes" || type === "class") {
+        // Class: must pass class validation (requires type)
+        if (type === "class" || type === "class") {
             return isClassConnectionValid(object);
         }
 
@@ -109,7 +109,7 @@ export const EditConnectionModal: React.FC = () => {
 
                             <div className="h-full overfull-y-scroll bg-white">
                                 <div className={style.body}>
-                                    {type === "classes" && (
+                                    {type === "class" && (
                                         <ClassConnectionFields
                                             object={object}
                                             setObject={setObject}

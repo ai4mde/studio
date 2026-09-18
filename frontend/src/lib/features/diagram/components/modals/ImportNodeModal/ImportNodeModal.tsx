@@ -64,7 +64,7 @@ export const ImportNodeModal: React.FC = () => {
                                     setObject={setObject}
                                 />
                             )}
-                            {type == "classes" && (
+                            {type == "class" && (
                                 <ImportClassNode
                                     object={object}
                                     setObject={setObject}

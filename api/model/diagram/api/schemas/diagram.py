@@ -5,23 +5,10 @@ from ninja import ModelSchema
 from diagram.models import Diagram
 
 
-class DiagramRead(ModelSchema):
-    project: UUID
-    system_id: UUID
-    system_name: str
-
-    
+class DiagramRead(ModelSchema):    
     class Meta:
         model = Diagram
         fields = ["id", "name", "description", "type"]
-
-    @staticmethod
-    def resolve_project(obj) -> UUID:
-        return obj.system.project.id
-
-    @staticmethod
-    def resolve_system_name(obj) -> str:
-        return obj.system.name
 
 
 class DiagramCreate(ModelSchema):
@@ -30,7 +17,7 @@ class DiagramCreate(ModelSchema):
     class Meta:
         model = Diagram
         fields = ["name", "description", "type"]
-        fields_optional = ["description"]
+        fields_optional = ["name", "description"]
 
 
 class DiagramUpdate(ModelSchema):

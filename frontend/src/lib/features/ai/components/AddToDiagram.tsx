@@ -31,7 +31,7 @@ type DiagramOut = {
 const NEW_DIAGRAM = "__new_diagram__";
 
 const DIAGRAM_TYPES = [
-    {value: "classes", label: "Class"},
+    {value: "class", label: "Class"},
     {value: "usecase", label: "Use Case"},
     {value: "activity", label: "Activity"},
     {value: "component", label: "Component"},

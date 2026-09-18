@@ -21,7 +21,7 @@ export const useSystems = (projectId?: string) =>
             return (
                 await authAxios.get(`/v1/metadata/systems/`, {
                     params: {
-                        project: projectId,
+                        project_id: projectId,
                     },
                 })
             ).data;

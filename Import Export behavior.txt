@@ -1,0 +1,5 @@
+Import/Export behavior of singular nodes and relations
+
+
+When importing a node from another diagram -> create new ndoe with relation to that classifier
+When user draws an edge between two nodes which have classifiers which already have a relation between them -> automatically reuse relation data

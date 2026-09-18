@@ -1,11 +1,16 @@
-from diagram.api import router as diagram_router
+import logging
+
 from django.http import HttpResponse
-from metadata.api import router as metadata_router
-from prose.api import prose_router
-from generator.api import generator_router
 from ninja import NinjaAPI, Schema
+from ninja.errors import ValidationError
 
 from model.auth import auth, create_token
+
+from diagram.api import router as diagram_router
+from generator.api import generator_router
+from metadata.api import router as metadata_router
+from prose.api import prose_router
+
 
 api = NinjaAPI(
     title="AI4MDE Studio",
@@ -14,10 +19,32 @@ api = NinjaAPI(
     auth=auth,
     csrf=False,  # TODO: Ensure this works with Axios frontend / XSRF Header
 )
-api.add_router("/", metadata_router)
+api.add_router("/metadata/", metadata_router)
 api.add_router("/", diagram_router)
 api.add_router("/prose/", prose_router)
 api.add_router("/generator/", generator_router)
+
+
+logger = logging.getLogger(__name__)
+
+
+@api.exception_handler(ValidationError)
+def validation_error_handler(request, exc):
+    for error in exc.errors:
+        field = ".".join(str(part) for part in error["loc"])
+        logger.warning(
+            "%s %s: %s - %s",
+            request.method,
+            request.path,
+            field,
+            error["msg"]
+        )
+
+    return api.create_response(
+        request,
+        {"detail": exc.errors},
+        status=422,
+    )
 
 
 class GetTokenSchema(Schema):

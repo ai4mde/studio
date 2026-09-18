@@ -1,0 +1,174 @@
+
+
+
+Choices:
+	- Omit role for activity nodes (such as control)
+
+Classifier
+	system: Foreignkey to system it is related to
+	data: see below
+
+
+Class Diagrams
+
+Class ->
+	name: string
+	
+	type: Literal["class"]
+	attributes: List[Attribute]
+	methods: List[Operation]
+	
+	Attribute ->
+		name: str
+		type: Literal["str", "int", "bool", "datetime", "enum"]
+		derived: bool
+		enum: Optional Key to Enum object
+		description: Optional[string]          	(description used to generate code using LLM, when derived)
+		body: Optional[string]  		(Python code when it is derived)
+		
+	Operation ->
+		name: str
+		description: Optional[str] 		(description used to generate code using LLM)
+		type: Literal["str", "int", "bool", "datetime", "enum"]
+		body: str 				(Python code)
+		
+Enum ->
+	name: string
+	type: Literal["enum"] = "enum"
+	literals: List[str]
+
+
+Signal ->
+	name: string
+	type: Literal["signal"]
+
+System, Container, Component ->
+	name: string
+	type: Literal["system"] 	(or of course container or component for the respective type)
+	Internal: List[Internal]
+
+	Internal ->
+		name: string
+		internal: Foreignkey to another classifier (of certain specific types)
+
+	
+Interface -> 
+	name: string
+	type: Literal["interface"]
+
+Activity Diagrams
+
+Swimlane -> 
+	type: Literal["swimlane"]
+	parent: Optional foreignkey to another swimlane (tree structure)
+	actor: Foreignkey to actor node (only allowed when it is a leaf)
+	component: Foreignkey to either System, Container or Component (only allowed when it is an internal node)
+	
+Action ->
+	name: string
+	type: Literal["action"]
+	is_automatic: bool
+	custom_code: Optional[str] 	(Python code when it is an automatic task)
+	swimlane: Optional[Swimlane]
+	
+Object ->
+	name: string
+	type: Literal["object"]
+	class: Foreignkey to Class node
+	state: Optional[str]
+	
+Event ->
+	name: string
+	type: Literal["event"]
+	signal: Foreignkey to signal node
+
+(Decision, Final, Fork, Initial, Join, Merge are all control nodes)
+
+Decision ->
+	type: Literal["decision"]
+
+Final ->
+	type: Literal["final"]
+	activity_scope: Literal["flow", "activity"]
+
+Fork ->
+	type: Literal["fork"]
+	
+Initial ->
+	type: Literal["initial"]
+	scheduled: bool
+	schedule: str 				(cron expression)
+
+Join ->
+	type: Literal["join"]
+	
+Merge ->
+	type: Literal["merge"]
+
+
+Use Case Diagram
+
+use case ->
+	name: string
+	type: Literal["usecase"]
+	system_boundary: foreignkey to System Boundary node
+	
+actor ->
+	name: string
+	type: Literal["actor"]
+
+system boundary
+	name: string
+	type: Literal["system_boundary"]
+	system: Foreignkey to System node
+
+
+-------------------------RELATIONS-------------------------
+
+Association ->
+	type: association
+	derived: bool
+	multiplicity (source, target)
+	labels (source, target)
+	label
+	
+Generalization
+	type
+	
+Composition
+	type
+	multiplicity
+	labels
+	label
+
+Dependency
+	label
+
+Controlflow
+	type
+	guard = ""
+	weight = ""
+	condition ->
+		isElse: Boolean
+		target_attribute (Attribute class foreignkey)
+		operator
+		aggregator
+		threshold
+
+ONLY TYPE
+Interaction
+Extension
+Inclusion
+
+Interface
+	type
+	provided: foreignkey to interface
+	required: foreignkey to interface
+
+
+--------------------------------------INTERFACES---------------------------------
+pages
+styling
+sections
+settings
+categories

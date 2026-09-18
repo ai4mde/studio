@@ -1,0 +1,60 @@
+your_app/
+├── __init__.py
+├── apps.py
+├── migrations/
+│
+├── models/
+│   ├── __init__.py
+│   ├── classifier.py
+│   ├── relation.py
+│   ├── general.py
+│   ├── interface.py
+│   ├── fields.py
+│   ├── types.py
+│   ├── utils.py
+│   │
+│   ├── activity_diagram/
+│   │   ├── __init__.py
+│   │   ├── classifiers.py
+│   │   └── relations.py
+│   ├── class_diagram/
+│   │   ├── __init__.py
+│   │   ├── classifiers.py
+│   │   └── relations.py
+│   ├── component_diagram/
+│   │   ├── __init__.py
+│   │   ├── classifiers.py
+│   │   └── relations.py
+│   └── usecase_diagram/
+│       ├── __init__.py
+│       ├── classifiers.py
+│       └── relations.py
+│
+├── api/
+│   ├── __init__.py
+│   ├── urls.py
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   ├── interfaces.py
+│   │   ├── projects.py
+│   │   ├── releases.py
+│   │   └── systems.py
+│   └── views/
+│       ├── __init__.py
+│       ├── interfaces.py
+│       ├── projects.py
+│       ├── releases.py
+│       ├── systems.py
+│       └── utils.py
+│
+├── services/
+│   ├── __init__.py
+│   ├── interfaces.py
+│   ├── diagrams.py
+│   └── releases.py
+│
+└── tests/
+    ├── __init__.py
+    ├── test_models/
+    ├── test_api/
+    └── test_services/

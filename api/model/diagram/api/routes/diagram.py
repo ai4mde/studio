@@ -20,7 +20,7 @@ def list_diagrams(request, system_id: UUID):
     return Diagram.objects.filter(system_id=system_id)
 
 
-@router.get("/{diagram_id}", response=DiagramRead)  # TODO change to full diagram schema when implemented
+@router.get("/{diagram_id}/", response=DiagramRead)  # TODO change to full diagram schema when implemented
 def read_diagram(request, diagram_id: UUID):
     return get_object_or_404(Diagram, id=diagram_id)
 
@@ -30,13 +30,13 @@ def create_diagram(request, payload: DiagramCreate):
     return create_instance(Diagram, payload)
 
 
-@router.patch("/{diagram_id}", response=DiagramRead)
+@router.patch("/{diagram_id}/", response=DiagramRead)
 def update_diagram(request, diagram_id: UUID, payload: DiagramUpdate):
     diagram = get_object_or_404(Diagram, id=diagram_id)
     return update_instance(diagram, payload)
 
 
-@router.delete("/{diagram_id}", response={204: None})
+@router.delete("/{diagram_id}/", response={204: None})
 def delete_diagram(request, diagram_id: UUID):
     diagram = get_object_or_404(Diagram, id=diagram_id)
     diagram.delete()

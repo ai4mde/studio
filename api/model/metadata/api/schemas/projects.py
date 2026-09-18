@@ -13,6 +13,7 @@ class ProjectCreate(ModelSchema):
     class Meta:
         model = Project
         fields = ["name", "description"]
+        fields_optional = ["description"]
 
 
 class ProjectUpdate(ModelSchema):
