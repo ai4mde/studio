@@ -1,0 +1,12 @@
+{
+  "status": "REPORTING_ONLY_VALIDATED",
+  "certified_result_status": "CERTIFIED",
+  "certified_count_sets_verified": true,
+  "derived_metric_sets_verified": 4,
+  "formal_pooled_null_metrics_preserved": true,
+  "protected_certified_artifacts_unchanged": 15,
+  "frozen_candidate_and_implementation_files_unchanged": 644,
+  "evaluator_rerun_performed": false,
+  "source_aggregate_summary_sha256": "a1a8cdea1c087fcc17c7ed9d3cedebf962bfe88a208e23291545961a0944185e",
+  "formal_report_section_added": true
+}

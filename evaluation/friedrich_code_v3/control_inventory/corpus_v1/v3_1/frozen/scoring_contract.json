@@ -1,0 +1,107 @@
+{
+  "contract_version": "v3.1-cfi-anchor-evidence-1",
+  "status": "FROZEN",
+  "fact_statuses": {
+    "required": {
+      "source_fact_denominator": true,
+      "eligible_for_tp_fn": true,
+      "representation_only_fp": false,
+      "eligible_for_indeterminate_alignment": true
+    },
+    "permitted": {
+      "source_fact_denominator": false,
+      "eligible_for_tp_fn": false,
+      "representation_only_fp": false
+    },
+    "unresolved": {
+      "source_fact_denominator": false,
+      "eligible_for_tp_fn": false,
+      "eligible_for_fp_on_underspecified_scope": false,
+      "coverage_reporting_required": true
+    }
+  },
+  "generated_fact_fp_policy": {
+    "default": "abstain",
+    "score_fp_only_if": [
+      "contradicts_required_source_fact",
+      "violates_explicit_source_prohibition_or_termination_exclusion",
+      "unsupported_within_reviewed_exhaustive_source_scope"
+    ],
+    "affirmative_no_control_is_exhaustive_absence": true,
+    "source_non_exhaustive_scope": "abstain_from_fp_for_unstated_outcome",
+    "reference_gateway_absence_alone_is_fp_evidence": false
+  },
+  "coverage_reporting": {
+    "report_separately": [
+      "required_control_nodes",
+      "required_control_relations",
+      "permitted_control_nodes",
+      "permitted_control_relations",
+      "unresolved_control_nodes",
+      "unresolved_control_relations",
+      "unresolved_source_scope_questions",
+      "cases_with_source_abstention",
+      "candidate_facts_abstained_from_fp",
+      "indeterminate_alignment_count",
+      "determinate_coverage",
+      "recall_interval"
+    ],
+    "permitted_facts_count_as_coverage_gaps": false,
+    "unresolved_facts_count_as_coverage_gaps": true,
+    "scalar_coverage_rate": "determinate_coverage_for_required_facts; source_unresolved_coverage_reported_separately"
+  },
+  "dependency_policy": {
+    "required_relation_must_reference_required_node": true,
+    "unresolved_relation_may_reference_required_node": true,
+    "unresolved_dependency_requires_reason_code": true
+  },
+  "same_target_different_guard_policy": {
+    "distinct_relation_identity_includes_guard_meaning": true,
+    "distinct_target_action_required": false,
+    "multiple_penalties_for_one_wrong_outcome": false,
+    "guard_evidence_may_use_reviewed_action_alignment": true,
+    "new_similarity_threshold_allowed": false
+  },
+  "candidate_scores_used_to_define_source_facts": false,
+  "amendment_parent_contract_version": "v3-cfi-abstention-1",
+  "control_anchor_evidence_contract": {
+    "evidence_classes": [
+      "action_anchor",
+      "occurrence_anchor_set",
+      "gateway_guard"
+    ],
+    "accepted_action_mappings_locked_first": true,
+    "control_only_text_only_eligibility": "review_state accepted or modified; at least one source-supported text_only occurrence; Control anchor only",
+    "researcher_ambiguous_automatic_eligibility": false,
+    "action_scoring_counts_and_mappings_mutable": false,
+    "matching_policy": "reuse existing V2 semantic compatibility, source grounding, and accepted similarity rules; no new arbitrary threshold; a separate auditable adapter is required because text_only units lack V2 projected reference Action nodes",
+    "occurrence_policy": "specific occurrences require matching branch, cycle, recurrence role, and source-supported order; unit-level alignment alone is insufficient",
+    "mixed_occurrence_policy": "a text_only occurrence may receive a Control-only occurrence alignment even when another occurrence of the same semantic unit has an accepted V2 Action mapping; that V2 mapping remains locked to its own occurrence",
+    "anchor_set_policy": "many-to-one and one-to-many mappings may supply one compound anchor set only when every claimed semantic component is supported; a compound label does not establish an internal Control boundary",
+    "gateway_guard_policy": "explicit source predicate plus generated logical control node, guard semantics, and required routing may establish Control evidence without a standalone generated Action; a bare gateway is insufficient and no gateway becomes an Action TP",
+    "control_fact_matching": "test only source-registered evidence modes and structural roles; Action context alone never earns Control TP",
+    "conflict_policy": "Control-only mappings cannot displace accepted V2 Action mappings; competing non-equivalent mappings require occurrence/structure resolution or indeterminate alignment",
+    "genuine_absence_policy": "FN only after all source-permitted observable evidence modes are tested and none is present"
+  },
+  "candidate_scoring_state_contract": {
+    "required_fact_states": [
+      "TP",
+      "FN",
+      "indeterminate_alignment"
+    ],
+    "source_side_unresolved_is_candidate_state": false,
+    "fixed_denominator_equation": "D = TP + FN + indeterminate_alignment_count",
+    "candidate_specific_required_fact_removal_allowed": false,
+    "candidate_specific_required_to_unresolved_allowed": false,
+    "missing_evidence": "FN",
+    "correct_evidence": "TP",
+    "source_contradiction": "FN plus applicable generated FP under existing substitution and single-wrong-outcome policy",
+    "evaluator_indeterminacy": "separate flag; neither TP nor FN until resolved; D unchanged",
+    "component_metrics_when_indeterminate_count_positive": "precision, recall, and F1 null; report TP, FN, FP, D, indeterminate count, determinate coverage, and recall interval; no partial-score ranking",
+    "determinate_coverage": "(TP + FN) / D",
+    "recall_interval": "[TP / D, (TP + indeterminate_alignment_count) / D]",
+    "source_unresolved": "frozen before candidate evaluation; excluded from TP/FP/FN and reported separately"
+  },
+  "case_contract_binding": "V3.1 manifest selects this contract for all 40 cases; unchanged case files retain V3.0 origin metadata and byte identity",
+  "retired_fact_policy": "retired facts are recorded verbatim in amendment history and excluded from the live V3.1 inventory, statuses, and denominators"
+}

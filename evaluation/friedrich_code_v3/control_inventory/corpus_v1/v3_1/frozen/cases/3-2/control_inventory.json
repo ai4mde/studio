@@ -1,0 +1,279 @@
+{
+  "case_id": "3-2",
+  "status": "FROZEN",
+  "source_hash": "f6fcd1f963d5e7534a7026c81340038c96876fad52be95698ff8af19a76ebf24",
+  "source_encoding": "cp1252",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "c68b0c583c774785f03643b97c4aa60e79850aecb2d25e754d8696c10b58f4c9",
+  "reference_model_sha256": "70260ba1bdd63023bd51b47f5df68f3c93538fcf6432a8a4ef96fd5aec98f99e",
+  "process_control_logic": "Missing files trigger a search; otherwise files are tracked. Ready files are handed to the Associate while the Lawlist is distributed, before hearings.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-3-2-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Select missing-file search or direct tracking",
+      "anchor_action_ids": [
+        "SU-3-2-01"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 139,
+          "end_offset": 164,
+          "exact_excerpt": "If some files are missing"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-2-N02",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Files from either readiness route are handed to the Associate",
+      "anchor_action_ids": [
+        "SU-3-2-02",
+        "SU-3-2-03",
+        "SU-3-2-04"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 262,
+          "end_offset": 325,
+          "exact_excerpt": "Once all the files are ready, these are handed to the Associate"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-2-N03",
+      "type": "Fork",
+      "status": "permitted",
+      "purpose": "File handoff and Lawlist distribution proceed meanwhile",
+      "anchor_action_ids": [
+        "SU-3-2-04",
+        "SU-3-2-05"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 331,
+          "end_offset": 374,
+          "exact_excerpt": "meantime the Judge’s Lawlist is distributed"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-2-N04",
+      "type": "Join",
+      "status": "permitted",
+      "purpose": "Hearings follow file readiness and Lawlist distribution",
+      "anchor_action_ids": [
+        "SU-3-2-04",
+        "SU-3-2-05",
+        "SU-3-2-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 399,
+          "end_offset": 449,
+          "exact_excerpt": "Afterwards, the directions hearings are conducted."
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-3-2-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-2-N01",
+      "guard_meaning": "files missing",
+      "target_action_ids": [
+        "SU-3-2-02"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 166,
+          "end_offset": 187,
+          "exact_excerpt": "a search is initiated"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-2-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-2-N01",
+      "guard_meaning": "files not missing",
+      "target_action_ids": [
+        "SU-3-2-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 189,
+          "end_offset": 234,
+          "exact_excerpt": "otherwise the files can be physically tracked"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-2-R03",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-3-2-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-3-2-04"
+      ],
+      "incoming_action_ids": [
+        "SU-3-2-02",
+        "SU-3-2-03"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 262,
+          "end_offset": 325,
+          "exact_excerpt": "Once all the files are ready, these are handed to the Associate"
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-3-2-R04",
+      "type": "parallel_launch",
+      "status": "permitted",
+      "source_control_fact": "CF-3-2-N03",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-3-2-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 331,
+          "end_offset": 374,
+          "exact_excerpt": "meantime the Judge’s Lawlist is distributed"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-2-R05",
+      "type": "parallel_launch",
+      "status": "permitted",
+      "source_control_fact": "CF-3-2-N03",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-3-2-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 331,
+          "end_offset": 374,
+          "exact_excerpt": "meantime the Judge’s Lawlist is distributed"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-2-R06",
+      "type": "synchronization",
+      "status": "permitted",
+      "source_control_fact": "CF-3-2-N04",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-3-2-06"
+      ],
+      "incoming_action_ids": [
+        "SU-3-2-04"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 399,
+          "end_offset": 449,
+          "exact_excerpt": "Afterwards, the directions hearings are conducted."
+        }
+      ],
+      "incoming_mode": "branch_completion"
+    },
+    {
+      "fact_id": "CF-3-2-R07",
+      "type": "synchronization",
+      "status": "permitted",
+      "source_control_fact": "CF-3-2-N04",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-3-2-06"
+      ],
+      "incoming_action_ids": [
+        "SU-3-2-05"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 399,
+          "end_offset": 449,
+          "exact_excerpt": "Afterwards, the directions hearings are conducted."
+        }
+      ],
+      "incoming_mode": "branch_completion"
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-3-2-N02",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudication: “meantime” permits parallel realization but does not require independent active branches here; both actions precede hearings as Flow facts. Reference Parallel gateways do not set the required denominator.",
+    "Adjudicated source question: Does “meantime” require true concurrency, or only allow either order between file handoff and Lawlist distribution?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

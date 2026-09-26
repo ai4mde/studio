@@ -1,0 +1,355 @@
+{
+  "case_id": "6-1",
+  "status": "FROZEN",
+  "source_hash": "2747272143cf789c0ecb628c07910c4aa2fcba8b499565b2a4b63f728b174c84",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "d7d0f15760925783d3eda1812d5481bc94afd2641a8d500e25e174b87a2fea37",
+  "reference_model_sha256": "7cf7043167e8e16f66953f90523748b22d1f82ad4449803a1206a8ec396fbdfe",
+  "process_control_logic": "Each cost-center manager either marks an item accurate and passes it onward, or returns inconsistency for clarification and resubmission. Commercial approval may require Board review and complaint resolution.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-6-1-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Cost-center manager accepts an item or rejects it for inconsistency",
+      "anchor_action_ids": [
+        "SU-6-1-10"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 735,
+          "end_offset": 764,
+          "exact_excerpt": "Should everything be in order"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Continue cost-center reviews until all positions are accurate",
+      "anchor_action_ids": [
+        "SU-6-1-10",
+        "SU-6-1-11"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1155,
+          "end_offset": 1209,
+          "exact_excerpt": "until all positions are marked as completely accurate."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Clarify inconsistency and resubmit to cost-center managers",
+      "anchor_action_ids": [
+        "SU-6-1-15",
+        "SU-6-1-16",
+        "SU-6-1-17"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1677,
+          "end_offset": 1714,
+          "exact_excerpt": "When all inconsistencies are resolved"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Board review required above EUR 20,000",
+      "anchor_action_ids": [
+        "SU-6-1-21",
+        "SU-6-1-22"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1993,
+          "end_offset": 2030,
+          "exact_excerpt": "If the bill amount exceeds EUR 20,000"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-N05",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Commercial audit complaint requires resolution",
+      "anchor_action_ids": [
+        "SU-6-1-21"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2204,
+          "end_offset": 2259,
+          "exact_excerpt": "Should there be a complaint during the commercial audit"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-6-1-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N01",
+      "guard_meaning": "accurate",
+      "target_action_ids": [
+        "SU-6-1-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 766,
+          "end_offset": 801,
+          "exact_excerpt": "he notes his code one on the docket"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N01",
+      "guard_meaning": "inconsistency",
+      "target_action_ids": [
+        "SU-6-1-15"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1219,
+          "end_offset": 1243,
+          "exact_excerpt": "if inconsistencies exist"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R03",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N02",
+      "guard_meaning": "another cost-center manager/item remains",
+      "target_action_ids": [
+        "SU-6-1-13",
+        "SU-6-1-10"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 923,
+          "end_offset": 964,
+          "exact_excerpt": "passed on to the next cost center manager"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R04",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N02",
+      "guard_meaning": "all items marked correct",
+      "target_action_ids": [
+        "SU-6-1-14",
+        "SU-6-1-20"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 990,
+          "end_offset": 1047,
+          "exact_excerpt": "if all items are marked correct, sent back to accounting."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R05",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N03",
+      "guard_meaning": "inconsistencies resolved",
+      "target_action_ids": [
+        "SU-6-1-19",
+        "SU-6-1-10"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1716,
+          "end_offset": 1781,
+          "exact_excerpt": "the copy of the invoice is sent to the cost center managers again"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R06",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N03",
+      "guard_meaning": "all invoice items approved",
+      "target_action_ids": [
+        "SU-6-1-20"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1810,
+          "end_offset": 1840,
+          "exact_excerpt": "After all invoice items are AP"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R07",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N04",
+      "guard_meaning": "bill above EUR 20,000",
+      "target_action_ids": [
+        "SU-6-1-23"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2032,
+          "end_offset": 2065,
+          "exact_excerpt": "the Board wants to check it again"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R08",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N04",
+      "guard_meaning": "bill at or below EUR 20,000",
+      "target_action_ids": [
+        "SU-6-1-24"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2328,
+          "end_offset": 2380,
+          "exact_excerpt": "After the commercial audit is successfully completed"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R09",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N05",
+      "guard_meaning": "complaint",
+      "target_action_ids": [
+        "SU-6-1-25"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2261,
+          "end_offset": 2326,
+          "exact_excerpt": "it will be resolved by the accounting employee with the supplier."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-1-R10",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-1-N05",
+      "guard_meaning": "audit successful",
+      "target_action_ids": [
+        "SU-6-1-26"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2328,
+          "end_offset": 2380,
+          "exact_excerpt": "After the commercial audit is successfully completed"
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "REUSE_ACTION_ALIGNMENT",
+      "status": "permitted",
+      "scope": "repeated or compound source activity anchors",
+      "reason": "Use the already reviewed Action alignment for split, combined, or repeated activity occurrences; no new label threshold is introduced."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does resolving a commercial-audit complaint require repeating the audit/approval, or merely proceeding after resolution?",
+    "Adjudicated source question: For each cost-center item, are the next-manager and all-items-correct checks one loop decision or two distinct controls?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

@@ -1,0 +1,997 @@
+{
+  "amendment_version": "v3.1-control-facts-frozen-20260924",
+  "status": "FROZEN",
+  "parent_v3_0_corpus_sha256": "8d8e9dc51bf45cf37721cce8aadb8953bbf8656217382fb8afdbbb39944f0968",
+  "approved_scope_case_ids": [
+    "4-1",
+    "9-6",
+    "2-2",
+    "6-3",
+    "10-8",
+    "9-1"
+  ],
+  "source_only_review": true,
+  "candidate_graphs_or_scores_used": false,
+  "action_scoring_changed": false,
+  "case_changes": {
+    "4-1": {
+      "before_sha256": "8505b33550718da3a4f90c10e64d725ecc9808422cc0547cbc5b5219495d3499",
+      "after_sha256": "4d3f2f062a8e7549c09e744eab642955a60571864293eddf1348efd9c66fe011",
+      "exact_json_differences": [
+        {
+          "path": "/adjudication_revision",
+          "before": "v3-control-facts-freeze-candidate-20260923",
+          "after": "v3.1-approved-source-only-amendment-20260924"
+        },
+        {
+          "path": "/control_nodes/CF-4-1-N04/anchor_action_ids",
+          "before": [
+            "SU-4-1-25",
+            "SU-4-1-28",
+            "SU-4-1-31"
+          ],
+          "after": [
+            "SU-4-1-31"
+          ]
+        },
+        {
+          "path": "/control_nodes/CF-4-1-N04/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "gateway_guard",
+              "source_predicate": "both first- and second-intaker patient meetings have occurred",
+              "required_structural_roles": [
+                "first_meeting_completion_input",
+                "second_meeting_completion_input",
+                "listing_after_join"
+              ],
+              "source_span": {
+                "start_offset": 3516,
+                "end_offset": 3605,
+                "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+              },
+              "action_context_ids": [
+                "SU-4-1-31"
+              ],
+              "action_context_is_completion_proxy": false
+            }
+          ]
+        },
+        {
+          "path": "/control_nodes/CF-4-1-N04/notes",
+          "before": "",
+          "after": "The source explicitly requires both meetings before listing; examination and dictaphone recording are not meeting-completion proxies."
+        },
+        {
+          "path": "/control_relations/CF-4-1-R06/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "gateway_guard",
+              "source_predicate": "first intaker meeting completion before patient listing",
+              "required_structural_roles": [
+                "first_intaker_meeting_completion",
+                "listing_after_join"
+              ],
+              "source_span": {
+                "start_offset": 3516,
+                "end_offset": 3605,
+                "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+              }
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-4-1-R06/incoming_action_ids",
+          "before": [
+            "SU-4-1-25"
+          ],
+          "after": []
+        },
+        {
+          "path": "/control_relations/CF-4-1-R06/incoming_boundary",
+          "before": null,
+          "after": "first_intaker_meeting_completion"
+        },
+        {
+          "path": "/control_relations/CF-4-1-R06/notes",
+          "before": "",
+          "after": "Source-grounded meeting-completion boundary; no standalone reviewed Action unit is required."
+        },
+        {
+          "path": "/control_relations/CF-4-1-R08/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "gateway_guard",
+              "source_predicate": "second intaker meeting completion before patient listing",
+              "required_structural_roles": [
+                "second_intaker_meeting_completion",
+                "listing_after_join"
+              ],
+              "source_span": {
+                "start_offset": 3516,
+                "end_offset": 3605,
+                "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+              }
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-4-1-R08/notes",
+          "before": "Second-intaker meeting completion has no standalone reviewed Action or occurrence; SU-4-1-28 records observations and is not meeting completion.",
+          "after": "Source-grounded meeting-completion boundary; no standalone reviewed Action unit is required."
+        },
+        {
+          "path": "/control_relations/CF-4-1-R08/reason_code",
+          "before": "missing_stable_action_anchor",
+          "after": null
+        },
+        {
+          "path": "/control_relations/CF-4-1-R08/status",
+          "before": "unresolved",
+          "after": "required"
+        },
+        {
+          "path": "/inventory_version",
+          "before": "v3-control-facts-frozen-20260924",
+          "after": "v3.1-control-facts-frozen-20260924"
+        },
+        {
+          "path": "/review_notes",
+          "before": [
+            "The four reference Parallel gateways are not copied wholesale; source-supported independence and the both-meetings completion point are the scored draft.",
+            "Adjudicated source question: Which preparatory activities are truly concurrent, beyond the independent first- and second-intaker meetings?",
+            "Adjudicated source question: Does medical-file receipt gate only second-intaker meeting planning, or the meeting itself and joint completion?",
+            "Required Join expresses both-meeting completion. The first synchronization is required; the second relation is explicitly unresolved and excluded from score denominators."
+          ],
+          "after": [
+            "The four reference Parallel gateways are not copied wholesale; source-supported independence and the both-meetings completion point are the scored draft.",
+            "Adjudicated source question: Which preparatory activities are truly concurrent, beyond the independent first- and second-intaker meetings?",
+            "Adjudicated source question: Does medical-file receipt gate only second-intaker meeting planning, or the meeting itself and joint completion?",
+            "Required Join expresses both-meeting completion. The first synchronization is required; the second relation is explicitly unresolved and excluded from score denominators.",
+            "V3.1: both meeting-completion inputs are required Control boundaries grounded in the explicit source conjunction; SU-4-1-25 and SU-4-1-28 are not completion proxies."
+          ]
+        },
+        {
+          "path": "/scoring_contract_version",
+          "before": "v3-cfi-abstention-1",
+          "after": "v3.1-cfi-anchor-evidence-1"
+        },
+        {
+          "path": "/unresolved_facts",
+          "before": [
+            {
+              "status": "unresolved",
+              "question": "The reviewed Action inventory has no standalone second-intaker meeting unit; identify a stable completion anchor for the second Join branch.",
+              "source_spans": [
+                {
+                  "start_offset": 3516,
+                  "end_offset": 3605,
+                  "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+                }
+              ],
+              "affected_fact_ids": [
+                "CF-4-1-R08",
+                "CF-4-1-N04"
+              ],
+              "reason": "",
+              "reason_code": "missing_stable_action_anchor",
+              "coverage_kind": "source_scope_question",
+              "fp_scope": "abstain_on_unspecified_relation"
+            }
+          ],
+          "after": []
+        }
+      ]
+    },
+    "9-6": {
+      "before_sha256": "0f5987a5c60b8e6b7cfa646f20b7920ae209d1775e6ed78d2fcc50f8463a4282",
+      "after_sha256": "5b649c099c14bbba093494b843adacb99a8371e876cf50786e524b37356e6964",
+      "exact_json_differences": [
+        {
+          "path": "/adjudication_revision",
+          "before": "v3-control-facts-freeze-candidate-20260923",
+          "after": "v3.1-approved-source-only-amendment-20260924"
+        },
+        {
+          "path": "/control_nodes/CF-9-6-N04/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "occurrence_anchor_set",
+              "semantic_unit_ids": [
+                "SU-9-6-13"
+              ],
+              "occurrence_ids": [
+                "SO-9-6-23",
+                "SO-9-6-24"
+              ],
+              "occurrence_roles": {
+                "SO-9-6-23": "initial",
+                "SO-9-6-24": "repeated"
+              },
+              "assignment_rule": "match the combine occurrence in the same design cycle as both incoming revised designs",
+              "source_span": {
+                "start_offset": 1056,
+                "end_offset": 1129,
+                "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+              }
+            }
+          ]
+        },
+        {
+          "path": "/control_nodes/CF-9-6-N04/target_occurrence_ids",
+          "before": null,
+          "after": [
+            "SO-9-6-23",
+            "SO-9-6-24"
+          ]
+        },
+        {
+          "path": "/control_relations/CF-9-6-R09/exclusion_scope",
+          "before": null,
+          "after": "before_interrupted_design_branch_restarts"
+        },
+        {
+          "path": "/control_relations/CF-9-6-R09/notes",
+          "before": "",
+          "after": "V3.1: SU-9-6-13 is excluded only before the interrupted branch restarts; combining is required after both revisions complete."
+        },
+        {
+          "path": "/control_relations/CF-9-6-R10/exclusion_scope",
+          "before": null,
+          "after": "before_interrupted_design_branch_restarts"
+        },
+        {
+          "path": "/control_relations/CF-9-6-R10/notes",
+          "before": "",
+          "after": "V3.1: SU-9-6-13 is excluded only before the interrupted branch restarts; combining is required after both revisions complete."
+        },
+        {
+          "path": "/control_relations/CF-9-6-R11/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "occurrence_anchor_set",
+              "semantic_unit_ids": [
+                "SU-9-6-13"
+              ],
+              "occurrence_ids": [
+                "SO-9-6-23",
+                "SO-9-6-24"
+              ],
+              "occurrence_roles": {
+                "SO-9-6-23": "initial",
+                "SO-9-6-24": "repeated"
+              },
+              "assignment_rule": "match the combine occurrence in the same design cycle as both incoming revised designs",
+              "source_span": {
+                "start_offset": 1056,
+                "end_offset": 1129,
+                "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+              }
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-9-6-R11/target_occurrence_ids",
+          "before": null,
+          "after": [
+            "SO-9-6-23",
+            "SO-9-6-24"
+          ]
+        },
+        {
+          "path": "/control_relations/CF-9-6-R12/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "occurrence_anchor_set",
+              "semantic_unit_ids": [
+                "SU-9-6-13"
+              ],
+              "occurrence_ids": [
+                "SO-9-6-23",
+                "SO-9-6-24"
+              ],
+              "occurrence_roles": {
+                "SO-9-6-23": "initial",
+                "SO-9-6-24": "repeated"
+              },
+              "assignment_rule": "match the combine occurrence in the same design cycle as both incoming revised designs",
+              "source_span": {
+                "start_offset": 1056,
+                "end_offset": 1129,
+                "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+              }
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-9-6-R12/target_occurrence_ids",
+          "before": null,
+          "after": [
+            "SO-9-6-23",
+            "SO-9-6-24"
+          ]
+        },
+        {
+          "path": "/inventory_version",
+          "before": "v3-control-facts-frozen-20260924",
+          "after": "v3.1-control-facts-frozen-20260924"
+        },
+        {
+          "path": "/scoring_contract_version",
+          "before": "v3-cfi-abstention-1",
+          "after": "v3.1-cfi-anchor-evidence-1"
+        }
+      ]
+    },
+    "2-2": {
+      "before_sha256": "f1f3d488133484dfc6df9efe349bd079b58802fef0293614fdd2d8e9978fb16e",
+      "after_sha256": "19bbbfd444ff587c06a51c6c2e51cb5f57164091cf6f1ed3e412514392289f5d",
+      "exact_json_differences": [
+        {
+          "path": "/adjudication_revision",
+          "before": "v3-control-facts-freeze-candidate-20260923",
+          "after": "v3.1-approved-source-only-amendment-20260924"
+        },
+        {
+          "path": "/control_nodes/CF-2-2-N06/anchor_action_ids",
+          "before": [
+            "SU-2-2-28",
+            "SU-2-2-29",
+            "SU-2-2-30",
+            "SU-2-2-31",
+            "SU-2-2-32",
+            "SU-2-2-33"
+          ],
+          "after": [
+            "SU-2-2-28",
+            "SU-2-2-29",
+            "SU-2-2-30",
+            "SU-2-2-31"
+          ]
+        },
+        {
+          "path": "/control_nodes/CF-2-2-N06/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "anchor_set",
+              "role": "meter_data_distribution_branch",
+              "semantic_unit_ids": [
+                "SU-2-2-28",
+                "SU-2-2-29"
+              ],
+              "mapping_cardinalities": [
+                "one_to_one",
+                "many_to_one",
+                "one_to_many"
+              ],
+              "source_span": {
+                "start_offset": 3383,
+                "end_offset": 3476,
+                "exact_excerpt": "the grid operator transmits the power meter data to the customer service and the old\nsupplier"
+              }
+            },
+            {
+              "kind": "anchor_set",
+              "role": "grid_operator_billing_branch",
+              "semantic_unit_ids": [
+                "SU-2-2-30",
+                "SU-2-2-31"
+              ],
+              "mapping_cardinalities": [
+                "one_to_one",
+                "many_to_one",
+                "one_to_many"
+              ],
+              "source_span": {
+                "start_offset": 3532,
+                "end_offset": 3652,
+                "exact_excerpt": "At the same time, the grid\noperator computes the final billing based on the meter data and sends it to the old supplier."
+              }
+            }
+          ]
+        },
+        {
+          "path": "/control_nodes/CF-2-2-N06/notes",
+          "before": "",
+          "after": "Old-supplier creation and sending (SU-2-2-32/33) are downstream billing meanings, not evidence of this Fork's two concurrent grid-operator branches."
+        },
+        {
+          "path": "/control_nodes/CF-2-2-N06/purpose",
+          "before": "Meter-data distribution and old-supplier final billing occur at the same time",
+          "after": "Grid-operator meter-data distribution and grid-operator final-billing work proceed concurrently"
+        },
+        {
+          "path": "/control_relations/CF-2-2-R10/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "anchor_set",
+              "role": "meter_data_distribution_branch",
+              "semantic_unit_ids": [
+                "SU-2-2-28",
+                "SU-2-2-29"
+              ],
+              "mapping_cardinalities": [
+                "one_to_one",
+                "many_to_one",
+                "one_to_many"
+              ],
+              "source_span": {
+                "start_offset": 3383,
+                "end_offset": 3476,
+                "exact_excerpt": "the grid operator transmits the power meter data to the customer service and the old\nsupplier"
+              }
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-2-2-R10/target_action_ids",
+          "before": [
+            "SU-2-2-28"
+          ],
+          "after": [
+            "SU-2-2-28",
+            "SU-2-2-29"
+          ]
+        },
+        {
+          "path": "/control_relations/CF-2-2-R11/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "anchor_set",
+              "role": "grid_operator_billing_branch",
+              "semantic_unit_ids": [
+                "SU-2-2-30",
+                "SU-2-2-31"
+              ],
+              "mapping_cardinalities": [
+                "one_to_one",
+                "many_to_one",
+                "one_to_many"
+              ],
+              "source_span": {
+                "start_offset": 3532,
+                "end_offset": 3652,
+                "exact_excerpt": "At the same time, the grid\noperator computes the final billing based on the meter data and sends it to the old supplier."
+              }
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-2-2-R11/target_action_ids",
+          "before": [
+            "SU-2-2-30"
+          ],
+          "after": [
+            "SU-2-2-30",
+            "SU-2-2-31"
+          ]
+        },
+        {
+          "path": "/inventory_version",
+          "before": "v3-control-facts-frozen-20260924",
+          "after": "v3.1-control-facts-frozen-20260924"
+        },
+        {
+          "path": "/scoring_contract_version",
+          "before": "v3-cfi-abstention-1",
+          "after": "v3.1-cfi-anchor-evidence-1"
+        },
+        {
+          "path": "/unresolved_facts",
+          "before": [
+            {
+              "status": "unresolved",
+              "question": "Does supplier concurrence loop back to the grid-operator check after conflict resolution, or continue directly?",
+              "source_spans": [
+                {
+                  "start_offset": 2176,
+                  "end_offset": 2213,
+                  "exact_excerpt": "demand the\nresolution of the conflict"
+                }
+              ],
+              "affected_fact_ids": [],
+              "reason": "",
+              "reason_code": "source_non_exhaustive",
+              "coverage_kind": "source_scope_question",
+              "fp_scope": "non_exhaustive"
+            }
+          ],
+          "after": [
+            {
+              "status": "unresolved",
+              "question": "Does supplier concurrence loop back to the grid-operator check after conflict resolution, or continue directly?",
+              "source_spans": [
+                {
+                  "start_offset": 2176,
+                  "end_offset": 2213,
+                  "exact_excerpt": "demand the\nresolution of the conflict"
+                }
+              ],
+              "affected_fact_ids": [],
+              "reason": "",
+              "reason_code": "source_non_exhaustive",
+              "coverage_kind": "source_scope_question",
+              "fp_scope": "non_exhaustive"
+            },
+            {
+              "status": "unresolved",
+              "question": "Does old-supplier final-billing creation/sending overlap the grid-operator meter-data and billing branches, or follow receipt of grid-operator billing?",
+              "reason_code": "cross_path_scope_unspecified",
+              "affected_fact_ids": [],
+              "source_spans": [
+                {
+                  "start_offset": 3653,
+                  "end_offset": 3731,
+                  "exact_excerpt": "Likewise the old supplier creates and sends the final billing to the customer."
+                }
+              ],
+              "coverage_kind": "source_scope_question",
+              "fp_scope": "abstain_on_unstated_old_supplier_timing"
+            }
+          ]
+        }
+      ]
+    },
+    "6-3": {
+      "before_sha256": "8f45368cddab589b87f0a7a2fbe5383fe2c9400cab9007f74431d0115580f63b",
+      "after_sha256": "ee57ea4596e01ab6f8605a4d02d02a27038479516c9376adda24949520d3580f",
+      "exact_json_differences": [
+        {
+          "path": "/adjudication_revision",
+          "before": "v3-control-facts-freeze-candidate-20260923",
+          "after": "v3.1-approved-source-only-amendment-20260924"
+        },
+        {
+          "path": "/control_nodes/CF-6-3-N01/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "gateway_guard",
+              "source_predicate": "whether any parts are missing and must be procured",
+              "required_structural_roles": [
+                "decision_about_missing_parts",
+                "procure_if_missing",
+                "skip_procurement_if_not_missing"
+              ],
+              "source_span": {
+                "start_offset": 708,
+                "end_offset": 758,
+                "exact_excerpt": "whether any parts are missing and must be procured"
+              },
+              "action_anchor_is_optional_for_control": true
+            }
+          ]
+        },
+        {
+          "path": "/inventory_version",
+          "before": "v3-control-facts-frozen-20260924",
+          "after": "v3.1-control-facts-frozen-20260924"
+        },
+        {
+          "path": "/scoring_contract_version",
+          "before": "v3-cfi-abstention-1",
+          "after": "v3.1-cfi-anchor-evidence-1"
+        }
+      ]
+    },
+    "10-8": {
+      "before_sha256": "f7960b51218c1155d7a6e212aaedd0e78999df8c31027f3731886eb663cdc7f0",
+      "after_sha256": "93f04b6329793f33553b459cb0e640b1cbe545eba257ce3d327a7ae9383ab823",
+      "exact_json_differences": [
+        {
+          "path": "/adjudication_revision",
+          "before": "v3-control-facts-freeze-candidate-20260923",
+          "after": "v3.1-approved-source-only-amendment-20260924"
+        },
+        {
+          "path": "/control_nodes/CF-10-8-N01/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "gateway_guard",
+              "source_predicate": "verification of deregistration routes to rejection or preliminary confirmation",
+              "required_structural_roles": [
+                "deregistration_verification_meaning",
+                "rejection_route",
+                "preliminary_confirmation_route"
+              ],
+              "source_span": {
+                "start_offset": 75,
+                "end_offset": 116,
+                "exact_excerpt": "rejects the deregistration of the MSPO or"
+              },
+              "action_anchor_is_optional_for_control": true
+            }
+          ]
+        },
+        {
+          "path": "/inventory_version",
+          "before": "v3-control-facts-frozen-20260924",
+          "after": "v3.1-control-facts-frozen-20260924"
+        },
+        {
+          "path": "/scoring_contract_version",
+          "before": "v3-cfi-abstention-1",
+          "after": "v3.1-cfi-anchor-evidence-1"
+        }
+      ]
+    },
+    "9-1": {
+      "before_sha256": "4b51157eb9ddfe63b32ac3ac81c2832bdd7a7dbabec7a6a5d1fca9d2c316f815",
+      "after_sha256": "c02b71b6212cd8af88f14f3e1f1f8cf651c5cb1d07a1ed04a54be44216ad7ab5",
+      "exact_json_differences": [
+        {
+          "path": "/adjudication_revision",
+          "before": "v3-control-facts-freeze-candidate-20260923",
+          "after": "v3.1-approved-source-only-amendment-20260924"
+        },
+        {
+          "path": "/control_nodes/CF-9-1-N04/anchor_action_ids",
+          "before": [
+            "SU-9-1-07"
+          ],
+          "after": [
+            "SU-9-1-08"
+          ]
+        },
+        {
+          "path": "/control_nodes/CF-9-1-N04/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "gateway_guard",
+              "source_predicate": "work covered by the 2:30 pm deadline is incomplete",
+              "required_structural_roles": [
+                "deadline_decision",
+                "missed_deadline_alert_branch"
+              ],
+              "source_span": {
+                "start_offset": 469,
+                "end_offset": 572,
+                "exact_excerpt": "All of this must be completed by 2:30 pm, if it is not, then an\nalert should be sent to the supervisor."
+              },
+              "action_context_ids": [
+                "SU-9-1-08"
+              ],
+              "exact_preceding_work_scope": "unresolved_source_scope"
+            }
+          ]
+        },
+        {
+          "path": "/control_nodes/CF-9-1-N04/notes",
+          "before": "",
+          "after": "SU-9-1-07 is researcher-ambiguous and is not eligible as a Control anchor. The explicit missed-deadline predicate and SU-9-1-08 alert outcome support this narrower required fact."
+        },
+        {
+          "path": "/control_nodes/CF-9-1-N04/purpose",
+          "before": "Trigger first deadline alert if earlier work exceeds 2:30 pm",
+          "after": "Trigger supervisor alert when work covered by the 2:30 pm deadline remains incomplete"
+        },
+        {
+          "path": "/control_nodes/CF-9-1-N04/source_spans",
+          "before": [
+            {
+              "start_offset": 511,
+              "end_offset": 553,
+              "exact_excerpt": "if it is not, then an\nalert should be sent"
+            }
+          ],
+          "after": [
+            {
+              "start_offset": 469,
+              "end_offset": 572,
+              "exact_excerpt": "All of this must be completed by 2:30 pm, if it is not, then an\nalert should be sent to the supervisor."
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-9-1-R04/control_anchor_evidence",
+          "before": null,
+          "after": [
+            {
+              "kind": "gateway_guard",
+              "source_predicate": "misses the 2:30 pm deadline",
+              "required_structural_roles": [
+                "missed_deadline_guard",
+                "alert_to_supervisor_outcome"
+              ],
+              "source_span": {
+                "start_offset": 469,
+                "end_offset": 572,
+                "exact_excerpt": "All of this must be completed by 2:30 pm, if it is not, then an\nalert should be sent to the supervisor."
+              },
+              "action_context_ids": [
+                "SU-9-1-08"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-9-1-R04/source_spans",
+          "before": [
+            {
+              "start_offset": 530,
+              "end_offset": 572,
+              "exact_excerpt": "an\nalert should be sent to the supervisor."
+            }
+          ],
+          "after": [
+            {
+              "start_offset": 469,
+              "end_offset": 572,
+              "exact_excerpt": "All of this must be completed by 2:30 pm, if it is not, then an\nalert should be sent to the supervisor."
+            }
+          ]
+        },
+        {
+          "path": "/control_relations/CF-9-1-R05",
+          "before": {
+            "fact_id": "CF-9-1-R05",
+            "type": "decision_branch",
+            "status": "required",
+            "source_control_fact": "CF-9-1-N04",
+            "guard_meaning": "meets 2:30 pm",
+            "target_action_ids": [
+              "SU-9-1-03"
+            ],
+            "incoming_action_ids": [],
+            "excluded_action_ids": [],
+            "terminal_outcome": null,
+            "reference_evidence_ids": [],
+            "notes": "",
+            "source_spans": [
+              {
+                "start_offset": 573,
+                "end_offset": 630,
+                "exact_excerpt": "Once the new defaulting account report has been\ncompleted"
+              }
+            ],
+            "target_occurrence_ids": [
+              "SO-9-1-09"
+            ]
+          },
+          "after": null
+        },
+        {
+          "path": "/inventory_version",
+          "before": "v3-control-facts-frozen-20260924",
+          "after": "v3.1-control-facts-frozen-20260924"
+        },
+        {
+          "path": "/review_notes",
+          "before": [
+            "Adjudicated source question: The prose appears to check the CRM twice; are these separate occurrence anchors or one reused semantic unit?"
+          ],
+          "after": [
+            "Adjudicated source question: The prose appears to check the CRM twice; are these separate occurrence anchors or one reused semantic unit?",
+            "V3.1: CF-9-1-R05 is retired because later CRM checking follows report completion, not an asserted on-time branch; source scope of 'All of this' remains unresolved."
+          ]
+        },
+        {
+          "path": "/scoring_contract_version",
+          "before": "v3-cfi-abstention-1",
+          "after": "v3.1-cfi-anchor-evidence-1"
+        },
+        {
+          "path": "/unresolved_facts",
+          "before": [
+            {
+              "status": "unresolved",
+              "question": "Does “new records found” itself cause the defaulting-account report, or is another unspoken condition needed?",
+              "source_spans": [
+                {
+                  "start_offset": 573,
+                  "end_offset": 630,
+                  "exact_excerpt": "Once the new defaulting account report has been\ncompleted"
+                }
+              ],
+              "affected_fact_ids": [],
+              "reason": "",
+              "reason_code": "source_non_exhaustive",
+              "coverage_kind": "source_scope_question",
+              "fp_scope": "non_exhaustive",
+              "source_scope": "new_records_found_outcome"
+            }
+          ],
+          "after": [
+            {
+              "status": "unresolved",
+              "question": "Does “new records found” itself cause the defaulting-account report, or is another unspoken condition needed?",
+              "source_spans": [
+                {
+                  "start_offset": 573,
+                  "end_offset": 630,
+                  "exact_excerpt": "Once the new defaulting account report has been\ncompleted"
+                }
+              ],
+              "affected_fact_ids": [],
+              "reason": "",
+              "reason_code": "source_non_exhaustive",
+              "coverage_kind": "source_scope_question",
+              "fp_scope": "non_exhaustive",
+              "source_scope": "new_records_found_outcome"
+            },
+            {
+              "status": "unresolved",
+              "question": "Which preceding activities are covered by 'All of this' in the 2:30 pm deadline?",
+              "reason_code": "deadline_scope_ambiguous",
+              "affected_fact_ids": [
+                "CF-9-1-N04",
+                "CF-9-1-R04"
+              ],
+              "source_spans": [
+                {
+                  "start_offset": 469,
+                  "end_offset": 510,
+                  "exact_excerpt": "All of this must be completed by 2:30 pm,"
+                }
+              ],
+              "coverage_kind": "source_scope_question",
+              "fp_scope": "abstain_on_exact_deadline_scope"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "scoring_contract_change": {
+    "before_sha256": "6347947c1ff23d98f1de56067306c1adf5072165f04ba4e820c1613483ddc27c",
+    "after_sha256": "f56d549ce2d725c73d2fc03e0442df599ee538dd1efd6f4f8b773dfb50b9a20a",
+    "exact_json_differences": [
+      {
+        "path": "/amendment_parent_contract_version",
+        "before": null,
+        "after": "v3-cfi-abstention-1"
+      },
+      {
+        "path": "/candidate_scoring_state_contract",
+        "before": null,
+        "after": {
+          "required_fact_states": [
+            "TP",
+            "FN",
+            "indeterminate_alignment"
+          ],
+          "source_side_unresolved_is_candidate_state": false,
+          "fixed_denominator_equation": "D = TP + FN + indeterminate_alignment_count",
+          "candidate_specific_required_fact_removal_allowed": false,
+          "candidate_specific_required_to_unresolved_allowed": false,
+          "missing_evidence": "FN",
+          "correct_evidence": "TP",
+          "source_contradiction": "FN plus applicable generated FP under existing substitution and single-wrong-outcome policy",
+          "evaluator_indeterminacy": "separate flag; neither TP nor FN until resolved; D unchanged",
+          "component_metrics_when_indeterminate_count_positive": "precision, recall, and F1 null; report TP, FN, FP, D, indeterminate count, determinate coverage, and recall interval; no partial-score ranking",
+          "determinate_coverage": "(TP + FN) / D",
+          "recall_interval": "[TP / D, (TP + indeterminate_alignment_count) / D]",
+          "source_unresolved": "frozen before candidate evaluation; excluded from TP/FP/FN and reported separately"
+        }
+      },
+      {
+        "path": "/case_contract_binding",
+        "before": null,
+        "after": "V3.1 manifest selects this contract for all 40 cases; unchanged case files retain V3.0 origin metadata and byte identity"
+      },
+      {
+        "path": "/contract_version",
+        "before": "v3-cfi-abstention-1",
+        "after": "v3.1-cfi-anchor-evidence-1"
+      },
+      {
+        "path": "/control_anchor_evidence_contract",
+        "before": null,
+        "after": {
+          "evidence_classes": [
+            "action_anchor",
+            "occurrence_anchor_set",
+            "gateway_guard"
+          ],
+          "accepted_action_mappings_locked_first": true,
+          "control_only_text_only_eligibility": "review_state accepted or modified; at least one source-supported text_only occurrence; Control anchor only",
+          "researcher_ambiguous_automatic_eligibility": false,
+          "action_scoring_counts_and_mappings_mutable": false,
+          "matching_policy": "reuse existing V2 semantic compatibility, source grounding, and accepted similarity rules; no new arbitrary threshold; a separate auditable adapter is required because text_only units lack V2 projected reference Action nodes",
+          "occurrence_policy": "specific occurrences require matching branch, cycle, recurrence role, and source-supported order; unit-level alignment alone is insufficient",
+          "mixed_occurrence_policy": "a text_only occurrence may receive a Control-only occurrence alignment even when another occurrence of the same semantic unit has an accepted V2 Action mapping; that V2 mapping remains locked to its own occurrence",
+          "anchor_set_policy": "many-to-one and one-to-many mappings may supply one compound anchor set only when every claimed semantic component is supported; a compound label does not establish an internal Control boundary",
+          "gateway_guard_policy": "explicit source predicate plus generated logical control node, guard semantics, and required routing may establish Control evidence without a standalone generated Action; a bare gateway is insufficient and no gateway becomes an Action TP",
+          "control_fact_matching": "test only source-registered evidence modes and structural roles; Action context alone never earns Control TP",
+          "conflict_policy": "Control-only mappings cannot displace accepted V2 Action mappings; competing non-equivalent mappings require occurrence/structure resolution or indeterminate alignment",
+          "genuine_absence_policy": "FN only after all source-permitted observable evidence modes are tested and none is present"
+        }
+      },
+      {
+        "path": "/coverage_reporting/report_separately",
+        "before": [
+          "required_control_nodes",
+          "required_control_relations",
+          "permitted_control_nodes",
+          "permitted_control_relations",
+          "unresolved_control_nodes",
+          "unresolved_control_relations",
+          "unresolved_source_scope_questions",
+          "cases_with_source_abstention",
+          "candidate_facts_abstained_from_fp"
+        ],
+        "after": [
+          "required_control_nodes",
+          "required_control_relations",
+          "permitted_control_nodes",
+          "permitted_control_relations",
+          "unresolved_control_nodes",
+          "unresolved_control_relations",
+          "unresolved_source_scope_questions",
+          "cases_with_source_abstention",
+          "candidate_facts_abstained_from_fp",
+          "indeterminate_alignment_count",
+          "determinate_coverage",
+          "recall_interval"
+        ]
+      },
+      {
+        "path": "/coverage_reporting/scalar_coverage_rate",
+        "before": "not_defined_until_comparable_fact_units_are_approved",
+        "after": "determinate_coverage_for_required_facts; source_unresolved_coverage_reported_separately"
+      },
+      {
+        "path": "/fact_statuses/required/eligible_for_indeterminate_alignment",
+        "before": null,
+        "after": true
+      },
+      {
+        "path": "/retired_fact_policy",
+        "before": null,
+        "after": "retired facts are recorded verbatim in amendment history and excluded from the live V3.1 inventory, statuses, and denominators"
+      }
+    ]
+  },
+  "retired_facts": [
+    {
+      "case_id": "9-1",
+      "fact_id": "CF-9-1-R05",
+      "before": {
+        "fact_id": "CF-9-1-R05",
+        "type": "decision_branch",
+        "status": "required",
+        "source_control_fact": "CF-9-1-N04",
+        "guard_meaning": "meets 2:30 pm",
+        "target_action_ids": [
+          "SU-9-1-03"
+        ],
+        "incoming_action_ids": [],
+        "excluded_action_ids": [],
+        "terminal_outcome": null,
+        "reference_evidence_ids": [],
+        "notes": "",
+        "source_spans": [
+          {
+            "start_offset": 573,
+            "end_offset": 630,
+            "exact_excerpt": "Once the new defaulting account report has been\ncompleted"
+          }
+        ],
+        "target_occurrence_ids": [
+          "SO-9-1-09"
+        ]
+      },
+      "after": null,
+      "reason": "The source conditions later CRM checking on report completion, not on meeting the 2:30 pm deadline."
+    }
+  ],
+  "source_decisions": {
+    "4-1": "Both patient meetings are explicit prerequisites for listing; meeting completion is a Control-only boundary, not dictaphone recording or examination.",
+    "9-6": "Initial and repeated combining have distinct reviewed occurrences and must be bound to the correct design cycle.",
+    "2-2": "The simultaneous grid-operator work supports the Fork; old-supplier billing timing is not fixed by the word 'Likewise'.",
+    "6-3": "The source explicitly states the missing-parts decision; gateway/guard evidence can express it without an Action proxy.",
+    "10-8": "Verification precedes rejection or preliminary confirmation; the Decision may be shown through routing semantics.",
+    "9-1": "The missed-2:30 deadline alert is explicit; the exact scope of 'All of this' is ambiguous, and an on-time branch to the later CRM check is unsupported."
+  }
+}

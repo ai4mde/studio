@@ -1,0 +1,74 @@
+{
+  "edges": [
+    {
+      "source": "n6",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n7",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "Coordination Unit drafts schedule of meetings for next calendar year and adds draft dates to all calendars",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "Support Officer checks the dates and suggests modifications",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "Coordination Unit rechecks all dates and looks for potential conflicts",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "Coordination Unit sends final schedule of meeting dates to all independent Committee Members by email",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "Committee Members check their diaries and advise Coordination Unit of any conflicts",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "type": "initial"
+    },
+    {
+      "id": "n7",
+      "type": "final"
+    }
+  ]
+}

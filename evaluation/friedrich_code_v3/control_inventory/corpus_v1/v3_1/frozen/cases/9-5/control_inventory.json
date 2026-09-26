@@ -1,0 +1,395 @@
+{
+  "case_id": "9-5",
+  "status": "FROZEN",
+  "source_hash": "5cc2f8fedc392c0596b5977f19cbe24bcf80cce37d97fc954a760b51267160b1",
+  "source_encoding": "cp1252",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "7bef36cc6ab3e9f3aa50e789077438ee54a18a33078e9c15e1ddec02b4bdfdc6",
+  "reference_model_sha256": "0d3fbefaa1b5e3e2ebf29ae99a02f3fd0606f5d25b7182963c5e22356a8e5b3b",
+  "process_control_logic": "An account is created if missing. Amount decides automatic versus supervisor approval; rejection, reimbursement, progress notice, and 30-day cancellation have conditional outcomes.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-9-5-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Create employee account only when absent",
+      "anchor_action_ids": [
+        "SU-9-5-01",
+        "SU-9-5-02"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 68,
+          "end_offset": 109,
+          "exact_excerpt": "if the employee does\nnot already have one"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Select automatic or supervisor approval at $200 threshold",
+      "anchor_action_ids": [
+        "SU-9-5-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 163,
+          "end_offset": 208,
+          "exact_excerpt": "Amounts under\n$200 are automatically approved"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Reject or reimburse after approval decision",
+      "anchor_action_ids": [
+        "SU-9-5-04",
+        "SU-9-5-05"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 284,
+          "end_offset": 304,
+          "exact_excerpt": "In case of rejection"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Send progress email if not completed in seven days",
+      "anchor_action_ids": [
+        "SU-9-5-01",
+        "SU-9-5-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 442,
+          "end_offset": 483,
+          "exact_excerpt": "If the request is not\ncompleted in 7 days"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-N05",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Cancel and require resubmission after 30 days unfinished",
+      "anchor_action_ids": [
+        "SU-9-5-01",
+        "SU-9-5-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 549,
+          "end_offset": 594,
+          "exact_excerpt": "If the request is not finished within 30 days"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-9-5-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N01",
+      "guard_meaning": "account absent",
+      "target_action_ids": [
+        "SU-9-5-02"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 38,
+          "end_offset": 67,
+          "exact_excerpt": "a new account must be created"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N01",
+      "guard_meaning": "account exists",
+      "target_action_ids": [
+        "SU-9-5-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 111,
+          "end_offset": 162,
+          "exact_excerpt": "The report is then reviewed for automatic approval."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R03",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N02",
+      "guard_meaning": "amount under $200",
+      "target_action_ids": [
+        "SU-9-5-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 163,
+          "end_offset": 208,
+          "exact_excerpt": "Amounts under\n$200 are automatically approved"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R04",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N02",
+      "guard_meaning": "amount at least $200",
+      "target_action_ids": [
+        "SU-9-5-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 218,
+          "end_offset": 283,
+          "exact_excerpt": "amounts equal to or over $200 require approval\nof the supervisor."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R05",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N03",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-9-5-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "rejection notice sent",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 306,
+          "end_offset": 360,
+          "exact_excerpt": "the employee must receive a rejection notice by email."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R06",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N03",
+      "guard_meaning": "approved",
+      "target_action_ids": [
+        "SU-9-5-07"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 361,
+          "end_offset": 410,
+          "exact_excerpt": "Otherwise, the\nreimbursement goes to the employee"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R07",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N03",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-9-5-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-9-5-07"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 284,
+          "end_offset": 304,
+          "exact_excerpt": "In case of rejection"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R08",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N04",
+      "guard_meaning": "unfinished at day 7",
+      "target_action_ids": [
+        "SU-9-5-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 490,
+          "end_offset": 548,
+          "exact_excerpt": "the employee must receive an “approval in progress” email."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R09",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N04",
+      "guard_meaning": "completed within seven days",
+      "target_action_ids": [],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "request completed without progress email",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 442,
+          "end_offset": 483,
+          "exact_excerpt": "If the request is not\ncompleted in 7 days"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R10",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N05",
+      "guard_meaning": "unfinished at day 30",
+      "target_action_ids": [
+        "SU-9-5-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "current process cancelled",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 601,
+          "end_offset": 717,
+          "exact_excerpt": "the process is stopped and the employee\nreceives an email cancellation notice and must re-submit the expense report."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R11",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N05",
+      "guard_meaning": "finished by day 30",
+      "target_action_ids": [],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "request completed without cancellation",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 549,
+          "end_offset": 594,
+          "exact_excerpt": "If the request is not finished within 30 days"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-5-R12",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-9-5-N05",
+      "guard_meaning": "unfinished at day 30",
+      "target_action_ids": [
+        "SU-9-5-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-9-5-07"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 601,
+          "end_offset": 623,
+          "exact_excerpt": "the process is stopped"
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does required resubmission start a new process instance or recur to the initial expense-report receipt?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

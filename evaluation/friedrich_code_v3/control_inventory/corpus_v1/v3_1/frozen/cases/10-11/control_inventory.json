@@ -1,0 +1,221 @@
+{
+  "case_id": "10-11",
+  "status": "FROZEN",
+  "source_hash": "4e147c8a0a1975b16ed25a39d110596c99f683d00fbe4f86acd380f5837ee832",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "32ebba671d4f141725e4d19bf02fa65efc59e976062205fe7c02c5dec49b2690",
+  "reference_model_sha256": "40b3c3bcff98391af5beae4e5ef5c0c9413ec8ff1ef2d18af8145cc7dd1b3e8f",
+  "process_control_logic": "MSP can deny a measurement request. If it measures, reading failure is reported and ends that route; only transmitted values lead to GO processing and downstream messages.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-11-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Deny request or perform measurement",
+      "anchor_action_ids": [
+        "SU-10-11-02"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734740"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 90,
+          "end_offset": 121,
+          "exact_excerpt": "denies the request of the GO or"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-11-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Report reading failure or transmit measured values",
+      "anchor_action_ids": [
+        "SU-10-11-04"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734752"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 164,
+          "end_offset": 214,
+          "exact_excerpt": "informs the GO about the failure of the reading or"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-11-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-11-N01",
+      "guard_meaning": "request denied",
+      "target_action_ids": [
+        "SU-10-11-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "request denied",
+      "reference_evidence_ids": [
+        "branch:16734740:16734744"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 82,
+          "end_offset": 118,
+          "exact_excerpt": "The MSP denies the request of the GO"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-11-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-11-N01",
+      "guard_meaning": "request accepted",
+      "target_action_ids": [
+        "SU-10-11-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734740:16734745"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 122,
+          "end_offset": 155,
+          "exact_excerpt": "the MSP performs the measurement."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-11-R03",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-10-11-N01",
+      "guard_meaning": "request denied",
+      "target_action_ids": [
+        "SU-10-11-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-10-11-04"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 82,
+          "end_offset": 118,
+          "exact_excerpt": "The MSP denies the request of the GO"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-11-R04",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-11-N02",
+      "guard_meaning": "reading failed",
+      "target_action_ids": [
+        "SU-10-11-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "reading-failure route ends",
+      "reference_evidence_ids": [
+        "branch:16734752:16734758"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 156,
+          "end_offset": 211,
+          "exact_excerpt": "The MSP informs the GO about the failure of the reading"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-11-R05",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-11-N02",
+      "guard_meaning": "reading succeeded",
+      "target_action_ids": [
+        "SU-10-11-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734752:16734761"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 215,
+          "end_offset": 263,
+          "exact_excerpt": "the MSP transmits the measured values to the GO."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-11-R06",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-10-11-N02",
+      "guard_meaning": "reading failed",
+      "target_action_ids": [
+        "SU-10-11-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-10-11-07"
+      ],
+      "terminal_outcome": "failure notice ends without entering measured-value processing",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 264,
+          "end_offset": 301,
+          "exact_excerpt": "The GO processes the measured values."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "The extra reference gateway leading toward GO processing is not promoted to a third source-required decision. Failure exclusion is one branch-local termination fact; it does not enumerate downstream negatives."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

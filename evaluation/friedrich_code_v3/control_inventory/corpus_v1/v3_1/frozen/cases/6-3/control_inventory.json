@@ -1,0 +1,110 @@
+{
+  "case_id": "6-3",
+  "status": "FROZEN",
+  "source_hash": "b8c7158eb4064e4276f29893b40291f29f88b6b9cecfa5187a070255fc50dd88",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3.1-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "40271816559c033503464e5f9465b22f1528d24a9ef406a07b59ddbe889eb711",
+  "reference_model_sha256": "3af91f8fca301658d9d62d174bb665c9e2be62916ce6bfd60335015ed3774fa3",
+  "process_control_logic": "Production planning determines whether missing parts must be procured; both routes reach scheduled production and final quality check.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-6-3-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Procure missing parts if necessary",
+      "anchor_action_ids": [
+        "SU-6-3-08"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 708,
+          "end_offset": 758,
+          "exact_excerpt": "whether any parts are missing and must be procured"
+        }
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "gateway_guard",
+          "source_predicate": "whether any parts are missing and must be procured",
+          "required_structural_roles": [
+            "decision_about_missing_parts",
+            "procure_if_missing",
+            "skip_procurement_if_not_missing"
+          ],
+          "source_span": {
+            "start_offset": 708,
+            "end_offset": 758,
+            "exact_excerpt": "whether any parts are missing and must be procured"
+          },
+          "action_anchor_is_optional_for_control": true
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-6-3-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-3-N01",
+      "guard_meaning": "parts missing",
+      "target_action_ids": [
+        "SU-6-3-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 720,
+          "end_offset": 758,
+          "exact_excerpt": "parts are missing and must be procured"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-3-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-3-N01",
+      "guard_meaning": "no parts missing",
+      "target_action_ids": [
+        "SU-6-3-10"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 762,
+          "end_offset": 787,
+          "exact_excerpt": "if this is not necessary."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: The source does not state whether missing-part procurement must complete before the production notice; decide whether there is a required convergence boundary."
+  ],
+  "adjudication_revision": "v3.1-approved-source-only-amendment-20260924",
+  "scoring_contract_version": "v3.1-cfi-anchor-evidence-1"
+}

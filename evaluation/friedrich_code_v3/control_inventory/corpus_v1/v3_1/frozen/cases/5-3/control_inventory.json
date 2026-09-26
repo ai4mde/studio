@@ -1,0 +1,222 @@
+{
+  "case_id": "5-3",
+  "status": "FROZEN",
+  "source_hash": "17d69c838c7445a74e01d8d3b9efc0ec85603460de6048ad668dfdff1a9f71f3",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "70be15893c5f44cdb9b87e97bdab2a1436d8a216634a4c58882ecb2c33970ef1",
+  "reference_model_sha256": "31fdc1168fb8378f5926bd06d02742a2ca242c24b90b1d83943b19e5108f1c04",
+  "process_control_logic": "Supervisor approves, rejects, or asks for change. Approval enters purchasing; invalid vendors are reselected. Each outcome triggers a user notification.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-5-3-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Route supervisor decision on office supply request",
+      "anchor_action_ids": [
+        "SU-5-3-04",
+        "SU-5-3-05",
+        "SU-5-3-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 337,
+          "end_offset": 408,
+          "exact_excerpt": "The supervisor must approve or ask for a change, or reject the request."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-3-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Select another vendor until a valid vendor is confirmed",
+      "anchor_action_ids": [
+        "SU-5-3-10",
+        "SU-5-3-11",
+        "SU-5-3-12"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 749,
+          "end_offset": 789,
+          "exact_excerpt": "If the vendor is not valid in the system"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-5-3-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-3-N01",
+      "guard_meaning": "approved",
+      "target_action_ids": [
+        "SU-5-3-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 598,
+          "end_offset": 624,
+          "exact_excerpt": "If the request is approved"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-3-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-3-N01",
+      "guard_meaning": "change requested",
+      "target_action_ids": [
+        "SU-5-3-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 458,
+          "end_offset": 498,
+          "exact_excerpt": "If the request is asked to make a change"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-3-R03",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-3-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-5-3-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "request process ends",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 409,
+          "end_offset": 457,
+          "exact_excerpt": "If the request is rejected the process will end."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-3-R04",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-5-3-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-5-3-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-5-3-09"
+      ],
+      "terminal_outcome": "rejected request ends without purchasing; rejection notification required on the branch",
+      "reference_evidence_ids": [],
+      "notes": "The relative position of a drawn physical End event is unscored. The branch must preserve rejection notification and exclude approval-only purchasing.",
+      "source_spans": [
+        {
+          "start_offset": 409,
+          "end_offset": 457,
+          "exact_excerpt": "If the request is rejected the process will end."
+        },
+        {
+          "start_offset": 1104,
+          "end_offset": 1209,
+          "exact_excerpt": "In any of the cases, approval, rejection or change required the system will send the user a notification."
+        }
+      ],
+      "required_on_branch_action_ids": [
+        "SU-5-3-19"
+      ]
+    },
+    {
+      "fact_id": "CF-5-3-R05",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-5-3-N02",
+      "guard_meaning": "selected vendor invalid",
+      "target_action_ids": [
+        "SU-5-3-10",
+        "SU-5-3-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 827,
+          "end_offset": 853,
+          "exact_excerpt": "choose a different vendor."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-3-R06",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-5-3-N02",
+      "guard_meaning": "vendor valid",
+      "target_action_ids": [
+        "SU-5-3-12",
+        "SU-5-3-13"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 854,
+          "end_offset": 894,
+          "exact_excerpt": "After a vendor is selected and confirmed"
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: The source says change request is returned for review, but does it require resubmission to supervisor?",
+    "Adjudicated source question: The rejection path says the process ends and also sends a notification; confirm whether notice precedes terminal outcome."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

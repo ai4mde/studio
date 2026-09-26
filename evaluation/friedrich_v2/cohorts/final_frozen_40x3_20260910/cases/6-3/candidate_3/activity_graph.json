@@ -1,0 +1,120 @@
+{
+  "edges": [
+    {
+      "source": "n4",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "parts_missing",
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "label": "no_parts_missing",
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "label": "success",
+      "source": "n9",
+      "target": "n5",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "determine necessary parts, quantities, and delivery date",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "enter order information into production planning system",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "schedule production and notify responsible employee",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "type": "initial"
+    },
+    {
+      "id": "n5",
+      "type": "final"
+    },
+    {
+      "id": "n6",
+      "label": "decide whether any parts are missing and must be procured?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n7",
+      "name": "procure missing parts",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "origin_block_id": "T1",
+      "type": "merge"
+    },
+    {
+      "id": "n9",
+      "label": "recheck the order for its quality and repeat if necessary?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n10",
+      "name": "recheck the order for its quality",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    }
+  ]
+}

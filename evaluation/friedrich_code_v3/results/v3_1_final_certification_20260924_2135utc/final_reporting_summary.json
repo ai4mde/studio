@@ -1,0 +1,100 @@
+{
+  "reporting_layer_version": "v3.1-certified-scorable-facts-1",
+  "source_aggregate_summary_sha256": "a1a8cdea1c087fcc17c7ed9d3cedebf962bfe88a208e23291545961a0944185e",
+  "frozen_corpus_sha256": "5f9765bda2ea5d9d9f4a78603207bb0a2ed6532fd0c935149c275595c7d5be8a",
+  "reporting_metrics": {
+    "Action": {
+      "determinate_coverage": 1.0,
+      "scorable_precision": 1.0,
+      "scorable_recall": 0.8496042216358839,
+      "scorable_f1": 0.9186875891583453
+    },
+    "Flow": {
+      "determinate_coverage": 0.7967687074829932,
+      "scorable_precision": 0.8970223325062034,
+      "scorable_recall": 0.7716115261472786,
+      "scorable_f1": 0.8296041308089501
+    },
+    "Control Node": {
+      "determinate_coverage": 0.8947368421052632,
+      "scorable_precision": 1.0,
+      "scorable_recall": 0.7019607843137254,
+      "scorable_f1": 0.8248847926267281
+    },
+    "Control Relation": {
+      "determinate_coverage": 0.8197278911564626,
+      "scorable_precision": 0.8162544169611308,
+      "scorable_recall": 0.47925311203319504,
+      "scorable_f1": 0.603921568627451
+    }
+  },
+  "technical_counts_and_formal_metrics": {
+    "Action": {
+      "D": 1137,
+      "TP": 966,
+      "FP": 0,
+      "FN": 171,
+      "I": 0,
+      "formal_all_slot_pooled_precision": 1.0,
+      "formal_all_slot_pooled_recall": 0.8496042216358839,
+      "formal_all_slot_pooled_f1": 0.9186875891583453,
+      "recall_interval": [
+        0.8496042216358839,
+        0.8496042216358839
+      ],
+      "candidates_with_I": 0,
+      "fully_determinate_candidates": 120
+    },
+    "Flow": {
+      "D": 1176,
+      "TP": 723,
+      "FP": 83,
+      "FN": 214,
+      "I": 239,
+      "formal_all_slot_pooled_precision": null,
+      "formal_all_slot_pooled_recall": null,
+      "formal_all_slot_pooled_f1": null,
+      "recall_interval": [
+        0.6147959183673469,
+        0.8180272108843537
+      ],
+      "candidates_with_I": 55,
+      "fully_determinate_candidates": 65
+    },
+    "Control Node": {
+      "D": 285,
+      "TP": 179,
+      "FP": 0,
+      "FN": 76,
+      "I": 30,
+      "formal_all_slot_pooled_precision": null,
+      "formal_all_slot_pooled_recall": null,
+      "formal_all_slot_pooled_f1": null,
+      "recall_interval": [
+        0.6280701754385964,
+        0.7333333333333333
+      ],
+      "candidates_with_I": 21,
+      "fully_determinate_candidates": 99
+    },
+    "Control Relation": {
+      "D": 588,
+      "TP": 231,
+      "FP": 52,
+      "FN": 251,
+      "I": 106,
+      "formal_all_slot_pooled_precision": null,
+      "formal_all_slot_pooled_recall": null,
+      "formal_all_slot_pooled_f1": null,
+      "recall_interval": [
+        0.39285714285714285,
+        0.5731292517006803
+      ],
+      "candidates_with_I": 44,
+      "fully_determinate_candidates": 76
+    }
+  },
+  "interpretation": "Coverage reports the proportion of required facts for which the code-based evaluator could establish a determinate alignment. Precision, Recall, and F1 on Scorable Facts are calculated only over those determinate facts. Indeterminate facts are excluded rather than forced into TP or FN decisions.",
+  "context": "These scorable-fact metrics describe evaluator-assessed quality within the determinate portion of the evaluation and should be interpreted together with coverage.",
+  "presentation_footnote": "Precision, Recall, and F1 are calculated over scorable/determinate facts only; Coverage shows the proportion of all required facts that could be evaluated."
+}

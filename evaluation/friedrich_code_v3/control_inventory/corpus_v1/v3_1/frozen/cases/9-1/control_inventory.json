@@ -1,0 +1,380 @@
+{
+  "case_id": "9-1",
+  "status": "FROZEN",
+  "source_hash": "b0554267466e1c9fe08142dd5216f6611a91e834edcce5fea077cb78c55c1eaf",
+  "source_encoding": "cp1252",
+  "inventory_version": "v3.1-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "4334a9624fc4c64e88ddd1d61548ac533128a797026000e8271ca3a6271c2c8e",
+  "reference_model_sha256": "454a3f5df010345490218ceee1e5fcc15876b0de1ff231739bf691a2bfda9b1e",
+  "process_control_logic": "New account-defaulter records and new returns determine reporting work. Two deadlines trigger supervisor alerts when missed.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-9-1-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Route after checking the Account Defaulter table",
+      "anchor_action_ids": [
+        "SU-9-1-02"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 134,
+          "end_offset": 161,
+          "exact_excerpt": "If no new records are found"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Register defaulting accounts when new returns exist",
+      "anchor_action_ids": [
+        "SU-9-1-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 252,
+          "end_offset": 272,
+          "exact_excerpt": "If new\nreturns exist"
+        }
+      ],
+      "anchor_occurrence_ids": [
+        "SO-9-1-03"
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Send account-management table only for previously unadvised client codes",
+      "anchor_action_ids": [
+        "SU-9-1-04"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 327,
+          "end_offset": 390,
+          "exact_excerpt": "If the defaulting client\ncodes have not been previously advised"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Trigger supervisor alert when work covered by the 2:30 pm deadline remains incomplete",
+      "anchor_action_ids": [
+        "SU-9-1-08"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "SU-9-1-07 is researcher-ambiguous and is not eligible as a Control anchor. The explicit missed-deadline predicate and SU-9-1-08 alert outcome support this narrower required fact.",
+      "source_spans": [
+        {
+          "start_offset": 469,
+          "end_offset": 572,
+          "exact_excerpt": "All of this must be completed by 2:30 pm, if it is not, then an\nalert should be sent to the supervisor."
+        }
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "gateway_guard",
+          "source_predicate": "work covered by the 2:30 pm deadline is incomplete",
+          "required_structural_roles": [
+            "deadline_decision",
+            "missed_deadline_alert_branch"
+          ],
+          "source_span": {
+            "start_offset": 469,
+            "end_offset": 572,
+            "exact_excerpt": "All of this must be completed by 2:30 pm, if it is not, then an\nalert should be sent to the supervisor."
+          },
+          "action_context_ids": [
+            "SU-9-1-08"
+          ],
+          "exact_preceding_work_scope": "unresolved_source_scope"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-N05",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Reconcile newly filed returns after report completion",
+      "anchor_action_ids": [
+        "SU-9-1-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 697,
+          "end_offset": 738,
+          "exact_excerpt": "If new\nreturns have been filed, reconcile"
+        }
+      ],
+      "anchor_occurrence_ids": [
+        "SO-9-1-09"
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-N06",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Trigger second deadline message if reconciliation exceeds 4:00 pm",
+      "anchor_action_ids": [
+        "SU-9-1-10"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 817,
+          "end_offset": 865,
+          "exact_excerpt": "otherwise a supervisor should be sent a message."
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-9-1-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-1-N01",
+      "guard_meaning": "no new records",
+      "target_action_ids": [
+        "SU-9-1-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 187,
+          "end_offset": 250,
+          "exact_excerpt": "check the CRM system to see whether new returns have been filed"
+        }
+      ],
+      "target_occurrence_ids": [
+        "SO-9-1-03"
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-1-N02",
+      "guard_meaning": "new returns",
+      "target_action_ids": [
+        "SU-9-1-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 279,
+          "end_offset": 326,
+          "exact_excerpt": "register all defaulting accounts and customers."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-R03",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-1-N03",
+      "guard_meaning": "codes not previously advised",
+      "target_action_ids": [
+        "SU-9-1-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 392,
+          "end_offset": 468,
+          "exact_excerpt": "produce another table of defaulting accounts and\nsend to account management."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-R04",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-1-N04",
+      "guard_meaning": "misses 2:30 pm",
+      "target_action_ids": [
+        "SU-9-1-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 469,
+          "end_offset": 572,
+          "exact_excerpt": "All of this must be completed by 2:30 pm, if it is not, then an\nalert should be sent to the supervisor."
+        }
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "gateway_guard",
+          "source_predicate": "misses the 2:30 pm deadline",
+          "required_structural_roles": [
+            "missed_deadline_guard",
+            "alert_to_supervisor_outcome"
+          ],
+          "source_span": {
+            "start_offset": 469,
+            "end_offset": 572,
+            "exact_excerpt": "All of this must be completed by 2:30 pm, if it is not, then an\nalert should be sent to the supervisor."
+          },
+          "action_context_ids": [
+            "SU-9-1-08"
+          ]
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-R06",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-1-N05",
+      "guard_meaning": "new returns filed",
+      "target_action_ids": [
+        "SU-9-1-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 729,
+          "end_offset": 782,
+          "exact_excerpt": "reconcile with the existing account defaulters table."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-R07",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-1-N06",
+      "guard_meaning": "misses 4:00 pm",
+      "target_action_ids": [
+        "SU-9-1-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 827,
+          "end_offset": 865,
+          "exact_excerpt": "a supervisor should be sent a message."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-1-R08",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-9-1-N06",
+      "guard_meaning": "meets 4:00 pm",
+      "target_action_ids": [],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "daily process complete",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 783,
+          "end_offset": 816,
+          "exact_excerpt": "This must be\ncompleted by 4:00 pm"
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "REUSE_ACTION_ALIGNMENT",
+      "status": "permitted",
+      "scope": "repeated or compound source activity anchors",
+      "reason": "Use the already reviewed Action alignment for split, combined, or repeated activity occurrences; no new label threshold is introduced."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "Does “new records found” itself cause the defaulting-account report, or is another unspoken condition needed?",
+      "source_spans": [
+        {
+          "start_offset": 573,
+          "end_offset": 630,
+          "exact_excerpt": "Once the new defaulting account report has been\ncompleted"
+        }
+      ],
+      "affected_fact_ids": [],
+      "reason": "",
+      "reason_code": "source_non_exhaustive",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "non_exhaustive",
+      "source_scope": "new_records_found_outcome"
+    },
+    {
+      "status": "unresolved",
+      "question": "Which preceding activities are covered by 'All of this' in the 2:30 pm deadline?",
+      "reason_code": "deadline_scope_ambiguous",
+      "affected_fact_ids": [
+        "CF-9-1-N04",
+        "CF-9-1-R04"
+      ],
+      "source_spans": [
+        {
+          "start_offset": 469,
+          "end_offset": 510,
+          "exact_excerpt": "All of this must be completed by 2:30 pm,"
+        }
+      ],
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "abstain_on_exact_deadline_scope"
+    }
+  ],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: The prose appears to check the CRM twice; are these separate occurrence anchors or one reused semantic unit?",
+    "V3.1: CF-9-1-R05 is retired because later CRM checking follows report completion, not an asserted on-time branch; source scope of 'All of this' remains unresolved."
+  ],
+  "adjudication_revision": "v3.1-approved-source-only-amendment-20260924",
+  "scoring_contract_version": "v3.1-cfi-anchor-evidence-1"
+}

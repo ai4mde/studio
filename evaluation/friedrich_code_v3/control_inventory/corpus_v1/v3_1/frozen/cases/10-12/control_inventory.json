@@ -1,0 +1,97 @@
+{
+  "case_id": "10-12",
+  "status": "FROZEN",
+  "source_hash": "691dd077680def1b90dc66285b7b00b1e2b3ca7f03a889229e90961954ff36c8",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "73f43547d462e1fbd9571ce0343ea985371e34c0078c0234038f4de5414f1758",
+  "reference_model_sha256": "c9de47bba217b263f02b039984f89ed55bafb7bce0ae1ba0346dee34acaf6262",
+  "process_control_logic": "After the IP checks whether the requested master-data change can occur at the desired time, it confirms or rejects the change.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-12-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Confirm or reject requested master-data change",
+      "anchor_action_ids": [
+        "SU-10-12-03"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734940"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 104,
+          "end_offset": 170,
+          "exact_excerpt": "checks whether the master data can be changed at the desired time."
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-12-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-12-N01",
+      "guard_meaning": "change feasible at desired time",
+      "target_action_ids": [
+        "SU-10-12-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734940:16734941"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 178,
+          "end_offset": 213,
+          "exact_excerpt": "confirmes the changes of the INQ or"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-12-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-12-N01",
+      "guard_meaning": "change infeasible at desired time",
+      "target_action_ids": [
+        "SU-10-12-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734940:16734946"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 221,
+          "end_offset": 253,
+          "exact_excerpt": "rejectes the changes of the INQ."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

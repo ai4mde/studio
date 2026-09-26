@@ -1,0 +1,137 @@
+{
+  "case_id": "5-1",
+  "status": "FROZEN",
+  "source_hash": "5a06cf887e0b8854bf2dfe27fc8a5affd5826d7a5488cdf991f69e3efa837f58",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "041b6fd05bdd43afc7b91397f35a4bad12b0be9556a36c0f9b5882277c399739",
+  "reference_model_sha256": "ba7ecf26ab25b29a1569cfc26045062825dc998175409834c73dff853910d7dc",
+  "process_control_logic": "Risk and amount determine immediate approval, denial, or referral to an approver. The customer receives feedback from the deciding service.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-5-1-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Route loan request after risk and amount assessment",
+      "anchor_action_ids": [
+        "SU-5-1-02",
+        "SU-5-1-03"
+      ],
+      "reference_evidence_ids": [
+        "gateway:2120553829"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 264,
+          "end_offset": 313,
+          "exact_excerpt": "If the loan is small and the customer is low risk"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-5-1-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-1-N01",
+      "guard_meaning": "small and low risk",
+      "target_action_ids": [
+        "SU-5-1-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553829:2120553840"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 315,
+          "end_offset": 336,
+          "exact_excerpt": "the loan is approved."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-1-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-1-N01",
+      "guard_meaning": "high risk",
+      "target_action_ids": [
+        "SU-5-1-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553829:2120553832"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 367,
+          "end_offset": 386,
+          "exact_excerpt": "the loan is denied."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-1-R03",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-1-N01",
+      "guard_meaning": "needs further review or amount at least $10,000",
+      "target_action_ids": [
+        "SU-5-1-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 467,
+          "end_offset": 515,
+          "exact_excerpt": "the request is sent to the approver Web service."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "The source overlaps “high risk” and “needs further review or amount ≥$10,000”; confirm priority when conditions overlap.",
+      "source_spans": [
+        {
+          "start_offset": 337,
+          "end_offset": 365,
+          "exact_excerpt": "If the customer is high risk"
+        }
+      ],
+      "affected_fact_ids": [],
+      "reason": "",
+      "reason_code": "guard_priority_unspecified",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "abstain_on_unspecified_relation"
+    }
+  ],
+  "no_control": false,
+  "review_notes": [],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

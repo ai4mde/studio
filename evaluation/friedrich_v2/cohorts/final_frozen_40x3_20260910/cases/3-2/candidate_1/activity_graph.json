@@ -1,0 +1,138 @@
+{
+  "edges": [
+    {
+      "source": "n3",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "missing",
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "not_missing",
+      "source": "n5",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n4",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "check unprocessed files for court hearing readiness",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "conduct directions hearings",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "type": "initial"
+    },
+    {
+      "id": "n4",
+      "type": "final"
+    },
+    {
+      "id": "n5",
+      "label": "determine if some files are missing?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n6",
+      "name": "initiate search for missing files",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "physically track files to intended location",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "origin_block_id": "T1",
+      "type": "merge"
+    },
+    {
+      "id": "n9",
+      "origin_block_id": "T2",
+      "type": "fork"
+    },
+    {
+      "id": "n10",
+      "name": "hand files to Associate",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "distribute Judge’s Lawlist to relevant people",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "origin_block_id": "T2",
+      "type": "join"
+    }
+  ]
+}

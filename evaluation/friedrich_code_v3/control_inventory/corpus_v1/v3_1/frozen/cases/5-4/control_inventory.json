@@ -1,0 +1,286 @@
+{
+  "case_id": "5-4",
+  "status": "FROZEN",
+  "source_hash": "52f25310b8ad0fee9a0ebc89e21fd9539c62ccfcfeb2761557b1f4a5d6913d4b",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "09e88dde75542803044cc665f481602edf347c10edbe985e8ef0ca23e8ff5915",
+  "reference_model_sha256": "879e8e45d3a9b4c1c96ba1955092e4695c05d649a4ec27f36f70a061908ce172",
+  "process_control_logic": "Supervisor rejection or treasurer receipt mismatch returns the report for employee correction and fresh supervisor review; approved expenses proceed to payment confirmation.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-5-4-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Supervisor approves or rejects expense report",
+      "anchor_action_ids": [
+        "SU-5-4-03",
+        "SU-5-4-04",
+        "SU-5-4-05"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 357,
+          "end_offset": 388,
+          "exact_excerpt": "approves or rejects the report."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-4-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Treasurer accepts matching receipts or sends report back",
+      "anchor_action_ids": [
+        "SU-5-4-08"
+      ],
+      "reference_evidence_ids": [
+        "gateway:2120554016"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 922,
+          "end_offset": 940,
+          "exact_excerpt": "If all is in order"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-4-N03",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Supervisor and treasurer correction routes converge on employee editing",
+      "anchor_action_ids": [
+        "SU-5-4-05",
+        "SU-5-4-10",
+        "SU-5-4-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1133,
+          "end_offset": 1184,
+          "exact_excerpt": "If a report returns to the employee for corrections"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-4-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Corrected report returns to supervisor review",
+      "anchor_action_ids": [
+        "SU-5-4-06",
+        "SU-5-4-11"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1186,
+          "end_offset": 1218,
+          "exact_excerpt": "it must again go to a supervisor"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-5-4-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-4-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-5-4-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 600,
+          "end_offset": 636,
+          "exact_excerpt": "If the supervisor rejects the report"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-4-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-4-N01",
+      "guard_meaning": "approved",
+      "target_action_ids": [
+        "SU-5-4-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 761,
+          "end_offset": 798,
+          "exact_excerpt": "If the supervisor approves the report"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-4-R03",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-4-N02",
+      "guard_meaning": "receipts complete and matching",
+      "target_action_ids": [
+        "SU-5-4-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120554016:2120554020"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 942,
+          "end_offset": 991,
+          "exact_excerpt": "the treasurer accepts the expenses for processing"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-4-R04",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-4-N02",
+      "guard_meaning": "receipts missing or mismatched",
+      "target_action_ids": [
+        "SU-5-4-10"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120554016:2120553998"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1099,
+          "end_offset": 1132,
+          "exact_excerpt": "he sends it back to the employee."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-4-R05",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-5-4-N03",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-5-4-06"
+      ],
+      "incoming_action_ids": [
+        "SU-5-4-05",
+        "SU-5-4-10"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1133,
+          "end_offset": 1184,
+          "exact_excerpt": "If a report returns to the employee for corrections"
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-5-4-R06",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-5-4-N04",
+      "guard_meaning": "report corrected",
+      "target_action_ids": [
+        "SU-5-4-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1186,
+          "end_offset": 1218,
+          "exact_excerpt": "it must again go to a supervisor"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-4-R07",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-5-4-N04",
+      "guard_meaning": "treasurer accepts expenses for processing",
+      "target_action_ids": [
+        "SU-5-4-12",
+        "SU-5-4-14",
+        "SU-5-4-15"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1275,
+          "end_offset": 1327,
+          "exact_excerpt": "If the treasurer accepts the expenses for processing"
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-5-4-N03",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "REUSE_ACTION_ALIGNMENT",
+      "status": "permitted",
+      "scope": "repeated or compound source activity anchors",
+      "reason": "Use the already reviewed Action alignment for split, combined, or repeated activity occurrences; no new label threshold is introduced."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does a commercial-rule automatic first inspection create a separate scored Decision, or is it an implementation option for supervisor review?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

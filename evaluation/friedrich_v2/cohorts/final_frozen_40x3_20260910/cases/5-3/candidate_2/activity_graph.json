@@ -1,0 +1,192 @@
+{
+  "edges": [
+    {
+      "source": "n5",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "label": "vendor_valid",
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "vendor_invalid",
+      "source": "n10",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "label": "change_required",
+      "source": "n7",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n7",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n17",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "submit office supply request",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "register office supply request",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "supervisor receives office supply request",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "send notification to employee",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "type": "initial"
+    },
+    {
+      "id": "n6",
+      "type": "final"
+    },
+    {
+      "id": "n7",
+      "label": "supervisor decides to approve, request change, or reject the office supply request?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n8",
+      "name": "purchase department makes quotations",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "purchase department selects vendor",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "label": "purchase department selects a vendor and checks if the vendor is valid?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n11",
+      "name": "generate and send purchase order",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "wait for product delivery and invoice",
+      "origin_step_id": "T2_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "name": "choose a different vendor",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "name": "return request to employee for review and revision",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "name": "reject office supply request",
+      "origin_step_id": "T1_branch_3_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

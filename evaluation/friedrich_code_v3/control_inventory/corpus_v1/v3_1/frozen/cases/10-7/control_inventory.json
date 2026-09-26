@@ -1,0 +1,129 @@
+{
+  "case_id": "10-7",
+  "status": "FROZEN",
+  "source_hash": "1847eca7504d89ea16908bb16d8d87174c5d95b60de64a4391e030f4d05a29db",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "9846987c1e0dbdd60492550d0b5e341805c4cfc71468099c2eb5c07d13ed263c",
+  "reference_model_sha256": "2b1c7375d4c9a2efbfee10cecff8eaf48206fddca7b1784ade57eb3006a05126",
+  "process_control_logic": "GO examination results in application rejection or confirmation. Assignment and related notifications belong to the confirmed route.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-7-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Reject or confirm MSPN application",
+      "anchor_action_ids": [
+        "SU-10-7-02"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734398"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 98,
+          "end_offset": 136,
+          "exact_excerpt": "rejects the application of the MSPN or"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-7-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-7-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-10-7-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "application rejected",
+      "reference_evidence_ids": [
+        "branch:16734398:16734401"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 98,
+          "end_offset": 133,
+          "exact_excerpt": "rejects the application of the MSPN"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-7-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-7-N01",
+      "guard_meaning": "confirmed",
+      "target_action_ids": [
+        "SU-10-7-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734398:16734403"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 144,
+          "end_offset": 182,
+          "exact_excerpt": "confirmes the application of the MSPN."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-7-R03",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-10-7-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-10-7-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-10-7-05"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 183,
+          "end_offset": 207,
+          "exact_excerpt": "The GO assigns the MSPN."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: The source lists assignment after the either/or sentence without “if confirmed”; confirm that rejection excludes assignment and notifications."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

@@ -1,0 +1,390 @@
+{
+  "case_id": "1-1",
+  "status": "FROZEN",
+  "source_hash": "9b745e3b6175b37450f5763683006f907a1873b339ae131bb4542c4dc64cd891",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "ec3dda35a5fbaf174ddc6a4ab21f83a50c6de057de1dd80437e15681b8ff8d03",
+  "reference_model_sha256": "581d24a3c39b4a0d07b3182eb033d137483441559d85eb77f01740f8754f6abd",
+  "process_control_logic": "An order is rejected or accepted. Accepted orders trigger storehouse item processing and engineering preparation; each part is reserved or back-ordered, and both work streams must finish before assembly.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-1-1-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Choose rejection or acceptance of the bicycle order",
+      "anchor_action_ids": [
+        "SU-1-1-02"
+      ],
+      "reference_evidence_ids": [
+        "gateway:2120553002"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 176,
+          "end_offset": 202,
+          "exact_excerpt": "reject or accept the order"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-N02",
+      "type": "Fork",
+      "status": "required",
+      "purpose": "Storehouse item work and engineering preparation proceed independently",
+      "anchor_action_ids": [
+        "SU-1-1-08",
+        "SU-1-1-11"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 625,
+          "end_offset": 688,
+          "exact_excerpt": "In the meantime, the engineering department prepares everything"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Select stock handling for each part",
+      "anchor_action_ids": [
+        "SU-1-1-08"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 471,
+          "end_offset": 504,
+          "exact_excerpt": "If the part is available in-house"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Continue item processing until every item is handled",
+      "anchor_action_ids": [
+        "SU-1-1-08",
+        "SU-1-1-09",
+        "SU-1-1-10"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 566,
+          "end_offset": 624,
+          "exact_excerpt": "This procedure is repeated for each item on the part list."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-N05",
+      "type": "Join",
+      "status": "required",
+      "purpose": "Every item is handled and engineering preparation is complete before assembly",
+      "anchor_action_ids": [
+        "SU-1-1-09",
+        "SU-1-1-10",
+        "SU-1-1-11",
+        "SU-1-1-12"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 732,
+          "end_offset": 861,
+          "exact_excerpt": "If the storehouse has successfully reserved or back-ordered every item of the part list and the preparation activity has finished"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-1-1-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N01",
+      "guard_meaning": "reject",
+      "target_action_ids": [
+        "SU-1-1-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "order rejected",
+      "reference_evidence_ids": [
+        "branch:2120553002:2120553005"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 226,
+          "end_offset": 279,
+          "exact_excerpt": "In the former case, the process instance is finished."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N01",
+      "guard_meaning": "accept",
+      "target_action_ids": [
+        "SU-1-1-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553002:2120553011"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 280,
+          "end_offset": 359,
+          "exact_excerpt": "In the latter case, the storehouse and the engineering department are informed."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R03",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N01",
+      "guard_meaning": "reject",
+      "target_action_ids": [
+        "SU-1-1-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-1-1-05"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 226,
+          "end_offset": 279,
+          "exact_excerpt": "In the former case, the process instance is finished."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R04",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-1-1-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 625,
+          "end_offset": 688,
+          "exact_excerpt": "In the meantime, the engineering department prepares everything"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R05",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-1-1-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 625,
+          "end_offset": 688,
+          "exact_excerpt": "In the meantime, the engineering department prepares everything"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R06",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N03",
+      "guard_meaning": "available in-house",
+      "target_action_ids": [
+        "SU-1-1-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 471,
+          "end_offset": 521,
+          "exact_excerpt": "If the part is available in-house, it is reserved."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R07",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N03",
+      "guard_meaning": "not available in-house",
+      "target_action_ids": [
+        "SU-1-1-10"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 522,
+          "end_offset": 565,
+          "exact_excerpt": "If it is not available, it is back-ordered."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R08",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N04",
+      "guard_meaning": "another part remains",
+      "target_action_ids": [
+        "SU-1-1-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 566,
+          "end_offset": 624,
+          "exact_excerpt": "This procedure is repeated for each item on the part list."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R09",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N04",
+      "guard_meaning": "every item has been reserved or back-ordered",
+      "target_action_ids": [
+        "SU-1-1-12"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 732,
+          "end_offset": 819,
+          "exact_excerpt": "If the storehouse has successfully reserved or back-ordered every item of the part list"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-1-R10",
+      "type": "synchronization",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N05",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-1-1-12"
+      ],
+      "incoming_action_ids": [
+        "SU-1-1-09",
+        "SU-1-1-10"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 732,
+          "end_offset": 861,
+          "exact_excerpt": "If the storehouse has successfully reserved or back-ordered every item of the part list and the preparation activity has finished"
+        }
+      ],
+      "incoming_mode": "any_of_per_item"
+    },
+    {
+      "fact_id": "CF-1-1-R11",
+      "type": "synchronization",
+      "status": "required",
+      "source_control_fact": "CF-1-1-N05",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-1-1-12"
+      ],
+      "incoming_action_ids": [
+        "SU-1-1-11"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 732,
+          "end_offset": 861,
+          "exact_excerpt": "If the storehouse has successfully reserved or back-ordered every item of the part list and the preparation activity has finished"
+        }
+      ],
+      "incoming_mode": "branch_completion"
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does notifying both departments require a distinct parallel launch before their work, or is independence of the two work streams sufficient?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

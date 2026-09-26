@@ -1,0 +1,61 @@
+{
+  "status": "CERTIFIED",
+  "candidate_slots": 120,
+  "evaluated_candidates": 120,
+  "malformed_candidates": 0,
+  "technical_exceptions": 0,
+  "integrity_passed": true,
+  "pre_run_scopes_exact": {
+    "targeted_nine": 9,
+    "guard_cohort": 42,
+    "approved_preflight": 18
+  },
+  "tests_passed": 62,
+  "unresolved_source_questions": 11,
+  "action_identical_all_120": true,
+  "flow_identical_to_finalized_all_120": true,
+  "guard_family": {
+    "TP": 71,
+    "FN+FP": 6
+  },
+  "approved_final_status_changes": 12,
+  "unexpected_status_changes": 0,
+  "reviewed_9_5_N05_status": "FN",
+  "generated_relation_ledger": {
+    "FP_ABSTAIN": 471,
+    "MATCHED": 238,
+    "CONTRADICTION_ACCOUNTED": 33
+  },
+  "historical_comparison": {
+    "provisional": {
+      "status_changes": 176,
+      "assignment_only_changes": 56,
+      "diagnostic_only_changes": 426,
+      "by_component_status": {
+        "Control Node": 67,
+        "Control Relation": 109
+      }
+    },
+    "broken_completed": {
+      "status_changes": 95,
+      "assignment_only_changes": 5,
+      "diagnostic_only_changes": 14,
+      "by_component_status": {
+        "Control Relation": 89,
+        "Control Node": 6
+      }
+    },
+    "previous_uncertified_certification": {
+      "status_changes": 12,
+      "assignment_only_changes": 1,
+      "diagnostic_only_changes": 10,
+      "by_component_status": {
+        "Control Relation": 9,
+        "Control Node": 3
+      }
+    }
+  },
+  "action_fact_projection_sha256": "2dda95470d70921d8ec2055b0093d0d495867d58315495a9d2ed0ac873a4ccdf",
+  "corpus_sha256": "5f9765bda2ea5d9d9f4a78603207bb0a2ed6532fd0c935149c275595c7d5be8a",
+  "roster_sha256": "f96893bd709cd51a9499e7f7829d454d0c70642896ae9a29128f1fe271506980"
+}

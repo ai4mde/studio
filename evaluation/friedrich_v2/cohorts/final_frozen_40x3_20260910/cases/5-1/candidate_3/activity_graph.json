@@ -1,0 +1,119 @@
+{
+  "edges": [
+    {
+      "source": "n4",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "denied",
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "label": "needs_review",
+      "source": "n6",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n5",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "receive customer loan request",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "invoke risk assessment Web service",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "provide feedback to customer",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "type": "initial"
+    },
+    {
+      "id": "n5",
+      "type": "final"
+    },
+    {
+      "id": "n6",
+      "label": "determine loan outcome based on risk and amount?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n7",
+      "name": "approve loan",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "deny loan",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "send request to approver Web service",
+      "origin_step_id": "T1_branch_3_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

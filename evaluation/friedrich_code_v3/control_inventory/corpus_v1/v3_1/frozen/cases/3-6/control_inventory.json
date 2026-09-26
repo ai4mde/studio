@@ -1,0 +1,259 @@
+{
+  "case_id": "3-6",
+  "status": "FROZEN",
+  "source_hash": "31de74996d2c02081a6d24986a0cc4fabe7e344fba6d221c42c2062218583ba8",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "132ccb2459b883d0e174f782ef9c10536ab3f99655f1585e297d4422eef2cd2b",
+  "reference_model_sha256": "cd0295c16f8cbd8e3688ff32c06a0a5fcdeac3a04e22aedd7c050033efb38886",
+  "process_control_logic": "Uninsured claims are rejected. Insured claims receive forms; incomplete forms are updated and checked again until complete, then registered.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-3-6-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Reject uninsured claimant or continue claim notification",
+      "anchor_action_ids": [
+        "SU-3-6-02"
+      ],
+      "reference_evidence_ids": [
+        "gateway:365"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 99,
+          "end_offset": 131,
+          "exact_excerpt": "If not, the claimant is informed"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-6-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Incomplete forms are updated and checked again",
+      "anchor_action_ids": [
+        "SU-3-6-08"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 370,
+          "end_offset": 411,
+          "exact_excerpt": "If the forms provide\nall relevant details"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-6-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Select relevant forms according to simple or complex claim severity",
+      "anchor_action_ids": [
+        "SU-3-6-05"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "Guarded form selection is the control distinction; both outcomes use reviewed Action SU-3-6-06.",
+      "source_spans": [
+        {
+          "start_offset": 216,
+          "end_offset": 263,
+          "exact_excerpt": "Based on the outcome (simple or complex claims)"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-3-6-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-6-N01",
+      "guard_meaning": "not insured",
+      "target_action_ids": [
+        "SU-3-6-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "claim rejected",
+      "reference_evidence_ids": [
+        "branch:365:370"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 137,
+          "end_offset": 164,
+          "exact_excerpt": "the claim must be rejected."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-6-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-6-N01",
+      "guard_meaning": "insured",
+      "target_action_ids": [
+        "SU-3-6-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:365:372"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 165,
+          "end_offset": 215,
+          "exact_excerpt": "Otherwise, the severity of the claim is\nevaluated."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-6-R03",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-3-6-N01",
+      "guard_meaning": "uninsured",
+      "target_action_ids": [
+        "SU-3-6-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-3-6-05"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 137,
+          "end_offset": 164,
+          "exact_excerpt": "the claim must be rejected."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-6-R04",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-3-6-N02",
+      "guard_meaning": "forms incomplete",
+      "target_action_ids": [
+        "SU-3-6-10",
+        "SU-3-6-07",
+        "SU-3-6-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 571,
+          "end_offset": 631,
+          "exact_excerpt": "Upon\nreception of the updated forms, they are checked again."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-6-R05",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-3-6-N02",
+      "guard_meaning": "forms complete",
+      "target_action_ids": [
+        "SU-3-6-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 413,
+          "end_offset": 468,
+          "exact_excerpt": "the claim is registered in the Claims\nManagement system"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-6-R06",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-6-N03",
+      "guard_meaning": "simple claim",
+      "target_action_ids": [
+        "SU-3-6-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "The forms Action anchor is shared. Match the guard/form-selection meaning; do not require a distinct target Action or add cascading penalties.",
+      "source_spans": [
+        {
+          "start_offset": 216,
+          "end_offset": 263,
+          "exact_excerpt": "Based on the outcome (simple or complex claims)"
+        }
+      ],
+      "target_mode": "shared_action_guard_distinction"
+    },
+    {
+      "fact_id": "CF-3-6-R07",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-6-N03",
+      "guard_meaning": "complex claim",
+      "target_action_ids": [
+        "SU-3-6-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "The forms Action anchor is shared. Match the guard/form-selection meaning; do not require a distinct target Action or add cascading penalties.",
+      "source_spans": [
+        {
+          "start_offset": 216,
+          "end_offset": 263,
+          "exact_excerpt": "Based on the outcome (simple or complex claims)"
+        }
+      ],
+      "target_mode": "shared_action_guard_distinction"
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudication: same-target decision branches are distinct only by source-supported guard meaning. A combined Action representation must be assessed through the reviewed Action alignment, without a new similarity threshold.",
+    "Adjudicated source question: The source names simple and complex severity but the reviewed inventory has one forms action; decide whether separate branch facts are observable before scoring them.",
+    "The shared forms anchor does not imply two different Action targets. The two guarded relations each remain one scoring unit."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

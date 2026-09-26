@@ -1,0 +1,100 @@
+{
+  "case_id": "3-4",
+  "status": "FROZEN",
+  "source_hash": "aa9f7aeffdd5052d718d3d7de9ba8517f12d4ecc48c34da8e300294de2035dcc",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "8f225437f4eaa2785a58f3806501c121d3d3e8e98a742211382377f9291c6c48",
+  "reference_model_sha256": "71a858a7d18c66506950ac39a3666ea8da439a8ef489e2ec99145f1a84a81eb8",
+  "process_control_logic": "A questionnaire is awaited; after each five-day period without a response, a reminder is sent and the wait repeats until completion.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-3-4-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Repeat the five-day reminder cycle until the completed questionnaire arrives",
+      "anchor_action_ids": [
+        "SU-3-4-02",
+        "SU-3-4-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 217,
+          "end_offset": 259,
+          "exact_excerpt": "If no response is received after five days"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-3-4-R01",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-3-4-N01",
+      "guard_meaning": "no response after five days",
+      "target_action_ids": [
+        "SU-3-4-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 353,
+          "end_offset": 387,
+          "exact_excerpt": "another reminder is sent and so on"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-4-R02",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-3-4-N01",
+      "guard_meaning": "completed questionnaire received",
+      "target_action_ids": [
+        "SU-3-4-02"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 388,
+          "end_offset": 434,
+          "exact_excerpt": "until the completed questionnaire is received."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "REUSE_ACTION_ALIGNMENT",
+      "status": "permitted",
+      "scope": "repeated or compound source activity anchors",
+      "reason": "Use the already reviewed Action alignment for split, combined, or repeated activity occurrences; no new label threshold is introduced."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Should the initial five-day timeout and later repeated five-day timeouts be represented as one logical control point or two?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

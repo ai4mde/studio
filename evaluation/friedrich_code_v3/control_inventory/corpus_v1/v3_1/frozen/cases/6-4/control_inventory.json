@@ -1,0 +1,499 @@
+{
+  "case_id": "6-4",
+  "status": "FROZEN",
+  "source_hash": "291fa9e3f6e7705028bf5abd54086361b397486ef355e78e488de187bbc8468d",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "1940704e3018c909bd646da5d40fc5a277541d0a2e2b3c2b1a988b2095bde51c",
+  "reference_model_sha256": "f798865c88482deb60b92850649ca6da2a40b60ea2f9bb4a467d0aa21dc00a60",
+  "process_control_logic": "Contact sources vary. Uninterested customers usually stop, but a huge budget triggers a personal acquisition attempt; presentation and response handling have conditional alternatives.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-6-4-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Select a way to obtain potential-customer contact details",
+      "anchor_action_ids": [
+        "SU-6-4-01"
+      ],
+      "reference_evidence_ids": [
+        "gateway:97"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 72,
+          "end_offset": 109,
+          "exact_excerpt": "This can be achieved in several ways."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-N02",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Contact acquisition routes converge on calling the customer",
+      "anchor_action_ids": [
+        "SU-6-4-02",
+        "SU-6-4-03",
+        "SU-6-4-04",
+        "SU-6-4-05"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 297,
+          "end_offset": 332,
+          "exact_excerpt": "Then we start calling the customer."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Interest and budget determine whether acquisition continues",
+      "anchor_action_ids": [
+        "SU-6-4-08",
+        "SU-6-4-09"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 558,
+          "end_offset": 581,
+          "exact_excerpt": "If this is not the case"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Choose sales or technical presenter",
+      "anchor_action_ids": [
+        "SU-6-4-11",
+        "SU-6-4-12"
+      ],
+      "reference_evidence_ids": [
+        "gateway:49"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 825,
+          "end_offset": 884,
+          "exact_excerpt": "either by a sales representative or by a pre-sales employee"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-N05",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Presentation routes converge on waiting for customer response",
+      "anchor_action_ids": [
+        "SU-6-4-11",
+        "SU-6-4-12",
+        "SU-6-4-13"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 927,
+          "end_offset": 989,
+          "exact_excerpt": "Afterwards we are waiting for the customer to come back to us."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-N06",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Call customer if two weeks pass without contact",
+      "anchor_action_ids": [
+        "SU-6-4-13"
+      ],
+      "reference_evidence_ids": [
+        "gateway:36"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 990,
+          "end_offset": 1028,
+          "exact_excerpt": "If we are not contacted within 2 weeks"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-6-4-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N01",
+      "guard_meaning": "buy details",
+      "target_action_ids": [
+        "SU-6-4-02"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:97:102"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 122,
+          "end_offset": 151,
+          "exact_excerpt": "we buy details for cold calls"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N01",
+      "guard_meaning": "exhibition",
+      "target_action_ids": [
+        "SU-6-4-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:97:101"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 168,
+          "end_offset": 211,
+          "exact_excerpt": "marketing staff participates in exhibitions"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R03",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N01",
+      "guard_meaning": "known contact",
+      "target_action_ids": [
+        "SU-6-4-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:97:100"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 228,
+          "end_offset": 260,
+          "exact_excerpt": "you just happen to know somebody"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R04",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-6-4-05"
+      ],
+      "incoming_action_ids": [
+        "SU-6-4-02",
+        "SU-6-4-03",
+        "SU-6-4-04"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 297,
+          "end_offset": 332,
+          "exact_excerpt": "Then we start calling the customer."
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-6-4-R05",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N03",
+      "guard_meaning": "interested",
+      "target_action_ids": [
+        "SU-6-4-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 722,
+          "end_offset": 762,
+          "exact_excerpt": "If the customer is interested in the end"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R06",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N03",
+      "guard_meaning": "uninterested and budget not huge",
+      "target_action_ids": [
+        "SU-6-4-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "stop contacting customer",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 583,
+          "end_offset": 601,
+          "exact_excerpt": "we leave him alone"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R07",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N03",
+      "guard_meaning": "uninterested but budget huge",
+      "target_action_ids": [
+        "SU-6-4-10"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 603,
+          "end_offset": 649,
+          "exact_excerpt": "except if the potential project budget is huge"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R08",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N03",
+      "guard_meaning": "uninterested and budget not huge",
+      "target_action_ids": [
+        "SU-6-4-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-6-4-10"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 583,
+          "end_offset": 601,
+          "exact_excerpt": "we leave him alone"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R09",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N04",
+      "guard_meaning": "ordinary presentation",
+      "target_action_ids": [
+        "SU-6-4-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:49:33"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 832,
+          "end_offset": 857,
+          "exact_excerpt": "by a sales representative"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R10",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N04",
+      "guard_meaning": "more technical presentation",
+      "target_action_ids": [
+        "SU-6-4-12"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:49:34"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 861,
+          "end_offset": 925,
+          "exact_excerpt": "by a pre-sales employee in case of a more technical presentation"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R11",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N05",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-6-4-13"
+      ],
+      "incoming_action_ids": [
+        "SU-6-4-11",
+        "SU-6-4-12"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 927,
+          "end_offset": 989,
+          "exact_excerpt": "Afterwards we are waiting for the customer to come back to us."
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-6-4-R12",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N06",
+      "guard_meaning": "no contact within two weeks",
+      "target_action_ids": [
+        "SU-6-4-14"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:36:38"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1030,
+          "end_offset": 1077,
+          "exact_excerpt": "a sales representative is calling the customer."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-6-4-R13",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-6-4-N06",
+      "guard_meaning": "customer contacts within two weeks",
+      "target_action_ids": [
+        "SU-6-4-15"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:36:37"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1078,
+          "end_offset": 1124,
+          "exact_excerpt": "The last phase is the creation of a quotation."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-6-4-N02",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-6-4-N05",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "Does a failed personal acquisition attempt terminate the process, or is the resulting path outside the source scope?",
+      "source_spans": [
+        {
+          "start_offset": 722,
+          "end_offset": 762,
+          "exact_excerpt": "If the customer is interested in the end"
+        }
+      ],
+      "affected_fact_ids": [],
+      "reason": "",
+      "reason_code": "source_non_exhaustive",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "non_exhaustive",
+      "source_scope": "failed_personal_acquisition_outcome"
+    }
+  ],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: The reviewed unit “Import an Excel sheet with customer data” has no matching process-text statement and is excluded from control anchors."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

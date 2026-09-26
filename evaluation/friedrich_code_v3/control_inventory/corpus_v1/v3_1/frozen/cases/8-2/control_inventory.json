@@ -1,0 +1,161 @@
+{
+  "case_id": "8-2",
+  "status": "FROZEN",
+  "source_hash": "435cc55f6608be2029df88ac6917dfdce0f7e8ce6277a573b36c480397c95f29",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "e11763738c038a56b121716062f5636d64edac7535dd097609f2b249b9144a8a",
+  "reference_model_sha256": "fd209ff7d0e50ea2f5a5a7c65c689bc4ac2697f2e844f12a31ad0324de6e7108",
+  "process_control_logic": "Unclear vacancy information prompts a Department query; rejected job descriptions are corrected and resubmitted until approval, then the job is posted.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-8-2-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Clarify the vacancy message if needed",
+      "anchor_action_ids": [
+        "SU-8-2-02",
+        "SU-8-2-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 157,
+          "end_offset": 206,
+          "exact_excerpt": "Sometimes there is still confusion in the message"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-8-2-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Correct and resubmit rejected job description",
+      "anchor_action_ids": [
+        "SU-8-2-04",
+        "SU-8-2-06",
+        "SU-8-2-07",
+        "SU-8-2-08",
+        "SU-8-2-09"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 359,
+          "end_offset": 409,
+          "exact_excerpt": "the department does not approve it, but rejects it"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-8-2-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-8-2-N01",
+      "guard_meaning": "message unclear",
+      "target_action_ids": [
+        "SU-8-2-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 213,
+          "end_offset": 245,
+          "exact_excerpt": "I must ask the Department again."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-8-2-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-8-2-N01",
+      "guard_meaning": "message clear",
+      "target_action_ids": [
+        "SU-8-2-02"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 108,
+          "end_offset": 156,
+          "exact_excerpt": "I create a job description from the information."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-8-2-R03",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-8-2-N02",
+      "guard_meaning": "description rejected and correction requested",
+      "target_action_ids": [
+        "SU-8-2-08",
+        "SU-8-2-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 438,
+          "end_offset": 488,
+          "exact_excerpt": "Then I correct the description and submit it again"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-8-2-R04",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-8-2-N02",
+      "guard_meaning": "description approved",
+      "target_action_ids": [
+        "SU-8-2-10"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 508,
+          "end_offset": 563,
+          "exact_excerpt": "If the description is finally approved, I post the job."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does asking the Department for clarification require returning to description creation, or is the message merely supplemented before first creation?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

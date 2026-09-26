@@ -1,0 +1,22 @@
+{
+  "case_id": "9-4",
+  "status": "FROZEN",
+  "source_hash": "3abece65b676d244c5acca4014f3847c224248e747af73f8eedbc00457158781",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "d352dc4b0b7decd78376e08e656fc81d00c1084e48c2e44d31650a2d54e042ad",
+  "reference_model_sha256": "307a4a4ca63b0efaa310c3664947eecedc8bd1faf7010012f54472dfc3303696",
+  "process_control_logic": "Finalized dates lead to calendar/folder preparation, meeting, minutes QA, distribution, and record update without a source-required control split, join, or loop.",
+  "control_nodes": [],
+  "control_relations": [],
+  "permitted_equivalences": [],
+  "unresolved_facts": [],
+  "no_control": true,
+  "review_notes": [
+    "Affirmative no-control determination: multiple document-preparation actions do not establish mandatory concurrency."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

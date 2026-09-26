@@ -1,0 +1,129 @@
+{
+  "edges": [
+    {
+      "source": "n11",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n12",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "finalize meeting dates (Coordination Unit)",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "update all group calendars (Support Officer)",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "create meeting folders for each meeting (Support Officer)",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "upload all appropriate documents to system (Support Officer)",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "advise Committee Members a week before each meeting to read all related documents",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "hold meeting (Committee Members)",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "produce minutes including Action Points for each Committee Member (Support Officer)",
+      "origin_step_id": "S7",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "conduct QA check on the minutes within 5 working days (Coordination Unit)",
+      "origin_step_id": "S8",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "send minutes to all Committee Members",
+      "origin_step_id": "S9",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "update all departmental records (Support Officer)",
+      "origin_step_id": "S10",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "type": "initial"
+    },
+    {
+      "id": "n12",
+      "type": "final"
+    }
+  ]
+}

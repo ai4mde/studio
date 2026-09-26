@@ -1,0 +1,267 @@
+{
+  "case_id": "10-10",
+  "status": "FROZEN",
+  "source_hash": "f132b7a99027c4a802e699ac561c6d5d84a06f09a01bf31ab4b71a9ab59a6e67",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "994a051b6861445911ea4f458afe4a8a92bc81734bccada63d52b7d08f37000a",
+  "reference_model_sha256": "cbd0ba8b1d48d208651894389d1c3eff9523137738cb1ced701f8c0d0533dd96",
+  "process_control_logic": "The fault is externally reported or internally suspected, then examined. Confirmed failures lead to notices and repair; rejected reports do not enter repair work.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-10-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Fault originates from detector report or MPO suspicion",
+      "anchor_action_ids": [
+        "SU-10-10-01",
+        "SU-10-10-02"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 19,
+          "end_offset": 70,
+          "exact_excerpt": "reports a failure to the MPO or MPO has a suspicion"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-10-N02",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Both fault origins reach MPO examination",
+      "anchor_action_ids": [
+        "SU-10-10-01",
+        "SU-10-10-02",
+        "SU-10-10-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 91,
+          "end_offset": 125,
+          "exact_excerpt": "The MPO shall examine the failure."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-10-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Reject or confirm the reported failure",
+      "anchor_action_ids": [
+        "SU-10-10-03"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734670"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 134,
+          "end_offset": 178,
+          "exact_excerpt": "rejects the failure of the fault detector or"
+        }
+      ],
+      "source_scope": "detector_report"
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-10-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-10-N01",
+      "guard_meaning": "detector report",
+      "target_action_ids": [
+        "SU-10-10-01"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 4,
+          "end_offset": 36,
+          "exact_excerpt": "fault detector reports a failure"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-10-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-10-N01",
+      "guard_meaning": "MPO suspicion",
+      "target_action_ids": [
+        "SU-10-10-02"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 51,
+          "end_offset": 89,
+          "exact_excerpt": "MPO has a suspicion of their own fault"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-10-R03",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-10-10-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-10-10-03"
+      ],
+      "incoming_action_ids": [
+        "SU-10-10-01",
+        "SU-10-10-02"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 91,
+          "end_offset": 125,
+          "exact_excerpt": "The MPO shall examine the failure."
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-10-10-R04",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-10-N03",
+      "guard_meaning": "failure rejected",
+      "target_action_ids": [
+        "SU-10-10-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "fault report rejected",
+      "reference_evidence_ids": [
+        "branch:16734670:16734671"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 134,
+          "end_offset": 175,
+          "exact_excerpt": "rejects the failure of the fault detector"
+        }
+      ],
+      "source_scope": "detector_report"
+    },
+    {
+      "fact_id": "CF-10-10-R05",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-10-N03",
+      "guard_meaning": "failure confirmed",
+      "target_action_ids": [
+        "SU-10-10-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734670:16734680"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 187,
+          "end_offset": 229,
+          "exact_excerpt": "confirms the failure of the fault detector"
+        }
+      ],
+      "source_scope": "detector_report"
+    },
+    {
+      "fact_id": "CF-10-10-R06",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-10-10-N03",
+      "guard_meaning": "failure rejected",
+      "target_action_ids": [
+        "SU-10-10-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-10-10-06"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 231,
+          "end_offset": 284,
+          "exact_excerpt": "If the MPO confirms the failure of the fault detector"
+        }
+      ],
+      "source_scope": "detector_report"
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-10-10-N02",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "For an internally suspected fault, does the same reject/confirm wording (“of the fault detector”) apply?",
+      "source_spans": [
+        {
+          "start_offset": 51,
+          "end_offset": 90,
+          "exact_excerpt": "MPO has a suspicion of their own fault."
+        }
+      ],
+      "affected_fact_ids": [
+        "CF-10-10-N03"
+      ],
+      "reason": "",
+      "reason_code": "source_non_exhaustive",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "non_exhaustive"
+    }
+  ],
+  "no_control": false,
+  "review_notes": [
+    "Detector-specific rejection/confirmation is scored only on the detector-report route; internally suspected-fault outcome remains source-non-exhaustive."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

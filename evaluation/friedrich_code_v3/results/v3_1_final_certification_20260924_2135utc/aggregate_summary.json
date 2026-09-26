@@ -1,0 +1,459 @@
+{
+  "candidate_macro_averages": {
+    "action_tp": {
+      "all_slot_mean": 8.05,
+      "complete_observation_mean_descriptive": 8.05,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "action_fp": {
+      "all_slot_mean": 0.0,
+      "complete_observation_mean_descriptive": 0.0,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "action_fn": {
+      "all_slot_mean": 1.425,
+      "complete_observation_mean_descriptive": 1.425,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "action_precision": {
+      "all_slot_mean": 1.0,
+      "complete_observation_mean_descriptive": 1.0,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "action_recall": {
+      "all_slot_mean": 0.8640155793280793,
+      "complete_observation_mean_descriptive": 0.8640155793280793,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "action_f1": {
+      "all_slot_mean": 0.9194523128807306,
+      "complete_observation_mean_descriptive": 0.9194523128807306,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "flow_tp": {
+      "all_slot_mean": 6.025,
+      "complete_observation_mean_descriptive": 6.025,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "flow_fp": {
+      "all_slot_mean": 0.6916666666666667,
+      "complete_observation_mean_descriptive": 0.6916666666666667,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "flow_fn": {
+      "all_slot_mean": 1.7833333333333334,
+      "complete_observation_mean_descriptive": 1.7833333333333334,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "flow_precision": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.9770775805391191,
+      "numeric_observation_count": 65,
+      "expected_slot_count": 120
+    },
+    "flow_recall": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.8648233427664866,
+      "numeric_observation_count": 65,
+      "expected_slot_count": 120
+    },
+    "flow_f1": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.9048982812059735,
+      "numeric_observation_count": 65,
+      "expected_slot_count": 120
+    },
+    "control_node_tp": {
+      "all_slot_mean": 1.4916666666666667,
+      "complete_observation_mean_descriptive": 1.4916666666666667,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_node_fp": {
+      "all_slot_mean": 0.0,
+      "complete_observation_mean_descriptive": 0.0,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_node_fn": {
+      "all_slot_mean": 0.6333333333333333,
+      "complete_observation_mean_descriptive": 0.6333333333333333,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_node_precision": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.7575757575757576,
+      "numeric_observation_count": 99,
+      "expected_slot_count": 120
+    },
+    "control_node_recall": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.6411233547597184,
+      "numeric_observation_count": 99,
+      "expected_slot_count": 120
+    },
+    "control_node_f1": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.6812089145422479,
+      "numeric_observation_count": 99,
+      "expected_slot_count": 120
+    },
+    "control_relation_tp": {
+      "all_slot_mean": 1.925,
+      "complete_observation_mean_descriptive": 1.925,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_relation_fp": {
+      "all_slot_mean": 0.43333333333333335,
+      "complete_observation_mean_descriptive": 0.43333333333333335,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_relation_fn": {
+      "all_slot_mean": 2.091666666666667,
+      "complete_observation_mean_descriptive": 2.091666666666667,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_relation_precision": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.5907894736842105,
+      "numeric_observation_count": 76,
+      "expected_slot_count": 120
+    },
+    "control_relation_recall": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.5017700501253133,
+      "numeric_observation_count": 76,
+      "expected_slot_count": 120
+    },
+    "control_relation_f1": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.5287480063795854,
+      "numeric_observation_count": 76,
+      "expected_slot_count": 120
+    },
+    "flow_indeterminate_alignment_count": {
+      "all_slot_mean": 1.9916666666666667,
+      "complete_observation_mean_descriptive": 1.9916666666666667,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "flow_determinate_coverage": {
+      "all_slot_mean": 0.8463647597759625,
+      "complete_observation_mean_descriptive": 0.8463647597759625,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_node_indeterminate_alignment_count": {
+      "all_slot_mean": 0.25,
+      "complete_observation_mean_descriptive": 0.25,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_node_determinate_coverage": {
+      "all_slot_mean": 0.9126515151515151,
+      "complete_observation_mean_descriptive": 0.9126515151515151,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_relation_indeterminate_alignment_count": {
+      "all_slot_mean": 0.8833333333333333,
+      "complete_observation_mean_descriptive": 0.8833333333333333,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    },
+    "control_relation_determinate_coverage": {
+      "all_slot_mean": 0.8711868686868687,
+      "complete_observation_mean_descriptive": 0.8711868686868687,
+      "numeric_observation_count": 120,
+      "expected_slot_count": 120
+    }
+  },
+  "case_balanced_averages": {
+    "action_tp": {
+      "all_slot_mean": 8.05,
+      "complete_observation_mean_descriptive": 8.05,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "action_fp": {
+      "all_slot_mean": 0.0,
+      "complete_observation_mean_descriptive": 0.0,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "action_fn": {
+      "all_slot_mean": 1.425,
+      "complete_observation_mean_descriptive": 1.425,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "action_precision": {
+      "all_slot_mean": 1.0,
+      "complete_observation_mean_descriptive": 1.0,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "action_recall": {
+      "all_slot_mean": 0.8640155793280794,
+      "complete_observation_mean_descriptive": 0.8640155793280794,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "action_f1": {
+      "all_slot_mean": 0.9194523128807305,
+      "complete_observation_mean_descriptive": 0.9194523128807305,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "flow_tp": {
+      "all_slot_mean": 6.025,
+      "complete_observation_mean_descriptive": 6.025,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "flow_fp": {
+      "all_slot_mean": 0.6916666666666667,
+      "complete_observation_mean_descriptive": 0.6916666666666667,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "flow_fn": {
+      "all_slot_mean": 1.7833333333333332,
+      "complete_observation_mean_descriptive": 1.7833333333333332,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "flow_precision": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.9858024691358024,
+      "numeric_observation_count": 18,
+      "expected_slot_count": 40
+    },
+    "flow_recall": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.8860082304526748,
+      "numeric_observation_count": 18,
+      "expected_slot_count": 40
+    },
+    "flow_f1": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.9226156559489893,
+      "numeric_observation_count": 18,
+      "expected_slot_count": 40
+    },
+    "control_node_tp": {
+      "all_slot_mean": 1.4916666666666667,
+      "complete_observation_mean_descriptive": 1.4916666666666667,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_node_fp": {
+      "all_slot_mean": 0.0,
+      "complete_observation_mean_descriptive": 0.0,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_node_fn": {
+      "all_slot_mean": 0.6333333333333333,
+      "complete_observation_mean_descriptive": 0.6333333333333333,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_node_precision": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.7333333333333333,
+      "numeric_observation_count": 30,
+      "expected_slot_count": 40
+    },
+    "control_node_recall": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.6483333333333333,
+      "numeric_observation_count": 30,
+      "expected_slot_count": 40
+    },
+    "control_node_f1": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.6779894179894179,
+      "numeric_observation_count": 30,
+      "expected_slot_count": 40
+    },
+    "control_relation_tp": {
+      "all_slot_mean": 1.925,
+      "complete_observation_mean_descriptive": 1.925,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_relation_fp": {
+      "all_slot_mean": 0.4333333333333333,
+      "complete_observation_mean_descriptive": 0.4333333333333333,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_relation_fn": {
+      "all_slot_mean": 2.091666666666667,
+      "complete_observation_mean_descriptive": 2.091666666666667,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_relation_precision": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.5966183574879227,
+      "numeric_observation_count": 23,
+      "expected_slot_count": 40
+    },
+    "control_relation_recall": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.5218253968253969,
+      "numeric_observation_count": 23,
+      "expected_slot_count": 40
+    },
+    "control_relation_f1": {
+      "all_slot_mean": null,
+      "complete_observation_mean_descriptive": 0.5432586736934563,
+      "numeric_observation_count": 23,
+      "expected_slot_count": 40
+    },
+    "flow_indeterminate_alignment_count": {
+      "all_slot_mean": 1.9916666666666667,
+      "complete_observation_mean_descriptive": 1.9916666666666667,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "flow_determinate_coverage": {
+      "all_slot_mean": 0.8463647597759625,
+      "complete_observation_mean_descriptive": 0.8463647597759625,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_node_indeterminate_alignment_count": {
+      "all_slot_mean": 0.25,
+      "complete_observation_mean_descriptive": 0.25,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_node_determinate_coverage": {
+      "all_slot_mean": 0.9126515151515152,
+      "complete_observation_mean_descriptive": 0.9126515151515152,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_relation_indeterminate_alignment_count": {
+      "all_slot_mean": 0.8833333333333334,
+      "complete_observation_mean_descriptive": 0.8833333333333334,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    },
+    "control_relation_determinate_coverage": {
+      "all_slot_mean": 0.8711868686868687,
+      "complete_observation_mean_descriptive": 0.8711868686868687,
+      "numeric_observation_count": 40,
+      "expected_slot_count": 40
+    }
+  },
+  "pooled_micro": {
+    "Action": {
+      "tp": 966,
+      "fp": 0,
+      "fn": 171,
+      "source_denominator_all_120_slots": 1137,
+      "indeterminate_alignment_count": 0,
+      "evaluated_slot_count": 120,
+      "precision": 1.0,
+      "recall": 0.8496042216358839,
+      "f1": 0.9186875891583453,
+      "determinate_coverage": 1.0,
+      "recall_interval": [
+        0.8496042216358839,
+        0.8496042216358839
+      ]
+    },
+    "Flow": {
+      "tp": 723,
+      "fp": 83,
+      "fn": 214,
+      "source_denominator_all_120_slots": 1176,
+      "indeterminate_alignment_count": 239,
+      "evaluated_slot_count": 120,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "determinate_coverage": 0.7967687074829932,
+      "recall_interval": [
+        0.6147959183673469,
+        0.8180272108843537
+      ]
+    },
+    "Control Node": {
+      "tp": 179,
+      "fp": 0,
+      "fn": 76,
+      "source_denominator_all_120_slots": 285,
+      "indeterminate_alignment_count": 30,
+      "evaluated_slot_count": 120,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "determinate_coverage": 0.8947368421052632,
+      "recall_interval": [
+        0.6280701754385964,
+        0.7333333333333333
+      ]
+    },
+    "Control Relation": {
+      "tp": 231,
+      "fp": 52,
+      "fn": 251,
+      "source_denominator_all_120_slots": 588,
+      "indeterminate_alignment_count": 106,
+      "evaluated_slot_count": 120,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "determinate_coverage": 0.8197278911564626,
+      "recall_interval": [
+        0.39285714285714285,
+        0.5731292517006803
+      ]
+    }
+  },
+  "coverage_indeterminate": {
+    "Flow": {
+      "indeterminate_fact_count": 239,
+      "candidates_with_indeterminate": 55
+    },
+    "Control Node": {
+      "indeterminate_fact_count": 30,
+      "candidates_with_indeterminate": 21
+    },
+    "Control Relation": {
+      "indeterminate_fact_count": 106,
+      "candidates_with_indeterminate": 44
+    }
+  },
+  "no_control_negative_case_cleanliness": {
+    "case_count": 6,
+    "candidate_count": 18,
+    "clean_candidate_count": 18,
+    "control_node_fp": 0,
+    "control_relation_fp": 0
+  },
+  "malformed_candidate_count": 0,
+  "technical_exception_count": 0,
+  "complete_candidate_count": 62,
+  "indeterminate_candidate_count": 58,
+  "evaluated_candidate_count": 120,
+  "candidate_slot_count": 120
+}

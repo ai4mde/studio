@@ -1,0 +1,22 @@
+{
+  "case_id": "8-1",
+  "status": "FROZEN",
+  "source_hash": "b1c4869d601b6494b192fdf7c14ecc518d49f5161d44d4d7f19873ba0c3b380b",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "f1bcdbe663727c3c44a875cc75e5ea124f3d968f02a43bb420415b859731afc4",
+  "reference_model_sha256": "a12fb45fef76fa0189c7f1d6a3643a26519b7acaa4d679924bd33bd5ea08888c",
+  "process_control_logic": "Vacancy demand, advertisement, applications, checking, filling, and contract conclusion form a linear outline with no scored logical control.",
+  "control_nodes": [],
+  "control_relations": [],
+  "permitted_equivalences": [],
+  "unresolved_facts": [],
+  "no_control": true,
+  "review_notes": [
+    "Affirmative no-control determination: plural applicants do not establish a source-required Fork or Join."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

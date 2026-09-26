@@ -1,0 +1,267 @@
+{
+  "edges": [
+    {
+      "source": "n3",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "no_new_records",
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "new_returns_exist",
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "label": "codes_not_advised",
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "new_records_found",
+      "source": "n5",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "label": "not_completed_by_230pm",
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "label": "completed_by_230pm",
+      "source": "n16",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n18",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "label": "new_returns_filed",
+      "source": "n19",
+      "target": "n20",
+      "type": "control"
+    },
+    {
+      "source": "n20",
+      "target": "n21",
+      "type": "control"
+    },
+    {
+      "label": "not_completed_by_4pm",
+      "source": "n21",
+      "target": "n22",
+      "type": "control"
+    },
+    {
+      "label": "no_new_returns_filed",
+      "source": "n19",
+      "target": "n24",
+      "type": "control"
+    },
+    {
+      "source": "n24",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "label": "no_new_returns",
+      "source": "n7",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "label": "codes_advised",
+      "source": "n10",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "label": "completed_by_4pm",
+      "source": "n21",
+      "target": "n24",
+      "type": "control"
+    },
+    {
+      "source": "n22",
+      "target": "n24",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "back up database",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "check whether the 'Account Defaulter' table has new records",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "type": "initial"
+    },
+    {
+      "id": "n4",
+      "type": "final"
+    },
+    {
+      "id": "n5",
+      "label": "check whether the 'Account Defaulter' table has new records?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n6",
+      "name": "check CRM system to see whether new returns have been filed",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "label": "check CRM system for new returns if no new records are found?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n8",
+      "name": "register all defaulting accounts and customers",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "check if defaulting client codes have not been previously advised",
+      "origin_step_id": "T2_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "label": "check if defaulting client codes have not been previously advised?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n11",
+      "name": "produce table of defaulting accounts",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "send table to account management",
+      "origin_step_id": "T3_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "origin_block_id": "T1",
+      "type": "merge"
+    },
+    {
+      "id": "n16",
+      "label": "check if all actions are completed by 2:30 pm?",
+      "origin_block_id": "T4",
+      "type": "decision"
+    },
+    {
+      "id": "n17",
+      "name": "send alert to supervisor",
+      "origin_step_id": "T4_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "origin_block_id": "T4",
+      "type": "merge"
+    },
+    {
+      "id": "n19",
+      "label": "after new defaulting account report, check CRM for new returns?",
+      "origin_block_id": "T5",
+      "type": "decision"
+    },
+    {
+      "id": "n20",
+      "name": "reconcile new returns with existing account defaulters table",
+      "origin_step_id": "T5_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n21",
+      "label": "check if reconciliation is completed by 4:00 pm?",
+      "origin_block_id": "T6",
+      "type": "decision"
+    },
+    {
+      "id": "n22",
+      "name": "send message to supervisor",
+      "origin_step_id": "T6_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n24",
+      "origin_block_id": "T5",
+      "type": "merge"
+    }
+  ]
+}

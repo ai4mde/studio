@@ -1,0 +1,221 @@
+{
+  "case_id": "1-2",
+  "status": "FROZEN",
+  "source_hash": "6f093370f78374d3394dbc9954a0c74e0a8a1a90bf90078c2e71eec84f8bd09b",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "aa216e25a1a69e84574675e55bd9607a335b1e5053048707b47be230c5e060b2",
+  "reference_model_sha256": "4592aae4d05316ec1f95a0b309744b020fdd76db9b2e65b415849a60eac06122",
+  "process_control_logic": "The customer may reject repair costs. Hardware and software repair may occur in either order; tests after repair can send work back for another repair or finish it.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-1-2-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Continue or stop after the cost decision",
+      "anchor_action_ids": [
+        "SU-1-2-04"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 197,
+          "end_offset": 250,
+          "exact_excerpt": "If the customer decides that the costs are acceptable"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-2-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "After a functionality test, repeat repair on error or finish",
+      "anchor_action_ids": [
+        "SU-1-2-10"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 610,
+          "end_offset": 714,
+          "exact_excerpt": "If an error is detected another arbitrary repair activity is executed, otherwise the repair is finished."
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-1-2-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-1-2-N01",
+      "guard_meaning": "costs acceptable",
+      "target_action_ids": [
+        "SU-1-2-06",
+        "SU-1-2-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 252,
+          "end_offset": 273,
+          "exact_excerpt": "the process continues"
+        }
+      ],
+      "target_mode": "both_required_any_order"
+    },
+    {
+      "fact_id": "CF-1-2-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-1-2-N01",
+      "guard_meaning": "costs unacceptable",
+      "target_action_ids": [
+        "SU-1-2-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "computer taken home unrepaired",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 275,
+          "end_offset": 324,
+          "exact_excerpt": "otherwise she takes her computer home unrepaired."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-2-R03",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-1-2-N01",
+      "guard_meaning": "costs unacceptable",
+      "target_action_ids": [
+        "SU-1-2-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-1-2-06"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 275,
+          "end_offset": 324,
+          "exact_excerpt": "otherwise she takes her computer home unrepaired."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-2-R04",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-1-2-N02",
+      "guard_meaning": "error detected",
+      "target_action_ids": [
+        "SU-1-2-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 610,
+          "end_offset": 679,
+          "exact_excerpt": "If an error is detected another arbitrary repair activity is executed"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-1-2-R05",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-1-2-N02",
+      "guard_meaning": "no error detected",
+      "target_action_ids": [
+        "SU-1-2-12"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 681,
+          "end_offset": 714,
+          "exact_excerpt": "otherwise the repair is finished."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "REUSE_ACTION_ALIGNMENT",
+      "status": "permitted",
+      "scope": "repeated or compound source activity anchors",
+      "reason": "Use the already reviewed Action alignment for split, combined, or repeated activity occurrences; no new label threshold is introduced."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "Does “arbitrary order” permit both repair activities to overlap, or require only freedom to choose their sequence?",
+      "source_spans": [
+        {
+          "start_offset": 372,
+          "end_offset": 414,
+          "exact_excerpt": "which are executed, in an arbitrary order."
+        }
+      ],
+      "affected_fact_ids": [],
+      "reason": "",
+      "reason_code": "concurrency_ambiguous",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "abstain_on_unspecified_relation",
+      "known_permitted_serial_orders": [
+        [
+          "SU-1-2-06",
+          "SU-1-2-08"
+        ],
+        [
+          "SU-1-2-08",
+          "SU-1-2-06"
+        ]
+      ],
+      "unknown_representation": "parallel_execution"
+    }
+  ],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does each hardware and software activity have a separate test and repair loop, or a shared test control point?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

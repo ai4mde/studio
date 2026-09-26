@@ -1,0 +1,146 @@
+{
+  "edges": [
+    {
+      "source": "n3",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "confirmed",
+      "source": "n5",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n4",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "fault detector reports a failure to the MPO or MPO identifies their own fault",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "MPO examines the failure",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "type": "initial"
+    },
+    {
+      "id": "n4",
+      "type": "final"
+    },
+    {
+      "id": "n5",
+      "label": "MPO rejects or confirms the failure reported by the fault detector?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n6",
+      "name": "MPO rejects the failure reported by the fault detector",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "MPO confirms the failure reported by the fault detector",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "MPO informs the GO and the MSP",
+      "origin_step_id": "T1_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "MPO fixes the fault at the measuring device",
+      "origin_step_id": "T1_branch_2_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "MPO shares the results of the repairs with the fault detector",
+      "origin_step_id": "T1_branch_2_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "MPO informs the GO about the resolution of the interference",
+      "origin_step_id": "T1_branch_2_step_5",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "MPO informs the MSP about the resolution of the interference",
+      "origin_step_id": "T1_branch_2_step_6",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

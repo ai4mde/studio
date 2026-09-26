@@ -1,0 +1,194 @@
+{
+  "case_id": "3-5",
+  "status": "FROZEN",
+  "source_hash": "b22088cf2ebc7837bcd841b3efcf010420afb900593c69d6e6a7d784a1250e6b",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "f53aa09b912af4fbb8662852c27bd9b16df2496658c58e754d42da8b3d84a1ab",
+  "reference_model_sha256": "0b95e890ecb5dc501d6b3cc56761fdce026514f5bb4b8cd298eabed49f761877",
+  "process_control_logic": "Failed mail quality sends a requisition to the party. Compliant mail proceeds to cashier fees; mailing a receipt and capturing Party Details proceed in parallel.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-3-5-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Route mail after quality check",
+      "anchor_action_ids": [
+        "SU-3-5-08"
+      ],
+      "reference_evidence_ids": [
+        "gateway:276"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 441,
+          "end_offset": 469,
+          "exact_excerpt": "If the mail is not\ncompliant"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-5-N02",
+      "type": "Fork",
+      "status": "required",
+      "purpose": "Receipt mailing and cashier Party Details/file work proceed meanwhile",
+      "anchor_action_ids": [
+        "SU-3-5-14",
+        "SU-3-5-15",
+        "SU-3-5-16",
+        "SU-3-5-17"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 839,
+          "end_offset": 887,
+          "exact_excerpt": "Meantime, the Cashier\ncaptures the Party Details"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-3-5-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-5-N01",
+      "guard_meaning": "not compliant",
+      "target_action_ids": [
+        "SU-3-5-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "requisition sent to party",
+      "reference_evidence_ids": [
+        "branch:276:280"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 471,
+          "end_offset": 568,
+          "exact_excerpt": "a list of requisition explaining the reason for rejection is\ncompiled and sent back to the party."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-5-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-5-N01",
+      "guard_meaning": "compliant",
+      "target_action_ids": [
+        "SU-3-5-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:276:288"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 569,
+          "end_offset": 598,
+          "exact_excerpt": "Otherwise, the matter details"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-5-R03",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-3-5-N01",
+      "guard_meaning": "mail rejected",
+      "target_action_ids": [
+        "SU-3-5-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-3-5-11"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 545,
+          "end_offset": 568,
+          "exact_excerpt": "sent back to the party."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-5-R04",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-3-5-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-3-5-14"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 839,
+          "end_offset": 887,
+          "exact_excerpt": "Meantime, the Cashier\ncaptures the Party Details"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-5-R05",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-3-5-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-3-5-16"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 839,
+          "end_offset": 887,
+          "exact_excerpt": "Meantime, the Cashier\ncaptures the Party Details"
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does the source require completion synchronization between the receipt mailing and the Physical Court File, or only independent branches?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

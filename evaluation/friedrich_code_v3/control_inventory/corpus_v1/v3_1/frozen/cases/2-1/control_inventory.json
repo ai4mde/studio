@@ -1,0 +1,770 @@
+{
+  "case_id": "2-1",
+  "status": "FROZEN",
+  "source_hash": "8d48279770e2eaf59961e5c6d6699fd0f07f31444b824b866fd6dd4a7a615a64",
+  "source_encoding": "cp1252",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "d010e4d120bb18ec3d6725f6f1b4b922ce9524504ea9def815dfa553ba41a626",
+  "reference_model_sha256": "155e9c9f277cd75591c6d7931d174f08b94b32749955fc329db18e2089087c3c",
+  "process_control_logic": "Customer significance can trigger an extra fix and re-prioritization. Service Management or Resource Provisioning analyzes the problem, then one of three resolution paths is taken; customer service performs two concurrent reporting activities.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-2-1-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Premium customers link to extra fix process",
+      "anchor_action_ids": [
+        "SU-2-1-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 685,
+          "end_offset": 716,
+          "exact_excerpt": "In case the customer is premium"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Re-prioritize when customer significance changes measures",
+      "anchor_action_ids": [
+        "SU-2-1-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 814,
+          "end_offset": 901,
+          "exact_excerpt": "In case the customer is of certain\nsignificance which would affect the counter measures"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Choose analyzable service-management work or resource provisioning",
+      "anchor_action_ids": [
+        "SU-2-1-10"
+      ],
+      "reference_evidence_ids": [
+        "gateway:2120553609"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1395,
+          "end_offset": 1461,
+          "exact_excerpt": "whether the\nproblem is analyzable at the level of their department"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Resource Provisioning detects a problem or normal execution",
+      "anchor_action_ids": [
+        "SU-2-1-14"
+      ],
+      "reference_evidence_ids": [
+        "gateway:2120553635"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1965,
+          "end_offset": 1992,
+          "exact_excerpt": "If no problems are detected"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N05",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Resource Provisioning returns either trouble or normal status to Service Management",
+      "anchor_action_ids": [
+        "SU-2-1-15",
+        "SU-2-1-17",
+        "SU-2-1-18"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2222,
+          "end_offset": 2257,
+          "exact_excerpt": "will be\nincluded in a status report"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N06",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Service Management prepares the final status from the analysis path",
+      "anchor_action_ids": [
+        "SU-2-1-13",
+        "SU-2-1-18",
+        "SU-2-1-19"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2296,
+          "end_offset": 2387,
+          "exact_excerpt": "Service Management then prepares the final status report based on the received information."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N07",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Choose the no-problem, minor-correction, or restoration path",
+      "anchor_action_ids": [
+        "SU-2-1-20"
+      ],
+      "reference_evidence_ids": [
+        "gateway:2120553686"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2520,
+          "end_offset": 2565,
+          "exact_excerpt": "Three alternative process paths may be taken."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N08",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Resource Provisioning receives restoration request within two days or times out",
+      "anchor_action_ids": [
+        "SU-2-1-25",
+        "SU-2-1-26"
+      ],
+      "reference_evidence_ids": [
+        "gateway:2120553758"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3283,
+          "end_offset": 3333,
+          "exact_excerpt": "within 2 days after the status report was sent out"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N09",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Customer Service receives actual performance or problem resolution",
+      "anchor_action_ids": [
+        "SU-2-1-21",
+        "SU-2-1-23",
+        "SU-2-1-30",
+        "SU-2-1-31",
+        "SU-2-1-32"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3854,
+          "end_offset": 3977,
+          "exact_excerpt": "Customer Service\neither receives the actual service performance (if there was no problem) or the problem\nresolution report."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N10",
+      "type": "Fork",
+      "status": "required",
+      "purpose": "Customer report and SLA rebate reporting are concurrent",
+      "anchor_action_ids": [
+        "SU-2-1-31",
+        "SU-2-1-32"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3984,
+          "end_offset": 4023,
+          "exact_excerpt": "two concurrent activities are triggered"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-N11",
+      "type": "Join",
+      "status": "required",
+      "purpose": "Customer Service completes reporting and customer communication before ending",
+      "anchor_action_ids": [
+        "SU-2-1-31",
+        "SU-2-1-32",
+        "SU-2-1-34"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "Logical Customer Service completion Join. SU-2-1-33 is Billing work; SU-2-1-35 is the customer receipt after Customer Service sends the report.",
+      "source_spans": [
+        {
+          "start_offset": 4297,
+          "end_offset": 4379,
+          "exact_excerpt": "After all three activities are completed the process ends within\nCustomer Service."
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-2-1-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N01",
+      "guard_meaning": "premium",
+      "target_action_ids": [],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "extra problem fix subprocess",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 718,
+          "end_offset": 771,
+          "exact_excerpt": "the process will link to an extra\nproblem fix process"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R02",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N02",
+      "guard_meaning": "significance affects countermeasures",
+      "target_action_ids": [
+        "SU-2-1-07"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 927,
+          "end_offset": 980,
+          "exact_excerpt": "the process goes\nback to re-prioritize these measures"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R03",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N02",
+      "guard_meaning": "no re-prioritization needed",
+      "target_action_ids": [
+        "SU-2-1-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 983,
+          "end_offset": 1015,
+          "exact_excerpt": "otherwise the process continues."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R04",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N03",
+      "guard_meaning": "not analyzable by Service Management",
+      "target_action_ids": [
+        "SU-2-1-11"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553609:2120553619"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1610,
+          "end_offset": 1675,
+          "exact_excerpt": "the detailed problem report is sent out to Resource Provisioning."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R05",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N03",
+      "guard_meaning": "analyzable by Service Management",
+      "target_action_ids": [
+        "SU-2-1-12"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553609:2120553610"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1727,
+          "end_offset": 1806,
+          "exact_excerpt": "they perform the analysis and based on the outcome they\ncreate a trouble report"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R06",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N04",
+      "guard_meaning": "no problem",
+      "target_action_ids": [
+        "SU-2-1-15"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553635:2120553636"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1994,
+          "end_offset": 2055,
+          "exact_excerpt": "a notification about the normal service\nexecution is created."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R07",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N04",
+      "guard_meaning": "problem detected",
+      "target_action_ids": [
+        "SU-2-1-16"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553635:2120553642"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2056,
+          "end_offset": 2160,
+          "exact_excerpt": "If a problem is detected this will be analyzed by Resource Provisioning and a\ntrouble report is created."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R08",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N05",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-2-1-18"
+      ],
+      "incoming_action_ids": [
+        "SU-2-1-15",
+        "SU-2-1-17"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2222,
+          "end_offset": 2257,
+          "exact_excerpt": "will be\nincluded in a status report"
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-2-1-R09",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N06",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-2-1-19"
+      ],
+      "incoming_action_ids": [
+        "SU-2-1-13",
+        "SU-2-1-18"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2296,
+          "end_offset": 2387,
+          "exact_excerpt": "Service Management then prepares the final status report based on the received information."
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-2-1-R10",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N07",
+      "guard_meaning": "no problem",
+      "target_action_ids": [
+        "SU-2-1-21"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553686:2120553694"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2566,
+          "end_offset": 2614,
+          "exact_excerpt": "For the case that no problem was detected at all"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R11",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N07",
+      "guard_meaning": "minor corrective actions",
+      "target_action_ids": [
+        "SU-2-1-22"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553686:2120553699"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2685,
+          "end_offset": 2740,
+          "exact_excerpt": "For the case that minor corrective actions are required"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R12",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N07",
+      "guard_meaning": "automatic resource restoration",
+      "target_action_ids": [
+        "SU-2-1-24"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553686:2120553701"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2965,
+          "end_offset": 3052,
+          "exact_excerpt": "For the case that automatic resource restoration from Resource Provisioning is required"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R13",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N07",
+      "guard_meaning": "minor corrective actions path after resolution report is sent",
+      "target_action_ids": [
+        "SU-2-1-23"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-2-1-24"
+      ],
+      "terminal_outcome": "Service Management minor-correction path ends",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2904,
+          "end_offset": 2964,
+          "exact_excerpt": "After sending, this process path of Service Management ends."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R14",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N08",
+      "guard_meaning": "request received within two days",
+      "target_action_ids": [
+        "SU-2-1-27"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:2120553758:2120553767"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3391,
+          "end_offset": 3466,
+          "exact_excerpt": "After the restoration request is received, all possible errors are tracked."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R15",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N08",
+      "guard_meaning": "two-day deadline expires",
+      "target_action_ids": [
+        "SU-2-1-26"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "Resource Provisioning process terminates",
+      "reference_evidence_ids": [
+        "branch:2120553758:2120553762"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3335,
+          "end_offset": 3390,
+          "exact_excerpt": "otherwise Resource Provisioning terminates the process."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R16",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N09",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-2-1-31",
+        "SU-2-1-32"
+      ],
+      "incoming_action_ids": [
+        "SU-2-1-21",
+        "SU-2-1-23",
+        "SU-2-1-30"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3854,
+          "end_offset": 3977,
+          "exact_excerpt": "Customer Service\neither receives the actual service performance (if there was no problem) or the problem\nresolution report."
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-2-1-R17",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N10",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-2-1-31"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3984,
+          "end_offset": 4023,
+          "exact_excerpt": "two concurrent activities are triggered"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R18",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N10",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-2-1-32"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3984,
+          "end_offset": 4023,
+          "exact_excerpt": "two concurrent activities are triggered"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-1-R19",
+      "type": "synchronization",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N11",
+      "guard_meaning": null,
+      "target_action_ids": [],
+      "incoming_action_ids": [
+        "SU-2-1-34"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": "Customer Service process ends",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 4297,
+          "end_offset": 4379,
+          "exact_excerpt": "After all three activities are completed the process ends within\nCustomer Service."
+        }
+      ],
+      "incoming_mode": "branch_completion"
+    },
+    {
+      "fact_id": "CF-2-1-R20",
+      "type": "synchronization",
+      "status": "required",
+      "source_control_fact": "CF-2-1-N11",
+      "guard_meaning": null,
+      "target_action_ids": [],
+      "incoming_action_ids": [
+        "SU-2-1-32"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": "Customer Service process ends",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 4297,
+          "end_offset": 4379,
+          "exact_excerpt": "After all three activities are completed the process ends within\nCustomer Service."
+        }
+      ],
+      "incoming_mode": "branch_completion"
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-2-1-N05",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-2-1-N06",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-2-1-N09",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "The premium path and the later customer-significance test may overlap; confirm whether they are sequential or mutually exclusive.",
+      "source_spans": [
+        {
+          "start_offset": 814,
+          "end_offset": 861,
+          "exact_excerpt": "In case the customer is of certain\nsignificance"
+        }
+      ],
+      "affected_fact_ids": [],
+      "reason": "",
+      "reason_code": "cross_path_scope_unspecified",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "abstain_on_unspecified_relation",
+      "known_required_controls": [
+        "CF-2-1-N01",
+        "CF-2-1-N02"
+      ]
+    }
+  ],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: The premium extra fix is outside the detailed process; should its branch be scored as a boundary outcome or treated only as context?",
+    "Adjudicated source question: The phrase “all three activities” is underspecified; identify the exact branch-completion anchors before adding synchronization relations to the required Join.",
+    "Adjudicated source question: Does the two-day timeout prevent only Resource Provisioning restoration, or also downstream Service Management resolution?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

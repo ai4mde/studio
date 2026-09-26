@@ -1,0 +1,22 @@
+{
+  "case_id": "10-5",
+  "status": "FROZEN",
+  "source_hash": "8034f22184d573191b182859e1310a7981e89e2f1ee64cd1af5f6c9fa0f29e16",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "bf07067168bbc5fb19f6cae51342d409d46d16f37541cd4dc8400d195e0c7578",
+  "reference_model_sha256": "4019c9f9a7483c04361c21c5cb4e3b8bee290eb4f64df3bf3ea88eb7d652fc85",
+  "process_control_logic": "Device takeover bid, tender, order, confirmation, and master-data sending form a linear exchange with no scored logical control.",
+  "control_nodes": [],
+  "control_relations": [],
+  "permitted_equivalences": [],
+  "unresolved_facts": [],
+  "no_control": true,
+  "review_notes": [
+    "Affirmative no-control determination from the complete process text."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

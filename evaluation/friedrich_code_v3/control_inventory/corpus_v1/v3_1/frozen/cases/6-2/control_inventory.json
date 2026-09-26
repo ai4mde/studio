@@ -1,0 +1,22 @@
+{
+  "case_id": "6-2",
+  "status": "FROZEN",
+  "source_hash": "cac73a01405b23761a93a7070f716177a226a99b1338864a8a945ec1c3114256",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "4802bdbc922fcb5726fb7198f7e3e0af3cbb6b3ba624cb2be922d22e5bcd7c29",
+  "reference_model_sha256": "0fcc7e410f34f47eaf2cce9daa25d55eaae6ba74d36a081ea8dcc663c233f854",
+  "process_control_logic": "The monthly order, supplier processing, invoice sending, and receipt are a linear exchange with no scored logical control.",
+  "control_nodes": [],
+  "control_relations": [],
+  "permitted_equivalences": [],
+  "unresolved_facts": [],
+  "no_control": true,
+  "review_notes": [
+    "Affirmative no-control determination: periodic case initiation does not create a within-instance loop."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

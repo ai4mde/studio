@@ -1,0 +1,515 @@
+{
+  "case_id": "2-2",
+  "status": "FROZEN",
+  "source_hash": "2b0c9d7fcd22c81c1ae3ad9cbf5f840f0adffde16b0b48bc32a48b38bda338a7",
+  "source_encoding": "cp1252",
+  "inventory_version": "v3.1-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "789235d08d2074d30a2c2c4ddcf28eeaf5fb1f47714bb8c108c33667bd50c38c",
+  "reference_model_sha256": "8eb969aabd829099ebada9c0484b9924ac1473cb83e190a9c01c049b3105a595",
+  "process_control_logic": "Customer data and contract documents are validated with correction loops. Supplier concurrence and customer withdrawal determine later paths. Successful switch work includes simultaneous meter data and billing activities.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-2-2-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Correct customer data errors when present",
+      "anchor_action_ids": [
+        "SU-2-2-05",
+        "SU-2-2-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 516,
+          "end_offset": 563,
+          "exact_excerpt": "In case of any errors these should be corrected"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Create a new customer object only if customer is absent",
+      "anchor_action_ids": [
+        "SU-2-2-05"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 697,
+          "end_offset": 758,
+          "exact_excerpt": "In\ncase the customer does not exist in the customer data base"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Regenerate contract documents after an unsuccessful automated check",
+      "anchor_action_ids": [
+        "SU-2-2-10"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1417,
+          "end_offset": 1447,
+          "exact_excerpt": "In case of a negative\nresponse"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Resolve supplier concurrence or create the CIS contract",
+      "anchor_action_ids": [
+        "SU-2-2-16",
+        "SU-2-2-17"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2082,
+          "end_offset": 2117,
+          "exact_excerpt": "In the case of\nsupplier concurrence"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-N05",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Withdraw from or accept the switch contract",
+      "anchor_action_ids": [
+        "SU-2-2-23"
+      ],
+      "reference_evidence_ids": [
+        "gateway:182"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2707,
+          "end_offset": 2771,
+          "exact_excerpt": "decide to either withdraw from the switch contract or confirm it"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-N06",
+      "type": "Fork",
+      "status": "required",
+      "purpose": "Grid-operator meter-data distribution and grid-operator final-billing work proceed concurrently",
+      "anchor_action_ids": [
+        "SU-2-2-28",
+        "SU-2-2-29",
+        "SU-2-2-30",
+        "SU-2-2-31"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "Old-supplier creation and sending (SU-2-2-32/33) are downstream billing meanings, not evidence of this Fork's two concurrent grid-operator branches.",
+      "source_spans": [
+        {
+          "start_offset": 3532,
+          "end_offset": 3594,
+          "exact_excerpt": "At the same time, the grid\noperator computes the final billing"
+        }
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "anchor_set",
+          "role": "meter_data_distribution_branch",
+          "semantic_unit_ids": [
+            "SU-2-2-28",
+            "SU-2-2-29"
+          ],
+          "mapping_cardinalities": [
+            "one_to_one",
+            "many_to_one",
+            "one_to_many"
+          ],
+          "source_span": {
+            "start_offset": 3383,
+            "end_offset": 3476,
+            "exact_excerpt": "the grid operator transmits the power meter data to the customer service and the old\nsupplier"
+          }
+        },
+        {
+          "kind": "anchor_set",
+          "role": "grid_operator_billing_branch",
+          "semantic_unit_ids": [
+            "SU-2-2-30",
+            "SU-2-2-31"
+          ],
+          "mapping_cardinalities": [
+            "one_to_one",
+            "many_to_one",
+            "one_to_many"
+          ],
+          "source_span": {
+            "start_offset": 3532,
+            "end_offset": 3652,
+            "exact_excerpt": "At the same time, the grid\noperator computes the final billing based on the meter data and sends it to the old supplier."
+          }
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-2-2-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N01",
+      "guard_meaning": "errors found",
+      "target_action_ids": [
+        "SU-2-2-07"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 516,
+          "end_offset": 563,
+          "exact_excerpt": "In case of any errors these should be corrected"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N02",
+      "guard_meaning": "customer absent",
+      "target_action_ids": [
+        "SU-2-2-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 760,
+          "end_offset": 798,
+          "exact_excerpt": "a new customer object is being\ncreated"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R03",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N03",
+      "guard_meaning": "negative response: documents missing or incorrect",
+      "target_action_ids": [
+        "SU-2-2-11",
+        "SU-2-2-12",
+        "SU-2-2-13"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1565,
+          "end_offset": 1626,
+          "exact_excerpt": "Subsequently the contract documents are generated once again."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R04",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N03",
+      "guard_meaning": "documents generated successfully",
+      "target_action_ids": [
+        "SU-2-2-14"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1627,
+          "end_offset": 1693,
+          "exact_excerpt": "In case of a positive response a confirmation document is sent out"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R05",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N04",
+      "guard_meaning": "supplier concurrence",
+      "target_action_ids": [
+        "SU-2-2-18"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2142,
+          "end_offset": 2213,
+          "exact_excerpt": "inform all involved suppliers and demand the\nresolution of the conflict"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R06",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N04",
+      "guard_meaning": "no supplier concurrence",
+      "target_action_ids": [
+        "SU-2-2-22"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2488,
+          "end_offset": 2540,
+          "exact_excerpt": "If there are not any objections by the grid operator"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R07",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N05",
+      "guard_meaning": "withdraw within seven days",
+      "target_action_ids": [
+        "SU-2-2-24"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "customer-service switch process ends",
+      "reference_evidence_ids": [
+        "branch:182:183"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2872,
+          "end_offset": 2893,
+          "exact_excerpt": "in case of withdrawal"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R08",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N05",
+      "guard_meaning": "confirm or pass seven-day acceptance deadline",
+      "target_action_ids": [
+        "SU-2-2-25"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:182:187"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3043,
+          "end_offset": 3102,
+          "exact_excerpt": "after the 7th day the contract will be regarded as accepted"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R09",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N05",
+      "guard_meaning": "timely withdrawal",
+      "target_action_ids": [
+        "SU-2-2-24"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-2-2-28"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2872,
+          "end_offset": 2893,
+          "exact_excerpt": "in case of withdrawal"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R10",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N06",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-2-2-28",
+        "SU-2-2-29"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3532,
+          "end_offset": 3594,
+          "exact_excerpt": "At the same time, the grid\noperator computes the final billing"
+        }
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "anchor_set",
+          "role": "meter_data_distribution_branch",
+          "semantic_unit_ids": [
+            "SU-2-2-28",
+            "SU-2-2-29"
+          ],
+          "mapping_cardinalities": [
+            "one_to_one",
+            "many_to_one",
+            "one_to_many"
+          ],
+          "source_span": {
+            "start_offset": 3383,
+            "end_offset": 3476,
+            "exact_excerpt": "the grid operator transmits the power meter data to the customer service and the old\nsupplier"
+          }
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-2-2-R11",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-2-2-N06",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-2-2-30",
+        "SU-2-2-31"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3532,
+          "end_offset": 3594,
+          "exact_excerpt": "At the same time, the grid\noperator computes the final billing"
+        }
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "anchor_set",
+          "role": "grid_operator_billing_branch",
+          "semantic_unit_ids": [
+            "SU-2-2-30",
+            "SU-2-2-31"
+          ],
+          "mapping_cardinalities": [
+            "one_to_one",
+            "many_to_one",
+            "one_to_many"
+          ],
+          "source_span": {
+            "start_offset": 3532,
+            "end_offset": 3652,
+            "exact_excerpt": "At the same time, the grid\noperator computes the final billing based on the meter data and sends it to the old supplier."
+          }
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "Does supplier concurrence loop back to the grid-operator check after conflict resolution, or continue directly?",
+      "source_spans": [
+        {
+          "start_offset": 2176,
+          "end_offset": 2213,
+          "exact_excerpt": "demand the\nresolution of the conflict"
+        }
+      ],
+      "affected_fact_ids": [],
+      "reason": "",
+      "reason_code": "source_non_exhaustive",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "non_exhaustive"
+    },
+    {
+      "status": "unresolved",
+      "question": "Does old-supplier final-billing creation/sending overlap the grid-operator meter-data and billing branches, or follow receipt of grid-operator billing?",
+      "reason_code": "cross_path_scope_unspecified",
+      "affected_fact_ids": [],
+      "source_spans": [
+        {
+          "start_offset": 3653,
+          "end_offset": 3731,
+          "exact_excerpt": "Likewise the old supplier creates and sends the final billing to the customer."
+        }
+      ],
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "abstain_on_unstated_old_supplier_timing"
+    }
+  ],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does the customer-data correction step loop to validation, or only repair errors once before proceeding?",
+    "Adjudicated source question: Do meter-data transmission and billing need a synchronization point, or merely simultaneous launch?"
+  ],
+  "adjudication_revision": "v3.1-approved-source-only-amendment-20260924",
+  "scoring_contract_version": "v3.1-cfi-anchor-evidence-1"
+}

@@ -1,0 +1,27 @@
+{
+  "case_id": "3-7",
+  "removed_recurrence_edges": [],
+  "required_precedence": [
+    [
+      "SU-3-7-01",
+      "SU-3-7-02"
+    ],
+    [
+      "SU-3-7-02",
+      "SU-3-7-03"
+    ],
+    [
+      "SU-3-7-03",
+      "SU-3-7-04"
+    ],
+    [
+      "SU-3-7-04",
+      "SU-3-7-05"
+    ],
+    [
+      "SU-3-7-05",
+      "SU-3-7-06"
+    ]
+  ],
+  "unresolved_cycle_pairs": []
+}

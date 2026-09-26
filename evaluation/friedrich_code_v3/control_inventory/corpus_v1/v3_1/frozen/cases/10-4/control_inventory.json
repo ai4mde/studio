@@ -1,0 +1,154 @@
+{
+  "case_id": "10-4",
+  "status": "FROZEN",
+  "source_hash": "76467a435941e177b62f3e84925be973b2eae1942e6a206255f7cf25c5a64855",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "105ae88e2468dc03e42704b673df7008d81abb2ab1d23273975864bb1e8dc8f7",
+  "reference_model_sha256": "cc61f64286d3b78dd01c6ca963d7668d1e4b9b240a4b718c9cac536df7d125f9",
+  "process_control_logic": "The old operator announces self-dismounting or no self-dismounting; one party performs final reading and dismounting, then the new operator installs and reports the device.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-4-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Old operator announces whether it will self-dismount",
+      "anchor_action_ids": [
+        "SU-10-4-01"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734175"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 71,
+          "end_offset": 112,
+          "exact_excerpt": "announces self dismounting to the MPON or"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-4-N02",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Either dismounting assignment continues to new-device mounting",
+      "anchor_action_ids": [
+        "SU-10-4-02",
+        "SU-10-4-03",
+        "SU-10-4-05",
+        "SU-10-4-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 280,
+          "end_offset": 311,
+          "exact_excerpt": "The MPON mounts the new device."
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-4-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-4-N01",
+      "guard_meaning": "MPOO self-dismounts",
+      "target_action_ids": [
+        "SU-10-4-02"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734175:16734180"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 71,
+          "end_offset": 109,
+          "exact_excerpt": "announces self dismounting to the MPON"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-4-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-4-N01",
+      "guard_meaning": "MPOO does not self-dismount",
+      "target_action_ids": [
+        "SU-10-4-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734175:16734179"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 128,
+          "end_offset": 169,
+          "exact_excerpt": "notify the MPON about no self-dismounting"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-4-R03",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-10-4-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-10-4-06"
+      ],
+      "incoming_action_ids": [
+        "SU-10-4-02",
+        "SU-10-4-03",
+        "SU-10-4-05"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 280,
+          "end_offset": 311,
+          "exact_excerpt": "The MPON mounts the new device."
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-10-4-N02",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Does the self-dismount announcement determine which actor performs both final reading and dismounting, or can MPON/MPOO roles vary independently?",
+    "Adjudicated source question: Are GO notifications about final readings and device data sequential or independent?"
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

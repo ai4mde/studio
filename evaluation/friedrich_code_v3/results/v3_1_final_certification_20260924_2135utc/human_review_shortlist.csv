@@ -1,0 +1,157 @@
+case_id,candidate_id,triggered_criterion,affected_component,exact_fact_ids,reason_for_review
+1-1,candidate_1,evaluator_indeterminate_alignment,Flow,SU-1-1-08->SU-1-1-10;SU-1-1-10->SU-1-1-12,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-1,candidate_1,evaluator_indeterminate_alignment,Control Node,CF-1-1-N05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-1,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-1-1-R07;CF-1-1-R10;CF-1-1-R11,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-1,candidate_2,evaluator_indeterminate_alignment,Flow,SU-1-1-08->SU-1-1-10;SU-1-1-09->SU-1-1-12;SU-1-1-10->SU-1-1-12;SU-1-1-11->SU-1-1-12;SU-1-1-12->SU-1-1-13,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-1,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-1-1-R07;CF-1-1-R09;CF-1-1-R10;CF-1-1-R11,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-1,candidate_3,evaluator_indeterminate_alignment,Flow,SU-1-1-08->SU-1-1-10;SU-1-1-10->SU-1-1-12,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-1,candidate_3,evaluator_indeterminate_alignment,Control Node,CF-1-1-N05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-1,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-1-1-R07;CF-1-1-R10;CF-1-1-R11,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_1,evaluator_indeterminate_alignment,Flow,SU-1-2-03->SU-1-2-04;SU-1-2-04->SU-1-2-05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_1,evaluator_indeterminate_alignment,Control Node,CF-1-2-N02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-1-2-R04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_1,scored_control_false_positive,Control Relation,CF-1-2-R02,1 scored Control false positive(s); IDs name source facts or generated relations.
+1-2,candidate_2,evaluator_indeterminate_alignment,Flow,SU-1-2-03->SU-1-2-04;SU-1-2-04->SU-1-2-05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_2,evaluator_indeterminate_alignment,Control Node,CF-1-2-N02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-1-2-R04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_2,scored_control_false_positive,Control Relation,CF-1-2-R02,1 scored Control false positive(s); IDs name source facts or generated relations.
+1-2,candidate_3,evaluator_indeterminate_alignment,Flow,SU-1-2-03->SU-1-2-04;SU-1-2-04->SU-1-2-05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_3,evaluator_indeterminate_alignment,Control Node,CF-1-2-N02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-1-2-R04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+1-2,candidate_3,scored_control_false_positive,Control Relation,CF-1-2-R02,1 scored Control false positive(s); IDs name source facts or generated relations.
+2-1,candidate_1,evaluator_indeterminate_alignment,Flow,SU-2-1-09->SU-2-1-33;SU-2-1-14->SU-2-1-15;SU-2-1-14->SU-2-1-16;SU-2-1-16->SU-2-1-17,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-1,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-2-1-R07,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-1,candidate_1,scored_control_false_positive,Control Relation,CF-2-1-R01,1 scored Control false positive(s); IDs name source facts or generated relations.
+2-1,candidate_2,evaluator_indeterminate_alignment,Flow,SU-2-1-09->SU-2-1-33;SU-2-1-14->SU-2-1-15;SU-2-1-14->SU-2-1-16;SU-2-1-15->SU-2-1-18;SU-2-1-16->SU-2-1-17;SU-2-1-17->SU-2-1-18;SU-2-1-18->SU-2-1-26;SU-2-1-18->SU-2-1-27;SU-2-1-27->SU-2-1-28;SU-2-1-28->SU-2-1-29,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-1,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-2-1-R07;CF-2-1-R08;CF-2-1-R09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-1,candidate_2,scored_control_false_positive,Control Relation,CF-2-1-R01,1 scored Control false positive(s); IDs name source facts or generated relations.
+2-1,candidate_3,evaluator_indeterminate_alignment,Flow,SU-2-1-09->SU-2-1-33;SU-2-1-14->SU-2-1-15;SU-2-1-14->SU-2-1-16;SU-2-1-16->SU-2-1-17;SU-2-1-19->SU-2-1-20;SU-2-1-20->SU-2-1-21;SU-2-1-20->SU-2-1-22;SU-2-1-20->SU-2-1-24,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-1,candidate_3,evaluator_indeterminate_alignment,Control Node,CF-2-1-N05;CF-2-1-N06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-1,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-2-1-R07;CF-2-1-R09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-1,candidate_3,scored_control_false_positive,Control Relation,CF-2-1-R01,1 scored Control false positive(s); IDs name source facts or generated relations.
+2-2,candidate_1,evaluator_indeterminate_alignment,Flow,SU-2-2-02->SU-2-2-23;SU-2-2-04->SU-2-2-08;SU-2-2-05->SU-2-2-08;SU-2-2-06->SU-2-2-08;SU-2-2-07->SU-2-2-08;SU-2-2-08->SU-2-2-09;SU-2-2-08->SU-2-2-13;SU-2-2-13->SU-2-2-10;SU-2-2-22->SU-2-2-25;SU-2-2-22->SU-2-2-27;SU-2-2-23->SU-2-2-24;SU-2-2-23->SU-2-2-25;SU-2-2-23->SU-2-2-27;SU-2-2-25->SU-2-2-34;SU-2-2-27->SU-2-2-34,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-2,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-2-2-R02;CF-2-2-R07;CF-2-2-R08;CF-2-2-R09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-2,candidate_2,evaluator_indeterminate_alignment,Flow,SU-2-2-02->SU-2-2-23;SU-2-2-04->SU-2-2-08;SU-2-2-05->SU-2-2-08;SU-2-2-06->SU-2-2-08;SU-2-2-07->SU-2-2-08;SU-2-2-08->SU-2-2-09;SU-2-2-08->SU-2-2-13;SU-2-2-10->SU-2-2-14;SU-2-2-13->SU-2-2-10;SU-2-2-14->SU-2-2-17;SU-2-2-22->SU-2-2-25;SU-2-2-22->SU-2-2-27;SU-2-2-23->SU-2-2-24;SU-2-2-23->SU-2-2-25;SU-2-2-23->SU-2-2-27;SU-2-2-25->SU-2-2-34;SU-2-2-27->SU-2-2-34,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-2,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-2-2-R02;CF-2-2-R04;CF-2-2-R07;CF-2-2-R08;CF-2-2-R09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-2,candidate_3,evaluator_indeterminate_alignment,Flow,SU-2-2-02->SU-2-2-23;SU-2-2-04->SU-2-2-08;SU-2-2-05->SU-2-2-08;SU-2-2-06->SU-2-2-08;SU-2-2-07->SU-2-2-08;SU-2-2-08->SU-2-2-09;SU-2-2-08->SU-2-2-13;SU-2-2-13->SU-2-2-10;SU-2-2-22->SU-2-2-25;SU-2-2-22->SU-2-2-27;SU-2-2-23->SU-2-2-24;SU-2-2-23->SU-2-2-25;SU-2-2-23->SU-2-2-27;SU-2-2-25->SU-2-2-34;SU-2-2-27->SU-2-2-34,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+2-2,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-2-2-R02;CF-2-2-R07;CF-2-2-R08;CF-2-2-R09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_1,evaluator_indeterminate_alignment,Flow,SU-3-3-01->SU-3-3-02;SU-3-3-04->SU-3-3-05;SU-3-3-04->SU-3-3-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_1,evaluator_indeterminate_alignment,Control Node,CF-3-3-N01,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-3-3-R01;CF-3-3-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_2,evaluator_indeterminate_alignment,Flow,SU-3-3-01->SU-3-3-02;SU-3-3-04->SU-3-3-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_2,evaluator_indeterminate_alignment,Control Node,CF-3-3-N01,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-3-3-R01;CF-3-3-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_3,evaluator_indeterminate_alignment,Flow,SU-3-3-04->SU-3-3-05;SU-3-3-04->SU-3-3-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_3,evaluator_indeterminate_alignment,Control Node,CF-3-3-N01,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-3,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-3-3-R01;CF-3-3-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-4,candidate_1,evaluator_indeterminate_alignment,Flow,SU-3-4-01->SU-3-4-02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-4,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-3-4-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-4,candidate_1,unsupported_flow_cycle_violation,Flow,SU-3-4-01->SU-3-4-03,Generated cycle conflicts with frozen required forward precedence.
+3-4,candidate_2,evaluator_indeterminate_alignment,Flow,SU-3-4-01->SU-3-4-02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-4,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-3-4-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-4,candidate_2,unsupported_flow_cycle_violation,Flow,SU-3-4-01->SU-3-4-03,Generated cycle conflicts with frozen required forward precedence.
+3-4,candidate_3,evaluator_indeterminate_alignment,Flow,SU-3-4-01->SU-3-4-02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-4,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-3-4-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-4,candidate_3,unsupported_flow_cycle_violation,Flow,SU-3-4-01->SU-3-4-03,Generated cycle conflicts with frozen required forward precedence.
+3-5,candidate_3,evaluator_indeterminate_alignment,Flow,SU-3-5-08->SU-3-5-11;SU-3-5-11->SU-3-5-13,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-5,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-3-5-R02;CF-3-5-R03,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-6,candidate_1,scored_control_false_positive,Control Relation,CF-3-6-R01;CF-3-6-R04;CF-3-6-R06;CF-3-6-R07,4 scored Control false positive(s); IDs name source facts or generated relations.
+3-6,candidate_2,evaluator_indeterminate_alignment,Flow,SU-3-6-06->SU-3-6-08;SU-3-6-08->SU-3-6-09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-6,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-3-6-R04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-6,candidate_2,scored_control_false_positive,Control Relation,CF-3-6-R01;CF-3-6-R06;CF-3-6-R07,3 scored Control false positive(s); IDs name source facts or generated relations.
+3-6,candidate_3,scored_control_false_positive,Control Relation,CF-3-6-R01;CF-3-6-R04;CF-3-6-R06;CF-3-6-R07,4 scored Control false positive(s); IDs name source facts or generated relations.
+3-8,candidate_2,evaluator_indeterminate_alignment,Flow,SU-3-8-01->SU-3-8-03,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+3-8,candidate_3,evaluator_indeterminate_alignment,Flow,SU-3-8-01->SU-3-8-03,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+4-1,candidate_1,evaluator_indeterminate_alignment,Flow,SU-4-1-15->SU-4-1-16;SU-4-1-16->SU-4-1-19,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-1,candidate_1,evaluator_indeterminate_alignment,Flow,SU-5-1-01->SU-5-1-03;SU-5-1-03->SU-5-1-04;SU-5-1-03->SU-5-1-05;SU-5-1-03->SU-5-1-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-1,candidate_1,scored_control_false_positive,Control Relation,CF-5-1-R01;CF-5-1-R02;CF-5-1-R03,3 scored Control false positive(s); IDs name source facts or generated relations.
+5-1,candidate_2,evaluator_indeterminate_alignment,Flow,SU-5-1-01->SU-5-1-03;SU-5-1-03->SU-5-1-04;SU-5-1-03->SU-5-1-05;SU-5-1-03->SU-5-1-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-1,candidate_2,scored_control_false_positive,Control Relation,CF-5-1-R01;CF-5-1-R02;CF-5-1-R03,3 scored Control false positive(s); IDs name source facts or generated relations.
+5-1,candidate_3,evaluator_indeterminate_alignment,Flow,SU-5-1-01->SU-5-1-03;SU-5-1-03->SU-5-1-04;SU-5-1-03->SU-5-1-05;SU-5-1-03->SU-5-1-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-1,candidate_3,scored_control_false_positive,Control Relation,CF-5-1-R01;CF-5-1-R02;CF-5-1-R03,3 scored Control false positive(s); IDs name source facts or generated relations.
+5-3,candidate_1,evaluator_indeterminate_alignment,Flow,SU-5-3-04->SU-5-3-17;SU-5-3-17->SU-5-3-09;SU-5-3-18->SU-5-3-17,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-3,candidate_1,scored_control_false_positive,Control Relation,CF-5-3-R01;CF-5-3-R03,2 scored Control false positive(s); IDs name source facts or generated relations.
+5-3,candidate_2,evaluator_indeterminate_alignment,Flow,SU-5-3-04->SU-5-3-19;SU-5-3-18->SU-5-3-19,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-3,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-5-3-R04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-3,candidate_2,scored_control_false_positive,Control Relation,CF-5-3-R01;CF-5-3-R02,2 scored Control false positive(s); IDs name source facts or generated relations.
+5-3,candidate_3,evaluator_indeterminate_alignment,Flow,SU-5-3-04->SU-5-3-17;SU-5-3-04->SU-5-3-19;SU-5-3-17->SU-5-3-09;SU-5-3-18->SU-5-3-17;SU-5-3-18->SU-5-3-19,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-3,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-5-3-R04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-3,candidate_3,scored_control_false_positive,Control Relation,CF-5-3-R01,1 scored Control false positive(s); IDs name source facts or generated relations.
+5-4,candidate_1,scored_control_false_positive,Control Relation,CF-5-4-R01;CF-5-4-R04,2 scored Control false positive(s); IDs name source facts or generated relations.
+5-4,candidate_2,evaluator_indeterminate_alignment,Flow,SU-5-4-02->SU-5-4-03;SU-5-4-02->SU-5-4-07;SU-5-4-03->SU-5-4-09;SU-5-4-03->SU-5-4-12;SU-5-4-04->SU-5-4-12;SU-5-4-05->SU-5-4-12;SU-5-4-06->SU-5-4-12;SU-5-4-07->SU-5-4-09;SU-5-4-07->SU-5-4-12;SU-5-4-08->SU-5-4-12;SU-5-4-10->SU-5-4-12;SU-5-4-12->SU-5-4-15,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-4,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-5-4-R06;CF-5-4-R07,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-4,candidate_2,scored_control_false_positive,Control Relation,CF-5-4-R01,1 scored Control false positive(s); IDs name source facts or generated relations.
+5-4,candidate_3,evaluator_indeterminate_alignment,Flow,SU-5-4-02->SU-5-4-03;SU-5-4-03->SU-5-4-09;SU-5-4-03->SU-5-4-12;SU-5-4-04->SU-5-4-12;SU-5-4-05->SU-5-4-12;SU-5-4-06->SU-5-4-12;SU-5-4-07->SU-5-4-12;SU-5-4-08->SU-5-4-12;SU-5-4-10->SU-5-4-12;SU-5-4-12->SU-5-4-15,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-4,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-5-4-R06;CF-5-4-R07,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+5-4,candidate_3,scored_control_false_positive,Control Relation,CF-5-4-R01,1 scored Control false positive(s); IDs name source facts or generated relations.
+6-1,candidate_1,evaluator_indeterminate_alignment,Flow,SU-6-1-02->SU-6-1-03;SU-6-1-03->SU-6-1-05;SU-6-1-09->SU-6-1-14;SU-6-1-10->SU-6-1-14;SU-6-1-11->SU-6-1-14;SU-6-1-13->SU-6-1-14;SU-6-1-14->SU-6-1-21;SU-6-1-15->SU-6-1-17;SU-6-1-17->SU-6-1-19;SU-6-1-19->SU-6-1-14;SU-6-1-21->SU-6-1-23;SU-6-1-22->SU-6-1-26;SU-6-1-23->SU-6-1-22;SU-6-1-25->SU-6-1-21,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-1,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-6-1-R02;CF-6-1-R04;CF-6-1-R07;CF-6-1-R09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-1,candidate_1,scored_control_false_positive,Control Relation,CF-6-1-R08,1 scored Control false positive(s); IDs name source facts or generated relations.
+6-1,candidate_1,unsupported_flow_cycle_violation,Flow,SU-6-1-17->SU-6-1-09;SU-6-1-17->SU-6-1-11,Generated cycle conflicts with frozen required forward precedence.
+6-1,candidate_2,evaluator_indeterminate_alignment,Flow,SU-6-1-02->SU-6-1-03;SU-6-1-03->SU-6-1-05;SU-6-1-05->SU-6-1-06;SU-6-1-09->SU-6-1-14;SU-6-1-10->SU-6-1-14;SU-6-1-11->SU-6-1-14;SU-6-1-13->SU-6-1-14;SU-6-1-14->SU-6-1-21;SU-6-1-15->SU-6-1-17;SU-6-1-17->SU-6-1-19;SU-6-1-19->SU-6-1-14;SU-6-1-20->SU-6-1-21;SU-6-1-21->SU-6-1-23;SU-6-1-22->SU-6-1-26;SU-6-1-23->SU-6-1-22;SU-6-1-25->SU-6-1-21,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-1,candidate_2,evaluator_indeterminate_alignment,Control Node,CF-6-1-N05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-1,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-6-1-R02;CF-6-1-R07;CF-6-1-R09;CF-6-1-R10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-1,candidate_2,scored_control_false_positive,Control Relation,CF-6-1-R08,1 scored Control false positive(s); IDs name source facts or generated relations.
+6-1,candidate_2,unsupported_flow_cycle_violation,Flow,SU-6-1-17->SU-6-1-09;SU-6-1-17->SU-6-1-11;SU-6-1-17->SU-6-1-13,Generated cycle conflicts with frozen required forward precedence.
+6-1,candidate_3,evaluator_indeterminate_alignment,Flow,SU-6-1-02->SU-6-1-03;SU-6-1-03->SU-6-1-05;SU-6-1-15->SU-6-1-17;SU-6-1-17->SU-6-1-19;SU-6-1-22->SU-6-1-26;SU-6-1-23->SU-6-1-22;SU-6-1-25->SU-6-1-21,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-1,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-6-1-R09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-1,candidate_3,scored_control_false_positive,Control Relation,CF-6-1-R03;CF-6-1-R07;CF-6-1-R08,3 scored Control false positive(s); IDs name source facts or generated relations.
+6-1,candidate_3,unsupported_flow_cycle_violation,Flow,SU-6-1-09->SU-6-1-14;SU-6-1-11->SU-6-1-14;SU-6-1-17->SU-6-1-09;SU-6-1-17->SU-6-1-11;SU-6-1-19->SU-6-1-14,Generated cycle conflicts with frozen required forward precedence.
+6-2,candidate_1,evaluator_indeterminate_alignment,Flow,SU-6-2-02->SU-6-2-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-2,candidate_2,evaluator_indeterminate_alignment,Flow,SU-6-2-02->SU-6-2-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-2,candidate_3,evaluator_indeterminate_alignment,Flow,SU-6-2-02->SU-6-2-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-3,candidate_1,evaluator_indeterminate_alignment,Flow,SU-6-3-01->SU-6-3-02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-3,candidate_3,evaluator_indeterminate_alignment,Flow,SU-6-3-01->SU-6-3-02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-4,candidate_1,evaluator_indeterminate_alignment,Control Node,CF-6-4-N02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-4,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-6-4-R02;CF-6-4-R04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-4,candidate_1,scored_control_false_positive,Control Relation,CF-6-4-R07;CF-6-4-R10,2 scored Control false positive(s); IDs name source facts or generated relations.
+6-4,candidate_2,evaluator_indeterminate_alignment,Control Node,CF-6-4-N02;CF-6-4-N03;CF-6-4-N04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-4,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-6-4-R02;CF-6-4-R04;CF-6-4-R05;CF-6-4-R06;CF-6-4-R07;CF-6-4-R08;CF-6-4-R09;CF-6-4-R10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-4,candidate_3,evaluator_indeterminate_alignment,Control Node,CF-6-4-N02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-4,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-6-4-R02;CF-6-4-R03;CF-6-4-R04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+6-4,candidate_3,scored_control_false_positive,Control Relation,CF-6-4-R07;CF-6-4-R10,2 scored Control false positive(s); IDs name source facts or generated relations.
+8-2,candidate_1,evaluator_indeterminate_alignment,Flow,SU-8-2-01->SU-8-2-03;SU-8-2-03->SU-8-2-04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+8-2,candidate_1,evaluator_indeterminate_alignment,Control Node,CF-8-2-N01,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+8-2,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-8-2-R01;CF-8-2-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+8-2,candidate_2,evaluator_indeterminate_alignment,Flow,SU-8-2-01->SU-8-2-03;SU-8-2-03->SU-8-2-04;SU-8-2-04->SU-8-2-07;SU-8-2-04->SU-8-2-09,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+8-2,candidate_2,evaluator_indeterminate_alignment,Control Node,CF-8-2-N01,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+8-2,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-8-2-R01;CF-8-2-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+8-2,candidate_3,evaluator_indeterminate_alignment,Flow,SU-8-2-01->SU-8-2-03;SU-8-2-03->SU-8-2-04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+8-2,candidate_3,evaluator_indeterminate_alignment,Control Node,CF-8-2-N01,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+8-2,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-8-2-R01;CF-8-2-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-5,candidate_1,evaluator_indeterminate_alignment,Flow,SU-9-5-03->SU-9-5-04;SU-9-5-04->SU-9-5-05;SU-9-5-05->SU-9-5-06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-5,candidate_1,evaluator_indeterminate_alignment,Control Node,CF-9-5-N02;CF-9-5-N03;CF-9-5-N04;CF-9-5-N05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-5,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-9-5-R03;CF-9-5-R04;CF-9-5-R05;CF-9-5-R07;CF-9-5-R08,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-5,candidate_2,evaluator_indeterminate_alignment,Flow,SU-9-5-01->SU-9-5-11;SU-9-5-03->SU-9-5-04;SU-9-5-04->SU-9-5-05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-5,candidate_2,evaluator_indeterminate_alignment,Control Node,CF-9-5-N02;CF-9-5-N03,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-5,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-9-5-R03;CF-9-5-R04;CF-9-5-R05;CF-9-5-R07,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-5,candidate_3,evaluator_indeterminate_alignment,Flow,SU-9-5-01->SU-9-5-11;SU-9-5-03->SU-9-5-04;SU-9-5-04->SU-9-5-05,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-5,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-9-5-R03,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-6,candidate_1,evaluator_indeterminate_alignment,Flow,SU-9-6-07->SU-9-6-16;SU-9-6-07->SU-9-6-17;SU-9-6-12->SU-9-6-16;SU-9-6-12->SU-9-6-17;SU-9-6-16->SU-9-6-18;SU-9-6-17->SU-9-6-18,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-6,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-9-6-R09;CF-9-6-R10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-6,candidate_1,scored_control_false_positive,Control Relation,CF-9-6-R03,1 scored Control false positive(s); IDs name source facts or generated relations.
+9-6,candidate_2,evaluator_indeterminate_alignment,Flow,SU-9-6-07->SU-9-6-16;SU-9-6-12->SU-9-6-16;SU-9-6-16->SU-9-6-18,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-6,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-9-6-R09;CF-9-6-R10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-6,candidate_2,scored_control_false_positive,Control Relation,CF-9-6-R13,1 scored Control false positive(s); IDs name source facts or generated relations.
+9-6,candidate_3,evaluator_indeterminate_alignment,Flow,SU-9-6-07->SU-9-6-16;SU-9-6-07->SU-9-6-17;SU-9-6-12->SU-9-6-16;SU-9-6-12->SU-9-6-17;SU-9-6-16->SU-9-6-18;SU-9-6-17->SU-9-6-18,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-6,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-9-6-R09;CF-9-6-R10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+9-6,candidate_3,scored_control_false_positive,Control Relation,CF-9-6-R03;CF-9-6-R05,2 scored Control false positive(s); IDs name source facts or generated relations.
+10-8,candidate_3,scored_control_false_positive,Control Relation,CF-10-8-R03,1 scored Control false positive(s); IDs name source facts or generated relations.
+10-9,candidate_1,evaluator_indeterminate_alignment,Flow,SU-10-9-03->SU-10-9-04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-9,candidate_1,evaluator_indeterminate_alignment,Control Relation,CF-10-9-R04;CF-10-9-R06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-9,candidate_2,evaluator_indeterminate_alignment,Flow,SU-10-9-01->SU-10-9-03,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-9,candidate_2,evaluator_indeterminate_alignment,Control Node,CF-10-9-N01,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-9,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-10-9-R01;CF-10-9-R02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-9,candidate_3,evaluator_indeterminate_alignment,Flow,SU-10-9-03->SU-10-9-04,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-9,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-10-9-R04;CF-10-9-R06,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-10,candidate_1,evaluator_indeterminate_alignment,Flow,SU-10-10-06->SU-10-10-07;SU-10-10-07->SU-10-10-08;SU-10-10-08->SU-10-10-09;SU-10-10-09->SU-10-10-10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-10,candidate_2,evaluator_indeterminate_alignment,Flow,SU-10-10-02->SU-10-10-03;SU-10-10-08->SU-10-10-09;SU-10-10-09->SU-10-10-10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-10,candidate_2,evaluator_indeterminate_alignment,Control Node,CF-10-10-N01;CF-10-10-N02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-10,candidate_2,evaluator_indeterminate_alignment,Control Relation,CF-10-10-R01;CF-10-10-R02;CF-10-10-R03,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-10,candidate_3,evaluator_indeterminate_alignment,Flow,SU-10-10-02->SU-10-10-03;SU-10-10-08->SU-10-10-09;SU-10-10-09->SU-10-10-10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-10,candidate_3,evaluator_indeterminate_alignment,Control Node,CF-10-10-N01;CF-10-10-N02,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-10,candidate_3,evaluator_indeterminate_alignment,Control Relation,CF-10-10-R01;CF-10-10-R02;CF-10-10-R03,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.
+10-11,candidate_1,scored_control_false_positive,Control Relation,CF-10-11-R06,1 scored Control false positive(s); IDs name source facts or generated relations.
+10-11,candidate_2,scored_control_false_positive,Control Relation,CF-10-11-R06,1 scored Control false positive(s); IDs name source facts or generated relations.
+10-11,candidate_3,scored_control_false_positive,Control Relation,CF-10-11-R06,1 scored Control false positive(s); IDs name source facts or generated relations.
+10-14,candidate_1,evaluator_indeterminate_alignment,Flow,SU-10-14-02->SU-10-14-09;SU-10-14-02->SU-10-14-10;SU-10-14-04->SU-10-14-09;SU-10-14-04->SU-10-14-10;SU-10-14-06->SU-10-14-09;SU-10-14-06->SU-10-14-10,Frozen required facts retain indeterminate evaluator alignment and null scalar metrics.

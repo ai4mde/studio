@@ -1,0 +1,544 @@
+{
+  "case_id": "9-6",
+  "status": "FROZEN",
+  "source_hash": "911dd83e64b18c03849bd266db023defce76f87f512ceac2f03d5ffce1dbf620",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3.1-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "ef7340ae83fd7a842f96a3a429ea00d4f8018c7136fd12f331d8d523d81c64fd",
+  "reference_model_sha256": "1df5bd54017cde6c28ab01a083c403b69abef6071b364243a3ee31ff2554fd68",
+  "process_control_logic": "Electrical and physical design run in parallel. Each design repeats on failed tests, successful updates interrupt the other side, and the combined design repeats both branches on failed integration test.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-9-6-N01",
+      "type": "Fork",
+      "status": "required",
+      "purpose": "Electrical and physical design start in parallel",
+      "anchor_action_ids": [
+        "SU-9-6-03",
+        "SU-9-6-04",
+        "SU-9-6-05",
+        "SU-9-6-06",
+        "SU-9-6-08",
+        "SU-9-6-09",
+        "SU-9-6-10",
+        "SU-9-6-11"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 142,
+          "end_offset": 207,
+          "exact_excerpt": "design of the electrical and physical systems\nstarts in parallel."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Repeat electrical design after a failed electrical test",
+      "anchor_action_ids": [
+        "SU-9-6-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 819,
+          "end_offset": 847,
+          "exact_excerpt": "If the\ndesign fails the test"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Repeat physical design after a failed physical test",
+      "anchor_action_ids": [
+        "SU-9-6-11"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 819,
+          "end_offset": 847,
+          "exact_excerpt": "If the\ndesign fails the test"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-N04",
+      "type": "Join",
+      "status": "required",
+      "purpose": "Both revised designs must be complete before combining",
+      "anchor_action_ids": [
+        "SU-9-6-05",
+        "SU-9-6-06",
+        "SU-9-6-10",
+        "SU-9-6-11",
+        "SU-9-6-13"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1056,
+          "end_offset": 1129,
+          "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+        }
+      ],
+      "target_occurrence_ids": [
+        "SO-9-6-23",
+        "SO-9-6-24"
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "occurrence_anchor_set",
+          "semantic_unit_ids": [
+            "SU-9-6-13"
+          ],
+          "occurrence_ids": [
+            "SO-9-6-23",
+            "SO-9-6-24"
+          ],
+          "occurrence_roles": {
+            "SO-9-6-23": "initial",
+            "SO-9-6-24": "repeated"
+          },
+          "assignment_rule": "match the combine occurrence in the same design cycle as both incoming revised designs",
+          "source_span": {
+            "start_offset": 1056,
+            "end_offset": 1129,
+            "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+          }
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-N05",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Failed combined-design test restarts both design branches",
+      "anchor_action_ids": [
+        "SU-9-6-14"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1130,
+          "end_offset": 1167,
+          "exact_excerpt": "If the combined\ndesign fails the test"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-9-6-R01",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N01",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-9-6-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 142,
+          "end_offset": 207,
+          "exact_excerpt": "design of the electrical and physical systems\nstarts in parallel."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R02",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N01",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-9-6-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 142,
+          "end_offset": 207,
+          "exact_excerpt": "design of the electrical and physical systems\nstarts in parallel."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R03",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N02",
+      "guard_meaning": "electrical test fails",
+      "target_action_ids": [
+        "SU-9-6-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 860,
+          "end_offset": 911,
+          "exact_excerpt": "sent back to the first Activity (in the department)"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R04",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N02",
+      "guard_meaning": "electrical test passes",
+      "target_action_ids": [
+        "SU-9-6-07"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 952,
+          "end_offset": 1017,
+          "exact_excerpt": "If the design passes the test, then it tells the other\ndepartment"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R05",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N03",
+      "guard_meaning": "physical test fails",
+      "target_action_ids": [
+        "SU-9-6-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 860,
+          "end_offset": 911,
+          "exact_excerpt": "sent back to the first Activity (in the department)"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R06",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N03",
+      "guard_meaning": "physical test passes",
+      "target_action_ids": [
+        "SU-9-6-12"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 952,
+          "end_offset": 1017,
+          "exact_excerpt": "If the design passes the test, then it tells the other\ndepartment"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R07",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N02",
+      "guard_meaning": "electrical design successfully updated; physical work is interrupted",
+      "target_action_ids": [
+        "SU-9-6-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 437,
+          "end_offset": 462,
+          "exact_excerpt": "that design must restart."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R08",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N03",
+      "guard_meaning": "physical design successfully updated; electrical work is interrupted",
+      "target_action_ids": [
+        "SU-9-6-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 437,
+          "end_offset": 462,
+          "exact_excerpt": "that design must restart."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R09",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N02",
+      "guard_meaning": "electrical update interrupts in-progress physical work",
+      "target_action_ids": [
+        "SU-9-6-16"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-9-6-13"
+      ],
+      "terminal_outcome": "interrupted physical work stops before restart",
+      "reference_evidence_ids": [],
+      "notes": "V3.1: SU-9-6-13 is excluded only before the interrupted branch restarts; combining is required after both revisions complete.",
+      "source_spans": [
+        {
+          "start_offset": 405,
+          "end_offset": 432,
+          "exact_excerpt": "all current work is stopped"
+        }
+      ],
+      "exclusion_scope": "before_interrupted_design_branch_restarts"
+    },
+    {
+      "fact_id": "CF-9-6-R10",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N03",
+      "guard_meaning": "physical update interrupts in-progress electrical work",
+      "target_action_ids": [
+        "SU-9-6-16"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-9-6-13"
+      ],
+      "terminal_outcome": "interrupted electrical work stops before restart",
+      "reference_evidence_ids": [],
+      "notes": "V3.1: SU-9-6-13 is excluded only before the interrupted branch restarts; combining is required after both revisions complete.",
+      "source_spans": [
+        {
+          "start_offset": 405,
+          "end_offset": 432,
+          "exact_excerpt": "all current work is stopped"
+        }
+      ],
+      "exclusion_scope": "before_interrupted_design_branch_restarts"
+    },
+    {
+      "fact_id": "CF-9-6-R11",
+      "type": "synchronization",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N04",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-9-6-13"
+      ],
+      "incoming_action_ids": [
+        "SU-9-6-06"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1056,
+          "end_offset": 1129,
+          "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+        }
+      ],
+      "incoming_mode": "branch_completion",
+      "target_occurrence_ids": [
+        "SO-9-6-23",
+        "SO-9-6-24"
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "occurrence_anchor_set",
+          "semantic_unit_ids": [
+            "SU-9-6-13"
+          ],
+          "occurrence_ids": [
+            "SO-9-6-23",
+            "SO-9-6-24"
+          ],
+          "occurrence_roles": {
+            "SO-9-6-23": "initial",
+            "SO-9-6-24": "repeated"
+          },
+          "assignment_rule": "match the combine occurrence in the same design cycle as both incoming revised designs",
+          "source_span": {
+            "start_offset": 1056,
+            "end_offset": 1129,
+            "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+          }
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R12",
+      "type": "synchronization",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N04",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-9-6-13"
+      ],
+      "incoming_action_ids": [
+        "SU-9-6-11"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1056,
+          "end_offset": 1129,
+          "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+        }
+      ],
+      "incoming_mode": "branch_completion",
+      "target_occurrence_ids": [
+        "SO-9-6-23",
+        "SO-9-6-24"
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "occurrence_anchor_set",
+          "semantic_unit_ids": [
+            "SU-9-6-13"
+          ],
+          "occurrence_ids": [
+            "SO-9-6-23",
+            "SO-9-6-24"
+          ],
+          "occurrence_roles": {
+            "SO-9-6-23": "initial",
+            "SO-9-6-24": "repeated"
+          },
+          "assignment_rule": "match the combine occurrence in the same design cycle as both incoming revised designs",
+          "source_span": {
+            "start_offset": 1056,
+            "end_offset": 1129,
+            "exact_excerpt": "When both of the designs have been revised, they are combined and tested."
+          }
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-9-6-R13",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N05",
+      "guard_meaning": "combined test fails",
+      "target_action_ids": [
+        "SU-9-6-03",
+        "SU-9-6-08"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1174,
+          "end_offset": 1248,
+          "exact_excerpt": "they are both sent back to the beginning to initiate another design\ncycle."
+        }
+      ],
+      "target_mode": "both_required_parallel_restart"
+    },
+    {
+      "fact_id": "CF-9-6-R14",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-9-6-N05",
+      "guard_meaning": "combined test passes",
+      "target_action_ids": [
+        "SU-9-6-18"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 1249,
+          "end_offset": 1308,
+          "exact_excerpt": "If the designs pass the test, then they are deemed complete"
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "REUSE_ACTION_ALIGNMENT",
+      "status": "permitted",
+      "scope": "repeated or compound source activity anchors",
+      "reason": "Use the already reviewed Action alignment for split, combined, or repeated activity occurrences; no new label threshold is introduced."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Are the cross-branch interruption and restart facts sufficiently represented by the two test controls, or do they require distinct logical control nodes?"
+  ],
+  "adjudication_revision": "v3.1-approved-source-only-amendment-20260924",
+  "scoring_contract_version": "v3.1-cfi-anchor-evidence-1"
+}

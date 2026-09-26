@@ -1,0 +1,122 @@
+{
+  "case_id": "5-2",
+  "status": "FROZEN",
+  "source_hash": "42db90ecdff0cab4025da44268e0dacdd46673e755ac696951fc373e3b46402d",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "a13798bacac1da0ed8ce8be9c8696aff49d8feefe35ee8df5eaec12dbabcb5d3",
+  "reference_model_sha256": "7f9b176d324f55ec9dc1f24edc865079fa2dc428f7f45bc3f508426bd3c418ac",
+  "process_control_logic": "Supervisor approval sends the request to HR; rejection returns it to the employee for review.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-5-2-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Route supervisor approval versus rejection",
+      "anchor_action_ids": [
+        "SU-5-2-04",
+        "SU-5-2-05"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 318,
+          "end_offset": 368,
+          "exact_excerpt": "The supervisor must approve or reject the request."
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-5-2-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-2-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-5-2-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "application returned to employee",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 370,
+          "end_offset": 396,
+          "exact_excerpt": "If the request is rejected"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-2-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-5-2-N01",
+      "guard_meaning": "approved",
+      "target_action_ids": [
+        "SU-5-2-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 490,
+          "end_offset": 516,
+          "exact_excerpt": "If the request is approved"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-5-2-R03",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-5-2-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-5-2-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-5-2-08"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 398,
+          "end_offset": 451,
+          "exact_excerpt": "the application is returned to the applicant/employee"
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

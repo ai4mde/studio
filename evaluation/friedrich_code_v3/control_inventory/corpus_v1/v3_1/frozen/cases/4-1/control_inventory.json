@@ -1,0 +1,372 @@
+{
+  "case_id": "4-1",
+  "status": "FROZEN",
+  "source_hash": "85a840ddf42fc769f0c4742a7558f75395292eb03e2b0035d272ad16c4326768",
+  "source_encoding": "cp1252",
+  "inventory_version": "v3.1-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "3f2dac8a9562774d395ae52a2aa76377bfd6995235997965db075ceeeced013a",
+  "reference_model_sha256": "97fd7d50816cacce4efa29de3f7b89a27586ac009dd210292af2ca432f3da008",
+  "process_control_logic": "New-patient intake may require a medical file. First and second intaker preparations and meetings can proceed independently, but both meetings must happen before treatment planning.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-4-1-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Create a patient file for a new patient",
+      "anchor_action_ids": [
+        "SU-4-1-09"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 791,
+          "end_offset": 835,
+          "exact_excerpt": "For new patients, a patient file is\ncreated."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-N02",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Request medical file if required for the assignment",
+      "anchor_action_ids": [
+        "SU-4-1-18"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2037,
+          "end_offset": 2088,
+          "exact_excerpt": "whether the medical file of the patient is required"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-N03",
+      "type": "Fork",
+      "status": "required",
+      "purpose": "First and second intaker work streams may proceed independently",
+      "anchor_action_ids": [
+        "SU-4-1-24",
+        "SU-4-1-25",
+        "SU-4-1-26",
+        "SU-4-1-27",
+        "SU-4-1-28",
+        "SU-4-1-29",
+        "SU-4-1-30"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2803,
+          "end_offset": 2882,
+          "exact_excerpt": "The first intaker plans a meeting with the patient as soon as this is possible."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-N04",
+      "type": "Join",
+      "status": "required",
+      "purpose": "Both intaker meetings must have occurred before listing patient for treatment planning",
+      "anchor_action_ids": [
+        "SU-4-1-31"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "The source explicitly requires both meetings before listing; examination and dictaphone recording are not meeting-completion proxies.",
+      "source_spans": [
+        {
+          "start_offset": 3516,
+          "end_offset": 3605,
+          "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+        }
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "gateway_guard",
+          "source_predicate": "both first- and second-intaker patient meetings have occurred",
+          "required_structural_roles": [
+            "first_meeting_completion_input",
+            "second_meeting_completion_input",
+            "listing_after_join"
+          ],
+          "source_span": {
+            "start_offset": 3516,
+            "end_offset": 3605,
+            "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+          },
+          "action_context_ids": [
+            "SU-4-1-31"
+          ],
+          "action_context_is_completion_proxy": false
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-N05",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "File-required and no-file routes converge before second-intaker meeting planning",
+      "anchor_action_ids": [
+        "SU-4-1-18",
+        "SU-4-1-22",
+        "SU-4-1-27"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "The file-required route waits for receipt/informing; implicit convergence at planning is permitted.",
+      "source_spans": [
+        {
+          "start_offset": 3190,
+          "end_offset": 3267,
+          "exact_excerpt": "The second intaker plans the first meeting only after the medical information"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-4-1-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-4-1-N01",
+      "guard_meaning": "new patient",
+      "target_action_ids": [
+        "SU-4-1-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 791,
+          "end_offset": 835,
+          "exact_excerpt": "For new patients, a patient file is\ncreated."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-4-1-N02",
+      "guard_meaning": "medical file required",
+      "target_action_ids": [
+        "SU-4-1-21"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2489,
+          "end_offset": 2544,
+          "exact_excerpt": "For each patient for which the\nmedical file is required"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-R03",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-4-1-N02",
+      "guard_meaning": "medical file not required",
+      "target_action_ids": [
+        "SU-4-1-27"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 3190,
+          "end_offset": 3267,
+          "exact_excerpt": "The second intaker plans the first meeting only after the medical information"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-R04",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-4-1-N03",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-4-1-24"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2803,
+          "end_offset": 2882,
+          "exact_excerpt": "The first intaker plans a meeting with the patient as soon as this is possible."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-R05",
+      "type": "parallel_launch",
+      "status": "required",
+      "source_control_fact": "CF-4-1-N03",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-4-1-27"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 2803,
+          "end_offset": 2882,
+          "exact_excerpt": "The first intaker plans a meeting with the patient as soon as this is possible."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-R06",
+      "type": "synchronization",
+      "status": "required",
+      "source_control_fact": "CF-4-1-N04",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-4-1-31"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "Source-grounded meeting-completion boundary; no standalone reviewed Action unit is required.",
+      "source_spans": [
+        {
+          "start_offset": 3516,
+          "end_offset": 3605,
+          "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+        }
+      ],
+      "incoming_mode": "branch_completion",
+      "incoming_boundary": "first_intaker_meeting_completion",
+      "control_anchor_evidence": [
+        {
+          "kind": "gateway_guard",
+          "source_predicate": "first intaker meeting completion before patient listing",
+          "required_structural_roles": [
+            "first_intaker_meeting_completion",
+            "listing_after_join"
+          ],
+          "source_span": {
+            "start_offset": 3516,
+            "end_offset": 3605,
+            "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+          }
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-4-1-R07",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-4-1-N05",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-4-1-27"
+      ],
+      "incoming_action_ids": [
+        "SU-4-1-18",
+        "SU-4-1-22"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "SU-4-1-18 is the no-file route boundary; SU-4-1-22 follows receipt on the required-file route.",
+      "source_spans": [
+        {
+          "start_offset": 3190,
+          "end_offset": 3267,
+          "exact_excerpt": "The second intaker plans the first meeting only after the medical information"
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    },
+    {
+      "fact_id": "CF-4-1-R08",
+      "type": "synchronization",
+      "status": "required",
+      "source_control_fact": "CF-4-1-N04",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-4-1-31"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "Source-grounded meeting-completion boundary; no standalone reviewed Action unit is required.",
+      "source_spans": [
+        {
+          "start_offset": 3516,
+          "end_offset": 3605,
+          "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+        }
+      ],
+      "incoming_boundary": "second_intaker_meeting_completion",
+      "control_anchor_evidence": [
+        {
+          "kind": "gateway_guard",
+          "source_predicate": "second intaker meeting completion before patient listing",
+          "required_structural_roles": [
+            "second_intaker_meeting_completion",
+            "listing_after_join"
+          ],
+          "source_span": {
+            "start_offset": 3516,
+            "end_offset": 3605,
+            "exact_excerpt": "As soon as the meetings of the first and second intaker with the patient have taken place"
+          }
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-4-1-N05",
+      "reason": "A correct implicit convergence at second-intaker planning satisfies the logical Merge."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "The four reference Parallel gateways are not copied wholesale; source-supported independence and the both-meetings completion point are the scored draft.",
+    "Adjudicated source question: Which preparatory activities are truly concurrent, beyond the independent first- and second-intaker meetings?",
+    "Adjudicated source question: Does medical-file receipt gate only second-intaker meeting planning, or the meeting itself and joint completion?",
+    "Required Join expresses both-meeting completion. The first synchronization is required; the second relation is explicitly unresolved and excluded from score denominators.",
+    "V3.1: both meeting-completion inputs are required Control boundaries grounded in the explicit source conjunction; SU-4-1-25 and SU-4-1-28 are not completion proxies."
+  ],
+  "adjudication_revision": "v3.1-approved-source-only-amendment-20260924",
+  "scoring_contract_version": "v3.1-cfi-anchor-evidence-1"
+}

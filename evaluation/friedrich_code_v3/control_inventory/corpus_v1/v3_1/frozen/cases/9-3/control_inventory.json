@@ -1,0 +1,40 @@
+{
+  "case_id": "9-3",
+  "status": "FROZEN",
+  "source_hash": "f9dc05f173a612ff834609d76571eccd59c4b2e8d5b26987e345c12fd469a1da",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "a69c2ada685719e20839a01987ef41d49c42b38da3e0d569687624110d4fd612",
+  "reference_model_sha256": "7dc9140e2ef1282df11d1767fa8608bc670fe37e8246a3b3e3f1ee359c1593c5",
+  "process_control_logic": "Meeting dates are drafted, checked, revised, sent, and checked by Committee Members. Whether conflict advice requires a scored conditional route remains open.",
+  "control_nodes": [],
+  "control_relations": [],
+  "permitted_equivalences": [],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "Is advice required even when no conflicts are found, or only when conflicts exist?",
+      "source_spans": [
+        {
+          "start_offset": 454,
+          "end_offset": 500,
+          "exact_excerpt": "advise the Coordination Unit of any conflicts."
+        }
+      ],
+      "affected_fact_ids": [],
+      "reason": "",
+      "reason_code": "conditional_outcome_ambiguous",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "abstain_on_unspecified_relation"
+    }
+  ],
+  "no_control": false,
+  "review_notes": [
+    "This is not an affirmative no-control determination: the only potential Decision is left unresolved because “of any conflicts” does not specify the no-conflict path.",
+    "No-control remains false because conditional conflict advice is unresolved; the case is not an affirmative linear negative."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

@@ -1,0 +1,377 @@
+{
+  "edges": [
+    {
+      "source": "n29",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n31",
+      "type": "control"
+    },
+    {
+      "label": "medical_file_required",
+      "source": "n31",
+      "target": "n32",
+      "type": "control"
+    },
+    {
+      "source": "n32",
+      "target": "n33",
+      "type": "control"
+    },
+    {
+      "source": "n33",
+      "target": "n34",
+      "type": "control"
+    },
+    {
+      "label": "medical_file_not_required",
+      "source": "n31",
+      "target": "n34",
+      "type": "control"
+    },
+    {
+      "source": "n34",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n18",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "source": "n19",
+      "target": "n20",
+      "type": "control"
+    },
+    {
+      "source": "n20",
+      "target": "n21",
+      "type": "control"
+    },
+    {
+      "source": "n21",
+      "target": "n22",
+      "type": "control"
+    },
+    {
+      "source": "n22",
+      "target": "n23",
+      "type": "control"
+    },
+    {
+      "source": "n23",
+      "target": "n24",
+      "type": "control"
+    },
+    {
+      "source": "n24",
+      "target": "n25",
+      "type": "control"
+    },
+    {
+      "source": "n25",
+      "target": "n26",
+      "type": "control"
+    },
+    {
+      "source": "n26",
+      "target": "n27",
+      "type": "control"
+    },
+    {
+      "source": "n27",
+      "target": "n28",
+      "type": "control"
+    },
+    {
+      "source": "n28",
+      "target": "n30",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "receive notice by telephone at secretarial office",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "inquire after name and residence of patient",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "connect family doctor to responsible nursing officer",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "nursing officer makes full inquiry into mental, health, and social state of patient",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "record inquiry information on registration form",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "hand registration form to secretarial office",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "store information from registration form in information system",
+      "origin_step_id": "S7",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "print information from information system",
+      "origin_step_id": "S8",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "create patient file for new patients",
+      "origin_step_id": "S9",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "store registration form and print in patient file",
+      "origin_step_id": "S10",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "produce two registration cards for first and second intaker",
+      "origin_step_id": "S11",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "add new patient to list of new notices",
+      "origin_step_id": "S12",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "name": "hold staff meeting to assign new patients to team members",
+      "origin_step_id": "S13",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "record assignments and whether medical file is required on assignment list",
+      "origin_step_id": "S14",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "name": "hand assignment list to secretarial office",
+      "origin_step_id": "S15",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "name": "store assignment of each patient in information system",
+      "origin_step_id": "S16",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "name": "pass registration cards to first and second intaker",
+      "origin_step_id": "S17",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "name": "first intaker plans meeting with patient",
+      "origin_step_id": "S18",
+      "type": "action"
+    },
+    {
+      "id": "n19",
+      "name": "examine patient using standard checklist during first meeting",
+      "origin_step_id": "S19",
+      "type": "action"
+    },
+    {
+      "id": "n20",
+      "name": "register additional observations in personal notebook",
+      "origin_step_id": "S20",
+      "type": "action"
+    },
+    {
+      "id": "n21",
+      "name": "put copy of notes in patient file",
+      "origin_step_id": "S21",
+      "type": "action"
+    },
+    {
+      "id": "n22",
+      "name": "add standard checklist to patient file",
+      "origin_step_id": "S22",
+      "type": "action"
+    },
+    {
+      "id": "n23",
+      "name": "second intaker plans first meeting after medical information received if required",
+      "origin_step_id": "S23",
+      "type": "action"
+    },
+    {
+      "id": "n24",
+      "name": "physician records observations using dictaphone during meetings",
+      "origin_step_id": "S24",
+      "type": "action"
+    },
+    {
+      "id": "n25",
+      "name": "secretarial office types out tapes and adds information to patient file",
+      "origin_step_id": "S25",
+      "type": "action"
+    },
+    {
+      "id": "n26",
+      "name": "put patient on list of patients that have completed both intaker meetings",
+      "origin_step_id": "S26",
+      "type": "action"
+    },
+    {
+      "id": "n27",
+      "name": "provide team-leader with list of these patients for staff meeting",
+      "origin_step_id": "S27",
+      "type": "action"
+    },
+    {
+      "id": "n28",
+      "name": "formulate treatment plan with first and second intaker, team-leader, and psychiatrist",
+      "origin_step_id": "S28",
+      "type": "action"
+    },
+    {
+      "id": "n29",
+      "type": "initial"
+    },
+    {
+      "id": "n30",
+      "type": "final"
+    },
+    {
+      "id": "n31",
+      "label": "determine whether the medical file of the patient is required?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n32",
+      "name": "prepare and send letter to family doctor requesting copy of medical file",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n33",
+      "name": "inform second intaker and add copy of medical file to patient file upon receipt",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n34",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

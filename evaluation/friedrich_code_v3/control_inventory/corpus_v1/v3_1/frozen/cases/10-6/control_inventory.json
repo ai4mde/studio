@@ -1,0 +1,97 @@
+{
+  "case_id": "10-6",
+  "status": "FROZEN",
+  "source_hash": "6b50e6304a76d7bf94c2690c252116f0782ddbf945ad3dcb000a0471f11a9be9",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "dbb44602a91182badb0045b8e75c4701422d0be102cc123c33ea6b3260112e25",
+  "reference_model_sha256": "8a2981c4ab557db593a34753c4147e5398c2f12938a8e598837803f5f0f76533",
+  "process_control_logic": "After dismissal review, the MSPO rejects or confirms the dismissal.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-6-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Choose rejection or confirmation after dismissal review",
+      "anchor_action_ids": [
+        "SU-10-6-02"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734344"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 81,
+          "end_offset": 117,
+          "exact_excerpt": "rejects the dismissal of the MSPN or"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-6-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-6-N01",
+      "guard_meaning": "rejects",
+      "target_action_ids": [
+        "SU-10-6-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734344:16734349"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 81,
+          "end_offset": 114,
+          "exact_excerpt": "rejects the dismissal of the MSPN"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-6-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-6-N01",
+      "guard_meaning": "confirms",
+      "target_action_ids": [
+        "SU-10-6-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734344:16734348"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 127,
+          "end_offset": 162,
+          "exact_excerpt": "confirms the dismissal of the MSPN."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

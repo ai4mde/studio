@@ -1,0 +1,338 @@
+{
+  "case_id": "10-9",
+  "status": "FROZEN",
+  "source_hash": "99cf8d348b8bdd8ef0df6a19a6ff57daad5157a036819c90ee6f25d1a13628c5",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "dd62725b0a791deca71eb7a2a0834754d50a8faa60e99ec3f82d6c818d205519",
+  "reference_model_sha256": "7915bc3c64589e5ff7aabb2a735c169030a9465bac620ef6c72d0b0dae1a004f",
+  "process_control_logic": "A change is requested externally or caused by the MPO. Review may reject or confirm; implementation then yields a success report or failure notice.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-9-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Route external request versus MPO-initiated change",
+      "anchor_action_ids": [
+        "SU-10-9-01",
+        "SU-10-9-02"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 13,
+          "end_offset": 74,
+          "exact_excerpt": "request changes of the MPO or the MPO himself causes a change"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-9-N02",
+      "type": "Merge",
+      "status": "unresolved",
+      "purpose": "Both change origins reach MPO review",
+      "anchor_action_ids": [
+        "SU-10-9-01",
+        "SU-10-9-02",
+        "SU-10-9-03"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 76,
+          "end_offset": 111,
+          "exact_excerpt": "The MPO reviews the change request."
+        }
+      ],
+      "reason_code": "source_non_exhaustive"
+    },
+    {
+      "fact_id": "CF-10-9-N03",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Reject or confirm measuring-point change",
+      "anchor_action_ids": [
+        "SU-10-9-03"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734592"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 120,
+          "end_offset": 161,
+          "exact_excerpt": "rejects the change of the measuring point"
+        }
+      ],
+      "source_scope": "external_request"
+    },
+    {
+      "fact_id": "CF-10-9-N04",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Report successful implementation or failure of change",
+      "anchor_action_ids": [
+        "SU-10-9-08",
+        "SU-10-9-06",
+        "SU-10-9-07"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 281,
+          "end_offset": 326,
+          "exact_excerpt": "reports the implementation to the SP/PU/GO or"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-9-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-9-N01",
+      "guard_meaning": "external request",
+      "target_action_ids": [
+        "SU-10-9-01"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 4,
+          "end_offset": 39,
+          "exact_excerpt": "SP/PU/GO request changes of the MPO"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-9-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-9-N01",
+      "guard_meaning": "MPO-initiated",
+      "target_action_ids": [
+        "SU-10-9-02"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 43,
+          "end_offset": 74,
+          "exact_excerpt": "the MPO himself causes a change"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-9-R03",
+      "type": "convergence",
+      "status": "unresolved",
+      "source_control_fact": "CF-10-9-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-10-9-03"
+      ],
+      "incoming_action_ids": [
+        "SU-10-9-01",
+        "SU-10-9-02"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 76,
+          "end_offset": 111,
+          "exact_excerpt": "The MPO reviews the change request."
+        }
+      ],
+      "incoming_mode": "alternative_branches",
+      "reason_code": "source_non_exhaustive"
+    },
+    {
+      "fact_id": "CF-10-9-R04",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-9-N03",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-10-9-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "change rejected",
+      "reference_evidence_ids": [
+        "branch:16734592:16734599"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 120,
+          "end_offset": 161,
+          "exact_excerpt": "rejects the change of the measuring point"
+        }
+      ],
+      "source_scope": "external_request"
+    },
+    {
+      "fact_id": "CF-10-9-R05",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-9-N03",
+      "guard_meaning": "confirmed",
+      "target_action_ids": [
+        "SU-10-9-05"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734592:16734600"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 189,
+          "end_offset": 227,
+          "exact_excerpt": "confirmes the request of the SP/PU/GO."
+        }
+      ],
+      "source_scope": "external_request",
+      "required_on_branch_action_ids": [
+        "SU-10-9-08"
+      ]
+    },
+    {
+      "fact_id": "CF-10-9-R06",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-10-9-N03",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-10-9-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-10-9-08",
+        "SU-10-9-06"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 228,
+          "end_offset": 272,
+          "exact_excerpt": "The MPO performs the measuring point change."
+        }
+      ],
+      "source_scope": "external_request"
+    },
+    {
+      "fact_id": "CF-10-9-R07",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-9-N04",
+      "guard_meaning": "change implemented",
+      "target_action_ids": [
+        "SU-10-9-06"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 281,
+          "end_offset": 323,
+          "exact_excerpt": "reports the implementation to the SP/PU/GO"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-9-R08",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-9-N04",
+      "guard_meaning": "change failed",
+      "target_action_ids": [
+        "SU-10-9-07"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "failure notice sent",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 327,
+          "end_offset": 382,
+          "exact_excerpt": "notifies the SP/PU/GO about the failure of the changes."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-10-9-N02",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [
+    {
+      "status": "unresolved",
+      "question": "Does MPO-initiated change pass through the same request review/rejection decision as external requests?",
+      "source_spans": [
+        {
+          "start_offset": 76,
+          "end_offset": 111,
+          "exact_excerpt": "The MPO reviews the change request."
+        }
+      ],
+      "affected_fact_ids": [
+        "CF-10-9-N02",
+        "CF-10-9-R03"
+      ],
+      "reason": "",
+      "reason_code": "source_non_exhaustive",
+      "coverage_kind": "source_scope_question",
+      "fp_scope": "non_exhaustive"
+    }
+  ],
+  "no_control": false,
+  "review_notes": [
+    "Researcher-approved Option A: SU-10-9-08 / SO-10-9-08 anchors the source-stated measuring point change. Confirmation requires that activity, rejection excludes it, and the implementation-outcome Decision is anchored after it. The MPO-initiated shared-review question remains unresolved."
+  ],
+  "adjudication_revision": "v3-control-facts-option-a-approved-20260924",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

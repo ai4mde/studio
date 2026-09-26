@@ -1,0 +1,93 @@
+{
+  "case_id": "10-13",
+  "status": "FROZEN",
+  "source_hash": "cf40c4bd178592ca089d9a83ab8ca25c4d9b56320910aa07c63c30d8dc0d2ca0",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "844376f68bcb9a85b4ab932b8baf8b0b03d38e111b036d9ca4de0fb33595196c",
+  "reference_model_sha256": "c091677e4f1557131d003cb61d9f38c3a95c2a857b84a4a92da80056fe7a7411",
+  "process_control_logic": "IP examination determines whether it transmits requested transaction data or rejects the request.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-13-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Answer request by transmitting data or rejecting it",
+      "anchor_action_ids": [
+        "SU-10-13-02"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 135,
+          "end_offset": 178,
+          "exact_excerpt": "depending on the outcome of the examination"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-13-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-13-N01",
+      "guard_meaning": "request accepted",
+      "target_action_ids": [
+        "SU-10-13-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 185,
+          "end_offset": 205,
+          "exact_excerpt": "Transmission of data"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-13-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-13-N01",
+      "guard_meaning": "request rejected",
+      "target_action_ids": [
+        "SU-10-13-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 209,
+          "end_offset": 219,
+          "exact_excerpt": "rejection."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "No corresponding reference gateway is needed to make this source-explicit decision required."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

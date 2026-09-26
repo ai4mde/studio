@@ -1,0 +1,337 @@
+{
+  "edges": [
+    {
+      "source": "n5",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "fail",
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "label": "pass",
+      "source": "n12",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n18",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "source": "n19",
+      "target": "n20",
+      "type": "control"
+    },
+    {
+      "source": "n20",
+      "target": "n21",
+      "type": "control"
+    },
+    {
+      "label": "fail",
+      "source": "n21",
+      "target": "n22",
+      "type": "control"
+    },
+    {
+      "source": "n22",
+      "target": "n23",
+      "type": "control"
+    },
+    {
+      "label": "pass",
+      "source": "n21",
+      "target": "n24",
+      "type": "control"
+    },
+    {
+      "source": "n24",
+      "target": "n25",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n26",
+      "type": "control"
+    },
+    {
+      "source": "n25",
+      "target": "n26",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n23",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n26",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n27",
+      "type": "control"
+    },
+    {
+      "label": "fail",
+      "source": "n27",
+      "target": "n28",
+      "type": "control"
+    },
+    {
+      "label": "pass",
+      "source": "n27",
+      "target": "n29",
+      "type": "control"
+    },
+    {
+      "source": "n28",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n29",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n6",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "locate and distribute any relevant existing electrical and physical designs",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "combine revised electrical and physical designs",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "test combined design",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "send completed designs to manufacturing process",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "type": "initial"
+    },
+    {
+      "id": "n6",
+      "type": "final"
+    },
+    {
+      "id": "n7",
+      "origin_block_id": "T1",
+      "type": "fork"
+    },
+    {
+      "id": "n8",
+      "name": "review any existing electrical designs",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "create update plan for electrical design",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "revise electrical design using update plan and existing draft",
+      "origin_step_id": "T1_branch_1_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "test revised electrical design",
+      "origin_step_id": "T1_branch_1_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "label": "test electrical design and branch on result?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n13",
+      "name": "review electrical design",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "create new update plan for electrical design",
+      "origin_step_id": "T2_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "name": "notify physical design department to restart work",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "origin_block_id": "T2",
+      "type": "merge"
+    },
+    {
+      "id": "n17",
+      "name": "review any existing physical designs",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "name": "create update plan for physical design",
+      "origin_step_id": "T1_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n19",
+      "name": "revise physical design using update plan and existing draft",
+      "origin_step_id": "T1_branch_2_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n20",
+      "name": "test revised physical design",
+      "origin_step_id": "T1_branch_2_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n21",
+      "label": "test physical design and branch on result?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n22",
+      "name": "review physical design",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n23",
+      "name": "create new update plan for physical design",
+      "origin_step_id": "T3_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n24",
+      "name": "notify electrical design department to restart work",
+      "origin_step_id": "T3_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n25",
+      "origin_block_id": "T3",
+      "type": "merge"
+    },
+    {
+      "id": "n26",
+      "origin_block_id": "T1",
+      "type": "join"
+    },
+    {
+      "id": "n27",
+      "label": "test combined design and branch on result?",
+      "origin_block_id": "T4",
+      "type": "decision"
+    },
+    {
+      "id": "n28",
+      "name": "initiate new design cycle for both electrical and physical designs",
+      "origin_step_id": "T4_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n29",
+      "origin_block_id": "T4",
+      "type": "merge"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "corpus_sha256": "5f9765bda2ea5d9d9f4a78603207bb0a2ed6532fd0c935149c275595c7d5be8a",
+  "scoring_contract_sha256": "f56d549ce2d725c73d2fc03e0442df599ee538dd1efd6f4f8b773dfb50b9a20a",
+  "v2_action_code": {
+    "v2_action_matcher": {
+      "path": "/Users/queenie/Desktop/studio-semantic-v2/evaluation/friedrich_semantic/action.py",
+      "sha256": "1fc985a2e50da84d12f93134989c970c7e8f36b747c17f6439a9c9775d44b154"
+    },
+    "v2_action_projection": {
+      "path": "/Users/queenie/Desktop/studio-semantic-v2/evaluation/friedrich_semantic_v2/evaluator_adapter.py",
+      "sha256": "12d3bfaf878d6d056d0ab815d511e4431f5a8a3fa9674922d6f815a36571b80e"
+    }
+  },
+  "generated_manifest_sha256": "e7c703f0fbf3c128a9c3f64567f6d743702cde1a47cd06e377397b1a8541b695",
+  "roster_sha256": "f96893bd709cd51a9499e7f7829d454d0c70642896ae9a29128f1fe271506980",
+  "supported_cases": 40,
+  "candidates_per_case": 3,
+  "unique_candidate_slots": 120,
+  "unresolved_source_questions": 11,
+  "scoped_reproductions": [
+    {
+      "scope": "nine",
+      "count": 9,
+      "result_reproduction": "exact",
+      "prior_path": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/results/v3_1_final_11_blocker_fix_20260924_2102utc/nine_postfix_results.json"
+    },
+    {
+      "scope": "guard42",
+      "count": 42,
+      "result_reproduction": "exact",
+      "prior_path": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/results/v3_1_final_11_blocker_fix_20260924_2102utc/guard42_postfix_results.json"
+    },
+    {
+      "scope": "preflight18",
+      "count": 18,
+      "result_reproduction": "exact",
+      "prior_path": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/results/v3_1_final_11_blocker_fix_20260924_2102utc/preflight18/results.json"
+    }
+  ],
+  "all_checks_passed": true
+}

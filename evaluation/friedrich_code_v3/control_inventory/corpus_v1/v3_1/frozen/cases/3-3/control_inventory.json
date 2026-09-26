@@ -1,0 +1,99 @@
+{
+  "case_id": "3-3",
+  "status": "FROZEN",
+  "source_hash": "db9f6aee07100114fb8e6231e92a86d115ac4a097fa4cec93591d82f268e1525",
+  "source_encoding": "cp1252",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "e62574bce011df70a5db3f24c49ae504171c367377d962adac961dc730f9f0a6",
+  "reference_model_sha256": "3f86b0f596859f4795af96204f18a885be2687f9793ae2192e4aadc6069f93aa",
+  "process_control_logic": "A senior officer checks the recommendation; Not OK returns it for repeat preparation, while OK lets claim handling proceed.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-3-3-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Repeat the settlement recommendation until the senior officer marks it OK",
+      "anchor_action_ids": [
+        "SU-3-3-04",
+        "SU-3-3-05",
+        "SU-3-3-06"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 195,
+          "end_offset": 216,
+          "exact_excerpt": "may mark the claim as"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-3-3-R01",
+      "type": "loop_recurrence",
+      "status": "required",
+      "source_control_fact": "CF-3-3-N01",
+      "guard_meaning": "Not OK",
+      "target_action_ids": [
+        "SU-3-3-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 314,
+          "end_offset": 345,
+          "exact_excerpt": "the recommendation is repeated."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-3-R02",
+      "type": "loop_exit",
+      "status": "required",
+      "source_control_fact": "CF-3-3-N01",
+      "guard_meaning": "OK",
+      "target_action_ids": [],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "claim handling continues beyond described scope",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 346,
+          "end_offset": 402,
+          "exact_excerpt": "If the claim is OK, the claim handling process proceeds."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "REUSE_ACTION_ALIGNMENT",
+      "status": "permitted",
+      "scope": "repeated or compound source activity anchors",
+      "reason": "Use the already reviewed Action alignment for split, combined, or repeated activity occurrences; no new label threshold is introduced."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Recurrence target is the recommendation-writing activity, not a fixed two-pass unrolling. The Not OK handback action is an intermediate anchor."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

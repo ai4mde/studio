@@ -1,0 +1,179 @@
+{
+  "edges": [
+    {
+      "source": "n7",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "self_dismounting",
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "no_self_dismounting",
+      "source": "n9",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "MPON notifies MPOO about equipment change intentions",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "MPON mounts the new device",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "MPON reads the meter count from the installed meter",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "MPON sends the values of the final reading to the GO",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "MPON tells the GO about the device changes, the master data and the meter count at installation",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "GO notifies the MSP about the device changes, the master data, the meter count at dismounting, and the meter count at installation",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "type": "initial"
+    },
+    {
+      "id": "n8",
+      "type": "final"
+    },
+    {
+      "id": "n9",
+      "label": "branch based on whether the MPOO announces self dismounting or not?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n10",
+      "name": "MPOO announces self dismounting to the MPON",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "MPOO performs the final reading",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "MPOO dismounts the old equipment",
+      "origin_step_id": "T1_branch_1_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "name": "MPOO notifies the MPON about no self-dismounting of the MPOO",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "MPON performs the final reading",
+      "origin_step_id": "T1_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "name": "MPON dismounts the old equipment",
+      "origin_step_id": "T1_branch_2_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

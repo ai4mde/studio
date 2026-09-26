@@ -1,0 +1,146 @@
+{
+  "case_id": "10-8",
+  "status": "FROZEN",
+  "source_hash": "d4458620cc8d06a9d00858a401e1b749df585e04c494423b1208ceb12dbd3d22",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3.1-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "3961eee2203082cd891daa6680fcc84d2aaa46cd57e3b9510d133c1e1e8bb51f",
+  "reference_model_sha256": "457b45dc29a91c6f6571cdc03b5d581882278ad3fd30de069c805a023abcd06a",
+  "process_control_logic": "GO rejection of deregistration ends that branch; preliminary confirmation continues to self-assignment and notices.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-8-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Reject or preliminarily confirm deregistration",
+      "anchor_action_ids": [
+        "SU-10-8-02"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734494"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 75,
+          "end_offset": 116,
+          "exact_excerpt": "rejects the deregistration of the MSPO or"
+        }
+      ],
+      "control_anchor_evidence": [
+        {
+          "kind": "gateway_guard",
+          "source_predicate": "verification of deregistration routes to rejection or preliminary confirmation",
+          "required_structural_roles": [
+            "deregistration_verification_meaning",
+            "rejection_route",
+            "preliminary_confirmation_route"
+          ],
+          "source_span": {
+            "start_offset": 75,
+            "end_offset": 116,
+            "exact_excerpt": "rejects the deregistration of the MSPO or"
+          },
+          "action_anchor_is_optional_for_control": true
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-8-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-8-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-10-8-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "deregistration rejected",
+      "reference_evidence_ids": [
+        "branch:16734494:16734499"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 75,
+          "end_offset": 113,
+          "exact_excerpt": "rejects the deregistration of the MSPO"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-8-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-8-N01",
+      "guard_meaning": "preliminarily confirmed",
+      "target_action_ids": [
+        "SU-10-8-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734494:16734500"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 124,
+          "end_offset": 178,
+          "exact_excerpt": "preliminarily confirms the deregistration of the MSPO."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-8-R03",
+      "type": "termination",
+      "status": "required",
+      "source_control_fact": "CF-10-8-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-10-8-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [
+        "SU-10-8-05"
+      ],
+      "terminal_outcome": "branch ends before success-only work",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 179,
+          "end_offset": 209,
+          "exact_excerpt": "The GO assigns himself as MSP."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    },
+    {
+      "rule": "COALESCE_EQUIVALENT_ENDS",
+      "status": "permitted",
+      "scope": "source-supported terminal outcomes in this case",
+      "reason": "Physical End nodes may differ while the same branch-local outcome and exclusions are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "The rejection route must not enter the success-only assignment and notification work."
+  ],
+  "adjudication_revision": "v3.1-approved-source-only-amendment-20260924",
+  "scoring_contract_version": "v3.1-cfi-anchor-evidence-1"
+}

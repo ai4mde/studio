@@ -1,0 +1,135 @@
+{
+  "edges": [
+    {
+      "source": "n7",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n9",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "MSPN registers the measurement at the GO",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "GO examines the application of the MSPN",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "GO assigns the MSPN",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "GO informs the MSPO about the assignment of MSPN",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "GO informs the MPO about the assignment of the MSPN",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "GO informs the SP about the assignment of MSPN",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "type": "initial"
+    },
+    {
+      "id": "n8",
+      "type": "final"
+    },
+    {
+      "id": "n9",
+      "label": "approval or rejection of the MSPN application?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n10",
+      "name": "GO rejects the application of the MSPN",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "GO confirms the application of the MSPN",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "case_id": "10-1",
+  "status": "FROZEN",
+  "source_hash": "822161f5ac360296feab43db418472d14bcaf0ed7feb00dd1db75a200b3a6360",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "32154d0e5de8ea7e1cb4b045d3ba3b6000864be675f55b84c05ea6b1afca269c",
+  "reference_model_sha256": "1e7dcfb6243e0a9e86b8a6e4a2f085d85344233e0fc326744c9f204b9330294b",
+  "process_control_logic": "After dismissal review, the MPOO either opposes or confirms the dismissal.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-1-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Choose opposition or confirmation after dismissal review",
+      "anchor_action_ids": [
+        "SU-10-1-02"
+      ],
+      "reference_evidence_ids": [
+        "gateway:16734026"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 149,
+          "end_offset": 200,
+          "exact_excerpt": "opposes the dismissal of MPON or\nthe MPOO confirmes"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-1-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-1-N01",
+      "guard_meaning": "opposes",
+      "target_action_ids": [
+        "SU-10-1-03"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734026:16734031"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 149,
+          "end_offset": 178,
+          "exact_excerpt": "opposes the dismissal of MPON"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-1-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-1-N01",
+      "guard_meaning": "confirms",
+      "target_action_ids": [
+        "SU-10-1-04"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:16734026:16734033"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 191,
+          "end_offset": 227,
+          "exact_excerpt": "confirmes the dismissal of the MPON."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

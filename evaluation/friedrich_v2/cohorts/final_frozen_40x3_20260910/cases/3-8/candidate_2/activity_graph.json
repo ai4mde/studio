@@ -1,0 +1,135 @@
+{
+  "edges": [
+    {
+      "source": "n6",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "label": "positive",
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "label": "negative",
+      "source": "n8",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n7",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "check documents for completeness",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "register claim",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "check insurance",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "perform assessment",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "send letter to customer",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "type": "initial"
+    },
+    {
+      "id": "n7",
+      "type": "final"
+    },
+    {
+      "id": "n8",
+      "label": "branch on the outcome of the assessment?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n9",
+      "name": "phone garage to authorise repairs",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "schedule payment",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "reject claim",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

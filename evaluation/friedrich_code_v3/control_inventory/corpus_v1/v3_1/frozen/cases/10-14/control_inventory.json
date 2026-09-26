@@ -1,0 +1,98 @@
+{
+  "case_id": "10-14",
+  "status": "FROZEN",
+  "source_hash": "726cde59134d80043f9727961ce54febefc9204a689c2d9e23cc577f764b3171",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "9b80c325e6f055c4fde32894d95f9313abca8a652bec79dc9ed84c9f4c818dcf",
+  "reference_model_sha256": "bb0203ff99d2f2e8a02604752b96d2ff0d7fcadcfb0355c855dc6070766ed733",
+  "process_control_logic": "One of four bill contexts leads to bill examination; the resulting invoice is confirmed with payment advice or rejected.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-10-14-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Confirm invoice with payment advice or reject it",
+      "anchor_action_ids": [
+        "SU-10-14-02",
+        "SU-10-14-04",
+        "SU-10-14-06",
+        "SU-10-14-08"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 468,
+          "end_offset": 508,
+          "exact_excerpt": "confirms the invoice with payment advice"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-10-14-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-14-N01",
+      "guard_meaning": "confirmed",
+      "target_action_ids": [
+        "SU-10-14-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 468,
+          "end_offset": 508,
+          "exact_excerpt": "confirms the invoice with payment advice"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-10-14-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-10-14-N01",
+      "guard_meaning": "rejected",
+      "target_action_ids": [
+        "SU-10-14-10"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": "invoice rejected",
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 556,
+          "end_offset": 600,
+          "exact_excerpt": "rejects the invoice of the MPOO or the MSPO."
+        }
+      ]
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Adjudicated source question: Do the four “If ... sends the bill” contexts form mutually exclusive routes within one process instance, or independent bill scenarios? A context-selection Decision and convergence are not scored yet.",
+    "Adjudicated source question: Which of GO versus MPON is responsible for examination and reply on the equipment-acquisition path?",
+    "Four bill contexts are not scored as one exclusive Decision. Equipment-acquisition recipient/examiner may be MPON or GO as source states."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

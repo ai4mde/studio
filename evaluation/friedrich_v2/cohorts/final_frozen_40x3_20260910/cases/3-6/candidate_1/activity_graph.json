@@ -1,0 +1,222 @@
+{
+  "edges": [
+    {
+      "source": "n3",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "insured",
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "simple",
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "complete",
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "label": "incomplete",
+      "source": "n9",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n13",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "complex",
+      "source": "n6",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "not_insured",
+      "source": "n5",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n18",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n19",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "label": "success",
+      "source": "n13",
+      "target": "n19",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "receive claim",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "register claim in Claims Management system",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "type": "initial"
+    },
+    {
+      "id": "n4",
+      "type": "final"
+    },
+    {
+      "id": "n5",
+      "label": "determine if the claimant is insured?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n6",
+      "label": "route based on claim severity?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n7",
+      "name": "evaluate claim severity",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "send relevant forms to claimant",
+      "origin_step_id": "T2_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "label": "check if returned forms are complete?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n10",
+      "name": "check returned forms for completeness",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "check returned forms for completeness",
+      "origin_step_id": "T3_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "inform claimant to update the forms",
+      "origin_step_id": "T3_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "label": "repeat form completion until all details are provided?",
+      "origin_block_id": "T4",
+      "type": "decision"
+    },
+    {
+      "id": "n14",
+      "name": "receive updated forms",
+      "origin_step_id": "T4_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "name": "evaluate claim severity",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "name": "send relevant forms to claimant",
+      "origin_step_id": "T2_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "name": "inform claimant that the claim must be rejected",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n19",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

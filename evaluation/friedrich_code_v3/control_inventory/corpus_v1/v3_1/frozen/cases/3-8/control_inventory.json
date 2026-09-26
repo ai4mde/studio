@@ -1,0 +1,151 @@
+{
+  "case_id": "3-8",
+  "status": "FROZEN",
+  "source_hash": "72b1b6edd894c1f24157e8101719a95736a368026c42e395be778d4340d9d1ae",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "fbbeafc3512dbdc6013aa5bcbb7abd67b9d5f2cfbb3c356574e0b7d04add9e94",
+  "reference_model_sha256": "632d3b9c1ce27f70074b1766ca8977206babc79a824e94bfa2c00e6562faa0ea",
+  "process_control_logic": "Positive assessment authorizes repairs then schedules payment; negative assessment rejects the claim. Both outcomes converge on a customer letter.",
+  "control_nodes": [
+    {
+      "fact_id": "CF-3-8-N01",
+      "type": "Decision",
+      "status": "required",
+      "purpose": "Route positive versus negative assessment",
+      "anchor_action_ids": [
+        "SU-3-8-06"
+      ],
+      "reference_evidence_ids": [
+        "gateway:475"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 309,
+          "end_offset": 338,
+          "exact_excerpt": "If the assessment is positive"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-8-N02",
+      "type": "Merge",
+      "status": "required",
+      "purpose": "Positive and negative claim outcomes share the customer letter",
+      "anchor_action_ids": [
+        "SU-3-8-08",
+        "SU-3-8-09",
+        "SU-3-8-10"
+      ],
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 464,
+          "end_offset": 555,
+          "exact_excerpt": "In any case (whether the outcome is positive or negative), a letter is sent to the customer"
+        }
+      ]
+    }
+  ],
+  "control_relations": [
+    {
+      "fact_id": "CF-3-8-R01",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-8-N01",
+      "guard_meaning": "positive",
+      "target_action_ids": [
+        "SU-3-8-07"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:475:479"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 340,
+          "end_offset": 412,
+          "exact_excerpt": "a garage is phoned to authorise the repairs and the payment is scheduled"
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-8-R02",
+      "type": "decision_branch",
+      "status": "required",
+      "source_control_fact": "CF-3-8-N01",
+      "guard_meaning": "negative",
+      "target_action_ids": [
+        "SU-3-8-09"
+      ],
+      "incoming_action_ids": [],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [
+        "branch:475:491"
+      ],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 430,
+          "end_offset": 463,
+          "exact_excerpt": "Otherwise, the claim is rejected."
+        }
+      ]
+    },
+    {
+      "fact_id": "CF-3-8-R03",
+      "type": "convergence",
+      "status": "required",
+      "source_control_fact": "CF-3-8-N02",
+      "guard_meaning": null,
+      "target_action_ids": [
+        "SU-3-8-10"
+      ],
+      "incoming_action_ids": [
+        "SU-3-8-08",
+        "SU-3-8-09"
+      ],
+      "excluded_action_ids": [],
+      "terminal_outcome": null,
+      "reference_evidence_ids": [],
+      "notes": "",
+      "source_spans": [
+        {
+          "start_offset": 464,
+          "end_offset": 555,
+          "exact_excerpt": "In any case (whether the outcome is positive or negative), a letter is sent to the customer"
+        }
+      ],
+      "incoming_mode": "alternative_branches"
+    }
+  ],
+  "permitted_equivalences": [
+    {
+      "rule": "ALLOW_IMPLICIT_MERGE",
+      "status": "permitted",
+      "scope": "CF-3-8-N02",
+      "reason": "The same source-required shared continuation may be reached without a drawn Merge gateway."
+    },
+    {
+      "rule": "IGNORE_BRANCH_DRAWING_ORDER",
+      "status": "permitted",
+      "scope": "source-supported decision outcomes in this case",
+      "reason": "The order or placement of drawn branches may differ when guard and target meanings are preserved."
+    }
+  ],
+  "unresolved_facts": [],
+  "no_control": false,
+  "review_notes": [
+    "Reference loop metadata is not promoted: the source text contains no repeat instruction."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}

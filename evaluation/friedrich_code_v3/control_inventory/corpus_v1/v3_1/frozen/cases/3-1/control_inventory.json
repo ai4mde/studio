@@ -1,0 +1,22 @@
+{
+  "case_id": "3-1",
+  "status": "FROZEN",
+  "source_hash": "5779029ac61589589d8e9277bdd8fae7113e582b689e9430c0bacf5c7fe34acb",
+  "source_encoding": "utf-8",
+  "inventory_version": "v3-control-facts-frozen-20260924",
+  "source_corpus": "friedrich_semantic_v2/inventories/corpus_v1",
+  "reviewed_action_inventory_version": "corpus-v1-draft",
+  "reviewed_action_inventory_sha256": "29b53694d8774606c7fcd7df7ec1676e52d247cbcb26f2367ac238b6006e641c",
+  "reference_model_sha256": "0faf3c1fea4b068468cf99a92b742fd2e8b2d5490474337a8984e7f1bcf74142",
+  "process_control_logic": "The warrant request, Police report, file update, and handoff form a linear process with an external wait but no scored logical control split, join, or loop.",
+  "control_nodes": [],
+  "control_relations": [],
+  "permitted_equivalences": [],
+  "unresolved_facts": [],
+  "no_control": true,
+  "review_notes": [
+    "Affirmative no-control determination: awaiting the Police report is a wait for input, not a source-required Decision/Fork/Join."
+  ],
+  "adjudication_revision": "v3-control-facts-freeze-candidate-20260923",
+  "scoring_contract_version": "v3-cfi-abstention-1"
+}
