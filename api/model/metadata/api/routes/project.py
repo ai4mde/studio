@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from metadata.api.helpers import create_instance, update_instance
-from metadata.api.schemas.projects import (
+from metadata.api.schemas.project import (
     ProjectCreate, 
     ProjectRead, 
     ProjectUpdate,

@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 from ..classifier import ClassifierDataModel
@@ -9,7 +11,7 @@ class ClassClassifier(ClassifierDataModel):
     name = models.CharField(max_length=255)
 
 
-class Enum(models.Model):
+class Enum(ClassifierDataModel):
     name = models.CharField(max_length=255)
 
 
@@ -27,6 +29,7 @@ class EnumLiteral(models.Model):
 
 
 class Attribute(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     uml_class = models.ForeignKey(
         ClassClassifier,
         on_delete=models.CASCADE,
@@ -56,6 +59,7 @@ class Attribute(models.Model):
 
 
 class Operation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     uml_class = models.ForeignKey(
         ClassClassifier,
         on_delete=models.CASCADE,

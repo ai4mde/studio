@@ -223,13 +223,13 @@ export const NewNodeModal: React.FC = () => {
                                     setObject={setObject}
                                     classes={
                                         relatedDiagrams
-                                            .filter((diagram) => diagram.type === 'classes')
+                                            .filter((diagram) => diagram.type === 'class')
                                             .flatMap((diagram) => diagram.nodes.filter((node) => node.type === "class"))
                                             .map((node) => node.name)
                                     }
                                 />
                             )}
-                            {type == "classes" && (
+                            {type == "class" && (
                                 <NewClassNode
                                     object={object}
                                     setObject={setObject}

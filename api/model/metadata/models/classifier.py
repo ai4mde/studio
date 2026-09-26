@@ -1,6 +1,8 @@
+from typing import Any, Type
 import uuid
 
-from django.db import models
+from django.apps import apps
+from django.db import models, transaction
 
 from .general import System
 from .types import ClassifierType
@@ -17,24 +19,111 @@ class Classifier(models.Model):
     type = models.CharField(
         max_length=32,
         choices=ClassifierType.choices,
+        editable=False,
     )
     
     @property
     def data(self):
-        # When creating a new ClassifierType make sure the reverse relation related name is the same as the ClassifierType value
-        # This will allow the Classifier to get the correct data model for the classifier type
-        # If this name is already taken, you can add a new entry to the CLASSIFIER_DATA_FIELDS dictionary below to map the ClassifierType to the correct related name
-        CLASSIFIER_DATA_FIELDS = {
-            ClassifierType.INTERFACE: "interfaceclassifier",
-            ClassifierType.SYSTEM: "systemclassifier",
-            ClassifierType.CLASS: "classclassifier",
-        }
-        field = CLASSIFIER_DATA_FIELDS.get(self.type) or self.type
+        data_model = self.get_data_model(self.type)
         
+        if data_model is None:
+            return None
+
+        field = data_model._meta.model_name
+        
+        if field is None:
+            return None
+
         try:
             return getattr(self, field)
         except AttributeError:
             return None
+
+    @classmethod
+    def get_data_model(cls, classifier_type) -> Type[models.Model] | None:
+        classifier_type = ClassifierType(classifier_type)
+
+        aliases = {
+            ClassifierType.CLASS: "ClassClassifier",
+            ClassifierType.INTERFACE: "InterfaceClassifier",
+            ClassifierType.SYSTEM: "SystemClassifier",
+        }
+
+        model_name = aliases.get(
+            classifier_type,
+            "".join(
+                part.title()
+                for part in classifier_type.name.split("_")
+            ),
+        )
+
+        try:
+            return apps.get_model("metadata", model_name)
+        except LookupError:
+            return None
+
+    @staticmethod
+    def normalize_data(model, data) -> dict[str, Any]:
+        normalized: dict[str, Any] = {}
+
+        for name, value in data.items():
+            field = next(
+                (
+                    field
+                    for field in model._meta.fields
+                    if field.name == name or field.attname == name
+                ),
+                None,
+            )
+
+            if field is None:
+                normalized[name] = value
+            elif isinstance(field, models.ForeignKey):
+                normalized[field.attname] = value
+            else:
+                normalized[field.name] = value
+
+        return normalized
+
+    @classmethod
+    @transaction.atomic
+    def create(cls, *, system_id, classifier_type, data):
+        classifier_type = ClassifierType(classifier_type)
+
+        classifier = cls.objects.create(
+            system_id=system_id,
+            type=classifier_type,
+        )
+        
+        data_model = cls.get_data_model(classifier_type)
+        
+        if data_model is not None:
+            data = cls.normalize_data(data_model, data)
+            classifier_data = data_model(
+                classifier=classifier,
+                **data,
+            )
+            classifier_data.full_clean()
+            classifier_data.save()
+
+        return classifier
+
+    @transaction.atomic
+    def update(self, *, data):
+        classifier_data = self.data
+        
+        if classifier_data is None:
+            return self
+
+        data = self.normalize_data(type(classifier_data), data)
+
+        for field, value in data.items():
+            setattr(classifier_data, field, value)
+    
+        classifier_data.full_clean()
+        classifier_data.save()
+
+        return self
 
 
 # Inherit from this class when making a new node type. Make sure to use the same class name as defined in ClassifierType
