@@ -1,0 +1,46 @@
+{
+  "case_id": "10-12",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:59:17.869938+00:00",
+  "request_record_sha256": "46a1c662b0c6048b85baf15c4b7aa203adbd2a88565fb98a0ff2e0ee10a95d02",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-12",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with correct business meaning: EC informs INQ, INQ notifies IP, IP checks feasibility at the desired time, then IP confirms or rejects the change."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required sequence is preserved: inform INQ -> notify IP -> check change feasibility -> confirmation or rejection."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an exclusive outcome after the check, with either confirmation or rejection leading to process completion."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the full process meaning from the source text. It includes the same four business stages in the correct order and models the final exclusive outcome that the IP either confirms or rejects the requested change. The asymmetric use of a merge before finalization on only one branch does not change behavior because both outcomes still terminate appropriately and no further continuation is required.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-12",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4685,
+    "cached_input_tokens": 1792,
+    "output_tokens": 459,
+    "reasoning_tokens": 185,
+    "total_tokens": 5144,
+    "estimated_api_cost_usd": "0.01456550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_000b897adb2922bb016ab991b01fbc87d1b5b5eca2a07a3496",
+    "retry_count": 0
+  }
+}

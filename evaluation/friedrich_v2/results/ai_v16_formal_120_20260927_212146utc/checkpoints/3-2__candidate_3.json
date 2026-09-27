@@ -1,0 +1,46 @@
+{
+  "case_id": "3-2",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:30:46.004095+00:00",
+  "request_record_sha256": "70f92c18f3c84789843149efc510ecc1d37c4cd2afd5feddd74ce3da31944d38",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-2",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph includes the stated business activities: checking unprocessed files, searching when files are missing, physically tracking files otherwise, handing files to the Associate, distributing the Judge’s Lawlist, and conducting directions hearings."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The matched source actions remain in the intended order: checking precedes the missing/not-missing branch, branch work precedes handover/distribution, and those precede the hearings."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The missing-files branch proceeds directly from 'initiate search' into the post-ready continuation, whereas the text requires handover and later hearings only once all files are ready. The decision, parallel handover/distribution, and synchronization are otherwise appropriate."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source requires that after checking files, either a search is initiated for missing files or the files are physically tracked, and only once all files are ready do handover to the Associate and Lawlist distribution occur before the directions hearings. The generated graph correctly models the initial decision and the later parallel handover/distribution followed by hearings, but in the missing-files branch it allows immediate continuation after merely initiating the search. That weakens the required readiness gate for the success-only continuation, creating a meaningful but localized control-flow defect.",
+    "overall_score": 0.85,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The text explicitly requires continuation once all files are ready, but the graph may be intended to abstract that readiness/waiting condition implicitly after the search step. Depending on whether that abstraction is accepted, the diagnosis could remain a control-flow defect or be judged fully preserved.",
+    "requires_human_review": true,
+    "review_reason": "A human may reasonably differ on whether the missing-files path adequately abstracts the implied readiness condition before handover and hearings."
+  },
+  "overall_score_decimal": "0.85",
+  "usage": {
+    "case_id": "3-2",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5034,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2509,
+    "reasoning_tokens": 2070,
+    "total_tokens": 7543,
+    "estimated_api_cost_usd": "0.04618800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0b0076afd4d75e69016ab98ae881c887d1bda94065de3bd2b6",
+    "retry_count": 0
+  }
+}

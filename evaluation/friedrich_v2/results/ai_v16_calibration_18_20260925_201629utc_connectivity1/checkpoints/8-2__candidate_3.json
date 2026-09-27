@@ -1,0 +1,46 @@
+{
+  "case_id": "8-2",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-25T20:27:03.415134+00:00",
+  "request_record_sha256": "1cd6f926835bd56a526d390f73da50142e1ab7bc792580a51ab8072575663d63",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-2",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business activities are represented with acceptable wording: create, clarify if needed, submit, correct, and post. The added 'receive correction request' is source-supported detail rather than a separate business-process mismatch."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The initial order create/clarify/submit is preserved, but the required recurrence after rejection is not: correction does not lead back to submission, and the graph can place a rejection/correction-request outcome after correction instead of before it."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The rejection loop is wrong. After correction, the process should resubmit and repeat until approval; instead the candidate routes from correction to another approval/rejection decision and even terminates on a rejected branch after a correction request."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source requires a review loop: submit the job description, if the department rejects it and requests correction, correct the description, submit it again, and continue until approval; only then post the job. In the candidate, correction leads to a second approval/rejection decision rather than back to submission, and the rejected branch from that decision ends the process after 'receive correction request' instead of continuing with correction and resubmission. This breaks the central recurrence and termination behavior of the process, even though the main activities and the happy path toward posting are mostly present.",
+    "overall_score": 0.45,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.45",
+  "usage": {
+    "case_id": "8-2",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4990,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2582,
+    "reasoning_tokens": 2206,
+    "total_tokens": 7572,
+    "estimated_api_cost_usd": "0.04717300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0251440d482971f8016ab6d8f5a83c87d2a5bb67ed6a207ef5",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Human label versus continuous AI score">
+<rect width="640" height="640" fill="white"/>
+<text x="320" y="25" text-anchor="middle" font-family="sans-serif" font-size="18">Continuous developmental holdout scatter</text>
+<line x1="80" y1="545" x2="580" y2="545" stroke="#333"/>
+<line x1="80" y1="45" x2="80" y2="545" stroke="#333"/>
+<line x1="80.0" y1="545" x2="80.0" y2="551" stroke="#333"/>
+<text x="80.0" y="569" text-anchor="middle" font-family="sans-serif" font-size="12">0</text>
+<line x1="74" y1="545.0" x2="80" y2="545.0" stroke="#333"/>
+<text x="68" y="549.0" text-anchor="end" font-family="sans-serif" font-size="12">0</text>
+<line x1="205.0" y1="545" x2="205.0" y2="551" stroke="#333"/>
+<text x="205.0" y="569" text-anchor="middle" font-family="sans-serif" font-size="12">0.25</text>
+<line x1="74" y1="420.0" x2="80" y2="420.0" stroke="#333"/>
+<text x="68" y="424.0" text-anchor="end" font-family="sans-serif" font-size="12">0.25</text>
+<line x1="330.0" y1="545" x2="330.0" y2="551" stroke="#333"/>
+<text x="330.0" y="569" text-anchor="middle" font-family="sans-serif" font-size="12">0.5</text>
+<line x1="74" y1="295.0" x2="80" y2="295.0" stroke="#333"/>
+<text x="68" y="299.0" text-anchor="end" font-family="sans-serif" font-size="12">0.5</text>
+<line x1="455.0" y1="545" x2="455.0" y2="551" stroke="#333"/>
+<text x="455.0" y="569" text-anchor="middle" font-family="sans-serif" font-size="12">0.75</text>
+<line x1="74" y1="170.0" x2="80" y2="170.0" stroke="#333"/>
+<text x="68" y="174.0" text-anchor="end" font-family="sans-serif" font-size="12">0.75</text>
+<line x1="580.0" y1="545" x2="580.0" y2="551" stroke="#333"/>
+<text x="580.0" y="569" text-anchor="middle" font-family="sans-serif" font-size="12">1</text>
+<line x1="74" y1="45.0" x2="80" y2="45.0" stroke="#333"/>
+<text x="68" y="49.0" text-anchor="end" font-family="sans-serif" font-size="12">1</text>
+<text x="330" y="625" text-anchor="middle" font-family="sans-serif" font-size="14">Human label</text>
+<text x="19" y="295" text-anchor="middle" transform="rotate(-90 19 295)" font-family="sans-serif" font-size="14">AI score</text>
+<circle cx="455.00" cy="140.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>3-5/candidate_1: human 0.75, AI 0.81</title></circle>
+<circle cx="455.00" cy="125.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>3-5/candidate_2: human 0.75, AI 0.84</title></circle>
+<circle cx="455.00" cy="115.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>3-5/candidate_3: human 0.75, AI 0.86</title></circle>
+<circle cx="580.00" cy="45.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>5-1/candidate_1: human 1.00, AI 1</title></circle>
+<circle cx="580.00" cy="45.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>5-1/candidate_2: human 1.00, AI 1</title></circle>
+<circle cx="580.00" cy="45.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>5-1/candidate_3: human 1.00, AI 1</title></circle>
+<circle cx="580.00" cy="45.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-9/candidate_1: human 1.00, AI 1</title></circle>
+<circle cx="580.00" cy="45.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-9/candidate_2: human 1.00, AI 1</title></circle>
+<circle cx="580.00" cy="135.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-9/candidate_3: human 1.00, AI 0.82</title></circle>
+<circle cx="455.00" cy="155.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-11/candidate_1: human 0.75, AI 0.78</title></circle>
+<circle cx="455.00" cy="205.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-11/candidate_2: human 0.75, AI 0.68</title></circle>
+<circle cx="455.00" cy="160.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-11/candidate_3: human 0.75, AI 0.77</title></circle>
+<circle cx="455.00" cy="145.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-14/candidate_1: human 0.75, AI 0.8</title></circle>
+<circle cx="205.00" cy="340.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-14/candidate_2: human 0.25, AI 0.41</title></circle>
+<circle cx="205.00" cy="345.00" r="5" fill="#2563eb" fill-opacity="0.55" stroke="#1e40af"><title>10-14/candidate_3: human 0.25, AI 0.4</title></circle>
+</svg>

@@ -1,0 +1,46 @@
+{
+  "case_id": "8-2",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:46:54.540087+00:00",
+  "request_record_sha256": "9ab71b37635c8471cd4c398f8fd75fbe532dbb2a6fa1d5a28942038836fb9fac",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-2",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most source activities are represented, but the required resubmission after correction is missing as a business action; approval/rejection are added as explicit actions, which does not repair that omission."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "Basic create/clarify→submit→post precedence is present, but the required correction→resubmission recurrence cannot be reliably matched because correction is not followed by a resubmission step and approval routing is inconsistent."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The core review loop is modeled incorrectly: the graph adds an approval exit immediately after submission, routes correction to a second approval/rejection decision instead of back to resubmission, and terminates one rejection path instead of looping until approval."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source requires a single review cycle in which, after submission, the department either approves the description and the job is posted, or rejects it and requests correction, after which the clerk corrects and submits it again until it is finally approved. The generated graph breaks that central behavior: it allows an 'approved' exit directly after submission, omits the required resubmission after correction, and sends one rejection path to termination instead of back into the correction/resubmission loop. Because this distorts the main approval-and-rework mechanism while preserving some surrounding actions, the whole process meaning is only partially preserved.",
+    "overall_score": 0.47,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.47",
+  "usage": {
+    "case_id": "8-2",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5119,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2397,
+    "reasoning_tokens": 2018,
+    "total_tokens": 7516,
+    "estimated_api_cost_usd": "0.04472050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0065f19dba7c48c5016ab98eb2343c87d1ba083d86d05b0244",
+    "retry_count": 0
+  }
+}

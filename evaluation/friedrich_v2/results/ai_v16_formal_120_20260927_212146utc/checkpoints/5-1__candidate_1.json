@@ -1,0 +1,46 @@
+{
+  "case_id": "5-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:37:28.154284+00:00",
+  "request_record_sha256": "197e46a06e8d7ccd8f4e126f487634236636c91fcd4e3d8bc10fa0b550ccfac2",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All meaningful source activities are represented: receive loan request, invoke risk assessment, approve or deny, send for approver review when needed, and provide customer feedback."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is maintained: request receipt precedes risk assessment, which precedes outcome handling, and feedback occurs after each outcome path."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph preserves the three-way alternative after assessment (approve, deny, or send to approver), merges those alternatives correctly, and then continues to customer feedback and termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph semantically matches the source process: it starts with receiving the loan request, invokes risk assessment, branches to approval, denial, or approver review based on risk/amount, then provides feedback to the customer. The branch conditions are abstracted as outcome paths rather than fully restated, but the intended alternatives and continuation behavior are preserved.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "5-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4875,
+    "cached_input_tokens": 3840,
+    "output_tokens": 986,
+    "reasoning_tokens": 700,
+    "total_tokens": 5861,
+    "estimated_api_cost_usd": "0.01833750",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_07e08993f3b536d8016ab98c8cdd2487d1afb8a8ee73e98a88",
+    "retry_count": 0
+  }
+}

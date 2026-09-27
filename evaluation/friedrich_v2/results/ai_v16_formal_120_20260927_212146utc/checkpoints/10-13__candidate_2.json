@@ -1,0 +1,46 @@
+{
+  "case_id": "10-13",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:59:34.664664+00:00",
+  "request_record_sha256": "9d1eddd1d76c48153b2da0001a6065ca66529c7b3f47962c0b4bb729d5ecda7b",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-13",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are present with correct meaning: request transmission, request checking, and the two alternative answers of transmitting data or rejecting the request."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved: INQ sends request before IP checks it, and the check precedes the outcome-specific response."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an outcome-based decision after examination with two alternatives—transmit data or reject—and both branches terminate appropriately."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the full process meaning from the source text. It represents the request from INQ to IP, the IP's examination of the request, and the subsequent outcome-based alternative response of either transmitting data or rejecting the request. No meaningful action, ordering, branching, or termination defect affects the business behavior.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-13",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4545,
+    "cached_input_tokens": 1792,
+    "output_tokens": 457,
+    "reasoning_tokens": 192,
+    "total_tokens": 5002,
+    "estimated_api_cost_usd": "0.01418550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_003236f52e679b83016ab991c17ef887d19dd2241293ffffe0",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "6-2",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:42:59.005840+00:00",
+  "request_record_sha256": "3664afe0b50b66280619b0e55087bf4c0ea3ef1cd1a227c9eeebf60d45c836a4",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-2",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph preserves the four stated business actions: send order, process order, send invoice, and receive invoice."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence among the matched actions is preserved as a simple linear sequence from order sending through invoice receipt."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The graph omits the source's periodic first-of-month start trigger and represents only a generic single start into the linear process."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The candidate correctly captures the core procurement-instance behavior: Assembler AG sends the order, the supplier processes it, the supplier sends an invoice, and Assembler AG receives it, in the right order. However, the source also states that the process starts periodically on the first of each month. The generated graph has only an unlabeled initial node and does not encode that periodic monthly trigger/recurrence, so the within-instance flow is preserved but the start/repetition semantics are only partially represented. This is a limited whole-graph defect because it does not alter the main action sequence once the process starts.",
+    "overall_score": 0.93,
+    "severity": "minor",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "It is materially arguable whether the unlabeled initial node is an acceptable abstraction of the monthly start trigger or whether the source-required periodic first-of-month initiation must be represented explicitly. That interpretation difference could change the diagnosis from a minor control-flow omission to full preservation.",
+    "requires_human_review": true,
+    "review_reason": "Human review could determine whether omission of the explicit monthly periodic trigger should count as a semantic defect or acceptable abstraction, which could change the score."
+  },
+  "overall_score_decimal": "0.93",
+  "usage": {
+    "case_id": "6-2",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4241,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1483,
+    "reasoning_tokens": 1085,
+    "total_tokens": 5724,
+    "estimated_api_cost_usd": "0.02881550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_05837d6b8b18a381016ab98dd18c4c87d19b81a95118e6d8db",
+    "retry_count": 0
+  }
+}

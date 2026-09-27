@@ -1,0 +1,201 @@
+{
+  "edges": [
+    {
+      "source": "n7",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "non_compliant",
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "label": "compliant",
+      "source": "n9",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n18",
+      "target": "n8",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "collect mail from party",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "sort unopened mail into business areas",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "distribute mail to Registry",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "open and sort mail in Registry",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "register mail in manual incoming Mail Register",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "perform quality check on mail",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "type": "initial"
+    },
+    {
+      "id": "n8",
+      "type": "final"
+    },
+    {
+      "id": "n9",
+      "label": "determine if the mail is compliant after quality check?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n10",
+      "name": "compile list of requisition explaining reason for rejection",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "send list of requisition back to party",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "capture matter details and provide to Cashier",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "name": "take applicable fees attached to mail",
+      "origin_step_id": "T1_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "put receipt and copied documents into envelope",
+      "origin_step_id": "T1_branch_2_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "name": "post envelope to party",
+      "origin_step_id": "T1_branch_2_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "name": "capture Party Details",
+      "origin_step_id": "T1_branch_2_step_5",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "name": "print Physical Court File",
+      "origin_step_id": "T1_branch_2_step_6",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

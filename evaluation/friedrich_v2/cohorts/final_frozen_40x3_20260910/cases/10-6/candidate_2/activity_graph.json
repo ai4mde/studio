@@ -1,0 +1,90 @@
+{
+  "edges": [
+    {
+      "source": "n3",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "confirmed",
+      "source": "n5",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n4",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "MSPN sends dismissal to MSPO",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "MSPO reviews dismissal",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "type": "initial"
+    },
+    {
+      "id": "n4",
+      "type": "final"
+    },
+    {
+      "id": "n5",
+      "label": "MSPO decides to reject or confirm the dismissal?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n6",
+      "name": "MSPO rejects dismissal of MSPN",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "MSPO confirms dismissal of MSPN",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "type": "merge"
+    }
+  ]
+}

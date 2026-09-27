@@ -1,0 +1,46 @@
+{
+  "case_id": "2-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:25:30.798317+00:00",
+  "request_record_sha256": "4ff39a666e3092870a5770d316a1655318122dd3df534ece24e1b52fe7662ef1",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "2-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Most business activities are represented with acceptable paraphrase; some receipt/final-report preparation steps are abstracted rather than explicitly modeled."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Most main-path precedence is preserved, but the graph drops the required continuation after reprioritization and imposes an unsupported sequence on the final customer-report/rebate work that should be parallel-compatible."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Control behavior is materially wrong: the premium and reprioritize paths terminate instead of rejoining/continuing, and the final Customer Service activities are modeled sequentially instead of as concurrent work with proper completion behavior."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source requires that if customer significance affects the countermeasures, the process goes back to reprioritize and then continues to create/send the detailed problem report and proceed through later Service Management and Resource Provisioning handling. In the candidate, the reprioritize branch ends at the final node, cutting off the rest of the process. The premium branch is also modeled as immediate termination after linking to the extra fix process rather than continuing in the main flow. In addition, the final Customer Service stage should trigger concurrent activities (customer report preparation and rebate reporting), but the graph forces them into a serial chain. These defects do not erase the fact that much of the central action content and several main branches are captured, but they materially change branch continuation and end-stage behavior across the whole process.",
+    "overall_score": 0.58,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.58",
+  "usage": {
+    "case_id": "2-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 10329,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2816,
+    "reasoning_tokens": 2422,
+    "total_tokens": 13145,
+    "estimated_api_cost_usd": "0.06403050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_09f71fb9fc53f0cd016ab989a7ad6087d1a9ed3f114e5c7655",
+    "retry_count": 0
+  }
+}

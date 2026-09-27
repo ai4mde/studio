@@ -1,0 +1,46 @@
+{
+  "case_id": "5-3",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:39:44.334482+00:00",
+  "request_record_sha256": "5e380500f6b4a6347cf7a72b86468fe4771ca1f23ecfd63c73db720884c309df",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-3",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business activities are represented with acceptable paraphrase/grouping, including submission, registration, supervisor decision, change return, rejection, purchasing steps, purchase order generation, waiting, and user notification."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Core early-to-late ordering is mostly correct, but the required recurrence/continuation after an invalid vendor is not preserved: 'choose a different vendor' does not lead back to vendor selection and subsequent completion steps."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The supervisor’s three-way decision is modeled, but the invalid-vendor branch is wrong: instead of retrying vendor selection until a valid vendor is confirmed, it terminates the process, also bypassing the required downstream notification/completion path."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source requires that after approval, if the selected vendor is not valid, the purchase department chooses a different vendor and continues the vendor-selection process until a valid vendor is selected and confirmed, after which the purchase order is sent, delivery/invoice is awaited, and the user is notified. In the generated graph, the 'vendor_invalid' branch goes from 'choose a different vendor' directly to the final node. This wrongly terminates an approved request, omits the required retry/recurrence in vendor selection, and skips later required completion behavior on that path. Aside from this branch, the rest of the process is largely preserved.",
+    "overall_score": 0.76,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.76",
+  "usage": {
+    "case_id": "5-3",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5786,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1759,
+    "reasoning_tokens": 1371,
+    "total_tokens": 7545,
+    "estimated_api_cost_usd": "0.03681800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0cb501e0d147cfd1016ab98d0bfc4087d18f722bfcc46770eb",
+    "retry_count": 0
+  }
+}

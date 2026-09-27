@@ -1,0 +1,19 @@
+{
+  "purpose": "v1.6 continuous calibration runner implementation, static pre-run review",
+  "api_evaluations_executed": false,
+  "calibration_executed": false,
+  "v16_frozen": false,
+  "algorithm": "sha256",
+  "files": {
+    "evaluation/friedrich_v2/run_ai_v2_calibration_v16_continuous.py": "e4e82eb05522b1e5eb0d848d0f481794e4095baac8c7b54ab24ed86564181006",
+    "evaluation/friedrich_v2/analyze_ai_v16_continuous.py": "067dd6007986f7cf0ae3f7f22795f193cef4943e23b5360bbcfc5c084110ade1",
+    "evaluation/friedrich_v2/tests/test_ai_v16_continuous_runner_static.py": "a98025b668fd4d07d1b0b3f53bbef976f56847727bd86cc18ecc64e25621d7bc",
+    "ai_v16_continuous_calibration_runner_implementation_report.md": "68426c120a9c91d8c57e09021592047786839261b50cb9ce434519af159a5581",
+    "ai_v16_continuous_calibration_runner_compatibility_report.md": "a1f9572ebd75dc436c8a63c5253bdf83e507ae8fc950b724356c2da8110dd035",
+    "ai_evaluator_v2_prompt_revision_6_continuous_draft.md": "a1b93674cac1ab29d3171a78d3871c13978a07933e599cf053ad1d536ec647fa",
+    "ai_evaluator_v2_output_schema_revision_1_1_continuous_draft.md": "2632259542fcfb0256b6ff6150f216b0f8c309c5ac3bd662665f498bfff5c57e",
+    "evaluation/friedrich_v2/ai_v16_continuous_contract_draft.py": "df1ba0ceaa65ccae59ed0fb07d3cf52c4f9a235907c33a61e718859e11bf6eec",
+    "ai_v16_continuous_calibration_protocol_draft.md": "243547f973b6e7fa5dfac0b4878afd6f04d34c27680f0c529e90f593a1d13641",
+    "ai_v16_continuous_calibration_analysis_spec_draft.md": "9ea5b63410452eb47b61748cd7b04ca7a2dddff1fcae27076511fa25f9abd117"
+  }
+}

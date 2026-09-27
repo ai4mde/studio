@@ -1,0 +1,46 @@
+{
+  "case_id": "6-4",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-25T20:25:36.004622+00:00",
+  "request_record_sha256": "e78c76b77a80cb27c72be9280ad9085645873ead10e155034a9a844362ee292d",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-4",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business activities are represented with acceptable abstraction, including contact-detail determination, calling and qualification, special acquisition for huge-budget uninterested customers, presentation, follow-up call, and quotation creation."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The precedence among matched business actions is generally maintained: qualification follows contact-detail determination and calling, presentation follows the interest/acquisition stage, and quotation follows the post-presentation contact/follow-up stage."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The huge-budget/not-interested branch is misrouted: after the head of development tries to acquire the customer, the graph always continues to presentation instead of continuing only if the customer is interested in the end and otherwise terminating."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source process requires a special exception for customers who are initially not interested but have a huge potential budget: the head of development personally tries to acquire them, and only if the customer is interested in the end does the process move to the detailed online presentation. In the generated graph, the huge-budget branch goes from 'head of development personally tries to acquire the customer' directly into the merge that leads to presentation, so presentation is guaranteed even if that acquisition attempt fails. This wrongly sends an unsuccessful exception branch into the success-only continuation. The rest of the process is modeled reasonably well, so the defect is important but localized.",
+    "overall_score": 0.84,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.84",
+  "usage": {
+    "case_id": "6-4",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5735,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1531,
+    "reasoning_tokens": 1154,
+    "total_tokens": 7266,
+    "estimated_api_cost_usd": "0.03327050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ebe7e3150dc6f3d016ab6d8ad1fa487d2b80619905619c8bb",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "edges": [
+    {
+      "source": "n4",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "accepted",
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "label": "error_detected",
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "label": "no_error",
+      "source": "n10",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "label": "error_detected",
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "label": "no_error",
+      "source": "n15",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n6",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "source": "n18",
+      "target": "n20",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n19",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n20",
+      "target": "n5",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "customer brings in defective computer",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "CRS checks defect",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "CRS provides repair cost calculation",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "type": "initial"
+    },
+    {
+      "id": "n5",
+      "type": "final"
+    },
+    {
+      "id": "n6",
+      "label": "customer decides whether repair cost is acceptable?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n7",
+      "origin_block_id": "T2",
+      "type": "fork"
+    },
+    {
+      "id": "n8",
+      "name": "check and repair hardware",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "test system functionality",
+      "origin_step_id": "T2_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "label": "test system functionality after hardware repair?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n11",
+      "name": "perform another arbitrary repair activity",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "origin_block_id": "T3",
+      "type": "merge"
+    },
+    {
+      "id": "n13",
+      "name": "check and configure software",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "test system functionality",
+      "origin_step_id": "T2_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "label": "test system functionality after software repair?",
+      "origin_block_id": "T4",
+      "type": "decision"
+    },
+    {
+      "id": "n16",
+      "name": "perform another arbitrary repair activity",
+      "origin_step_id": "T4_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "origin_block_id": "T4",
+      "type": "merge"
+    },
+    {
+      "id": "n18",
+      "origin_block_id": "T2",
+      "type": "join"
+    },
+    {
+      "id": "n19",
+      "name": "customer takes computer home unrepaired",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n20",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

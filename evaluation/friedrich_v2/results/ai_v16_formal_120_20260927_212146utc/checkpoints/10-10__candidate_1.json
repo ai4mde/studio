@@ -1,0 +1,46 @@
+{
+  "case_id": "10-10",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:57:19.276149+00:00",
+  "request_record_sha256": "db1fd12aac86e49e7f19f57740ddbfb75521b987355272db9df845a9c681b1fa",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-10",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph represents the stated activities with acceptable paraphrase and combination; the main issue is not missing action meaning but where the downstream actions are placed across branches."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "The confirmed path preserves the stated sequence, but whether repair and resolution must also follow the rejection outcome is textually ambiguous; if they must, the rejected branch wrongly blocks reachability to those later actions."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The model makes fixing the fault, sharing repair results, and informing GO/MSP of resolution occur only after confirmation, while the rejection branch terminates immediately; the source most naturally makes only the earlier GO/MSP notification conditional on confirmation."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "After examination, the source states a reject/confirm choice and explicitly conditions only the notification of GO and MSP about the confirmed failure on the confirmation outcome. The candidate instead places all later repair and resolution work exclusively on the confirmed branch and ends the rejected branch immediately. Under the most defensible reading, this changes branch continuation and removes required downstream behavior after rejection, though the text is ambiguous enough that an alternative reading could treat those later steps as confirmation-only.",
+    "overall_score": 0.72,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The text can be read literally as: after the reject/confirm decision, only the immediate GO/MSP notification is conditional, while repair and later resolution notices follow generally. But domain-wise, one could also read the later repair/resolution steps as implicitly applying only when the failure is confirmed. This ambiguity could change whether the rejected branch is defective.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted because the source text is materially ambiguous about whether the repair and final resolution steps occur after both decision outcomes or only after confirmation, and that ambiguity could change the diagnosis and score."
+  },
+  "overall_score_decimal": "0.72",
+  "usage": {
+    "case_id": "10-10",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5291,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2518,
+    "reasoning_tokens": 2070,
+    "total_tokens": 7809,
+    "estimated_api_cost_usd": "0.04696550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_02e6d10b0d9fff4d016ab9911e031887d1b7ee8e9ac54b1571",
+    "retry_count": 0
+  }
+}

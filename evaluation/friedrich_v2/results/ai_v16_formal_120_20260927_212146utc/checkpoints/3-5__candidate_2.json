@@ -1,0 +1,46 @@
+{
+  "case_id": "3-5",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:33:00.959920+00:00",
+  "request_record_sha256": "7b425e310dbccb3b87412df51eb4942c763d23e35af09b3549a76ecb62d38495",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-5",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph covers the main business activities and rejection/compliance outcomes with acceptable action meanings and granularity."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required early-to-late ordering is mostly preserved, but the compliant branch imposes an unsupported sequence by making posting to the party occur before capturing Party Details and printing the Physical Court File, which the source presents as meantime/parallel-compatible work after fee handling."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The rejection/compliance decision is modeled correctly, but the compliant branch loses the source’s concurrent/independent continuation after fees by serializing mailing of receipt/documents and the Cashier’s file-creation work."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source describes a correct linear intake and quality-check sequence, then a compliance decision. On the non-compliant path, compiling and sending the rejection back to the party is preserved. On the compliant path, the graph includes all named actions, but it models them as one strict chain: capture matter details -> take fees -> prepare/post envelope -> capture Party Details -> print Physical Court File. In the source, after fees are taken, the Assistant Registry Manager posts the receipt/copied documents while, meantime, the Cashier captures Party Details and prints the Physical Court File. That means these continuations are intended to be concurrent or at least not ordered as one blocking the other. The generated graph therefore preserves actions but changes the behavior of the success branch by removing the intended parallelism and introducing unsupported precedence relations.",
+    "overall_score": 0.82,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.82",
+  "usage": {
+    "case_id": "3-5",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5849,
+    "cached_input_tokens": 4864,
+    "output_tokens": 1151,
+    "reasoning_tokens": 745,
+    "total_tokens": 7000,
+    "estimated_api_cost_usd": "0.02094350",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_06d9205238a38b55016ab98b7f1cec87d198679f97ca22e7de",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "1-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:22:38.969536+00:00",
+  "request_record_sha256": "3e0fb019269b82b637f6dd5a0eb0252ee972b3a702228d9a65c42b83928f6029",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most source activities are present, but the storehouse outcome semantics are wrong: the graph performs both \"reserve part\" and \"back-order part\" sequentially instead of representing them as alternative outcomes based on availability."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required precedence is broken because the graph allows assembly, shipping, and process finishing to occur on the engineering branch before storehouse handling has completed for all parts."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Control behavior is materially wrong: the availability check does not branch to alternatives, the per-item repetition over the part list is missing, and assembly/shipping/finish are placed before synchronization instead of after both parallel branches complete."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires that, after acceptance, storehouse processing and engineering preparation proceed in parallel, that each part be handled with an availability-based alternative repeated for every item, and that assembly begin only after all items are reserved or back-ordered and preparation is finished. In the generated graph, reserve and back-order are executed in sequence rather than as conditional alternatives, there is no loop over each part-list item, and the engineering branch continues directly to assemble, ship, and finish before the join. This changes core process behavior by permitting completion of the bicycle before storehouse completion and by misrepresenting the storehouse decision logic.",
+    "overall_score": 0.34,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.34",
+  "usage": {
+    "case_id": "1-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5940,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1605,
+    "reasoning_tokens": 1234,
+    "total_tokens": 7545,
+    "estimated_api_cost_usd": "0.03489300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_00165672e1b7a2fa016ab98909f59487d19f334a5c77f52e8e",
+    "retry_count": 0
+  }
+}

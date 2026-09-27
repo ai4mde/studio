@@ -1,0 +1,46 @@
+{
+  "case_id": "3-2",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:30:15.996051+00:00",
+  "request_record_sha256": "68b494b729af0cc211ad3dbac43622991f5fe084a0f414d212cb8fd24bfa1762",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-2",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business actions are represented with acceptable paraphrase: checking files, initiating a search when files are missing, physically tracking files otherwise, handing files to the Associate, distributing the Lawlist, and conducting directions hearings."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "For the matched source actions, the required ordering is largely preserved: checking precedes the missing/not-missing alternative, the preparatory branch precedes handover/distribution, and both preparatory activities precede the hearings."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The graph correctly models the missing/not-missing choice and the parallel handover/Lawlist work, but it lets the missing-files branch continue directly to success-only preparation after merely initiating a search, without ensuring the files are ready before handover and hearings."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source requires that after checking files, a search is initiated if files are missing, and only once all files are ready do the process continue to handing files to the Associate and distributing the Judge’s Lawlist before the directions hearings. In the generated graph, the missing-files branch goes from 'initiate search for missing files' straight into the merge and then the parallel handover/Lawlist block, so the process can proceed as though readiness has been achieved immediately after search initiation. That changes the branch continuation semantics for the missing-files case, even though most actions and overall ordering are otherwise captured well.",
+    "overall_score": 0.79,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.79",
+  "usage": {
+    "case_id": "3-2",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5036,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1629,
+    "reasoning_tokens": 1238,
+    "total_tokens": 6665,
+    "estimated_api_cost_usd": "0.03299300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_03155cd9e24e0d5d016ab98ad50edc87d1bad5caf16be0350d",
+    "retry_count": 0
+  }
+}

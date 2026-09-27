@@ -1,0 +1,46 @@
+{
+  "case_id": "9-5",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-25T20:28:22.543045+00:00",
+  "request_record_sha256": "77fbecb26f6e7a3f027f6c68e9678b5463bc912eb8242fa67e905f63fe06a0af",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-5",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph includes the main business activities from the source: receive report, conditionally create an account, review, supervisor approval/rejection, rejection notice, reimbursement, progress email, cancellation notice, and resubmission."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "For the matched actions, the main precedence relations are kept: receive before account creation/review, review before approval or rejection outcomes, rejection notice after rejection, and reimbursement only on non-rejection paths. The main defect is routing of timed outcomes rather than basic action order."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The approval threshold and supervisor decision are modeled, but the time-based behavior is wrong: the 7-day progress notice and 30-day cancellation are treated as exclusive post-approval alternatives, the 7-day path always continues to reimbursement, and the model cannot represent a request that gets a 7-day notice and is later cancelled at 30 days."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source requires ongoing requests to trigger a progress email after 7 days if still incomplete and to be stopped with cancellation notice plus resubmission if still unfinished at 30 days. In the generated graph, these timed outcomes appear only after approval, are bypassed entirely on the rejection path, and are modeled as mutually exclusive branches where the 7-day notice path always merges into reimbursement. This changes the temporal control behavior of delayed requests and loses the required possibility of later cancellation after an earlier progress notice, even though the core receive/review/approve-or-reject actions are mostly preserved.",
+    "overall_score": 0.65,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.65",
+  "usage": {
+    "case_id": "9-5",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5667,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2133,
+    "reasoning_tokens": 1718,
+    "total_tokens": 7800,
+    "estimated_api_cost_usd": "0.04213050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_00f05c91a70c75ff016ab6d94a3f1887d2861b6d15f9820e53",
+    "retry_count": 0
+  }
+}

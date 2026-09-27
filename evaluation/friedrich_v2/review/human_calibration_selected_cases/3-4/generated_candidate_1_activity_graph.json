@@ -1,0 +1,59 @@
+{
+  "edges": [
+    {
+      "source": "n2",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "label": "success",
+      "source": "n4",
+      "target": "n3",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "send questionnaire to claimant",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "type": "initial"
+    },
+    {
+      "id": "n3",
+      "type": "final"
+    },
+    {
+      "id": "n4",
+      "label": "repeat sending reminders until the completed questionnaire is received?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n5",
+      "name": "send reminder to claimant",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    }
+  ]
+}

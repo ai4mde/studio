@@ -1,0 +1,46 @@
+{
+  "case_id": "10-8",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:55:49.703097+00:00",
+  "request_record_sha256": "a13e1a37fc93bb1f7effe1e38271cb69e9e7169cd3d2310774b42f736519da44",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-8",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with matching meaning: deregistration, verification, reject/preliminary confirm alternative, self-assignment as MSP, and the three notifications."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The represented sequence preserves deregistration before verification, then the decision, and on the confirmation path preserves assignment before the three notifications in the stated order."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph models the reject vs. preliminary-confirm alternative, with rejection terminating and confirmation continuing to assignment and notifications; this is a plausible reading of the source, though the post-rejection continuation is not explicit in the text."
+    },
+    "main_error_type": "none",
+    "explanation": "Provisionally, the graph preserves the process meaning: MSPO deregisters, GO verifies, GO then either rejects or preliminarily confirms, and after confirmation the GO assigns himself as MSP and sends the three notifications in order. No meaningful action is missing or invented, and the required ordering among matched actions is preserved. The only material issue is source ambiguity: the text does not explicitly state whether the actions after the reject/confirm alternative occur only after preliminary confirmation or after either outcome. The candidate adopts the likely business interpretation that rejection ends the process and only confirmation leads to assignment and notifications.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source text lists 'GO rejects ... or GO preliminarily confirms ...' and then continues with assignment and notifications, but it does not explicitly state whether those later actions occur only after preliminary confirmation or after either branch. The candidate assumes rejection terminates and confirmation continues.",
+    "requires_human_review": true,
+    "review_reason": "A different reasonable interpretation of post-branch continuation could change the control-flow diagnosis and score."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-8",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5041,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1330,
+    "reasoning_tokens": 916,
+    "total_tokens": 6371,
+    "estimated_api_cost_usd": "0.02852050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_07b512f698809997016ab990d5bc5c87d1b1d802e99995dc6a",
+    "retry_count": 0
+  }
+}

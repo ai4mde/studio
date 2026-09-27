@@ -1,0 +1,46 @@
+{
+  "case_id": "1-2",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:23:49.001296+00:00",
+  "request_record_sha256": "8b86b8360fc9b27d89a0e2d573653c34ddf188b91d096822a74097616d6b64dd",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-2",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All main business actions are present with acceptable paraphrases: intake, defect check, cost calculation, accept/reject decision, hardware repair, software configuration, testing, extra repair on error, and unrepaired return."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedences among matched actions are largely maintained: intake before diagnosis before cost calculation, acceptance before repair work, and each repair activity before its corresponding test. Hardware and software are left unordered via parallel branches, which is compatible with arbitrary order."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The main defect is on error handling after the parallel repair branches: if either test detects an error, the graph goes straight to a final end after one extra repair activity, instead of properly continuing/rejoining the accepted-repair path. This permits completion before the other required repair branch finishes."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source says that after cost acceptance, the ongoing repair consists of two activities—hardware repair and software configuration—in arbitrary order, each followed by testing. In the candidate, those two activities are correctly modeled as concurrent/independent branches, but an error in either branch leads directly from the extra repair activity to the final node. That changes the accepted-repair behavior by allowing the process to terminate after only one branch has encountered an error, bypassing completion/synchronization of the other required repair activity. Most actions and normal no-error routing are preserved, but the error-path continuation is semantically wrong and affects an important part of the process behavior.",
+    "overall_score": 0.7,
+    "severity": "major",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source wording is somewhat ambiguous about what exactly happens after an error is detected and whether 'otherwise the repair is finished' refers to each individual tested branch or to the overall repair after both main activities. However, the text also says the ongoing repair consists of two activities in arbitrary order, which supports the provisional view that premature final termination from one error branch is defective.",
+    "requires_human_review": true,
+    "review_reason": "The source's error-handling and completion semantics are materially ambiguous enough that a different interpretation could change the diagnosis or score."
+  },
+  "overall_score_decimal": "0.7",
+  "usage": {
+    "case_id": "1-2",
+    "candidate_id": "candidate_1",
+    "input_tokens": 6067,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2197,
+    "reasoning_tokens": 1692,
+    "total_tokens": 8264,
+    "estimated_api_cost_usd": "0.04409050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_08d9ce91df3f2212016ab98948164887d1a88f2779f4dddfe4",
+    "retry_count": 0
+  }
+}

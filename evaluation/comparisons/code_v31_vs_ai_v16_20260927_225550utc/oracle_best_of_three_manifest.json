@@ -1,0 +1,73 @@
+{
+  "created_at_utc": "2026-09-27T22:55:57.407976+00:00",
+  "code_certification_status": "CERTIFIED",
+  "ai_formal_status": "formal_complete",
+  "code_source_directory": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc",
+  "ai_source_directory": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc",
+  "source_file_sha256": {
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/candidate_results.csv": "59fc9c07b79702120c497186ef760852c4a2aad3d63c607f9b63d7e5b95a2171",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/candidate_results.jsonl": "c8726950afadd78165f9e8bd3d8f05cf95f6cab202a1fe45798062484b262b00",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/candidate_identity.csv": "d7539c14044478b9c1ed19375b01b6b61301a3b22d42d4ace194d8bb8d262ba9",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/certification_validation.json": "84343e86c1629a82ac7619adde8210887536853f5b1e0f667f190b4c207d6611",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/reporting_validation.json": "3b77ed90e52a97c1618285d2701da3cc97f437923376b319e17fbd9c21bb8050",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/run_integrity.json": "fc824a59f45e59c83815948d2dc9cfb72c8d8f980e3a6a7eee40203f8d30a19d",
+    "evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc/ai_v16_formal_120_scores.csv": "96fb0533e7e9c204445311147e1b8cf2b56a7ae8f3bce3912b3a880a8ad41c98",
+    "evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc/ai_v16_formal_120_results.jsonl": "b6f16e66471b03b25e67b11aa7517c52961b9a7a5091895823bb7095568b630e",
+    "evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc/ai_v16_formal_120_manifest.json": "db65a5c0684765e99dee5eb785df0b2d060057a115d054dd80d602193492f157",
+    "evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc/ai_v16_formal_120_hashes.json": "1c1bac88f6b9b7f332a6b9d498936573789b67b3f864b67337c0ead0e3adda82"
+  },
+  "source_tree_snapshots_before_and_after": {
+    "code": {
+      "file_count": 21,
+      "tree_sha256": "41f698656dc2c60d4dfdad6c628aaa78dc4226935ede108bb1561a1f95a361ac"
+    },
+    "ai": {
+      "file_count": 369,
+      "tree_sha256": "f34217855cb2a348dc24289bd4ffeddbc0df93cc83328c66b3efa6fa471a44ad"
+    }
+  },
+  "comparison_script_path": "evaluation/code_vs_ai_v31_v16_comparison.py",
+  "comparison_script_sha256": "c2a4721b21163160b0e3f36c8cceb34cc76a243fc49e6c20b716b784c771489d",
+  "candidate_count": 120,
+  "case_count": 40,
+  "candidates_per_case": 3,
+  "activity_graph_hashes_match": true,
+  "join_one_to_one": true,
+  "evaluators_rerun": false,
+  "frozen_results_changed": false,
+  "code_composite_score_created": false,
+  "null_or_NA_replaced_with_zero": false,
+  "analysis_kind": "SECONDARY_POST_HOC_ORACLE_BEST_OF_THREE",
+  "analysis_label": "POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE",
+  "ai_best_method": "maximum exact frozen AI score per case, retaining ties",
+  "code_best_method": "separate maxima of each applicable Code scorable F1, retaining ties; no composite",
+  "joint_best_method": "intersection of best sets across applicable Code dimensions; any all-unscorable applicable dimension prevents a joint-best finding",
+  "ai_tie_agreement_method": "any AI-best member intersects the Code-best set; all-member joint containment reported separately",
+  "aggregate_counts": {
+    "joint_conflict": 12,
+    "ai_unique": 22,
+    "ai_tied": 18,
+    "ai_joint_overlap": 24,
+    "joint_best": 27,
+    "joint_tied": 24,
+    "joint_unscorable": 1,
+    "cases": 40,
+    "no_joint_best": 13
+  },
+  "dimension_overlap_counts": {
+    "action_applicable": 40,
+    "action_overlap": 31,
+    "flow_applicable": 40,
+    "flow_overlap": 30,
+    "control_node_applicable": 32,
+    "control_node_overlap": 28,
+    "control_relation_applicable": 32,
+    "control_relation_overlap": 27
+  },
+  "output_sha256": {
+    "oracle_best_of_three_40_cases.csv": "d62298997020327a64bc653f772f08dd9ec27a9df604fa325c38bb19c00e3853",
+    "oracle_best_of_three_agreement_summary.md": "33115f88fc9a3e8ffb1927b34fc592aa9ccd0a536ec77d6eebef072898b63e9f",
+    "oracle_best_of_three_ai_summary.csv": "327cbe1a89522e469369e89cc63433788ccc8edca40fafb9db298f1116599118",
+    "oracle_best_of_three_code_dimension_summary.csv": "0ca6d2d6497b73a09a9d524a380bf24475dea830843f85d443a365a13fc337d3"
+  }
+}

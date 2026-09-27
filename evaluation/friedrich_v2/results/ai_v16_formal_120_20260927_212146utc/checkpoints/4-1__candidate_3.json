@@ -1,0 +1,46 @@
+{
+  "case_id": "4-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:37:16.364196+00:00",
+  "request_record_sha256": "2e1b86d7b0dd905f8d97e4cfeae94c4309cc1cbc23bf01942a303f1e1d8f2940",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "4-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Nearly all meaningful business activities are represented with acceptable abstraction, including intake registration, assignment, optional medical-file request, both intaker visits, filing, and treatment-plan formulation."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph introduces unsupported precedence by forcing medical-file handling before any first-intaker work and by making the entire first-intaker path precede second-intaker planning and visit."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The source implies two intake tracks that proceed independently and are synchronized only once both meetings are done, with the medical-file condition gating only the second intaker if needed. The graph linearizes these tracks and applies the gate too broadly."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source describes first- and second-intaker activities as separate lines of work after assignment: the first intaker should plan the visit as soon as possible, while the second intaker must wait for medical information only if such information is required. The generated graph instead routes both cases through the medical-file decision before any first-intaker activity, and then serializes the whole first-intaker visit and filing sequence before the second intaker can even plan the first meeting. This loses the intended independence/synchronization structure and creates wrong ordering constraints in a central part of the process, even though most individual actions are present and correctly named.",
+    "overall_score": 0.68,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.68",
+  "usage": {
+    "case_id": "4-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 8387,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2225,
+    "reasoning_tokens": 1854,
+    "total_tokens": 10612,
+    "estimated_api_cost_usd": "0.05031050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ada1dd9b5a70245016ab98c72785887d1a304893e93d365e7",
+    "retry_count": 0
+  }
+}

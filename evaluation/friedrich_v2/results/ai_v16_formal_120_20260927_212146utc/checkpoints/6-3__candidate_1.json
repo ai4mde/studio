@@ -1,0 +1,46 @@
+{
+  "case_id": "6-3",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:43:44.901872+00:00",
+  "request_record_sha256": "3381bd0f81dde84e70da1390073d74bd241cfe48d998e4e971f1f6a1576d7ebe",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-3",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Core actions up to parts-missing evaluation are mostly present, but the manual transfer of data to ERP is omitted, and the final quality check is not represented as the normal required finishing activity."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "The preserved actions keep the main early order (determine details -> enter PPS -> assess/procure parts -> implementation), but the missing ERP-transfer step and unreliable placement of the quality check leave some required precedence relations only partially assessable rather than clearly reversed."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The parts-missing decision is modeled plausibly, but the ending behavior is wrong: an unsupported pass/fail decision and retry loop are introduced after implementation, and the success path can terminate without executing the required final quality check."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source process requires determining order details, entering them into PPS, manually transferring data because PPS and ERP are not correctly coupled, deciding whether procurement is needed, performing implementation when production is scheduled to start, and finally checking quality. The candidate preserves much of the front half and the procurement decision, but it omits the manual ERP transfer step and distorts the ending by replacing the final quality check with a pass/fail decision plus retry loop back to implementation. This changes both completeness and end-of-process behavior in a meaningful way, even though the overall process skeleton remains recognizable.",
+    "overall_score": 0.57,
+    "severity": "major",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The text is somewhat ambiguous about whether 'that is the second step' refers specifically to the manual ERP transfer or to the earlier PPS entry, and the notice/readiness before implementation may be abstracted. That ambiguity could affect how strongly the omitted ERP-transfer action is penalized, though it does not resolve the unsupported final retry loop.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted because the source wording around the 'second step' could change whether the omitted ERP transfer is treated as a required action and could therefore shift the final score."
+  },
+  "overall_score_decimal": "0.57",
+  "usage": {
+    "case_id": "6-3",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4992,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2246,
+    "reasoning_tokens": 1768,
+    "total_tokens": 7238,
+    "estimated_api_cost_usd": "0.04213800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0a614a500b18cc85016ab98df75ec487d19d2c9fc7a3e61e3c",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "1-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:22:56.391910+00:00",
+  "request_record_sha256": "19d860e711961c2c5248ba1cea5d53c413621e360c8362f406f2222ddc92751a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Order receipt, acceptance/rejection, informing departments, part-list handling, and preparation are represented, but key required actions are missing: assembling the bicycle and shipping it. The storehouse outcome actions are also misrepresented because both reserve and back-order are modeled as executed actions rather than alternatives."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Early precedence is mostly preserved, but the graph introduces an unsupported sequence from reserve to back-order even though the source makes them mutually exclusive outcomes after checking availability."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Reject termination and the parallel split between storehouse work and engineering preparation are preserved, but the accepted branch has wrong control behavior: no per-item repetition, no decision between reserve vs. back-order, and premature termination after the join instead of continuing to assembly and then shipping."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires that after an accepted order, storehouse handling repeats for each part item, each item is either reserved or back-ordered depending on availability, engineering prepares in parallel, and only after both branches finish does engineering assemble the bicycle and sales ship it. The generated graph preserves the initial accept/reject structure and the parallel preparation idea, but it forces reserve and back-order to occur sequentially, omits the required repetition over all parts, and ends the accepted branch immediately after synchronization without assembly or shipping. These defects change both the completion behavior and the core storehouse routing on the main successful path, so the whole process meaning is only partially preserved.",
+    "overall_score": 0.34,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.34",
+  "usage": {
+    "case_id": "1-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5482,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1361,
+    "reasoning_tokens": 957,
+    "total_tokens": 6843,
+    "estimated_api_cost_usd": "0.03008800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_00ffd8e1fa5c0185016ab9891f843087d18ce9fdbe1c5f1e0a",
+    "retry_count": 0
+  }
+}

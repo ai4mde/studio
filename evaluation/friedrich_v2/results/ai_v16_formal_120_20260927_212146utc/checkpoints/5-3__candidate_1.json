@@ -1,0 +1,46 @@
+{
+  "case_id": "5-3",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:39:23.458999+00:00",
+  "request_record_sha256": "5ee127583f54ce82f72142f2f046ab7712c3995263a3500d7e6cf9938254bc22",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-3",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph covers the main business actions from request submission through supervisor review, change/reject handling, procurement, vendor confirmation, purchase order, waiting for delivery/invoice, and user notification, with acceptable paraphrase/grouping."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The represented matched actions follow the source order on the main paths; the key problem is not simple precedence reversal but the invalid-vendor branch's missing retry continuation."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Supervisor branching is modeled, but the invalid-vendor outcome wrongly terminates after 'choose a different vendor' instead of looping back to renewed vendor selection/validation and then continuing the approved procurement path."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source requires that if the selected vendor is not valid, the purchase department must choose a different vendor and continue the vendor-selection/validation cycle until a valid vendor is selected and confirmed, after which the purchase order is sent and the process continues. In the generated graph, the 'vendor_invalid' branch goes from the validity decision to 'choose a different vendor' and then directly to the final node. That changes the behavior from a retry loop into premature termination for that case. The rest of the process meaning is largely preserved, so the whole-graph impact is significant but localized to one important branch.",
+    "overall_score": 0.77,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.77",
+  "usage": {
+    "case_id": "5-3",
+    "candidate_id": "candidate_1",
+    "input_tokens": 6016,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2930,
+    "reasoning_tokens": 2563,
+    "total_tokens": 8946,
+    "estimated_api_cost_usd": "0.05495800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0bf9b018d1c7c6a9016ab98ce9113887d18394419872124cbd",
+    "retry_count": 0
+  }
+}

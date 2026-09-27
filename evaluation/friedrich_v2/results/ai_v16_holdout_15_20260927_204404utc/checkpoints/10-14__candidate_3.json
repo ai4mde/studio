@@ -1,0 +1,46 @@
+{
+  "case_id": "10-14",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T20:52:45.789552+00:00",
+  "request_record_sha256": "be5f787546523f8c16c7288059d3a734d4e298a2b6c34e897ae646ef0e3b3c0e",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-14",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "The examination, confirmation, and rejection actions are represented, but all source sending actions are omitted and actor/recipient distinctions are abstracted away."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph imposes a fixed order across the four bill-examination cases, although the source presents them as separate conditional scenarios rather than required sequential steps."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Conditional invoice-type alternatives are collapsed into one linear path, so one instance wrongly requires all four examination cases before a single approve/reject decision."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source describes four conditional billing scenarios: depending on which bill is sent and to whom, the relevant party examines that bill, then the GO or MPON either confirms it with payment advice or rejects it. The generated graph instead chains all four examination actions in sequence and places only one approval/rejection decision after the entire chain. This changes the process from alternative invoice cases into one combined process that requires every case to occur before one final outcome. The omission of the sending steps further reduces completeness, but the dominant whole-graph defect is the loss of the source's conditional alternative structure.",
+    "overall_score": 0.4,
+    "severity": "major",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The text can be read either as explicitly including the bill-sending acts as process actions or as using them as triggers/preconditions for the examination process. That ambiguity could affect how strongly the missing send actions lower the score. However, under either reading, the candidate's forced sequential execution of all four examination cases remains a semantic defect.",
+    "requires_human_review": true,
+    "review_reason": "Human review could refine whether the omitted sending steps are in scope as required actions and thus whether the score should be adjusted, although the main branching defect is clear."
+  },
+  "overall_score_decimal": "0.4",
+  "usage": {
+    "case_id": "10-14",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4837,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1938,
+    "reasoning_tokens": 1509,
+    "total_tokens": 6775,
+    "estimated_api_cost_usd": "0.03713050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_09ffdb9f33aa0da0016ab98204e55087d197fa973d980f8e7a",
+    "retry_count": 0
+  }
+}

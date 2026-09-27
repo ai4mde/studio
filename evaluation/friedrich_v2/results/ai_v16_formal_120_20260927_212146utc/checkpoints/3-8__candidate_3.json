@@ -1,0 +1,46 @@
+{
+  "case_id": "3-8",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:35:56.333093+00:00",
+  "request_record_sha256": "ee357dcdae67b331560da6cdb572996825dd60f0a1a7662489379b8ae3e7f75a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-8",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Core insurer actions are present, but the graph omits the source's initial customer claim submission/document sending, and it also abstracts away the explicit pickup of the claim before checking insurance."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "For the actions that are represented, the required precedence is preserved: completeness check before registration, then insurance check, then assessment, then either authorise-repairs→schedule-payment or reject, followed by the customer letter."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The assessment outcome is modeled correctly as a positive/negative decision, with the positive branch keeping the required internal order, the negative branch rejecting the claim, and both branches converging before the final letter."
+    },
+    "main_error_type": "missing_action",
+    "explanation": "The generated graph preserves the main claim-handling path, the assessment decision, the positive and negative alternatives, and the required post-branch continuation to sending a letter. Its main semantic gap is Action-level incompleteness: the source begins with the customer submitting a claim by sending documentation, and also states that the Handling department picks up the claim before checking insurance, but the graph starts directly with document checking and never represents claim pickup explicitly. Because the downstream process behavior is otherwise well preserved, this reduces semantic completeness without materially breaking the represented ordering or branching logic.",
+    "overall_score": 0.88,
+    "severity": "minor",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "There is a plausible interpretation that the customer's claim submission is only a start trigger rather than a required explicit action in the graph, and that 'picks up the claim' is an administrative handoff implicitly absorbed into checking insurance. Under a stricter reading, both are missing actions; under a more abstract reading, only little or no defect remains.",
+    "requires_human_review": true,
+    "review_reason": "Human review could change whether the omitted submission/pickup steps are judged as required explicit actions or acceptable abstraction, which could change the score."
+  },
+  "overall_score_decimal": "0.88",
+  "usage": {
+    "case_id": "3-8",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4990,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1427,
+    "reasoning_tokens": 974,
+    "total_tokens": 6417,
+    "estimated_api_cost_usd": "0.02984800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_03584db1498df270016ab98c2a21e887d1bfdb8dc7a8989b14",
+    "retry_count": 0
+  }
+}

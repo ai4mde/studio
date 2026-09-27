@@ -1,0 +1,46 @@
+{
+  "case_id": "10-14",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T22:00:09.043462+00:00",
+  "request_record_sha256": "1e09155b8d49cf5b03c5b11bbc99d7029b06c41efa12cd917f73289e598fcf60",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-14",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "The graph collapses four source-specific billing scenarios into one generic examination step, omitting the bill-sending actions and bill-type distinctions, and overgeneralizing the examiner as \"GO or MPON\" for all cases."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "The matched precedence from examination to confirm/reject is preserved, but the source precedence from specific bill-sending actions to examination is not assessable because those initiating actions are absent."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The post-examination alternative between confirming with payment advice and rejecting, followed by termination, is preserved without evident loop, merge, or continuation errors."
+    },
+    "main_error_type": "incorrect_action_meaning_or_grouping",
+    "explanation": "The source describes four distinct invoice-submission scenarios: three are bills sent to the GO and examined by the GO, while only the equipment-acquisition case may be sent to and examined by the MPON or the GO. The candidate compresses these into a single action, \"GO or MPON examines the bill,\" and omits the upstream sending activities and case distinctions. This preserves the broad downstream pattern of examination followed by either confirmation with payment advice or rejection, but it changes who may examine which invoice and loses meaningful source-specific behavior.",
+    "overall_score": 0.77,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The text leaves some room to treat the multiple \"if ... sends the bill\" clauses either as explicit process actions/alternative starts or as contextual preconditions before the common invoice-handling flow. That modeling boundary affects how strongly the omitted sending steps and collapsed entry cases should be penalized.",
+    "requires_human_review": true,
+    "review_reason": "Human review could change the diagnosis or score depending on whether the source-specific sending scenarios and actor restrictions are considered required explicit behavior or acceptable abstraction into a generic invoice examination step."
+  },
+  "overall_score_decimal": "0.77",
+  "usage": {
+    "case_id": "10-14",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4540,
+    "cached_input_tokens": 3840,
+    "output_tokens": 2101,
+    "reasoning_tokens": 1663,
+    "total_tokens": 6641,
+    "estimated_api_cost_usd": "0.03422500",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_02d99279ec972c89016ab991ce02ac87d1b9a7d16038a69785",
+    "retry_count": 0
+  }
+}

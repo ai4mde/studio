@@ -1,0 +1,252 @@
+{
+  "edges": [
+    {
+      "source": "n10",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "all_approved",
+      "source": "n12",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n18",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "label": "board_review",
+      "source": "n19",
+      "target": "n20",
+      "type": "control"
+    },
+    {
+      "source": "n20",
+      "target": "n21",
+      "type": "control"
+    },
+    {
+      "source": "n21",
+      "target": "n22",
+      "type": "control"
+    },
+    {
+      "label": "no_board_review",
+      "source": "n19",
+      "target": "n22",
+      "type": "control"
+    },
+    {
+      "source": "n22",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n11",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "receive invoice in central inbox",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "forward invoice to accounting employee",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "identify supplier and create invoice instance in ACME Financial Accounting",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "check invoice items and note cost centers and cost center managers on docket",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "send docket and invoice copy to first cost center manager",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "forward invoice copy to commercial manager",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "perform commercial audit",
+      "origin_step_id": "S7",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "give payment instructions",
+      "origin_step_id": "S8",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "close invoice instance in ACME Financial Accounting",
+      "origin_step_id": "S9",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "type": "initial"
+    },
+    {
+      "id": "n11",
+      "type": "final"
+    },
+    {
+      "id": "n12",
+      "label": "repeat cost center manager review and correction until all invoice items are approved?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n13",
+      "name": "cost center manager rejects invoice item and notes explanation on docket",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "return invoice copy to accounting",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "name": "clarify inconsistencies with vendor and, if necessary, consult cost center managers",
+      "origin_step_id": "T1_branch_1_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "name": "send invoice copy to cost center managers again",
+      "origin_step_id": "T1_branch_1_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "name": "cost center managers review and approve all invoice items",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "name": "return approved invoice copy to accounting",
+      "origin_step_id": "T1_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n19",
+      "label": "determine if board approval is required based on invoice amount?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n20",
+      "name": "submit invoice copy and docket to Board for approval",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n21",
+      "name": "Board reviews and approves invoice",
+      "origin_step_id": "T2_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n22",
+      "origin_block_id": "T2",
+      "type": "merge"
+    }
+  ]
+}

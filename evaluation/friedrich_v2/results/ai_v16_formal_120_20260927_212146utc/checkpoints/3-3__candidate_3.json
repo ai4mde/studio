@@ -1,0 +1,46 @@
+{
+  "case_id": "3-3",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:31:44.521823+00:00",
+  "request_record_sha256": "b055b642deea997dc84f16315adc81fc21d616a3668fdb80465cbb22f208607a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-3",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business activities are represented: examine claim, write/repeat recommendation, senior review with OK/Not OK outcome, and send back to the claims officer. The main semantic problems arise from routing rather than missing action content."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required precedence is broken: the graph allows completion after writing the recommendation without any senior review, and it places repeated recommendation before the senior check instead of after a Not OK send-back."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The approval/rework structure is misrepresented. A premature decision is inserted before senior review, the OK path can bypass the mandatory check, and the Not OK path terminates after send-back instead of looping back to repeat the recommendation."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires a mandatory sequence of examine claim -> write settlement recommendation -> senior officer checks and marks OK/Not OK, with Not OK sending the claim back and causing the recommendation to be repeated, and OK allowing the process to proceed. The generated graph instead adds a decision immediately after writing the recommendation, including a direct success path to the end without any senior check. Its retry path performs a repeated recommendation before the senior check, and after a Not OK result it sends the claim back but then ends rather than returning to the recommendation step. Although most action meanings are present, the central approval-and-rework behavior is not preserved.",
+    "overall_score": 0.36,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.36",
+  "usage": {
+    "case_id": "3-3",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4734,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1657,
+    "reasoning_tokens": 1275,
+    "total_tokens": 6391,
+    "estimated_api_cost_usd": "0.03265800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_06656d9f9b7d18c0016ab98b2c3df487d1b2fc82d682b41eb4",
+    "retry_count": 0
+  }
+}

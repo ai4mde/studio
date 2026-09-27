@@ -1,0 +1,46 @@
+{
+  "case_id": "3-2",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-25T20:23:08.498278+00:00",
+  "request_record_sha256": "6c9909a172223d157f3707d970b13efd6a022cb44022343eb0ecb1bd07e3aba4",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-2",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source activities are represented with acceptable paraphrase: checking files, searching if missing, otherwise tracking files, handing files to the Associate, distributing the Lawlist, and conducting the hearings."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is maintained: file check before the missing-files decision, either branch before the post-readiness work, and the hearings only after the handoff/Lawlist work."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the missing-vs-not-missing alternative, then the concurrent handoff and Lawlist distribution, with synchronization before conducting the directions hearings."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the process meaning expressed in the text. It starts with checking unprocessed files, branches correctly between initiating a search when files are missing and physically tracking files otherwise, then proceeds to handing files to the Associate in parallel with distributing the Judge’s Lawlist, and only afterwards conducts the directions hearings. No meaningful action, ordering, branching, parallelism, or termination defect is evident from the supplied graph.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "3-2",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5034,
+    "cached_input_tokens": 0,
+    "output_tokens": 2476,
+    "reasoning_tokens": 2165,
+    "total_tokens": 7510,
+    "estimated_api_cost_usd": "0.04972500",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_06fc44efd648a7b7016ab6d80f51a887d280627b94ec4c799a",
+    "retry_count": 0
+  }
+}

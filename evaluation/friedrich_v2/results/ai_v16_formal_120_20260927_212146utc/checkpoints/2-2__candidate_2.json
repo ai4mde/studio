@@ -1,0 +1,46 @@
+{
+  "case_id": "2-2",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:28:16.409801+00:00",
+  "request_record_sha256": "99709813ab3ead198f0bb92963f0cffefdff860bba3449c5dcbcd13643501335",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "2-2",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Most source activities are represented with acceptable paraphrase, including data entry/checking, contract-document retry, grid-operator interactions, customer decision, and post-switch meter/billing actions."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Most core ordering is preserved, but the graph adds unsupported precedence by making meter-data import wait for all post-switch branches, not just receipt of meter data by customer service."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The supplier-concurrence decision is mis-modeled: both concurrence and no-concurrence paths merge into creating the CIS contract, and the post-switch parallel section wrongly synchronizes unrelated branches before meter-data import."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The decisive defect is at the grid-operator objection check. In the source, customer service creates the CIS contract only when there are no objections/no supplier concurrence. In the generated graph, the supplier-concurrence branch is merged back into the normal path and still leads to CIS contract creation, so the process can continue through contract creation even when the objection/conflict path was taken. This changes a central gating condition of the process. A secondary defect is the final join: the source allows customer service to import meter data after receiving it, while the graph forces import to wait for all concurrent billing/transmission branches, adding unsupported synchronization and precedence. Despite these issues, much of the action content and earlier sequencing is preserved.",
+    "overall_score": 0.7,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.7",
+  "usage": {
+    "case_id": "2-2",
+    "candidate_id": "candidate_2",
+    "input_tokens": 8237,
+    "cached_input_tokens": 1792,
+    "output_tokens": 3674,
+    "reasoning_tokens": 3289,
+    "total_tokens": 11911,
+    "estimated_api_cost_usd": "0.07167050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_081552b451936bff016ab98a470a9087d1ac10b8da95e32b92",
+    "retry_count": 0
+  }
+}

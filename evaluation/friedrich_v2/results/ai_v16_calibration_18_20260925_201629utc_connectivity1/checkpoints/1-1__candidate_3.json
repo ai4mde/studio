@@ -1,0 +1,46 @@
+{
+  "case_id": "1-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-25T20:22:38.671464+00:00",
+  "request_record_sha256": "64c0a8c1dbe09e470ce8a0dd500b82ef667b757e301ba82e6a01a16ce4a98e7d",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Most source-supported business activities are present with acceptable labels; the main problems arise from how they are routed and synchronized, not from missing or mislabeled actions."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required precedence is broken because assembly, shipping, and finishing can occur after preparation alone, before storehouse completion, although assembly should wait for both preparation and completion of all part handling."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Core routing is wrong: reserve and back-order are modeled as sequential instead of conditional alternatives, the per-item repetition is not represented, and the join is placed after assemble/ship/finish rather than before assembly."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires: after acceptance, storehouse processing and engineering preparation proceed in parallel; for each part, the storehouse either reserves it or back-orders it; only when all parts have been handled and preparation is finished does assembly begin, followed by shipping and process completion. In the generated graph, the storehouse branch performs reserve and then back-order sequentially instead of choosing one outcome per part, no loop captures repetition for each item, and the engineering branch performs assemble, ship, and finish before the parallel branches rejoin. As a result, the graph permits assembly and shipment before storehouse completion and changes the storehouse decision logic, producing major whole-process semantic distortion despite a recognizable high-level skeleton.",
+    "overall_score": 0.4,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.4",
+  "usage": {
+    "case_id": "1-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5833,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2082,
+    "reasoning_tokens": 1703,
+    "total_tokens": 7915,
+    "estimated_api_cost_usd": "0.04178050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_09ee50e6a4c54dee016ab6d7f47b2487d2bc0b3e79352ea601",
+    "retry_count": 0
+  }
+}

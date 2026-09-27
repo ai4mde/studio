@@ -1,0 +1,46 @@
+{
+  "case_id": "10-7",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:55:16.817080+00:00",
+  "request_record_sha256": "2207b17389ed2e014b51319ef7cc48794c6095f6a1725e47c4ebdf11e0a4c955",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-7",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with acceptable wording: registration, examination, reject/confirm decision outcomes, assignment, and the three notifications."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Under the most plausible reading, required precedence is maintained: registration before examination, examination before the reject/confirm outcome, and confirmation before assignment and notifications."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph models the reject/confirm alternative, with rejection terminating and the approval path continuing to assignment and notifications, which matches the most defensible interpretation of the text."
+    },
+    "main_error_type": "none",
+    "explanation": "The candidate includes all meaningful business actions from the source and models the key alternative between rejecting and confirming the application. On the approved path, it then assigns the MSPN and sends the three notifications, which is the most plausible business reading of the text. No clear semantic defect is evident in the generated graph itself. However, the source wording is somewhat ambiguous because the post-decision steps are written linearly after 'rejects ... or confirms ...', so a stricter literal reading could imply different continuation behavior after rejection.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source text can plausibly be read in two ways: either assignment and notifications occur only after confirmation, or they continue after the reject/confirm sentence without explicit branch scoping. The graph adopts the first reading by terminating after rejection.",
+    "requires_human_review": true,
+    "review_reason": "Human review is advisable because resolving the source-text ambiguity about whether post-decision steps follow only confirmation or also follow rejection could change the control-flow diagnosis and score."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-7",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5045,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1116,
+    "reasoning_tokens": 722,
+    "total_tokens": 6161,
+    "estimated_api_cost_usd": "0.02532050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_01023d5f61a31a29016ab990b6eb7c87d1826f695a40c5e3e3",
+    "retry_count": 0
+  }
+}

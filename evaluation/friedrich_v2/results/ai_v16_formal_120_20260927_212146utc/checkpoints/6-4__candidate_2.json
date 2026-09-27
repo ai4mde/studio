@@ -1,0 +1,46 @@
+{
+  "case_id": "6-4",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:45:11.424352+00:00",
+  "request_record_sha256": "7eee48bf62d17962861a485023fe85623a076cea8f58e395584babf94f9a8903",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-4",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Core business actions are represented with acceptable abstraction: obtain contact details, call and qualify the customer, optionally leave alone or escalate, present, wait, follow up after 2 weeks, and create a quotation."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The main action precedence is preserved: contact details precede calling and qualification, presentation precedes waiting, optional follow-up precedes quotation, and the non-huge-budget rejection path terminates."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The huge-budget exception is mis-modeled: after the head of development tries to acquire an initially uninterested customer, the graph always continues to presentation and later quotation instead of requiring a renewed positive-interest outcome before continuing."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source says that if the customer is not interested, the normal outcome is to leave the customer alone, except that a huge potential budget triggers a personal acquisition attempt by the head of development; only if the customer is interested in the end does the process continue to the detailed online presentation. In the generated graph, the huge-budget path goes from acquisition attempt directly to presentation, waiting, possible follow-up, and quotation with no decision for whether the customer became interested. This preserves much of the overall process but changes the exception-branch behavior by permitting success-path continuation unconditionally for huge-budget uninterested customers.",
+    "overall_score": 0.78,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.78",
+  "usage": {
+    "case_id": "6-4",
+    "candidate_id": "candidate_2",
+    "input_tokens": 6152,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1649,
+    "reasoning_tokens": 1276,
+    "total_tokens": 7801,
+    "estimated_api_cost_usd": "0.03608300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_087ff4151de1a1a8016ab98e5411c487d1838cf338b7bad14c",
+    "retry_count": 0
+  }
+}

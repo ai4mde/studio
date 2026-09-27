@@ -1,0 +1,356 @@
+{
+  "run_kind": "formal_ai_v16_continuous_40x3",
+  "completed_candidates": 120,
+  "technical_failures": 0,
+  "total_retries": 0,
+  "minimum_overall_score": "0.24",
+  "maximum_overall_score": "1.0",
+  "mean_overall_score": "0.79783333333333333333333333333333333333333333333333333333333333333333333333333333",
+  "median_overall_score": "0.85",
+  "standard_deviation_population": "0.22664650645639541577709588284264277913795021396682425923458463819295064493377696",
+  "standard_deviation_definition": "population standard deviation across the 120 saved candidate scores",
+  "severity_distribution": {
+    "major": 31,
+    "minor": 6,
+    "moderate": 30,
+    "none": 53
+  },
+  "main_error_type_distribution": {
+    "extra_or_duplicated_action": 2,
+    "incorrect_action_meaning_or_grouping": 1,
+    "missing_action": 3,
+    "mixed_or_cascading": 14,
+    "none": 53,
+    "wrong_branching_or_condition": 10,
+    "wrong_continuation_or_termination": 16,
+    "wrong_loop_or_recurrence": 14,
+    "wrong_parallelism_or_synchronization": 7
+  },
+  "uncertainty_flag_count": 29,
+  "human_review_flag_count": 29,
+  "case_summaries": [
+    {
+      "case_id": "1-1",
+      "candidate_count": 3,
+      "minimum_score": "0.34",
+      "maximum_score": "0.41",
+      "mean_score": "0.36333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.34"
+    },
+    {
+      "case_id": "1-2",
+      "candidate_count": 3,
+      "minimum_score": "0.62",
+      "maximum_score": "0.7",
+      "mean_score": "0.66333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.67"
+    },
+    {
+      "case_id": "2-1",
+      "candidate_count": 3,
+      "minimum_score": "0.44",
+      "maximum_score": "0.58",
+      "mean_score": "0.49333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.46"
+    },
+    {
+      "case_id": "2-2",
+      "candidate_count": 3,
+      "minimum_score": "0.7",
+      "maximum_score": "0.8",
+      "mean_score": "0.74333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.73"
+    },
+    {
+      "case_id": "3-1",
+      "candidate_count": 3,
+      "minimum_score": "0.92",
+      "maximum_score": "1",
+      "mean_score": "0.97333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "1.0"
+    },
+    {
+      "case_id": "3-2",
+      "candidate_count": 3,
+      "minimum_score": "0.79",
+      "maximum_score": "1",
+      "mean_score": "0.88",
+      "median_score": "0.85"
+    },
+    {
+      "case_id": "3-3",
+      "candidate_count": 3,
+      "minimum_score": "0.36",
+      "maximum_score": "1",
+      "mean_score": "0.60666666666666666666666666666666666666666666666666666666666666666666666666666667",
+      "median_score": "0.46"
+    },
+    {
+      "case_id": "3-4",
+      "candidate_count": 3,
+      "minimum_score": "0.68",
+      "maximum_score": "0.69",
+      "mean_score": "0.68666666666666666666666666666666666666666666666666666666666666666666666666666667",
+      "median_score": "0.69"
+    },
+    {
+      "case_id": "3-5",
+      "candidate_count": 3,
+      "minimum_score": "0.8",
+      "maximum_score": "0.85",
+      "mean_score": "0.82333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.82"
+    },
+    {
+      "case_id": "3-6",
+      "candidate_count": 3,
+      "minimum_score": "0.4",
+      "maximum_score": "0.58",
+      "mean_score": "0.47",
+      "median_score": "0.43"
+    },
+    {
+      "case_id": "3-7",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "3-8",
+      "candidate_count": 3,
+      "minimum_score": "0.88",
+      "maximum_score": "1",
+      "mean_score": "0.93",
+      "median_score": "0.91"
+    },
+    {
+      "case_id": "4-1",
+      "candidate_count": 3,
+      "minimum_score": "0.68",
+      "maximum_score": "0.73",
+      "mean_score": "0.70666666666666666666666666666666666666666666666666666666666666666666666666666667",
+      "median_score": "0.71"
+    },
+    {
+      "case_id": "5-1",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "5-2",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "5-3",
+      "candidate_count": 3,
+      "minimum_score": "0.76",
+      "maximum_score": "0.84",
+      "mean_score": "0.79",
+      "median_score": "0.77"
+    },
+    {
+      "case_id": "5-4",
+      "candidate_count": 3,
+      "minimum_score": "0.24",
+      "maximum_score": "0.32",
+      "mean_score": "0.28666666666666666666666666666666666666666666666666666666666666666666666666666667",
+      "median_score": "0.3"
+    },
+    {
+      "case_id": "6-1",
+      "candidate_count": 3,
+      "minimum_score": "0.45",
+      "maximum_score": "0.76",
+      "mean_score": "0.63333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.69"
+    },
+    {
+      "case_id": "6-2",
+      "candidate_count": 3,
+      "minimum_score": "0.93",
+      "maximum_score": "1",
+      "mean_score": "0.97666666666666666666666666666666666666666666666666666666666666666666666666666667",
+      "median_score": "1"
+    },
+    {
+      "case_id": "6-3",
+      "candidate_count": 3,
+      "minimum_score": "0.57",
+      "maximum_score": "0.72",
+      "mean_score": "0.64",
+      "median_score": "0.63"
+    },
+    {
+      "case_id": "6-4",
+      "candidate_count": 3,
+      "minimum_score": "0.78",
+      "maximum_score": "0.84",
+      "mean_score": "0.81333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.82"
+    },
+    {
+      "case_id": "8-1",
+      "candidate_count": 3,
+      "minimum_score": "0.91",
+      "maximum_score": "1",
+      "mean_score": "0.97",
+      "median_score": "1"
+    },
+    {
+      "case_id": "8-2",
+      "candidate_count": 3,
+      "minimum_score": "0.47",
+      "maximum_score": "0.87",
+      "mean_score": "0.60666666666666666666666666666666666666666666666666666666666666666666666666666667",
+      "median_score": "0.48"
+    },
+    {
+      "case_id": "9-1",
+      "candidate_count": 3,
+      "minimum_score": "0.84",
+      "maximum_score": "1",
+      "mean_score": "0.89333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.84"
+    },
+    {
+      "case_id": "9-3",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1.0",
+      "median_score": "1.0"
+    },
+    {
+      "case_id": "9-4",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "9-5",
+      "candidate_count": 3,
+      "minimum_score": "0.43",
+      "maximum_score": "0.64",
+      "mean_score": "0.54333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.56"
+    },
+    {
+      "case_id": "9-6",
+      "candidate_count": 3,
+      "minimum_score": "0.39",
+      "maximum_score": "0.41",
+      "mean_score": "0.39666666666666666666666666666666666666666666666666666666666666666666666666666667",
+      "median_score": "0.39"
+    },
+    {
+      "case_id": "10-1",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-4",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-5",
+      "candidate_count": 3,
+      "minimum_score": "1.0",
+      "maximum_score": "1",
+      "mean_score": "1.0",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-6",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-7",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-8",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-9",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-10",
+      "candidate_count": 3,
+      "minimum_score": "0.71",
+      "maximum_score": "1",
+      "mean_score": "0.81",
+      "median_score": "0.72"
+    },
+    {
+      "case_id": "10-11",
+      "candidate_count": 3,
+      "minimum_score": "0.67",
+      "maximum_score": "0.7",
+      "mean_score": "0.68333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "median_score": "0.68"
+    },
+    {
+      "case_id": "10-12",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-13",
+      "candidate_count": 3,
+      "minimum_score": "1",
+      "maximum_score": "1",
+      "mean_score": "1",
+      "median_score": "1"
+    },
+    {
+      "case_id": "10-14",
+      "candidate_count": 3,
+      "minimum_score": "0.4",
+      "maximum_score": "0.77",
+      "mean_score": "0.53",
+      "median_score": "0.42"
+    }
+  ],
+  "code_results_in_requests": false,
+  "human_judgments_in_requests": false,
+  "oracle_or_human_selected_result_created": false
+}

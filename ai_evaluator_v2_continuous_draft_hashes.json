@@ -1,0 +1,23 @@
+{
+  "status": "draft_static_only",
+  "created_at_utc": "2026-09-25T16:45:25.250858+00:00",
+  "prompt_version": "ai-evaluator-v2-prompt/1.6",
+  "schema_version": "ai-evaluator-v2/1.1",
+  "new_artifact_sha256": {
+    "ai_evaluator_v2_prompt_revision_6_continuous_draft.md": "a1b93674cac1ab29d3171a78d3871c13978a07933e599cf053ad1d536ec647fa",
+    "ai_evaluator_v2_output_schema_revision_1_1_continuous_draft.md": "2632259542fcfb0256b6ff6150f216b0f8c309c5ac3bd662665f498bfff5c57e",
+    "evaluation/friedrich_v2/ai_v16_continuous_contract_draft.py": "df1ba0ceaa65ccae59ed0fb07d3cf52c4f9a235907c33a61e718859e11bf6eec",
+    "evaluation/friedrich_v2/verify_ai_v16_continuous_draft.py": "7aedd0ecb3a60470a073f46f32ce12aca063bb7ff75bb2788aa73298d419f515",
+    "ai_evaluator_v2_continuous_scoring_change_log.md": "5591440a5492a21e572539ad33e96c1e6bb8c470b4af392675c590929cd54f23",
+    "ai_evaluator_v2_continuous_static_verification.md": "85d676402e856ea133f802ad2aaa95ca37c0a663e83fc0a6bdac3e7a0c95701e",
+    "ai_evaluator_v2_continuous_downstream_inventory.md": "3e12e64400b25af2e491ece7a3d25c4359f7f937be9474ba88badd88f162cb6c",
+    "ai_evaluator_v2_prompt_revision_6_continuous_draft.diff": "a3a53610edf1ee04284f38c1936155d225ce97f1b3b04b807c05e999ddf33401",
+    "ai_evaluator_v2_output_schema_revision_1_1_continuous_draft.diff": "d2a3719391d04edbd4791a2cc22d8bfe105a9292938c72cc443e726a4a56b139"
+  },
+  "frozen_v15_source_sha256": {
+    "ai_evaluator_v2_prompt_revision_5_draft.md": "ac5693a52e88386860aa226990c6e015296d0388a14a761371a712d3bdfe8615",
+    "ai_evaluator_v2_output_schema.md": "017ec87b040fba2086049bd90c0010ea8e12ceb09d0c540797e9a916623c1a8c"
+  },
+  "evaluation_api_calls_made": false,
+  "frozen": false
+}

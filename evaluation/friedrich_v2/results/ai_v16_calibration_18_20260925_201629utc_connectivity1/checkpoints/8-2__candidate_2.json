@@ -1,0 +1,46 @@
+{
+  "case_id": "8-2",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-25T20:26:29.006698+00:00",
+  "request_record_sha256": "c8327e99141b510a03556cdc593761705402bb1ac9f8b44ed967e1049cdc5b1c",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-2",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "All main business activities are represented, but the retry path duplicates the submission activity by performing both a separate resubmission action and then the original submission action again."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is largely maintained: create/clarify before submission, correction before renewed consideration, and posting only after approval. The extra repeated submission does not reverse or break the source-required ordering between matched actions."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly captures the approval/rejection loop: rejection leads to correction and renewed consideration, while approval leads to posting and termination."
+    },
+    "main_error_type": "extra_or_duplicated_action",
+    "explanation": "The source process is: create the job description, clarify with the department if needed, submit it for consideration, and if rejected correct it and submit it again until it is approved, then post the job. The candidate preserves that overall routing, including the rejection loop and the approved exit to posting. However, on the retry path it models both 'resubmit job description for consideration' and then returns to 'submit job description for consideration,' which adds an unsupported duplicate submission each cycle. Because the main process logic is otherwise preserved, the semantic impact is limited but meaningful.",
+    "overall_score": 0.87,
+    "severity": "minor",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.87",
+  "usage": {
+    "case_id": "8-2",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4725,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1896,
+    "reasoning_tokens": 1552,
+    "total_tokens": 6621,
+    "estimated_api_cost_usd": "0.03622050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0500127f882437a2016ab6d8dde7f887d29e9ad46b0a0f2117",
+    "retry_count": 0
+  }
+}

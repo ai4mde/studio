@@ -1,0 +1,46 @@
+{
+  "case_id": "9-4",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:50:47.604748+00:00",
+  "request_record_sha256": "f8cf89732ceadbaefa6e4488c9d23d0f3e9a1a3845d7957504eaf8ebe548760c",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-4",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source activities are represented with correct meanings, including date finalization, preparation tasks, member advice, meeting, minutes production, QA check, circulation of minutes, and record update."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph preserves the required end-to-end precedence: finalized dates lead to preparation, advice before meeting, meeting before minutes, QA before sending minutes, and sending before departmental record update."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a straightforward linear process, and the graph preserves that single-path continuation and termination without introducing wrong branching, looping, or synchronization behavior."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph semantically matches the original process text as a linear sequence of the same business actions. It correctly places the preparatory updates after date finalization, the advice before the meeting, the minutes after the meeting, the QA check before sending minutes, and the departmental record update at the end. No meaningful action, ordering, or control-flow behavior from the source is missing or changed.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "9-4",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5031,
+    "cached_input_tokens": 1792,
+    "output_tokens": 664,
+    "reasoning_tokens": 361,
+    "total_tokens": 5695,
+    "estimated_api_cost_usd": "0.01850550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0dc2af51e2a3f791016ab98fb012ec87d18a3b3e5192319b50",
+    "retry_count": 0
+  }
+}

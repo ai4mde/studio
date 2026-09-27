@@ -1,0 +1,384 @@
+{
+  "case_ids": [
+    "1-1",
+    "1-2",
+    "2-1",
+    "2-2",
+    "3-1",
+    "3-2",
+    "3-3",
+    "3-4",
+    "3-5",
+    "3-6",
+    "3-7",
+    "3-8",
+    "4-1",
+    "5-1",
+    "5-2",
+    "5-3",
+    "5-4",
+    "6-1",
+    "6-2",
+    "6-3",
+    "6-4",
+    "8-1",
+    "8-2",
+    "9-1",
+    "9-3",
+    "9-4",
+    "9-5",
+    "9-6",
+    "10-1",
+    "10-4",
+    "10-5",
+    "10-6",
+    "10-7",
+    "10-8",
+    "10-9",
+    "10-10",
+    "10-11",
+    "10-12",
+    "10-13",
+    "10-14"
+  ],
+  "collision_protection": {
+    "fail_on_foreign_or_mismatched_run_id": true,
+    "historical_roots_are_read_only": true,
+    "overwrite_previous_v1_v2_v3_diagnostics_or_preflights": false,
+    "write_only_under_this_run_id": true
+  },
+  "completed_at_utc": "2026-09-10T11:34:59.791675+00:00",
+  "completed_candidates": 120,
+  "completed_case_count": 40,
+  "configuration_verification": {
+    "checks": {
+      "candidate_seeds": true,
+      "model": true,
+      "semantic_prompt_sha256": true,
+      "settings": true,
+      "topology_prompt_sha256": true
+    },
+    "semantic_prompt_sha256": "42f8b3efe1c2b4335b177a44377b462acb0163cb27b55e207d9dac85893e116e",
+    "topology_prompt_sha256": "47efb1bfb14bb7a37d30f6f2aa9f8a2d0eaa27db0fd1126797d4fb3867a2444d"
+  },
+  "evaluation_output_locations": {
+    "candidate_results": "evaluation_results/candidate_results.jsonl",
+    "candidate_summary": "evaluation_results/candidate_summary.csv",
+    "case_semantic_metrics": "evaluation_results/case_semantic_metrics.csv",
+    "case_summary": "evaluation_results/case_summary.csv",
+    "cohort_summary": "evaluation_results/cohort_summary.json",
+    "evaluation_results": "evaluation_results",
+    "evaluation_run_manifest": "evaluation_results/run_manifest.json",
+    "formal_summary": "evaluation_results/formal_summary.json",
+    "human_review": "evaluation_results/human_review.csv",
+    "root": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/results/final_frozen_40x3_20260910"
+  },
+  "evaluation_started": false,
+  "excluded_case_ids": [
+    "1-3",
+    "1-4",
+    "7-1",
+    "8-3",
+    "9-2",
+    "10-2",
+    "10-3"
+  ],
+  "expected_candidate_artifacts": [
+    "process_text.txt",
+    "candidate_manifest.json",
+    "api_call_log.json",
+    "raw_generation_response.json",
+    "topology_artifact.json",
+    "semantic_sketch_plan.json",
+    "activity_graph.json",
+    "ai4mde_export.json"
+  ],
+  "expected_candidate_slots": 120,
+  "expected_candidates_per_case": 3,
+  "expected_case_count": 40,
+  "failed_candidates": 0,
+  "frozen_generator": {
+    "branch": "feature/thesis-ui-isolation",
+    "candidate_seeds": {
+      "candidate_1": 20260910,
+      "candidate_2": 20260911,
+      "candidate_3": 20260912
+    },
+    "commit": "3227af4b27d07c1dca44d5561a713f58498abe56",
+    "model": "gpt-4.1-2025-04-14",
+    "pipeline_profile": "semantic_deterministic",
+    "prompt_hashes": {
+      "semantic": "42f8b3efe1c2b4335b177a44377b462acb0163cb27b55e207d9dac85893e116e",
+      "topology": "47efb1bfb14bb7a37d30f6f2aa9f8a2d0eaa27db0fd1126797d4fb3867a2444d"
+    },
+    "settings": {
+      "frequency_penalty": 0.0,
+      "max_completion_tokens": 8192,
+      "n": 1,
+      "presence_penalty": 0.0,
+      "temperature": 0.15,
+      "top_p": 1.0
+    },
+    "version": "semantic_deterministic-gpt-4.1-2025-04-14-thesis-freeze-20260910",
+    "worktree": "/Users/queenie/Desktop/studio-thesis-ui-isolation"
+  },
+  "generation_completed": true,
+  "generation_started": true,
+  "last_updated_at_utc": "2026-09-10T11:34:59.791727+00:00",
+  "logging": {
+    "global_api_call_log": "logs/api_calls.jsonl",
+    "per_candidate_api_call_log": "cases/{case_id}/{candidate_id}/api_call_log.json",
+    "required_request_fields": [
+      "case_id",
+      "candidate_id",
+      "candidate_seed",
+      "planner_stage",
+      "attempt_kind",
+      "model_requested",
+      "temperature",
+      "top_p",
+      "frequency_penalty",
+      "presence_penalty",
+      "n",
+      "max_completion_tokens",
+      "seed",
+      "structured_output_requested"
+    ],
+    "required_response_fields": [
+      "status",
+      "model_returned",
+      "system_fingerprint",
+      "structured_output_succeeded",
+      "json_fallback_used",
+      "correction_index",
+      "error_type"
+    ],
+    "secret_logging_forbidden": true
+  },
+  "prepared_at_local_date": "2026-09-10",
+  "protocol": {
+    "accept_first_adapter_valid_activity_graph": true,
+    "candidate_slots_are_permanent": true,
+    "evaluation_influences_generation": false,
+    "existing_json_fallback_retained": true,
+    "maximum_complete_attempts_per_candidate": 3,
+    "planner_max_validation_corrections": 2,
+    "retry_successful_candidate": false,
+    "same_seed_for_all_calls_in_candidate": true,
+    "sdk_max_retries": 2,
+    "structured_outputs_first": true
+  },
+  "remaining_candidates": 0,
+  "run_id": "final_frozen_40x3_20260910",
+  "runtime": {
+    "openai_sdk": "1.47.0",
+    "pydantic": "2.8.2",
+    "python": "3.12.1"
+  },
+  "schema_version": "friedrich-final-formal-workspace/v1",
+  "started_at_utc": "2026-09-10T11:25:22.883783+00:00",
+  "status": "complete",
+  "statuses": {
+    "1-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "1-2": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-10": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-11": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-12": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-13": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-14": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-4": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-5": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-6": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-7": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-8": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "10-9": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "2-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "2-2": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "3-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "3-2": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "3-3": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "3-4": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "3-5": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "3-6": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "3-7": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "3-8": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "4-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "5-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "5-2": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "5-3": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "5-4": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "6-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "6-2": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "6-3": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "6-4": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "8-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "8-2": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "9-1": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "9-3": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "9-4": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "9-5": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    },
+    "9-6": {
+      "candidate_1": "success",
+      "candidate_2": "success",
+      "candidate_3": "success"
+    }
+  },
+  "successful_candidates": 120
+}

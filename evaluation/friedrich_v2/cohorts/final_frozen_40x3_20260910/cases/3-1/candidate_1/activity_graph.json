@@ -1,0 +1,96 @@
+{
+  "edges": [
+    {
+      "source": "n8",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n9",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "send warrant possession request",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "receive request and retrieve SCT file",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "forward SCT Warrant Possession to Queensland Police",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "store SCT physical file awaiting police report",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "retrieve SCT file upon receiving police report",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "attach new SCT document",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "store expanded SCT physical file",
+      "origin_step_id": "S7",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "type": "initial"
+    },
+    {
+      "id": "n9",
+      "type": "final"
+    }
+  ]
+}

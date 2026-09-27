@@ -1,0 +1,46 @@
+{
+  "case_id": "10-11",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T20:51:08.893391+00:00",
+  "request_record_sha256": "55eaed0d238ea244203b1b95ac6043959106f9abd1a6ebf9fbdec660c35b4ae3",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-11",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source business actions are represented with acceptable wording; the main problem is not missing actions but how the failure branch continues."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Most required precedence is preserved, but the graph adds an unsupported path from 'inform failure' to GO processing/sending/transmitting actions that should follow receipt of measured values, not failure."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The failure and success outcomes after measurement are wrongly merged into the same continuation, so the failure branch does not terminate separately and incorrectly enters success-only downstream work."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source describes MSP checking the request, then either denying it or performing the measurement; after measurement, MSP either informs the GO of reading failure or transmits measured values. The downstream GO actions of processing measured values, sending changed values to MSP, and transmitting readings to SP are success-continuation behavior tied to having measured values. In the generated graph, both 'inform failure' and 'transmit measured values' flow into the same merge and then into those GO actions. This preserves most actions and much of the ordering, but it changes the branch semantics by allowing failure to continue as if measurement results were available.",
+    "overall_score": 0.78,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.78",
+  "usage": {
+    "case_id": "10-11",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5355,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1518,
+    "reasoning_tokens": 1170,
+    "total_tokens": 6873,
+    "estimated_api_cost_usd": "0.03212550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f1cf794921f3fa2016ab981aaa44487d19b62509bfaac09cf",
+    "retry_count": 0
+  }
+}

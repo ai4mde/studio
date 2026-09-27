@@ -1,0 +1,46 @@
+{
+  "case_id": "5-2",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:38:48.581813+00:00",
+  "request_record_sha256": "3ff7ea25122d3ff6e80f50ac11409ac98419a4a4bb1108d60bd73b8b8245b3ac",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-2",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All core business actions are represented with acceptable wording: submission, supervisor receipt, approve/reject decision, HR notification and procedures on approval, and return plus review of rejection reasons on rejection."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is preserved: submission precedes supervisor receipt and decision; approval precedes HR notification and HR procedures; rejection precedes return to employee and review of reasons."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The approve/reject branching is modeled correctly, with the approved path continuing to HR handling and the rejected path returning to the employee and then terminating; the extra merge on the approved path is semantically harmless."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the process meaning from the source text. It starts with employee submission, routes the request to the supervisor, branches on approve versus reject, sends approved requests to HR for notification and management procedures, and returns rejected requests to the employee for review of rejection reasons before ending. No meaningful action, ordering, or routing defect is evident. The only material interpretive question is whether 'can review the rejection reasons' implies an optional review rather than a simple rejected-path step; under the most defensible reading, the graph remains semantically acceptable.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The phrase 'the application is returned to the applicant/employee who can review the rejection reasons' can be read either as a simple rejected-path consequence or as implying optional review behavior. The graph models review as an explicit rejected-path action without a separate optional branch.",
+    "requires_human_review": true,
+    "review_reason": "If a reviewer interprets 'can review' as requiring optional rather than mandatory behavior, the rejected branch diagnosis and score could change slightly."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "5-2",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4816,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1457,
+    "reasoning_tokens": 1034,
+    "total_tokens": 6273,
+    "estimated_api_cost_usd": "0.02986300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ec27ac4ebf54358016ab98cd6779887d1b19246c973855026",
+    "retry_count": 0
+  }
+}

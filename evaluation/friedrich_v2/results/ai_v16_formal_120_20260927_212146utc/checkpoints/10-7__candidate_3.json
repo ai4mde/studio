@@ -1,0 +1,46 @@
+{
+  "case_id": "10-7",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:55:33.252567+00:00",
+  "request_record_sha256": "7e6fe3107fe42f6826b0a6337e81b4800e4b04a500640666640c83d0a834a40f",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-7",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with correct meanings: registration, examination, reject/confirm decision outcomes, assignment, and the three notifications."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The represented action order is correct: registration precedes examination and the decision; on the approval path, confirmation precedes assignment, which precedes all three notifications."
+    },
+    "control_flow_assessment": {
+      "status": "uncertain",
+      "summary": "The graph models a decision with rejection terminating and confirmation continuing to assignment and notifications; this is plausible, but the source text is ambiguous about whether post-decision assignment occurs only after confirmation or after either outcome."
+    },
+    "main_error_type": "none",
+    "explanation": "Under the most defensible reading of the source, the process branches after examination into rejection or confirmation, with rejection ending the case and confirmation leading to assignment and subsequent notifications. The generated graph preserves that behavior and includes all stated business actions in a coherent order. However, the source wording does not explicitly state whether assignment follows only confirmation or follows both outcomes, so the branch-continuation semantics are materially ambiguous even though no clear semantic defect is established provisionally.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "After 'the GO rejects the application of the MSPN or the GO confirmes the application of the MSPN', the text then states 'The GO assigns the MSPN' without explicitly saying whether assignment occurs only after confirmation or after either branch. The graph chooses the former interpretation.",
+    "requires_human_review": true,
+    "review_reason": "Human review is needed because the source text is materially ambiguous about continuation after rejection, and resolving that ambiguity could change the control-flow diagnosis and score."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-7",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5045,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1321,
+    "reasoning_tokens": 923,
+    "total_tokens": 6366,
+    "estimated_api_cost_usd": "0.02839550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_01857ed7bb27f860016ab990c5483087d1a5b5bfb7ed1f1c7a",
+    "retry_count": 0
+  }
+}

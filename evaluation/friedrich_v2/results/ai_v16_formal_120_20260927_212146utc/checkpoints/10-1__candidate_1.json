@@ -1,0 +1,46 @@
+{
+  "case_id": "10-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:53:45.548992+00:00",
+  "request_record_sha256": "5f8204dd2aea686c5202077439b602d1fb27594a566164333cf85472e681646d",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are present with correct meaning: send dismissal, review dismissal, then either oppose or confirm the dismissal."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved: sending precedes review, and review precedes the final alternative outcome actions."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an exclusive choice after review between opposing and confirming the dismissal, with proper termination after either branch."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph semantically matches the source process: MPON sends the dismissal to MPOO, MPOO reviews it, and then MPOO chooses one of two alternatives—oppose or confirm the dismissal. The exclusive branching and post-branch termination are appropriately represented, with no meaningful added, missing, or misordered behavior.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4540,
+    "cached_input_tokens": 1792,
+    "output_tokens": 349,
+    "reasoning_tokens": 93,
+    "total_tokens": 4889,
+    "estimated_api_cost_usd": "0.01255300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_097a929f4842d0cf016ab99065b67887d184e262cea56c40ab",
+    "retry_count": 0
+  }
+}

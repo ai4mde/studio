@@ -1,0 +1,46 @@
+{
+  "case_id": "6-4",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:45:30.493884+00:00",
+  "request_record_sha256": "e78c76b77a80cb27c72be9280ad9085645873ead10e155034a9a844362ee292d",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-4",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Core business actions are present with acceptable abstraction; contact-detail acquisition methods and presentation-role variants are reasonably collapsed into broader actions."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The main source-action precedence is preserved: obtain contacts before calling, qualify interest before presentation, and presentation/follow-up before quotation."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The exceptional 'not interested but huge budget' branch is modeled incorrectly: after the head of development tries to acquire the customer, the graph always continues to presentation instead of only doing so if the customer is interested in the end."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source process requires a conditional continuation on the exceptional path: if the customer is initially not interested but the budget is huge, the head of development tries to acquire the customer, and only if the customer is interested in the end does the process proceed to the detailed online presentation. In the generated graph, the huge-budget path goes from that acquisition attempt directly into the merge and then to the presentation, with no outcome check and no non-interest termination on that branch. This preserves most of the process but materially over-permits success continuation on one bounded branch.",
+    "overall_score": 0.84,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.84",
+  "usage": {
+    "case_id": "6-4",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5735,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1800,
+    "reasoning_tokens": 1464,
+    "total_tokens": 7535,
+    "estimated_api_cost_usd": "0.03730550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0a943e060a63914f016ab98e67e72487d18fe0725dd650f9d7",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "3-2",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-25T20:23:36.772742+00:00",
+  "request_record_sha256": "70f92c18f3c84789843149efc510ecc1d37c4cd2afd5feddd74ce3da31944d38",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-2",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All meaningful source activities are represented with acceptable paraphrase: checking files, searching if missing, physically tracking otherwise, handing files to the Associate, distributing the Judge’s Lawlist, and conducting directions hearings."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is maintained: checking precedes the missing/not-missing alternative, the post-check work precedes handing over and Lawlist distribution, and hearings occur after those later activities complete."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the missing-vs-not-missing decision, merges the alternatives before later work, runs handoff and Lawlist distribution in parallel, synchronizes them, and only then proceeds to directions hearings."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the described process behavior. It starts with checking unprocessed files, branches correctly on whether files are missing, performs search on the missing branch and physical tracking on the otherwise branch, then proceeds to handing the files to the Associate while concurrently distributing the Judge’s Lawlist, and finally conducts the directions hearings after both concurrent activities finish. No meaningful action, ordering, branching, or synchronization defect is evident from the source text.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "3-2",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5034,
+    "cached_input_tokens": 1792,
+    "output_tokens": 847,
+    "reasoning_tokens": 516,
+    "total_tokens": 5881,
+    "estimated_api_cost_usd": "0.02125800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0a9f4f7298e3aa37016ab6d83f420087d29edfe73445781bc1",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "9-5",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-25T20:27:53.589556+00:00",
+  "request_record_sha256": "f911bfcb48604d51873017c28c7f1205a448e08fd488b2f7f5c8c0251c6293cf",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-5",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph represents the key business activities with acceptable paraphrase: receive report, create account if needed, review, supervisor approval/rejection, rejection notice, reimbursement, 7-day progress email, 30-day cancellation notice, and resubmission."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Initial ordering is preserved, but the graph adds an unsupported sequence from rejection notice into later timeout/success handling, turning source alternatives into sequentially reachable behavior."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Control behavior is materially wrong: the rejection branch rejoins the approval/success path instead of terminating after notice, and the 7-day/30-day timeout logic is modeled as exclusive post-approval alternatives, with the 7-day email path ending the process instead of continuing."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source requires rejection to lead to a rejection email instead of reimbursement, while non-rejected cases lead to reimbursement, with 7-day and 30-day deadlines acting as time-based behaviors for an unfinished request. In the generated graph, the rejection path flows back into the same merge as approved cases and can continue to timeout handling and reimbursement. In addition, the 7-day 'approval in progress' email is modeled as an alternative terminal outcome rather than an interim notification after which the request can still complete or later be cancelled at 30 days. These errors change both branch continuation and overall outcome behavior, so the core process meaning is only partially preserved despite mostly correct action coverage and early ordering.",
+    "overall_score": 0.44,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.44",
+  "usage": {
+    "case_id": "9-5",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5649,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2049,
+    "reasoning_tokens": 1644,
+    "total_tokens": 7698,
+    "estimated_api_cost_usd": "0.04082550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_07565bfb22ddcf80016ab6d9306c4c87d2b772d796879ebcd6",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "6-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:42:41.078631+00:00",
+  "request_record_sha256": "44373334946e3b208a801b8ac843e37b2989c907fe28eb71f0952099164335b5",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most core activities are represented, but the graph omits the Secretariat's visual inspection and, more importantly, the accounting employee's complaint-resolution activity during commercial audit."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The main matched-action precedence is largely preserved: receipt and accounting setup precede cost-center review, which precedes commercial audit, optional board review, payment instruction, and closure."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The cost-center review/correction loop is broadly captured, but the commercial-audit complaint branch is missing, so the model incorrectly allows direct continuation toward payment without the required rework path."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source process requires a conditional rework path during commercial audit: if there is a complaint, the accounting employee must resolve it with the supplier, and only after successful completion does payment proceed. In the generated graph, commercial audit always continues directly to the board-review decision and then to payment/closure, with no complaint branch or return path. This changes process behavior by removing a required exception-handling route. The graph otherwise captures the main invoice intake, cost-center approval loop, optional board review, payment, and closure reasonably well, though it also omits the initial visual inspection.",
+    "overall_score": 0.76,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.76",
+  "usage": {
+    "case_id": "6-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 6738,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1836,
+    "reasoning_tokens": 1485,
+    "total_tokens": 8574,
+    "estimated_api_cost_usd": "0.04035300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0b45f8326ac438e3016ab98dbc97c887d1b04278413c282042",
+    "retry_count": 0
+  }
+}

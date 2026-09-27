@@ -1,0 +1,46 @@
+{
+  "case_id": "3-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:29:16.239828+00:00",
+  "request_record_sha256": "f8a4a63ff6640360ea8fe6a4193c8168be2009c0a04314a75636b6c1d50c53b6",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the stated in-scope activities: request sending, request/file receipt and retrieval, forwarding to police, storing pending the police report, retrieving on report receipt, attaching the new document, and storing the expanded file."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required sequential precedence among the matched source actions is preserved throughout the graph."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a linear process with an implicit wait for the police report; the graph preserves that continuation without introducing wrong branching, looping, or termination behavior."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the business meaning of the described process: the request is sent, the Back Office receives it and retrieves the SCT file, the warrant possession is forwarded to Queensland Police, the physical file is stored pending the police report, the file is retrieved when the report is received, the new SCT document is attached, and the expanded physical file is stored. The omitted final handoff is explicitly marked out of scope in the source, so its absence does not create a meaningful semantic defect in this candidate.",
+    "overall_score": 1.0,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1.0",
+  "usage": {
+    "case_id": "3-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4638,
+    "cached_input_tokens": 1792,
+    "output_tokens": 995,
+    "reasoning_tokens": 677,
+    "total_tokens": 5633,
+    "estimated_api_cost_usd": "0.02248800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0adba35d1eade451016ab98aa1a37887d1900e7bdd5a2768a4",
+    "retry_count": 0
+  }
+}

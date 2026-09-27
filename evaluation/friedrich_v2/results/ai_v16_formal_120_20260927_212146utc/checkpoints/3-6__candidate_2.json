@@ -1,0 +1,46 @@
+{
+  "case_id": "3-6",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:34:17.371989+00:00",
+  "request_record_sha256": "4900d8392158cc669ce3e29cb99873d5c1182a28e8a36919d3376dc7665d397f",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-6",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most core actions are present, but the required re-check of updated forms is not represented as the repeated action after updates; instead an unsupported repeat/success decision is inserted and the update-notification action becomes the repeated step."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "Main precedence is preserved for receipt, insurance check, severity evaluation, form sending, initial completeness check, rejection, and registration, but the required precedence around the updated-forms cycle cannot be fully matched because the graph does not route updated forms back to the completeness check action."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The insured/not-insured and simple/complex branches are modeled, but the incomplete-forms recurrence is wrong: after informing the claimant, the graph can proceed to registration via a new success decision, and the retry path returns to informing the claimant again instead of rechecking the updated forms."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source requires this loop: if forms are incomplete, inform the claimant to update them; when updated forms are received, check them again; only once complete is the claim registered. The generated graph instead sends the incomplete path from 'inform claimant to update the forms' to a new decision, from which one branch registers the claim directly and the other goes to 'receive updated forms' and then back to informing the claimant again. This changes the recurrence target and exit condition, omits the required repeated completeness check after updates, and permits unsupported success behavior on the incomplete-forms path. Because the rest of the process is largely preserved, the whole graph is only partially degraded rather than fundamentally wrong.",
+    "overall_score": 0.58,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.58",
+  "usage": {
+    "case_id": "3-6",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5497,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1667,
+    "reasoning_tokens": 1243,
+    "total_tokens": 7164,
+    "estimated_api_cost_usd": "0.03471550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0793e60f1978eeeb016ab98bc3df2c87d1a5b77bbfbbd1531b",
+    "retry_count": 0
+  }
+}

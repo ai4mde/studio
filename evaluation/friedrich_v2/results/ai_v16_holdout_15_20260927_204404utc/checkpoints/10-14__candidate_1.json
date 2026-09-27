@@ -1,0 +1,46 @@
+{
+  "case_id": "10-14",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T20:52:03.804842+00:00",
+  "request_record_sha256": "1e09155b8d49cf5b03c5b11bbc99d7029b06c41efa12cd917f73289e598fcf60",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-14",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "The graph captures examination and final disposition of an invoice, but it over-compresses the four source-specific billing situations into one generic action and incorrectly generalizes the examiner to “GO or MPON” for all bills, whereas three source cases are GO-only."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "For the matched core actions, the required precedence is preserved: bill examination occurs before either confirmation or rejection, with no reversal of that ordering."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The required post-examination alternative between confirming and rejecting the invoice is preserved, and both paths terminate appropriately; no additional loop, parallel, or synchronization behavior is required by the source."
+    },
+    "main_error_type": "incorrect_action_meaning_or_grouping",
+    "explanation": "The source describes four invoice scenarios that share the same high-level pattern, but the examining party is not identical across them: GO examines the first three, while GO or MPON examines the equipment-acquisition bill depending on recipient. The generated graph preserves the overall examine-then-confirm/reject behavior, but its single action “GO or MPON examines the bill” changes that business meaning by allowing MPON to examine cases that the source assigns to GO. This is mainly an action-level overgeneralization rather than an ordering or routing failure, so the graph remains substantially correct but not fully semantically faithful.",
+    "overall_score": 0.8,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.8",
+  "usage": {
+    "case_id": "10-14",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4540,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1731,
+    "reasoning_tokens": 1362,
+    "total_tokens": 6271,
+    "estimated_api_cost_usd": "0.03328300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0e54c7f36d7dc2b1016ab981dc996487d1a14710392f38deb3",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "9-5",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:52:20.966291+00:00",
+  "request_record_sha256": "77fbecb26f6e7a3f027f6c68e9678b5463bc912eb8242fa67e905f63fe06a0af",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-5",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business actions are present with acceptable meaning: receive report, conditionally create account, review, supervisor approval/rejection, rejection notice, reimbursement, progress email, cancellation notice, and resubmission requirement."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Core early ordering is preserved, but the required delayed-case progression is not: a request that exceeds 7 days should still be able to reach 30-day cancellation later, whereas the graph makes progress-email and cancellation outcomes mutually exclusive and routes the progress-email path to reimbursement."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The time-based logic is modeled incorrectly as one exclusive post-approval decision. The source requires cumulative escalation for unfinished requests: send an approval-in-progress email after 7 days and, if still unfinished by 30 days, stop the process and cancel; the graph cannot realize both in sequence."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source describes two time-triggered conditions over the same unfinished request: after 7 days the employee must receive an approval-in-progress email, and if the request is still unfinished within 30 days the process must stop with cancellation and resubmission. The generated graph instead places a single exclusive decision after approval with branches for completed_in_time, approval_in_progress, or cancelled. Because the approval-in-progress branch merges into reimbursement, a delayed request cannot later be cancelled after 30 days, and the 30-day case omits the required earlier progress notice. This materially changes the delay-handling behavior even though the main approval/rejection actions are otherwise captured.",
+    "overall_score": 0.64,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.64",
+  "usage": {
+    "case_id": "9-5",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5667,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2615,
+    "reasoning_tokens": 2199,
+    "total_tokens": 8282,
+    "estimated_api_cost_usd": "0.04936050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0a807e132d0836d2016ab98ff7a31887d18e1be6843b8d88b8",
+    "retry_count": 0
+  }
+}

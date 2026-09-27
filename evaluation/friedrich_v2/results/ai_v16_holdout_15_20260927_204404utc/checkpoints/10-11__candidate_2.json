@@ -1,0 +1,46 @@
+{
+  "case_id": "10-11",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T20:51:24.691040+00:00",
+  "request_record_sha256": "6c473291b5c3c691872fbad435391c6852883e9c69e8b2cf95c92c13b247fef4",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-11",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source-supported business actions are represented with acceptable wording; the main issue is not missing actions but how the failure branch continues."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required success-path order is preserved, but the graph also introduces unsupported precedence from failure notification to the downstream GO processing/sending/transmitting actions."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The denial branch terminates plausibly, but the failure-of-reading branch is wrongly merged into the same continuation as successful transmission, so failure incorrectly reaches success-only downstream actions."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source distinguishes outcomes after measurement: either the MSP informs the GO about a reading failure or transmits measured values, after which the GO processes the measured values and continues. In the generated graph, both the failure action and the successful transmission action merge and continue to GO processing, sending changed values, and transmitting readings to the SP. This wrongly treats the failure branch as if it had produced measured values, altering branch continuation and enabling downstream behavior that should be reserved for the success outcome.",
+    "overall_score": 0.68,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.68",
+  "usage": {
+    "case_id": "10-11",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5355,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1206,
+    "reasoning_tokens": 891,
+    "total_tokens": 6561,
+    "estimated_api_cost_usd": "0.02744550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_04e40f65c5594486016ab981bd5f5087d1926642a9b92f390a",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "10-4",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:54:24.021585+00:00",
+  "request_record_sha256": "e0a4cbb6f027b438cb3ff4eb842b88ce2c9713eefe8e925639994a8533030d28",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-4",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with correct business meaning, including the two alternative MPOO notifications, alternative performer for final reading and old-equipment dismounting, and the downstream notifications to GO and MSP."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved: initial notification, branch-specific notification, final reading, old-equipment dismounting, new-device mounting, installed-meter reading, then the two GO-facing communications and GO-to-MSP notification."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an exclusive choice between self-dismounting and no self-dismounting, routes the corresponding performer for reading and dismounting, merges the alternatives, and continues to the common completion sequence."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph semantically preserves the described process. It captures the initial MPON-to-MPOO notification, the alternative MPOO response about self-dismounting versus no self-dismounting, the corresponding branch-specific execution of final reading and old-equipment dismounting, and the common continuation with mounting the new device, reading the installed meter, informing the GO, and the GO informing the MSP. No meaningful action, ordering, branching, continuation, or termination defect is evident from the supplied graph.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-4",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5742,
+    "cached_input_tokens": 1792,
+    "output_tokens": 871,
+    "reasoning_tokens": 516,
+    "total_tokens": 6613,
+    "estimated_api_cost_usd": "0.02338800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ea72297b4135f01016ab990873b3087d1a32be45439a4c552",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "10-12",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:59:11.624500+00:00",
+  "request_record_sha256": "2656437362b0e02cc23783fdfbb11f37f399a9785c881cd8131c25294b319a24",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-12",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source activities are present with correct meaning: EC informs INQ, INQ notifies IP, IP checks timing feasibility, then IP confirms or rejects the requested change."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved: inform INQ -> notify IP -> check change timing -> confirmation or rejection. No required order is reversed or omitted."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an exclusive outcome after the IP check, with either confirm or reject leading to process completion. The extra merge on the confirm path does not change behavior."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the full source behavior: the three initial actions occur in the correct sequence, followed by an exclusive decision where the IP either confirms or rejects the INQ's changes. Both outcomes terminate appropriately, and no meaningful action, ordering, or branching defect changes the process semantics.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-12",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4685,
+    "cached_input_tokens": 1792,
+    "output_tokens": 511,
+    "reasoning_tokens": 233,
+    "total_tokens": 5196,
+    "estimated_api_cost_usd": "0.01534550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_01694c918c5794c2016ab991a9d66487d18e347d8ff86d2a15",
+    "retry_count": 0
+  }
+}

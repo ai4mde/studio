@@ -1,0 +1,80 @@
+{
+  "edges": [
+    {
+      "source": "n2",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n4",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n3",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "GO or MPON examines the bill",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "type": "initial"
+    },
+    {
+      "id": "n3",
+      "type": "final"
+    },
+    {
+      "id": "n4",
+      "label": "decide whether to confirm or reject the invoice?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n5",
+      "name": "GO or MPON confirms the invoice with payment advice to MPOO or MSPO",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "GO or MPON rejects the invoice of MPOO or MSPO",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

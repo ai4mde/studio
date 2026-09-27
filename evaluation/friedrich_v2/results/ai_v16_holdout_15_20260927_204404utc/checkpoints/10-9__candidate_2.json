@@ -1,0 +1,46 @@
+{
+  "case_id": "10-9",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T20:50:21.915565+00:00",
+  "request_record_sha256": "b56df94ee857e5484a815c86c7b805dd70defc10487fe61aed11559c06a8c916",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-9",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures initiation of a measuring-point change, review, reject/confirm, execution of the change, and the final report-or-failure notification actions with acceptable paraphrasing and grouping."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is maintained: initiation before review, review before reject/confirm, confirmed requests before performing the change, and performance before report/failure notification."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the review outcome split, terminates the rejected path, and routes the confirmed path to either implementation reporting or failure notification after the change attempt."
+    },
+    "main_error_type": "none",
+    "explanation": "The candidate preserves the core process behavior described in the text: a measuring-point change is initiated, the MPO reviews it, the MPO either rejects or confirms it, only the confirmed path proceeds to performing the change, and that path ends with either reporting implementation or notifying failure. The only notable issue is source-text ambiguity in the opening sentence about whether initiation is an SP/PU/GO request, an MPO-initiated change, or a collapsed abstraction of both, but under the most defensible reading the graph remains semantically faithful overall.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The first sentence is materially awkward and may distinguish between an SP/PU/GO-requested change and an MPO-initiated change. The graph collapses this into one generic initiation action, which is likely acceptable but could be read differently.",
+    "requires_human_review": true,
+    "review_reason": "Human review could confirm whether the opening sentence requires two distinct initiation variants or whether the graph's single generic initiation action is the intended abstraction."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-9",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5203,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1658,
+    "reasoning_tokens": 1252,
+    "total_tokens": 6861,
+    "estimated_api_cost_usd": "0.03384550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_067c7942e7b97a68016ab9817acb8887d18dc532eb932d7458",
+    "retry_count": 0
+  }
+}

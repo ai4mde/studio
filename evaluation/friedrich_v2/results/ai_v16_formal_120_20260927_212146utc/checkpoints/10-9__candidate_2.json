@@ -1,0 +1,46 @@
+{
+  "case_id": "10-9",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:56:30.820351+00:00",
+  "request_record_sha256": "b56df94ee857e5484a815c86c7b805dd70defc10487fe61aed11559c06a8c916",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-9",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the request/change trigger, review, rejection or confirmation, execution of the measuring point change, and the two possible notifications with acceptable wording abstraction."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is preserved: trigger/request before review, review before reject/confirm decision, confirmation before performing the change, and performance before success/failure notification."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the approval/rejection alternative, terminates the rejection path, and routes the approved path to implementation followed by a success/failure outcome and corresponding notification."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the process meaning expressed in the source text. It models the initial change request/trigger, MPO review, the alternative of rejecting versus confirming the request, performance of the measuring point change only on the confirmed path, and then reporting implementation or notifying failure. No meaningful action, ordering, branching, continuation, or termination defect is evident from the supplied graph JSON.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-9",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5203,
+    "cached_input_tokens": 4864,
+    "output_tokens": 1120,
+    "reasoning_tokens": 825,
+    "total_tokens": 6323,
+    "estimated_api_cost_usd": "0.01886350",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_05ec9e9e7aa2c0b9016ab99102199087d1bc7c7b769eb2106a",
+    "retry_count": 0
+  }
+}

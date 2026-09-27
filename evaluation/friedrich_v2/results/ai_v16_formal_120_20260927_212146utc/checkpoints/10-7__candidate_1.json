@@ -1,0 +1,46 @@
+{
+  "case_id": "10-7",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:55:02.480797+00:00",
+  "request_record_sha256": "0da5344483ec52fabc555bc36b658c9a76bd6b8027ec285eb93143f9e0c15928",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-7",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with correct meaning: registration, examination, rejection/confirmation, assignment, and the three notifications."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is preserved: registration before examination, examination before the decision, and on the approval path confirmation before assignment and notifications."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the approval/rejection alternative, terminates the rejection path, and continues assignment plus notifications only on the approval path."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph semantically matches the source process. It includes the initial registration and examination, then a decision between rejection and confirmation. The rejection branch ends, while the approval branch proceeds to assignment and the three required notifications, preserving the intended whole-process behavior. The extra merge node after confirmation does not change semantics.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-7",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5045,
+    "cached_input_tokens": 1792,
+    "output_tokens": 583,
+    "reasoning_tokens": 321,
+    "total_tokens": 5628,
+    "estimated_api_cost_usd": "0.01732550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_01c9f0254deca305016ab990af296487d192fc851350fb3d3a",
+    "retry_count": 0
+  }
+}

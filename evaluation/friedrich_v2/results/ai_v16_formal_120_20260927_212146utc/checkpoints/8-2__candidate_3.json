@@ -1,0 +1,46 @@
+{
+  "case_id": "8-2",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:47:47.557951+00:00",
+  "request_record_sha256": "1cd6f926835bd56a526d390f73da50142e1ab7bc792580a51ab8072575663d63",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-2",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Core actions are mostly present, including create, clarify if needed, submit, correct, and post, but the required resubmission after correction is missing; the added 'receive correction request' action is also misplaced relative to the source behavior."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "The initial create/clarify/submit ordering is preserved, but the required precedence from correction to a renewed submission cannot be assessed because the resubmission action after correction is absent."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The approval/rejection loop is not preserved: after a rejection/correction path, the graph does not return to submission, and one rejection path terminates the process instead of continuing until approval."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source process requires an approval cycle: submit the job description, if rejected with a correction request then correct it, submit it again, and repeat until it is finally approved; only then is the job posted. The candidate preserves the basic start and successful posting path, but it breaks the central recurrence behavior. After correction, it omits the required resubmission step and instead goes to another approval/rejection decision; if that decision rejects, the process ends at the final node rather than looping back for further correction and resubmission. This changes both the retry mechanism and rejection-branch continuation, so the graph does not preserve the intended iterative approval process.",
+    "overall_score": 0.48,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.48",
+  "usage": {
+    "case_id": "8-2",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4990,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2365,
+    "reasoning_tokens": 1980,
+    "total_tokens": 7355,
+    "estimated_api_cost_usd": "0.04391800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_084facf9f414c50c016ab98ee7a00887d19bf699c125028369",
+    "retry_count": 0
+  }
+}

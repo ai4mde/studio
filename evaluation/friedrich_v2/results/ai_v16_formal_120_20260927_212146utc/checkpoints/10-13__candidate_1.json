@@ -1,0 +1,46 @@
+{
+  "case_id": "10-13",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:59:29.032732+00:00",
+  "request_record_sha256": "7783697a7a2e7ae0b438b798060812cda48c3a93f5e6117171acd5a984c7a684",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-13",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with correct meaning: request transmission, request checking, and the two possible answers of transmitting data or rejecting."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved: INQ sends the request before IP checks it, and the response actions occur only after the check and decision."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an outcome-based choice after examination between transmitting data and rejecting the request, with proper termination afterward."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the source process semantics: INQ transmits a transaction data request to IP, IP checks the request, and IP then responds depending on the examination outcome by either transmitting data or rejecting the request. The branching condition and branch meanings are correct, and no meaningful action, ordering, or control-flow defect is introduced.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-13",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4549,
+    "cached_input_tokens": 1792,
+    "output_tokens": 425,
+    "reasoning_tokens": 158,
+    "total_tokens": 4974,
+    "estimated_api_cost_usd": "0.01371550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_083d85d837f76d2e016ab991bc436c87d1a34c1c57bd44fd87",
+    "retry_count": 0
+  }
+}

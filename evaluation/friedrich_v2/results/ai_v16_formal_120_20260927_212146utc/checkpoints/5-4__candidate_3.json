@@ -1,0 +1,46 @@
+{
+  "case_id": "5-4",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:41:21.556958+00:00",
+  "request_record_sha256": "6206a557b667c0d3a9c2c0d198b2e4a7bacd15b23bbae4d2435ea47de672aa29",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-4",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most core activities are recognizable, but the initial purchase activity is omitted and treasurer review is duplicated/misplaced after the payment step, adding unsupported business behavior."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The basic submit→supervisor→treasurer→payment order appears on one path, but corrected reports do not reliably return to supervisor review as required, and an extra treasurer review is placed after payment/wait instead of ending the process."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Branching and retry behavior are materially wrong: after supervisor rejection or treasurer return, correction paths loop back to rejection/return states or exit directly toward treasurer/finalization instead of routing back to supervisor review; the successful payment-confirmation path also continues incorrectly instead of terminating."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires any corrected report—whether returned by the supervisor or the treasurer—to go back to supervisor review, and after treasurer acceptance the process must initiate payment, wait for payment confirmation, and then end. In the generated graph, the supervisor-rejection correction loop returns to a rejection state rather than to supervisor review, the treasurer-return correction loop returns to the treasurer-return state rather than to supervisor review, and both loops can exit directly to a merge leading to a treasurer review/finalization path. In addition, the payment/wait step flows to another treasurer review instead of ending. These are central semantic errors affecting retry routing, approval prerequisites, and successful termination across the whole process.",
+    "overall_score": 0.32,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.32",
+  "usage": {
+    "case_id": "5-4",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5978,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2278,
+    "reasoning_tokens": 1870,
+    "total_tokens": 8256,
+    "estimated_api_cost_usd": "0.04508300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0a53477a51ddbc8e016ab98d6573f887d1a21a269bee3d8985",
+    "retry_count": 0
+  }
+}

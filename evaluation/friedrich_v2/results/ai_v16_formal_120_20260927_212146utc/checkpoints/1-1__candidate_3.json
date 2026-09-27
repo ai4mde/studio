@@ -1,0 +1,46 @@
+{
+  "case_id": "1-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:23:19.550347+00:00",
+  "request_record_sha256": "64c0a8c1dbe09e470ce8a0dd500b82ef667b757e301ba82e6a01a16ce4a98e7d",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Most source activities are present with acceptable labels, including receive/accept/reject, inform, prepare, assemble, ship, and the storehouse handling steps."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph allows assemble and ship to occur before storehouse completion, and it also imposes reserve -> back-order ordering between actions that should be conditional alternatives rather than a required sequence."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Accepted-order control logic is incorrect: reserve vs. back-order is not modeled as a choice, the per-item repetition over the part list is missing, and synchronization is misplaced so assembly/shipping occur before the storehouse branch is completed."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires, after acceptance, parallel work between storehouse processing and engineering preparation, with assembly only after both preparation is finished and every part has been reserved or back-ordered; it also requires an availability-based choice between reserve and back-order repeated for each item. In the generated graph, the storehouse branch sequentially performs reserve then back-order, has no loop over part-list items, and the engineering branch proceeds from preparation directly to assembly, shipping, and finish before the join. This changes the core accepted-order behavior and permits success-path actions too early, so overall semantic preservation is substantially reduced despite many correct action labels.",
+    "overall_score": 0.41,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.41",
+  "usage": {
+    "case_id": "1-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5833,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1872,
+    "reasoning_tokens": 1503,
+    "total_tokens": 7705,
+    "estimated_api_cost_usd": "0.03863050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0beb903c6e1ff9d9016ab98930ff9c87d187ec2919af5ff1ef",
+    "retry_count": 0
+  }
+}

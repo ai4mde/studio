@@ -1,0 +1,46 @@
+{
+  "case_id": "10-9",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:56:45.548969+00:00",
+  "request_record_sha256": "8ba58df569defd2b0156d0d13c926be400b5769f64a7aac150f2b44886ef7515",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-9",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph covers the intended business actions: change initiation/request, MPO review, reject vs confirm, perform the measuring point change after confirmation, and either report implementation or notify failure."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is maintained: initiation/request precedes review; review precedes the reject/confirm decision; confirmed requests precede execution; execution precedes success/failure communication."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the main decision after review, ends the rejection path, and routes the confirmed path to execution followed by a success/failure alternative before termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the process meaning expressed in the source text. It represents change initiation, MPO review, the reject-versus-confirm decision, execution of the measuring point change only on the confirmation path, and the final alternative of reporting implementation or notifying failure. No meaningful action, ordering, branching, or termination behavior is semantically contradicted.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-9",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5191,
+    "cached_input_tokens": 4864,
+    "output_tokens": 1266,
+    "reasoning_tokens": 973,
+    "total_tokens": 6457,
+    "estimated_api_cost_usd": "0.02102350",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_029083c4cb988279016ab9910f485887d1adfa07ebe05dcb89",
+    "retry_count": 0
+  }
+}

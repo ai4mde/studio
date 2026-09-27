@@ -1,0 +1,46 @@
+{
+  "case_id": "3-5",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T20:48:46.902959+00:00",
+  "request_record_sha256": "ba46c8c7eea501eafde3bdee38a1195d731fc222de08de6a18abe8f14ef4b04a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-5",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All meaningful source activities are represented with acceptable paraphrase, including rejection handling and the compliant-path cashier and mailing tasks."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required early-to-late ordering is mostly preserved, but the graph imposes n14 before n15, whereas the source indicates those two compliant-path actions occur meantime rather than in that fixed sequence."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The main control-flow error is loss of the source’s concurrent/independent behavior after fee taking: posting the receipt/documents and capturing party details/printing the court file are modeled sequentially instead of as parallel-compatible work."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source describes the process accurately up to the quality-check decision and its compliant/non-compliant outcomes, and the candidate preserves those actions and branch conditions. The decisive defect is on the compliant path after fees are taken: the text says the Assistant Registry Manager posts the receipt and copied documents to the party and, meantime, the Cashier captures party details and prints the physical court file. The generated graph instead forces a fixed sequence where posting happens before the cashier’s final task. This changes the control behavior by removing the intended parallel-compatible execution and introduces an unsupported precedence relation, while otherwise preserving the process meaning.",
+    "overall_score": 0.86,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.86",
+  "usage": {
+    "case_id": "3-5",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5647,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1039,
+    "reasoning_tokens": 679,
+    "total_tokens": 6686,
+    "estimated_api_cost_usd": "0.02567050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_05c869e98f45ec13016ab9812126bc87d1b3047b2a9d1dfaf6",
+    "retry_count": 0
+  }
+}

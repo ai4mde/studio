@@ -1,0 +1,46 @@
+{
+  "case_id": "10-13",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:59:41.421603+00:00",
+  "request_record_sha256": "b10f2fbdb211173e6aae065d455011929a7161ef55abc9ef6ac2d3bd1d6fe608",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-13",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with correct meanings: INQ sends the request, IP checks it, and IP responds either by transmitting data or rejecting."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved: request transmission precedes checking, which precedes the outcome-specific response."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an outcome-based exclusive decision after examination, with the two intended alternatives leading to termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the source process semantics: INQ sends a transaction data request to IP, IP checks the request, and then IP responds according to the examination outcome by either transmitting data or rejecting the request. The branch structure, branch meanings, and overall termination behavior are all consistent with the original text.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-13",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4539,
+    "cached_input_tokens": 1792,
+    "output_tokens": 542,
+    "reasoning_tokens": 287,
+    "total_tokens": 5081,
+    "estimated_api_cost_usd": "0.01544550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0a6cc743661ac597016ab991c71d4887d1a2a784bdc6e91bd6",
+    "retry_count": 0
+  }
+}

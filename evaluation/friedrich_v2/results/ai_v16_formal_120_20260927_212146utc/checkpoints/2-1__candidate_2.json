@@ -1,0 +1,46 @@
+{
+  "case_id": "2-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:26:17.054536+00:00",
+  "request_record_sha256": "e239371edd2feb1a07be3dcf8302672b61677ad386b127e1fa804967b2ec7e55",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "2-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Most source business activities are represented with acceptable wording and granularity; the main semantic problems arise from where branches continue or terminate rather than from a broadly wrong action set."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Several required precedence relations are broken: the re-prioritization path does not continue to detailed-report creation, the restoration path does not proceed from trouble-shooting report to problem-resolution report, and the final customer-report/rebate work is forced into an unsupported sequence instead of the stated concurrent split."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Branching and continuation are materially wrong: premium and re-prioritization cases are modeled as terminating alternatives instead of continuing appropriately, the restoration branch rejoins at the wrong point, and the explicit concurrent Customer Service activities are serialized."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source process requires customer-significance handling to continue into detailed-report creation, with re-prioritization feeding back into the main flow and the premium case linking to an extra fix process without ending the main process. In the generated graph, the premium branch ends immediately and the re-prioritization action also ends the whole process, cutting off the entire downstream Service Management and Resource Provisioning behavior for those cases. In addition, the automatic-restoration branch sends a trouble-shooting report and then jumps directly to the final Customer Service tail instead of going through Service Management's required problem-resolution-report creation, and the final Customer Service activities that should be concurrent are serialized. These are central whole-graph control/continuation errors, so the process meaning is only partially preserved despite many correct local actions.",
+    "overall_score": 0.46,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.46",
+  "usage": {
+    "case_id": "2-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 9941,
+    "cached_input_tokens": 1792,
+    "output_tokens": 3949,
+    "reasoning_tokens": 3518,
+    "total_tokens": 13890,
+    "estimated_api_cost_usd": "0.08005550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_089934907db55fc7016ab989cb4f8887d184a2ef0c93e379f9",
+    "retry_count": 0
+  }
+}

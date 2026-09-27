@@ -1,0 +1,46 @@
+{
+  "case_id": "9-5",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-25T20:27:27.665468+00:00",
+  "request_record_sha256": "8009b7552f0fae6143ca3c0ac6963f2b2680d7828dc22e5009d290e8847af5ec",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-5",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The key business actions are present with acceptable meaning: receive report, conditional account creation, review, supervisor approval/rejection, rejection email, reimbursement, progress email, cancellation notice, and resubmission."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The matched action ordering is generally preserved: receipt precedes account setup and review, review precedes approval routing, rejection precedes rejection notice, and approved cases reach reimbursement-related handling. The main problem is branch continuation, not basic precedence."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Timeout behavior is modeled incorrectly. The graph treats reimbursement, 7-day progress email, and 30-day cancellation as exclusive post-approval alternatives, and the 7-day email branch terminates instead of allowing the request to continue toward later completion or 30-day cancellation if still unfinished."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source requires the 7-day 'approval in progress' email to be an interim notification for requests that remain incomplete, while the process can still later complete with reimbursement or, if still unfinished by 30 days, stop with cancellation and resubmission. In the generated graph, after approval the process goes to a single timeout decision that chooses either reimbursement, progress email, or cancellation, and the progress-email branch ends the process. This changes the behavior of delayed requests in a material way, even though the main approval/rejection actions and their ordering are otherwise mostly preserved.",
+    "overall_score": 0.64,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.64",
+  "usage": {
+    "case_id": "9-5",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5646,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1914,
+    "reasoning_tokens": 1523,
+    "total_tokens": 7560,
+    "estimated_api_cost_usd": "0.03879300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f8d217b512db93a016ab6d918084487d2b8d159345b437653",
+    "retry_count": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "6-2",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:43:18.892701+00:00",
+  "request_record_sha256": "0e7aafccb289a809c2ca54010d081fee0a230797780f77a90f2a7f6cecd0f2d8",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-2",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All stated business actions are present with correct meanings: send order, process order, send invoice, and receive invoice."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved as a straight sequence from order sending through invoice receipt."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a single linear process with no branching or looping among the listed actions, and the graph preserves that behavior with proper start and termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph captures all source-stated activities in the correct order: Assembler AG sends the order, the supplier processes it, the supplier sends the invoice, and Assembler AG receives it. No unsupported actions, missing actions, ordering errors, or control-flow errors are introduced. The source's periodic monthly start is reasonably abstracted by the graph's initial node rather than requiring an explicit timer construct, so the intended process meaning is preserved.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "6-2",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4241,
+    "cached_input_tokens": 1792,
+    "output_tokens": 623,
+    "reasoning_tokens": 343,
+    "total_tokens": 4864,
+    "estimated_api_cost_usd": "0.01591550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ad0d16db274830d016ab98defd59c87d1a8e16b639cf52051",
+    "retry_count": 0
+  }
+}

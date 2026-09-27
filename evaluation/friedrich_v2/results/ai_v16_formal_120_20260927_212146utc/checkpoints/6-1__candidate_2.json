@@ -1,0 +1,46 @@
+{
+  "case_id": "6-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:42:20.087036+00:00",
+  "request_record_sha256": "e8d0bc2415b2d5bd95a51369d096c3766ada45ae5a13392458dfafa3d53bb4db",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Initial receipt, forwarding, invoice creation, docket preparation, and inconsistency clarification are represented, but required later actions are missing or underspecified: commercial manager audit/approval, complaint handling during that audit, return to accounting, payment instruction, and closing the instance."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "A key required precedence is wrong: the graph decides on Board review before sending the invoice to the commercial manager, while the source requires commercial audit first and Board checking only afterward when applicable."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The cost-center-manager approval/correction cycle is only abstractly represented, and the post-approval control flow is incorrect: there is no commercial-audit complaint branch, no return from audit/Board to accounting, and the process terminates immediately after forwarding to the commercial manager."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The graph preserves the early intake and accounting-preparation phase and a rough rework loop for invoice-item inconsistencies, but it models the final approval/payment phase incorrectly. In the source, after all invoice items are approved, accounting sends the invoice to the commercial manager for commercial audit; if the amount exceeds EUR 20,000, the Board checks afterward; complaints in the commercial audit are resolved by accounting with the supplier; after successful completion, accounting gives payment instructions and closes the case. In the candidate, Board review is placed before the commercial manager, the commercial audit itself and its complaint handling are not modeled, there is no return to accounting, and the process ends right after forwarding to the commercial manager. These defects materially change outcome, continuation, and completion behavior for the final phase of the process.",
+    "overall_score": 0.45,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.45",
+  "usage": {
+    "case_id": "6-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5792,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1817,
+    "reasoning_tokens": 1383,
+    "total_tokens": 7609,
+    "estimated_api_cost_usd": "0.03770300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0cecc83e8122c607016ab98da7845c87d19153c9b797aa384a",
+    "retry_count": 0
+  }
+}

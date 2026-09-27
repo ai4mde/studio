@@ -1,0 +1,46 @@
+{
+  "case_id": "6-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:41:58.991680+00:00",
+  "request_record_sha256": "4cdc927b21dc9f049dae75763567a7085d486b622d85b93a8629007b150a1022",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Core setup and payment actions are present, but the graph omits explicit cost center manager review/AP marking behavior and omits the accounting employee’s complaint-resolution action during commercial audit."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Among the actions that are represented, the main precedence is kept: receipt and accounting setup precede manager circulation, which precedes commercial audit, optional board check, payment instruction, and closure."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The manager-approval loop is only roughly abstracted, and the graph misses the required complaint branch from commercial audit back to accounting/supplier clarification before payment can continue."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source requires that a complaint during the commercial audit triggers rework by the accounting employee with the supplier, and only after the commercial audit is successfully completed may payment instructions be given. In the generated graph, commercial audit always proceeds directly to the board-check decision and then to payment, so the unsuccessful/complaint path is missing and success-only continuation is not enforced. The graph also compresses the cost center managers’ actual review/AP-marking progression into a decision without clearly modeling that business activity. Because much of the overall process backbone is preserved but a required rework branch and some review semantics are lost, whole-graph semantic quality is materially reduced but not destroyed.",
+    "overall_score": 0.69,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The cost center manager review cycle is heavily abstracted: the decision label may be intended to summarize repeated manager review and approval, but the JSON does not clearly model those business actions explicitly. This affects how strongly to count the missing manager-review semantics, though the missing commercial-audit complaint branch remains a clear defect.",
+    "requires_human_review": true,
+    "review_reason": "Human review could reasonably change the score because the graph’s abstraction of the cost center manager review loop may or may not be accepted as semantically sufficient, even though the commercial-audit complaint-path defect is clear."
+  },
+  "overall_score_decimal": "0.69",
+  "usage": {
+    "case_id": "6-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 6107,
+    "cached_input_tokens": 1792,
+    "output_tokens": 3022,
+    "reasoning_tokens": 2549,
+    "total_tokens": 9129,
+    "estimated_api_cost_usd": "0.05656550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0be2943ecafaa7bb016ab98d821f7087d186c46406e738bdee",
+    "retry_count": 0
+  }
+}

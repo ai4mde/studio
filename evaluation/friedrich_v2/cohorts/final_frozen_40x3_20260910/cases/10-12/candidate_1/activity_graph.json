@@ -1,0 +1,102 @@
+{
+  "edges": [
+    {
+      "source": "n4",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n5",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "EC informs INQ about the change of master data",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "INQ notifies IP of the change",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "IP checks whether the master data can be changed at the desired time",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "type": "initial"
+    },
+    {
+      "id": "n5",
+      "type": "final"
+    },
+    {
+      "id": "n6",
+      "label": "IP decides whether to confirm or reject the master data change?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n7",
+      "name": "IP confirms the changes of the INQ",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "IP rejects the changes of the INQ",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

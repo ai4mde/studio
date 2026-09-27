@@ -1,0 +1,46 @@
+{
+  "case_id": "5-4",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:40:52.964399+00:00",
+  "request_record_sha256": "8cf6e76d518346e9006d54db13ae85289f03a3efd5a3a649903c8d13739cc53b",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-4",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most core activities are represented, but the initial purchase is omitted and treasurer checking is duplicated/misplaced after payment, adding unsupported behavior."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required precedence is broken: corrected reports do not reliably return to supervisor review, and an extra treasurer check is placed after payment instead of before it."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Branch continuation and recurrence are wrong: both correction loops are misrouted, approved/accepted processing continues incorrectly through a merge to another treasurer check, and some exits bypass required approval/payment behavior."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires any returned report to go back to the employee for correction and then again to supervisor review before any further treasurer handling; only after treasurer acceptance does payment occur, followed by waiting for confirmation and ending. In the generated graph, the supervisor-rejection loop cycles between rejection and employee resubmission without returning to the supervisor approval decision, the treasurer-return loop cycles back to the treasurer-return action instead of routing back through supervisor review, and a merge sends even the accepted-and-paid path to another treasurer check before termination. These defects change the core rework, approval, and completion behavior of the whole process, not just local labels.",
+    "overall_score": 0.3,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.3",
+  "usage": {
+    "case_id": "5-4",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5986,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1838,
+    "reasoning_tokens": 1479,
+    "total_tokens": 7824,
+    "estimated_api_cost_usd": "0.03850300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0afe4ad2245f7644016ab98d4e494c87d1a7eef6ac9751208d",
+    "retry_count": 0
+  }
+}

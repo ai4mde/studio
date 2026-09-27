@@ -1,0 +1,46 @@
+{
+  "case_id": "3-7",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:35:06.443374+00:00",
+  "request_record_sha256": "30fb83197707173bec1969d4fb6cc663cf62267d57bd6b9fd96087669a92ac8a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-7",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source activities are represented with acceptable paraphrase: search the police report, compile the file with claim documentation, calculate the initial estimate, create the action plan, negotiate settlement, and inform the claimant."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required linear precedence is preserved throughout: search report -> compile file -> estimate claim -> create action plan -> negotiate settlement -> inform claimant -> end."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a single straight-through process with normal termination after informing the claimant, and the graph preserves that behavior without unsupported branches or loops."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the process meaning expressed in the source text: it models the same six business actions in the same sequential order and ends after the claimant is informed of the negotiation outcome. Minor wording compression, such as not explicitly naming the Document Management system in the action-plan step, does not materially change behavior.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "3-7",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4516,
+    "cached_input_tokens": 1792,
+    "output_tokens": 431,
+    "reasoning_tokens": 148,
+    "total_tokens": 4947,
+    "estimated_api_cost_usd": "0.01372300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_07039f0ff5a3d491016ab98c05c76887d182d7d88b1ae718d1",
+    "retry_count": 0
+  }
+}

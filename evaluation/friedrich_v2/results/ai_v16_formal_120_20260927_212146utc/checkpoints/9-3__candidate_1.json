@@ -1,0 +1,46 @@
+{
+  "case_id": "9-3",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:50:08.736621+00:00",
+  "request_record_sha256": "4cd22c0e3ae840054a8e6716f8eb67a02a80fa8d7eef0e9daf0586f74b7eec6a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-3",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All stated business activities are present with correct actors and meanings, including drafting and calendar entry, support review and modification suggestion, coordination recheck for conflicts, email distribution of the final schedule, and members checking diaries and reporting conflicts."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved as a straight sequence from drafting through support review, recheck, sending the final schedule, and members advising conflicts."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The described process is represented as a single linear progression with correct continuation to completion; no source-stated branching, synchronization, or internal retry behavior is omitted."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the source's core process behavior: the Coordination Unit drafts the next year's meeting schedule and adds draft dates, the Support Officer reviews and suggests changes, the Coordination Unit rechecks for conflicts, the final schedule is emailed to Committee Members, and the members then check diaries and report conflicts. The sequence and continuation are correct, and no unsupported actions or routing are introduced. The only material interpretive question is whether 'In November of each year' should be modeled as an external temporal trigger/annual repetition rather than within the process graph itself; under the most defensible reading, the candidate still preserves the intended process semantics.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The phrase 'In November of each year' can reasonably be read either as contextual timing/external trigger for a process instance or as a required annually recurring behavior that should be modeled more explicitly. The candidate does not represent that temporal recurrence explicitly.",
+    "requires_human_review": true,
+    "review_reason": "Human review may be needed to confirm whether the annual November timing is merely contextual or must be represented as explicit recurrence/trigger semantics, which could affect the final diagnosis or score."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "9-3",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4451,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1087,
+    "reasoning_tokens": 651,
+    "total_tokens": 5538,
+    "estimated_api_cost_usd": "0.02340050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0d73323e26a561bf016ab98f83e4b087d1b8ab8a850618933a",
+    "retry_count": 0
+  }
+}

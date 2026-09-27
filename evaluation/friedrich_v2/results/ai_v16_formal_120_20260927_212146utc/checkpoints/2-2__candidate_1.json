@@ -1,0 +1,46 @@
+{
+  "case_id": "2-2",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:27:34.500298+00:00",
+  "request_record_sha256": "f6c529d744d14827912ff1966f69a6f87fd245c09ddbdceaf43b9d02db313d3a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "2-2",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business activities are largely represented with acceptable paraphrase and granularity, including data entry/checking, contract-document retry, grid-operator handling, contract acceptance/withdrawal, and meter-data import."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Most core precedence is preserved, but the final join adds an unsupported order: customer-service import of meter data can occur only after the old-supplier billing branch completes, whereas the source allows import after customer service receives the meter data."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The late-stage parallel section is synchronized incorrectly: customer-service continuation is forced to wait for unrelated old-supplier/grid-operator work. There is also a possible over-continuation from the supplier-concurrence path back into CIS contract creation, though that part is textually ambiguous."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source says that after the grid operator sends meter data to customer service, customer service imports that data into its systems, while the grid operator/old-supplier billing activities occur alongside and end for those parties. In the generated graph, the forked billing branch and the customer-service meter-data branch are joined before import, so importing meter data wrongly depends on completion of old-supplier billing work. This is a real synchronization/ordering change, but it is confined to the final part of an otherwise largely faithful process model, so the whole-graph impact is moderate rather than fundamental. Separately, the text is unclear about whether the supplier-concurrence branch should later rejoin before CIS contract creation; the graph does rejoin it, which may or may not be an additional defect.",
+    "overall_score": 0.8,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source clearly states CIS contract creation for the no-objection/no-supplier-concurrence case, but it is not fully explicit whether the supplier-concurrence branch, after conflict handling, should eventually continue to the same CIS-contract step. That interpretive difference could change whether the graph has an additional control-flow defect and could affect the score.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted because the supplier-concurrence continuation is materially ambiguous in the source and could change the final diagnosis or score."
+  },
+  "overall_score_decimal": "0.8",
+  "usage": {
+    "case_id": "2-2",
+    "candidate_id": "candidate_1",
+    "input_tokens": 8018,
+    "cached_input_tokens": 0,
+    "output_tokens": 4167,
+    "reasoning_tokens": 3639,
+    "total_tokens": 12185,
+    "estimated_api_cost_usd": "0.08255000",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_015de456f9c66763016ab98a18626087d1b39b29479e79b3cc",
+    "retry_count": 0
+  }
+}

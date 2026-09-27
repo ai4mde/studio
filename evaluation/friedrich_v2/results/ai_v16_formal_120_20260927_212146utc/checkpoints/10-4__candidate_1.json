@@ -1,0 +1,46 @@
+{
+  "case_id": "10-4",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:54:04.754164+00:00",
+  "request_record_sha256": "4140a0ef4fa1451333dabb2adf4c0ef68f054e2cc00cd65e0c268779d6d51d8d",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-4",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are present with materially correct meanings, including the two MPOO notification alternatives and the downstream reporting steps."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved from initial MPON notification, through the MPOO alternative, then final reading, dismounting, mounting, reading, and the two reporting steps to completion."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the exclusive MPOO alternative between self-dismounting announcement and no-self-dismounting notification, then merges back to the common continuation."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the process semantics expressed in the source text. It includes the initial MPON notification, the exclusive MPOO choice between announcing self-dismounting or notifying no self-dismounting, and the subsequent common sequence of final reading, dismounting old equipment, mounting the new device, reading the installed meter, reporting final-reading values to the GO, reporting device-change/master-data/installation-count details to the GO, and GO notification to the MSP. No meaningful action, ordering, or control-flow defect is evident.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-4",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5474,
+    "cached_input_tokens": 1792,
+    "output_tokens": 743,
+    "reasoning_tokens": 418,
+    "total_tokens": 6217,
+    "estimated_api_cost_usd": "0.02079800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ab5e455333deafd016ab99074b12087d1a531c05c7c448ec3",
+    "retry_count": 0
+  }
+}

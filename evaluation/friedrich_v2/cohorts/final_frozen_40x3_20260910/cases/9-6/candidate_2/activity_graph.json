@@ -1,0 +1,315 @@
+{
+  "edges": [
+    {
+      "source": "n5",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "test_pass",
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "label": "test_fail",
+      "source": "n12",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "source": "n18",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "source": "n19",
+      "target": "n20",
+      "type": "control"
+    },
+    {
+      "label": "test_pass",
+      "source": "n20",
+      "target": "n21",
+      "type": "control"
+    },
+    {
+      "label": "test_fail",
+      "source": "n20",
+      "target": "n22",
+      "type": "control"
+    },
+    {
+      "source": "n21",
+      "target": "n23",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n24",
+      "type": "control"
+    },
+    {
+      "source": "n23",
+      "target": "n24",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n22",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n24",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n25",
+      "type": "control"
+    },
+    {
+      "label": "combined_test_fail",
+      "source": "n25",
+      "target": "n26",
+      "type": "control"
+    },
+    {
+      "label": "combined_test_pass",
+      "source": "n25",
+      "target": "n27",
+      "type": "control"
+    },
+    {
+      "source": "n26",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n27",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n6",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "locate and distribute any relevant existing electrical and physical designs",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "combine revised electrical and physical designs",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "test combined design",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "send completed designs to manufacturing process",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "type": "initial"
+    },
+    {
+      "id": "n6",
+      "type": "final"
+    },
+    {
+      "id": "n7",
+      "origin_block_id": "T1",
+      "type": "fork"
+    },
+    {
+      "id": "n8",
+      "name": "review any existing or previous electrical designs",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "create update plan for electrical design",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "revise electrical design using update plan and existing draft",
+      "origin_step_id": "T1_branch_1_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "test revised electrical design",
+      "origin_step_id": "T1_branch_1_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "label": "branch on electrical design test result?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n13",
+      "name": "notify physical design department to restart their work",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "review electrical design and create new update plan",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "origin_block_id": "T2",
+      "type": "merge"
+    },
+    {
+      "id": "n16",
+      "name": "review any existing or previous physical designs",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "name": "create update plan for physical design",
+      "origin_step_id": "T1_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "name": "revise physical design using update plan and existing draft",
+      "origin_step_id": "T1_branch_2_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n19",
+      "name": "test revised physical design",
+      "origin_step_id": "T1_branch_2_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n20",
+      "label": "branch on physical design test result?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n21",
+      "name": "notify electrical design department to restart their work",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n22",
+      "name": "review physical design and create new update plan",
+      "origin_step_id": "T3_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n23",
+      "origin_block_id": "T3",
+      "type": "merge"
+    },
+    {
+      "id": "n24",
+      "origin_block_id": "T1",
+      "type": "join"
+    },
+    {
+      "id": "n25",
+      "label": "branch on combined design test result?",
+      "origin_block_id": "T4",
+      "type": "decision"
+    },
+    {
+      "id": "n26",
+      "name": "send both designs back to the beginning to initiate another design cycle",
+      "origin_step_id": "T4_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n27",
+      "origin_block_id": "T4",
+      "type": "merge"
+    }
+  ]
+}

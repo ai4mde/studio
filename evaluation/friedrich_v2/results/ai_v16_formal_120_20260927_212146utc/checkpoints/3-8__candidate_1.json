@@ -1,0 +1,46 @@
+{
+  "case_id": "3-8",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:35:23.780706+00:00",
+  "request_record_sha256": "e773fdec85451559dddcb8bb07fdb8d151f68035a9872a17beac56e2a72b3d7b",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-8",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph covers the substantive activities: claim receipt/submission, document completeness check, claim registration, insurance check, assessment, positive-path repair authorization then payment scheduling, negative-path rejection, and final customer letter. Omission of an explicit separate 'pick up the claim' step is an acceptable abstraction here."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is maintained: receipt before document check before registration before insurance check before assessment; on the positive path, garage authorization precedes payment scheduling; the customer letter follows either outcome."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The assessment outcome is correctly modeled as a positive/negative decision, the positive and negative branches contain the right actions, both branches rejoin, and the process completes only after sending the customer letter in either case."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the source process semantics: after claim receipt, documents are checked and the claim is registered, then insurance is checked and an assessment is performed. The assessment correctly determines either the positive path of authorizing repairs and then scheduling payment, or the negative path of rejecting the claim. Both outcomes converge to sending a letter to the customer, after which the process ends. The graph uses acceptable abstraction for the departmental handoff/pickup wording without changing business behavior.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "3-8",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5103,
+    "cached_input_tokens": 1792,
+    "output_tokens": 871,
+    "reasoning_tokens": 515,
+    "total_tokens": 5974,
+    "estimated_api_cost_usd": "0.02179050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_002fcd7713e14bfc016ab98c10e09887d182b8383e106e2792",
+    "retry_count": 0
+  }
+}

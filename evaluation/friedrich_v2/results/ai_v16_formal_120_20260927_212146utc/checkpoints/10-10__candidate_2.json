@@ -1,0 +1,46 @@
+{
+  "case_id": "10-10",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:57:39.019307+00:00",
+  "request_record_sha256": "9c095a92727ac8388751afea5ca317c9020efc14250b2a11b0593b04b3c08e85",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-10",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the reported/suspected fault, examination, reject-or-confirm outcome, confirm-branch notification, repair, sharing repair results, and final resolution notices with acceptable paraphrase and grouping."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Under the most defensible reading of the source, the required precedence is preserved: report/suspicion precedes examination, then decision, then on confirmation notification precedes repair, sharing, and resolution notices."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models a reject/confirm decision and routes the repair-and-notification sequence only through the confirmed branch, which is the most plausible reading of the text."
+    },
+    "main_error_type": "none",
+    "explanation": "Provisionally, the generated graph preserves the source process semantics. It models the initial trigger, MPO examination, the reject/confirm decision, the confirmed-branch notification to GO and MSP, repair of the measuring device fault, sharing repair results with the fault detector, and informing GO and MSP of the resolution. The main interpretive issue is that the source text does not explicitly state whether the repair/resolution steps occur only after confirmation or also after rejection; the graph chooses confirmed-only continuation and termination after rejection. That is the more behaviorally plausible reading, so no definite semantic defect is found in this candidate.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source text is materially ambiguous about branch continuation after the reject/confirm decision. After stating 'If the MPO confirms ... he informs the GO and the MSP,' the later repair and resolution steps are listed without an explicit condition. One plausible reading is that those later steps occur only after confirmation; another is that they continue after the decision more generally. The candidate adopts the confirmed-only reading.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted because the source ambiguity about whether post-decision repair/resolution steps are conditioned on confirmation could change the control-flow diagnosis and score."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-10",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5283,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1498,
+    "reasoning_tokens": 1034,
+    "total_tokens": 6781,
+    "estimated_api_cost_usd": "0.03164550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0604e0613cda321d016ab9913fbe8087d1bc87fe42458cdcfc",
+    "retry_count": 0
+  }
+}

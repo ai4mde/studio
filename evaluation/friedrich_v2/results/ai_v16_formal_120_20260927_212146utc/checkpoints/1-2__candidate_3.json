@@ -1,0 +1,46 @@
+{
+  "case_id": "1-2",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:24:55.162982+00:00",
+  "request_record_sha256": "0a9c12c2927b25ec6d17671c56a80efc90d95c25bdf1183fdefc811c7a85d0a2",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-2",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph covers the main business activities stated in the text: intake, defect check, cost estimate, accept/reject decision, hardware repair, software configuration, testing, extra repair on error, and unrepaired return."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Core precedence is largely preserved: bring in computer -> check defect -> provide cost calculation -> accept/reject, and each repair activity precedes its corresponding test. The source leaves hardware/software order open, so the split does not by itself violate required precedence."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The main defect is post-test behavior: when an error is detected, the graph performs one extra repair activity and then terminates, rather than clearly continuing the repair logic. The accepted path also enforces completion of both repair branches before finishing, which may be stronger than the text."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source describes a repair process where, after testing following repair work, an error leads to another arbitrary repair activity, while no error leads to finishing the repair. In the generated graph, each error branch goes to 'perform another arbitrary repair activity' and then directly to the final end state. That changes the repair-phase behavior from continued repair handling into immediate termination after a single extra action. The intake, quotation, acceptance/rejection, and main repair/test actions are represented, so the graph preserves much of the process, but the error-handling continuation is semantically wrong and materially affects the overall process meaning.",
+    "overall_score": 0.67,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source text is materially ambiguous about whether the two named repair activities both must complete before the repair can finish, and whether 'another arbitrary repair activity' implies a loop back into further repair/testing or merely one additional final repair step. The graph's join-after-both-successes may or may not be acceptable under those interpretations, but the error-branch termination remains questionable.",
+    "requires_human_review": true,
+    "review_reason": "Source ambiguity around the repair-phase completion and recurrence semantics could change how strongly the join structure and error handling should be penalized, and thus could change the final score."
+  },
+  "overall_score_decimal": "0.67",
+  "usage": {
+    "case_id": "1-2",
+    "candidate_id": "candidate_3",
+    "input_tokens": 6067,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2749,
+    "reasoning_tokens": 2240,
+    "total_tokens": 8816,
+    "estimated_api_cost_usd": "0.05237050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ff7f2b97cfcb80a016ab989840f8087d18fc20bb060ebf718",
+    "retry_count": 0
+  }
+}

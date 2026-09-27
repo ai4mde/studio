@@ -1,0 +1,146 @@
+[
+  {
+    "case_id": "1-1",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "3e0fb019269b82b637f6dd5a0eb0252ee972b3a702228d9a65c42b83928f6029",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/1-1__candidate_1__attempt_1.json"
+  },
+  {
+    "case_id": "1-1",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "19d860e711961c2c5248ba1cea5d53c413621e360c8362f406f2222ddc92751a",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/1-1__candidate_2__attempt_1.json"
+  },
+  {
+    "case_id": "1-1",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "64c0a8c1dbe09e470ce8a0dd500b82ef667b757e301ba82e6a01a16ce4a98e7d",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/1-1__candidate_3__attempt_1.json"
+  },
+  {
+    "case_id": "3-2",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "6c9909a172223d157f3707d970b13efd6a022cb44022343eb0ecb1bd07e3aba4",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/3-2__candidate_1__attempt_1.json"
+  },
+  {
+    "case_id": "3-2",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "68b494b729af0cc211ad3dbac43622991f5fe084a0f414d212cb8fd24bfa1762",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/3-2__candidate_2__attempt_1.json"
+  },
+  {
+    "case_id": "3-2",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "70f92c18f3c84789843149efc510ecc1d37c4cd2afd5feddd74ce3da31944d38",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/3-2__candidate_3__attempt_1.json"
+  },
+  {
+    "case_id": "3-4",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "39813b82a2eaf58b8b4322602014aa5def3c503d932aecea65bd4d2c13215461",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/3-4__candidate_1__attempt_1.json"
+  },
+  {
+    "case_id": "3-4",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "4d368a55a8f45995221c4f811ff7c4c907f9bd331c6ad8f618613fdd4bc40095",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/3-4__candidate_2__attempt_1.json"
+  },
+  {
+    "case_id": "3-4",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "29f7416929858c541feb0f417abb6134e553d78ab2f3cfa97ba7213031bd26ab",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/3-4__candidate_3__attempt_1.json"
+  },
+  {
+    "case_id": "6-4",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "8cbee7d9b7f74037a169359322562e2a2528713e3462108b6a184764a0333ee7",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/6-4__candidate_1__attempt_1.json"
+  },
+  {
+    "case_id": "6-4",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "7eee48bf62d17962861a485023fe85623a076cea8f58e395584babf94f9a8903",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/6-4__candidate_2__attempt_1.json"
+  },
+  {
+    "case_id": "6-4",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "e78c76b77a80cb27c72be9280ad9085645873ead10e155034a9a844362ee292d",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/6-4__candidate_3__attempt_1.json"
+  },
+  {
+    "case_id": "8-2",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "9ab71b37635c8471cd4c398f8fd75fbe532dbb2a6fa1d5a28942038836fb9fac",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/8-2__candidate_1__attempt_1.json"
+  },
+  {
+    "case_id": "8-2",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "c8327e99141b510a03556cdc593761705402bb1ac9f8b44ed967e1049cdc5b1c",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/8-2__candidate_2__attempt_1.json"
+  },
+  {
+    "case_id": "8-2",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "1cd6f926835bd56a526d390f73da50142e1ab7bc792580a51ab8072575663d63",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/8-2__candidate_3__attempt_1.json"
+  },
+  {
+    "case_id": "9-5",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "8009b7552f0fae6143ca3c0ac6963f2b2680d7828dc22e5009d290e8847af5ec",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/9-5__candidate_1__attempt_1.json"
+  },
+  {
+    "case_id": "9-5",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "f911bfcb48604d51873017c28c7f1205a448e08fd488b2f7f5c8c0251c6293cf",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/9-5__candidate_2__attempt_1.json"
+  },
+  {
+    "case_id": "9-5",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "77fbecb26f6e7a3f027f6c68e9678b5463bc912eb8242fa67e905f63fe06a0af",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_calibration_18_20260925_201629utc_connectivity1/raw_responses/9-5__candidate_3__attempt_1.json"
+  }
+]

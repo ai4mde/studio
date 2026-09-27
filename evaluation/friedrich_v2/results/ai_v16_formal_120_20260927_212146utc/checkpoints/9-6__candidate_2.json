@@ -1,0 +1,46 @@
+{
+  "case_id": "9-6",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:53:17.253302+00:00",
+  "request_record_sha256": "31bea41954ea5fba1a01932a6eb3cea43a9f63b14eb29a5ffcf927318663070f",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-6",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Most source activities are represented with acceptable paraphrase/grouping: locate/distribute designs, parallel departmental review-plan-revise-test work, cross-department notification, combine/test, and send to manufacturing."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The represented action order is largely preserved: distribution precedes parallel department work, each department follows review -> plan -> revise -> test, and combination/testing occurs after both branches reach completion. The main problems are restart/termination behaviors rather than simple precedence reversals."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Core control behavior is wrong: failed departmental tests terminate instead of looping back through the department cycle, successful updates only notify the other branch without actually interrupting/restarting it, and combined-test failure terminates instead of starting another design cycle."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source describes an iterative parallel co-design process with three central control behaviors: departmental test failure must restart that department's cycle, a successful update in one department must interrupt and restart the other department's in-progress work, and combined-design failure must send both designs into another design cycle. The generated graph preserves many activity labels and basic local ordering, but it converts all three restart/recurrence behaviors into dead-end or non-operative paths: departmental failures go to a review action and then end, cross-department 'restart' is only a notification with no restart path, and combined-test failure goes to an action and then ends. As a result, the graph models a mostly one-pass process rather than the required iterative interruptible coordination process.",
+    "overall_score": 0.39,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.39",
+  "usage": {
+    "case_id": "9-6",
+    "candidate_id": "candidate_2",
+    "input_tokens": 7135,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2451,
+    "reasoning_tokens": 2038,
+    "total_tokens": 9586,
+    "estimated_api_cost_usd": "0.05057050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_02190a259afe6d67016ab99030ffb487d18185db9cce992701",
+    "retry_count": 0
+  }
+}

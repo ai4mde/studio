@@ -1,0 +1,46 @@
+{
+  "case_id": "3-5",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:32:46.577920+00:00",
+  "request_record_sha256": "09fcbbec5b1f9d47aeccbaf6ca435c36619964b9aeba970b44f7799489ed7a25",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-5",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All main business actions are represented with acceptable wording, including collection, sorting, registry handling, quality check, rejection handling, fee handling, posting, and court-file preparation."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Most required precedence is preserved, but the compliant path imposes an unsupported order: posting the receipt/documents must finish before capturing Party Details and printing the Physical Court File."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The rejection decision is modeled correctly, but the compliant path loses the source’s concurrent/parallel behavior signaled by 'Meantime' and serializes activities that should proceed independently after fee handling."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source process is largely preserved through mail collection, sorting, registry registration, quality check, and the compliant/non-compliant decision. The non-compliant branch is also represented appropriately. The main semantic defect is on the compliant branch: after matter details are provided and fees are taken, the source states that the Assistant Registry Manager posts the receipt and copied documents to the party while, meantime, the Cashier captures Party Details and prints the Physical Court File. The generated graph instead makes these activities strictly sequential, requiring posting to occur before Party Details are captured and the file is printed. This changes the control behavior and introduces an unsupported ordering between source actions, while otherwise preserving most of the process.",
+    "overall_score": 0.8,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.8",
+  "usage": {
+    "case_id": "3-5",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5855,
+    "cached_input_tokens": 4864,
+    "output_tokens": 1081,
+    "reasoning_tokens": 703,
+    "total_tokens": 6936,
+    "estimated_api_cost_usd": "0.01990850",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0230ff7f43cdbb54016ab98b712d7487d18ec100ac6def6311",
+    "retry_count": 0
+  }
+}

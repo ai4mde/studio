@@ -1,0 +1,46 @@
+{
+  "case_id": "1-2",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:24:19.525586+00:00",
+  "request_record_sha256": "09ece181ef8d011b9b561d0852af267b29961f592f2a0ddc33d5eadd99cc8f42",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-2",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All key business activities are represented with acceptable paraphrase: intake, defect check, cost calculation, accept/reject decision, hardware and software work, post-activity testing, extra repair on error, and unrepaired return."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Represented matched-action precedences are preserved: intake before diagnosis before cost quote, each repair activity before its test, and no unsupported order is imposed between hardware and software work."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The accepted-repair part wrongly allows an error on either test to terminate the whole process immediately after an extra repair action, bypassing completion/synchronization of the other required repair activity."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source says that, once the customer accepts the cost, the ongoing repair consists of two activities—hardware repair and software configuration—in arbitrary order, each followed by a functionality test. The graph correctly models the quotation decision, the rejection path, and the unordered execution of hardware/software work. However, after either test detects an error, the graph sends execution directly to a final node after 'perform another arbitrary repair activity'. Under the most defensible reading of the source, both primary repair activities belong to the accepted repair and should not be bypassed by one branch's error outcome. This makes the error branches terminate incorrectly and can skip the other required repair branch, so overall semantics are only partially preserved.",
+    "overall_score": 0.62,
+    "severity": "major",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The wording after the tests is somewhat ambiguous: 'If an error is detected another arbitrary repair activity is executed, otherwise the repair is finished.' This could be read narrowly as branch-local error handling, but the stronger surrounding statement that the ongoing repair consists of two activities supports the provisional judgment that both primary activities are required before completion.",
+    "requires_human_review": true,
+    "review_reason": "Source-text ambiguity about whether an error-triggered extra repair may end the process before the other primary repair activity is completed could plausibly change the defect diagnosis and score."
+  },
+  "overall_score_decimal": "0.62",
+  "usage": {
+    "case_id": "1-2",
+    "candidate_id": "candidate_2",
+    "input_tokens": 6069,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2481,
+    "reasoning_tokens": 1996,
+    "total_tokens": 8550,
+    "estimated_api_cost_usd": "0.04835550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_00420395f2a58fa7016ab9896586cc87d1aab14f0aa2075ef5",
+    "retry_count": 0
+  }
+}

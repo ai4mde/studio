@@ -1,0 +1,46 @@
+{
+  "case_id": "10-8",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:56:08.346150+00:00",
+  "request_record_sha256": "8b6cc1bd27a724e5e587cc204e3c883aa4d0515f77a3f1ea117eeb2e95e05bd7",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-8",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source activities are represented with matching meanings: deregistration, verification, reject/preliminary confirm alternative, self-assignment as MSP, and the three notifications."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is maintained: deregistration before verification, then the reject/confirm alternative, then assignment, then the notifications in the stated order."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The decision between rejection and preliminary confirmation is correctly modeled as alternatives that rejoin before the subsequent common continuation."
+    },
+    "main_error_type": "none",
+    "explanation": "The graph faithfully represents the described process: MSPO deregisters at the GO, the GO verifies, then a decision leads to either rejection or preliminary confirmation of the deregistration, after which the process continues with the GO assigning himself as MSP and informing the MSPO, MPO, and SP. No meaningful action, ordering, branching, or continuation semantics from the source text are lost or changed.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-8",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5047,
+    "cached_input_tokens": 1792,
+    "output_tokens": 577,
+    "reasoning_tokens": 294,
+    "total_tokens": 5624,
+    "estimated_api_cost_usd": "0.01724050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f8c92e074f0c5c2016ab990f14db087d185f09cdff4407018",
+    "retry_count": 0
+  }
+}

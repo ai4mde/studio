@@ -1,0 +1,46 @@
+{
+  "case_id": "4-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:36:49.952241+00:00",
+  "request_record_sha256": "a03fa707d412011a5f1ba16e0ba72e16225e5713e51fdd1a8f34586cd7c197cd",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "4-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Nearly all required business activities are represented with acceptable grouping/paraphrase, including intake, assignment, optional medical-file request, both intaker meetings, documentation, and treatment-plan formulation."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph imposes unsupported precedence: the first intaker cannot start until the medical-file branch is resolved, and the second intaker cannot start until the first intaker sequence finishes, although the source does not require those orders."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The main control-flow error is loss of independent progression between the medical-file request, first-intaker work, and second-intaker work; the model serializes them instead of allowing the source-intended conditional waiting only for the second intaker."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source describes three mid-process threads with different dependencies: after assignment, the secretarial office may request the medical file; the first intaker plans and performs the first meeting as soon as possible; and the second intaker plans the first meeting only after medical information has been received if it is required. The candidate preserves the actions but turns this into one linear sequence: optional medical-file handling completes first, then the full first-intaker path, then the second-intaker path. This adds unsupported waiting for the first intaker and unsupported sequencing between the two intakers, changing the intended coordination behavior even though the major activities and final treatment-plan outcome remain present.",
+    "overall_score": 0.73,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.73",
+  "usage": {
+    "case_id": "4-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 8424,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2010,
+    "reasoning_tokens": 1616,
+    "total_tokens": 10434,
+    "estimated_api_cost_usd": "0.04717800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0faadd4d96909535016ab98c595c9c87d1a483ceb5a632cd8c",
+    "retry_count": 0
+  }
+}

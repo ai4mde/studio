@@ -1,0 +1,46 @@
+{
+  "case_id": "5-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:37:52.001787+00:00",
+  "request_record_sha256": "3ac6ac498aae259414c6743234caed2878496bf8a0588d77b669be34767dcbb2",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All meaningful source actions are represented: receive request, assess risk, approve or deny, route to approver when needed, and provide customer feedback."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is maintained: request receipt precedes risk assessment, which precedes outcome selection, which precedes customer feedback."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph preserves the intended exclusive outcomes after assessment: approve, deny, or send to approver, followed by continuation to customer feedback and termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph semantically matches the source process: it receives the loan request, invokes risk assessment, then chooses among approval, denial, or sending the request to the approver service, and finally provides feedback to the customer. The generic feedback step reasonably covers feedback coming from either the assessor or the approver, and the decision structure adequately represents the source alternatives based on risk and amount. No meaningful behavioral defect is evident.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "5-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4875,
+    "cached_input_tokens": 3840,
+    "output_tokens": 1036,
+    "reasoning_tokens": 745,
+    "total_tokens": 5911,
+    "estimated_api_cost_usd": "0.01908750",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_037b2faa52498f2e016ab98ca5038887d1a15d5cbcbb147275",
+    "retry_count": 0
+  }
+}

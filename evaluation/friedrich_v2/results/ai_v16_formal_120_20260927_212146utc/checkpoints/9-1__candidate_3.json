@@ -1,0 +1,46 @@
+{
+  "case_id": "9-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:49:55.392931+00:00",
+  "request_record_sha256": "145107f8fcbb325165b76890eeeeab6606a97c7eebdd5653a2d54f533144ccd4",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The core business activities are present with acceptable action/decision splitting, including backup, record checks, CRM checks, registration, optional table production/send, reconciliation, and supervisor notifications."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence among matched actions is maintained: backup before checking records, the no-new-records path before first CRM-dependent actions, and the later CRM/reconciliation stage after the first stage."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The deadline escalations are modeled as checks reached only after the preceding work completes, rather than as escalations triggered when work is still incomplete at 2:30 pm or 4:00 pm."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The graph preserves most business actions and their ordering, but it changes the deadline behavior. In the source, if the first-stage work is not completed by 2:30 pm, an alert must be sent, and if the later reconciliation work is not completed by 4:00 pm, a supervisor message must be sent. In the candidate, both time checks occur only after the relevant work path has already completed and reached a later decision node, so overdue work would not trigger the required escalation at the deadline and may never trigger it if completion is never reached. This is a meaningful control-flow defect even though the main activity sequence is otherwise close to the source.",
+    "overall_score": 0.84,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.84",
+  "usage": {
+    "case_id": "9-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 6509,
+    "cached_input_tokens": 1792,
+    "output_tokens": 5025,
+    "reasoning_tokens": 4647,
+    "total_tokens": 11534,
+    "estimated_api_cost_usd": "0.08761550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0d4c17976c606855016ab98f4e257887d1b43fd0f0170408b4",
+    "retry_count": 0
+  }
+}

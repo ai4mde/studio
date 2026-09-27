@@ -1,0 +1,46 @@
+{
+  "case_id": "9-3",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:50:19.852647+00:00",
+  "request_record_sha256": "81942ced93acce8f1f3196965297a3bcd72aba15a0f9c18a6b7bf58185e991e8",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-3",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source activities are present with faithful meanings, including drafting and adding draft dates, checking and suggesting modifications, rechecking for conflicts, sending the final schedule, and members checking diaries and reporting conflicts."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved as a straight sequence: draft/add dates -> support review -> coordination recheck -> send final schedule -> members review diaries and advise conflicts."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a simple sequential process with no branching, looping, or parallelism, and the graph preserves that behavior and termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph captures the full business process described in the source: the Coordination Unit drafts the schedule and adds draft dates, the Support Officer reviews and suggests changes, the Coordination Unit rechecks for conflicts, the final schedule is emailed to Committee Members, and they then check diaries and report conflicts. The ordering and continuation are preserved, and the source does not require additional branching, synchronization, or explicit loop structure for the annual context beyond this sequential process description.",
+    "overall_score": 1.0,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1.0",
+  "usage": {
+    "case_id": "9-3",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4445,
+    "cached_input_tokens": 1792,
+    "output_tokens": 829,
+    "reasoning_tokens": 516,
+    "total_tokens": 5274,
+    "estimated_api_cost_usd": "0.01951550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_05481c4f8ed3e932016ab98f912f1087d18275bed9cb3495be",
+    "retry_count": 0
+  }
+}

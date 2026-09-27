@@ -1,0 +1,46 @@
+{
+  "case_id": "8-2",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-25T20:26:05.286798+00:00",
+  "request_record_sha256": "9ab71b37635c8471cd4c398f8fd75fbe532dbb2a6fa1d5a28942038836fb9fac",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-2",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most business actions are represented, but the required resubmission after making corrections is missing; the graph goes from correction directly to another approval/rejection decision."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "The main create/clarify/submit-before-post ordering is broadly preserved, but the required correction-to-resubmission recurrence cannot be fully matched because the repeated submission step is absent."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The rejection/rework loop is not preserved: the graph introduces an extra approval shortcut, routes retry into correction before a clear rejection request, and ends after rejection on the later decision instead of looping back until approval."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source process requires a clear review loop: submit the description, if rejected and correction is requested then correct it, submit it again, and repeat until final approval, after which the job is posted. In the generated graph, correction does not return to submission, a second approval/rejection decision appears only after correction, and a rejection there terminates the process instead of continuing the rework cycle. This breaks the central recurrence behavior of the process, even though many individual actions and the successful approval-to-posting outcome are still recognizable.",
+    "overall_score": 0.44,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.44",
+  "usage": {
+    "case_id": "8-2",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5119,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2227,
+    "reasoning_tokens": 1881,
+    "total_tokens": 7346,
+    "estimated_api_cost_usd": "0.04217050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_079b6f53e309acd7016ab6d8c09e6c87d2b960e3c3cfe496f7",
+    "retry_count": 0
+  }
+}

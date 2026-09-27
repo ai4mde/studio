@@ -1,0 +1,46 @@
+{
+  "case_id": "10-14",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T22:00:23.003498+00:00",
+  "request_record_sha256": "5ebd4459d85e98887384fdf62feed46859346538fc3e49eb775be6064e627114",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-14",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph includes the main business actions: examining each listed bill type and then either confirming with payment advice or rejecting the invoice. The sending conditions are abstracted away, which is acceptable here."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph forces all four bill-examination actions into one fixed sequence before any confirm/reject outcome, introducing unsupported ordering among source cases and delaying the outcome until after all examinations."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The source describes conditional alternative invoice cases, each leading to examination and then confirmation or rejection. The graph incorrectly models them as one linear path with a single decision after all four examinations."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source text lists four conditional invoice scenarios: depending on which bill is sent, the relevant party examines that bill, and then the GO or MPON confirms it with payment advice or rejects it. The generated graph instead requires all four examination actions to occur in sequence and only then allows a single confirm/reject decision. This collapses alternative cases into one combined process instance, adds unsupported precedence between bill types, and changes when the final decision can occur. Although the main action labels are mostly present, the whole-graph behavior is materially different.",
+    "overall_score": 0.4,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.4",
+  "usage": {
+    "case_id": "10-14",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4865,
+    "cached_input_tokens": 3840,
+    "output_tokens": 1065,
+    "reasoning_tokens": 718,
+    "total_tokens": 5930,
+    "estimated_api_cost_usd": "0.01949750",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_00ac0fadf249a6c6016ab991e97ab087d19eabf9e14afbeb66",
+    "retry_count": 0
+  }
+}

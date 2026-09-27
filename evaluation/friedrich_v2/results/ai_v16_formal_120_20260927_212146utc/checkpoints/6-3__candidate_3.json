@@ -1,0 +1,46 @@
+{
+  "case_id": "6-3",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:44:32.183128+00:00",
+  "request_record_sha256": "43c843cf2a9ee3fd48af2d30555ddaf3554d967bb84d63d06e463ad728f049c8",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-3",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "The graph captures determining requirements, PPS entry, missing-parts procurement, and implementation, but it omits the required manual transfer of data to the ERP system and distorts the final quality-check activity into a recheck/retry construct."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "The preserved matched actions follow the expected overall order, but the omitted ERP-transfer step makes the required sequencing around that source step not fully assessable."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The missing-parts decision with an optional procurement branch is preserved, but the ending is changed into an unsupported success/retry loop that sends the process back from quality control to implementation."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires: determine parts/quantities/date, enter data into PPS, manually transfer the data to ERP as a second step, then decide whether procurement is needed, proceed to implementation when production is to start, and finally perform a quality check. The generated graph preserves the main preparation and procurement-decision skeleton, but it drops the manual ERP transfer entirely and replaces the simple final quality check with a decision-based retry loop that can return to implementation. These changes materially alter both process completeness and the end-of-process behavior, though much of the core sequence remains recognizable.",
+    "overall_score": 0.63,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.63",
+  "usage": {
+    "case_id": "6-3",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5016,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2049,
+    "reasoning_tokens": 1693,
+    "total_tokens": 7065,
+    "estimated_api_cost_usd": "0.03924300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_082a577f8ae50778016ab98e28a0b887d1a9e536b230dfceb3",
+    "retry_count": 0
+  }
+}

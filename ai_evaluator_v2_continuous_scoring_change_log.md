@@ -1,0 +1,27 @@
+# AI Evaluator v1.6 continuous-scoring draft — change log
+
+Status: draft for review. No v1.6 evaluator is frozen, and no candidate evaluation was run.
+
+The complete line-by-line prompt and schema diffs are in `ai_evaluator_v2_prompt_revision_6_continuous_draft.diff` and `ai_evaluator_v2_output_schema_revision_1_1_continuous_draft.diff`. The table below identifies every intended contract change; the semantic-construct text before the scoring section and the candidate-level input template remain byte-identical to v1.5.
+
+| ID | Old v1.5 text or rule | New draft text or rule | Reason | Area |
+|---|---|---|---|---|
+| C16-01 | Title “prompt revision 5 draft”; version `ai-evaluator-v2-prompt/1.5`; schema file `ai_evaluator_v2_output_schema.md`. | Title “prompt revision 6 continuous-scoring draft”; version `ai-evaluator-v2-prompt/1.6`; schema file `ai_evaluator_v2_output_schema_revision_1_1_continuous_draft.md`. | Isolate the materially changed scoring contract from frozen v1.5. | Identity / schema binding |
+| C16-02 | “Assign exactly one overall_score from 1.00, 0.75, 0.50, 0.25, or 0.00.” | “Assign exactly one holistic overall_score directly in the closed interval 0.00 <= overall_score <= 1.00. Any numeric value in that interval is permitted.” | Allow genuine continuous whole-graph judgment. | Scoring |
+| C16-03 | Five named score paragraphs fixed the meanings of 1.00, 0.75, 0.50, 0.25, and 0.00. | Whole-graph preservation across Actions, Flow, branching, conditions, convergence, parallelism, synchronization, recurrence, continuation, termination, defect scope, and defect severity is judged directly. Only the endpoints retain their natural interpretations: no meaningful defect at 1.00 and meaning not reliably preserved at 0.00. | Remove ordinal buckets while retaining the same semantic subject matter. | Scoring; semantic constructs unchanged |
+| C16-04 | “Assign the score from their semantic scope, centrality, and impact on the behavior of the whole graph.” | “Judge the continuous score directly from semantic preservation and the defects' severity, scope, centrality, behavioral impact, completeness impact, and interaction across the whole graph.” | Express the intended direct, holistic scale and the impact factors. | Scoring |
+| C16-05 | Fixed guidance such as “Use 0.75…”, “Use 0.50…”, “For the 0.75 versus 0.50 boundary…”, and “Use 0.25…” set score bands. | Local defects reduce quality according to actual impact; central, repeated, or interacting defects can have greater impact. No deterministic penalty formula, fixed deduction, quarter-point rounding, or diagnostic-status average is used. | Prevent disguised five-level scoring and disproportionate penalties for local defects. | Scoring |
+| C16-06 | “severity must match overall_score exactly: 1.00=none, 0.75=minor, 0.50=moderate, 0.25=major, 0.00=fundamental.” | “severity is a separate qualitative description of the observed semantic impact, not a score band or lookup table.” No meaningful defect implies score 1.00, `severity=none`, and `main_error_type=none`; below 1.00, both labels are non-`none`. | Remove the scoring-dependent fixed lookup while preserving the existing severity field and its values. | Scoring / implementation |
+| C16-07 | Schema version `ai-evaluator-v2/1.0`; `overall_score` has numeric enum `[1.0, 0.75, 0.5, 0.25, 0.0]`. | Draft schema version `ai-evaluator-v2/1.1`; `overall_score` has `type: number`, `minimum: 0.0`, and `maximum: 1.0`, without an enum. | Let strict Structured Outputs accept any in-range numeric score. | Schema |
+| C16-08 | Runner validation rejects scores outside `SEVERITY_BY_SCORE` and requires a fixed score-to-severity match. | Separate draft validator accepts finite numeric scores in `[0,1]`, rejects booleans and out-of-range values, and enforces only the no-defect endpoint invariant; no non-endpoint score-to-severity mapping. | Support continuous scores without changing the historical frozen validator. | Implementation |
+| C16-09 | The schema example used `overall_score: 0.5` with `severity: moderate`. | The same illustrative object uses `overall_score: 0.62` with `severity: moderate`; all non-scoring diagnostic fields are unchanged. | Show that non-quarter scores are valid without adding a case-specific example to the model prompt. | Schema example |
+
+## Preserved contract
+
+- **Semantic construct rules: UNCHANGED from v1.5.** The exact developer-prompt text for Action, Flow, Control-Flow, P1 Action boundaries, P2 Control roles, P3 recurrence, P4 non-cascading Control judgment, dimension separation, and ambiguity/review handling before the scoring section is unchanged.
+- **Overall scoring: CHANGED** from five-level ordinal scoring to continuous 0–1 holistic scoring.
+- **Diagnostics: UNCHANGED** for Action, Flow, Control-Flow, confidence, ambiguity, review, and dominant-error fields. The existing qualitative severity field remains, with only its fixed numeric dependency removed.
+- **Input boundary: UNCHANGED.** The exact candidate-level user template and substitution rules are unchanged.
+- **Model configuration: UNCHANGED.** Model `gpt-5.4-2026-03-05`, medium reasoning, omitted temperature/top_p/seed, stateless independent calls, and the existing retry policy remain the intended configuration.
+
+The original v1.5 prompt, schema, validator, and all historical results remain untouched. This draft was not tuned against calibration, holdout, formal, human, or Code V3.1 scores.

@@ -1,0 +1,46 @@
+{
+  "case_id": "3-5",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T20:48:32.689828+00:00",
+  "request_record_sha256": "7b425e310dbccb3b87412df51eb4942c763d23e35af09b3549a76ecb62d38495",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-5",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The meaningful business activities are all represented with acceptable paraphrases, including the rejection path and the compliant-path registry, cashier, and party-notification tasks."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Most required precedence is preserved, but the compliant path incorrectly forces posting the receipt/documents before capturing Party Details and printing the Physical Court File, although the source indicates these should proceed meantime rather than in that fixed order."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The compliant branch loses the source-indicated parallel/concurrent behavior after fee handling: posting to the party and the cashier's Party Details/File work are modeled as one strict sequence instead of concurrent-compatible work."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source text is preserved through collection, sorting, distribution, registry opening/registration, quality check, and the compliant/non-compliant decision. The rejection branch is also semantically correct. The main defect is in the compliant branch after fees are taken: the text says the Assistant Registry Manager posts the receipt and copied documents to the party and, meantime, the Cashier captures Party Details and prints the Physical Court File. The generated graph serializes these activities as envelope/posting first, then Party Details capture and file printing. This removes the intended concurrent-compatible behavior and adds an unsupported ordering constraint within the successful path, but it does not replace the overall process or omit major branches.",
+    "overall_score": 0.84,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.84",
+  "usage": {
+    "case_id": "3-5",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5849,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1171,
+    "reasoning_tokens": 789,
+    "total_tokens": 7020,
+    "estimated_api_cost_usd": "0.02815550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_00d158b5754bcbe3016ab981115c5087d18c0285ded17e2d7e",
+    "retry_count": 0
+  }
+}

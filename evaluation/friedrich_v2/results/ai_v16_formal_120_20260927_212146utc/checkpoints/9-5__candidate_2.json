@@ -1,0 +1,46 @@
+{
+  "case_id": "9-5",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:51:51.172525+00:00",
+  "request_record_sha256": "f911bfcb48604d51873017c28c7f1205a448e08fd488b2f7f5c8c0251c6293cf",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-5",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All major source activities are represented with acceptable paraphrases, including conditional account creation, approval/rejection handling, reimbursement, progress email, cancellation notice, and re-submission."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph allows rejected requests to continue into the same downstream path as approved requests, including a possible reimbursement path, creating unsupported ordering between actions that should be mutually exclusive."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Rejection incorrectly rejoins the approval/success continuation, and the 7-day/30-day timeout behavior is modeled as an exclusive terminal choice rather than ongoing timing logic; the 7-day progress-email path wrongly ends without later completion or cancellation."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source requires rejection to lead to a rejection email instead of reimbursement, while non-rejected cases continue to reimbursement; it also requires a 7-day 'approval in progress' email for still-unfinished requests and a 30-day stop/cancel/resubmit outcome if still unfinished. In the generated graph, the rejection branch merges back into the main path and can reach reimbursement, and the timeout decision is modeled as mutually exclusive end-state routing where the 7-day email branch terminates the process. These defects change core outcome behavior and continuation semantics even though most individual actions are present.",
+    "overall_score": 0.43,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.43",
+  "usage": {
+    "case_id": "9-5",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5649,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2086,
+    "reasoning_tokens": 1722,
+    "total_tokens": 7735,
+    "estimated_api_cost_usd": "0.04138050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_08705cd5082dd08f016ab98fe0bc6c87d194f0e224759bef60",
+    "retry_count": 0
+  }
+}

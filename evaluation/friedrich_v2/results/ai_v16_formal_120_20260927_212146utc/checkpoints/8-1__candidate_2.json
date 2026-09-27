@@ -1,0 +1,46 @@
+{
+  "case_id": "8-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:45:57.794659+00:00",
+  "request_record_sha256": "fcd7024391cfab4ec813af380ad4e8ca773cfc45cc2a8d262f9168398df3182f",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All core business activities are represented with acceptable paraphrase: advertise the post, receive/apply, check applications, fill the post, and conclude the employment contract."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required sequence from advertising through applications, checking, filling the post, and ending with contract conclusion is preserved."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a simple linear process, and the graph preserves that straight-through start-to-finish behavior with termination after the contract step."
+    },
+    "main_error_type": "none",
+    "explanation": "The graph preserves the process meaning described in the text: after the hiring demand triggers the process, the post is advertised, applications are received, applications are checked, and the post is ultimately filled through conclusion of an employment contract. The omitted trigger is reasonably implicit in the start node rather than a required explicit action. The only interpretive boundary is whether 'fill post' and 'conclude contract of employment' are one terminal accomplishment or a broad step followed by its precise completion; under the more defensible reading, the graph's final two actions are a source-supported refinement rather than a semantic defect.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source text can be read either as treating 'fill the post' and 'conclude contract of employment' as effectively the same terminal accomplishment, or as a broad hiring step completed by contract conclusion. That ambiguity could affect whether the separate 'fill post' node is seen as a harmless refinement or a redundant action.",
+    "requires_human_review": true,
+    "review_reason": "Human review could confirm whether separating 'fill post' from 'conclude contract of employment' is an intended refinement or an unnecessary duplication under the source wording."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "8-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4314,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1786,
+    "reasoning_tokens": 1369,
+    "total_tokens": 6100,
+    "estimated_api_cost_usd": "0.03354300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_014086a357731ea4016ab98e815e8c87d1b4235eecdfb782e6",
+    "retry_count": 0
+  }
+}

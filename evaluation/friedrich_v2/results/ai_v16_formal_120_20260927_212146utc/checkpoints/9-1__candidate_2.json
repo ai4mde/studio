@@ -1,0 +1,46 @@
+{
+  "case_id": "9-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:49:01.683442+00:00",
+  "request_record_sha256": "642ff81f744e3f463e5e0d84db00f17f18827a88b8a99e613b92711c6ee8c679",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph preserves the main business actions: backup, initial defaulter-table check, CRM checks, registration, possible report/table production and sending, reconciliation, and supervisor notifications. The extra decision nodes mostly operationalize stated checks rather than adding new business work."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required action precedences are largely maintained: backup before the initial record check, the first CRM check before registration/reporting on the no-new-records path, and the later CRM check before reconciliation. No clear matched-action order reversal is introduced."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The main control-flow issue is that the 4:00 pm deadline/message logic is attached after both outcomes of the later CRM check, so a supervisor message can be triggered even when no reconciliation was needed. The source most naturally limits that deadline to the reconcile-if-new-returns path."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source describes a second CRM check after the reporting stage and then says: if new returns have been filed, reconcile with the existing account defaulters table; this must be completed by 4:00 pm or a supervisor message is sent. In the generated graph, the 4:00 pm completion decision occurs after merging both 'new returns filed' and 'no new returns filed' outcomes, so the overdue supervisor message is reachable even when no reconciliation occurred. Most actions and their ordering are otherwise preserved, so the defect is a localized but meaningful control-flow overextension of the deadline/escalation branch.",
+    "overall_score": 0.84,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The phrase 'This must be completed by 4:00 pm' could refer specifically to reconciliation or more broadly to the whole post-report phase. Also, 'Once the new defaulting account report has been completed' is not fully explicit about paths where no additional report/table is produced. These interpretation boundaries could affect whether the later deadline branch is judged defective.",
+    "requires_human_review": true,
+    "review_reason": "A human reviewer could reasonably resolve the referent of the 4:00 pm deadline differently, which could change whether the later escalation logic is considered a true control-flow defect and thus alter the score."
+  },
+  "overall_score_decimal": "0.84",
+  "usage": {
+    "case_id": "9-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 6726,
+    "cached_input_tokens": 1792,
+    "output_tokens": 3202,
+    "reasoning_tokens": 2682,
+    "total_tokens": 9928,
+    "estimated_api_cost_usd": "0.06081300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_003b923aa4c39ca8016ab98f291f7087d1bf1f9c47a075596c",
+    "retry_count": 0
+  }
+}

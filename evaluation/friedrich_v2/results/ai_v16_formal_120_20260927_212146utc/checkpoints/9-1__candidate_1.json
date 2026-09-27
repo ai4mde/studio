@@ -1,0 +1,46 @@
+{
+  "case_id": "9-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:48:24.658209+00:00",
+  "request_record_sha256": "655862a06045a985d65c5e6c43744e33f2a3e19ac2a1c5e9118e6e6a77e4b94e",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph includes the stated business actions with acceptable paraphrase/abstraction: backup, initial table check, CRM checks, registration, possible report/table production and sending, reconciliation, and supervisor notifications."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required matched-action precedence is preserved: backup before initial check; the no-new-records path leads to CRM checking before registration/reporting; first-phase work leads to the 2:30 timing check; then the post-report CRM check precedes any reconciliation and the 4:00 timing check."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The candidate captures the main decisions and continuations: branching on new records, branching on new returns, conditional report sending based on advised codes, alert-if-late behavior at 2:30, and optional reconciliation with 4:00 escalation."
+    },
+    "main_error_type": "none",
+    "explanation": "Under the most defensible reading of the source, the generated graph preserves the intended process behavior: it models the weekday-morning backup and initial table check, the conditional no-new-records CRM/registration/reporting path, the 2:30 pm alert-if-late check, the subsequent CRM recheck after report completion, the optional reconciliation, and the 4:00 pm supervisor message if late. No clear missing business action, precedence reversal, or wrong branch/termination behavior is established from the source text. The only material issue is source ambiguity about whether the post-report CRM/reconciliation stage is intended to follow all first-phase outcomes or only cases where an actual new defaulting account report is produced; under the provisional reading adopted here, the graph is semantically preserved.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The phrase 'Once the new defaulting account report has been completed' is materially ambiguous. It could mean the later CRM/reconciliation stage always follows completion of the first phase, or only follows cases where a new report/table is actually produced. The graph routes all first-phase outcomes into that later stage, and a different interpretation could change the diagnosis.",
+    "requires_human_review": true,
+    "review_reason": "Human review is needed to resolve whether the second CRM/reconciliation stage should occur after every first-phase outcome or only after actual report-production cases, which could change the control-flow diagnosis and score."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "9-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 6634,
+    "cached_input_tokens": 1792,
+    "output_tokens": 3582,
+    "reasoning_tokens": 3050,
+    "total_tokens": 10216,
+    "estimated_api_cost_usd": "0.06628300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_07b5c3cb6fbbf46a016ab98f0407c087d182c629d1f9b91140",
+    "retry_count": 0
+  }
+}

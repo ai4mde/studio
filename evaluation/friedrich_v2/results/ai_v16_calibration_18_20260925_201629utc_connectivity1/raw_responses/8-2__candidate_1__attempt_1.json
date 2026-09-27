@@ -1,0 +1,278 @@
+{
+  "id": "resp_079b6f53e309acd7016ab6d8c09e6c87d2b960e3c3cfe496f7",
+  "object": "response",
+  "created_at": 1790367936,
+  "status": "completed",
+  "access_programs": null,
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1790367965,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_079b6f53e309acd7016ab6d8c111bc87d2a4806c4767a6ece2",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqttjd0GzkfzceEqEBeuYtLB6jRPfe2nkKAO3kib4EO4MCknGQOT783Wjg8IOccPzX3k6AHVTYjovTVM4XtkPLOWxeRuvTncLu5iSHuzjoJtYnW8vTN6OtDhccNq9Ksh1SQNxSLmybYoVzLPcyLS2HVZxgzTFD-2t_FHIYgwGGirtuDxvS1aZvlnG52q2K_dQpHnmFItSX0lRrOe3Xxs-8dal6e2jyaErFib97Gk56j4swRzg6w9NpUGgsAy5qWD1ljn1uAQkXDlLbUYUt3ZheEJHFrLwdXEOCU6lLi6nNwOb11RsnENonuyhkKS9M_bTQ6wLoLdnnrWVvI9le1vKovU3yTWZinEMHpKKTCH58CeQGFRd_8dFfLnudOJMTLjLyUoFCUguIYMW8J8n3Osbzvxpw7tTqw_ypEyofhBBGCx7jJb8Oa8UDNRTVf18OW5cxKi5l2eh-mWXT_jLwLfzSFjN20Oqa3Gx0gLRRHPaR5u6q1_D_3Og0iwjGP2w1WSDyTKCGF06ijYw4t13bV0oowtFs6ziT-0eTvs5NiHv6JMLxc6LK0rjT9TzMROM3wwo14J5UcGawE12uCoHHT6B2NF0Jr-Ld-VJ1yqFh4V4B5q2beMnPPP-tIWFIoBNhCM_k7cHsQEIoAAEAfYqtSnfCA0KDdcBnwLZvkiF9_8HHe4G9VpCGJ7ViGe1nF69J6FkmF_HxDI34sXGMRwGki6vGAGTMEnO6CS0J9weXY_riR9QVJJTIw7cxCKGYx1YK5SM1EG5F9X1SY6byPzkQU6qYyil_xniam_sFJqhZgtewiXDvc9fBajTmUPuBSc4uzRj3YY2WBJW9zooVxGgXGlveUsUuyjYzgmD760ZtHAarfKX-6NqVNciAgxhQVj8ZIdhRRip7F327qPDwEwzvA-O4PT_k1sLrIvUGWSHh8Hha4xr-lYwiRzFmerga9ed00wLLWCyWtVsGew8Yw1Gz5z0JGC9UkcvLdez8tQsV74dGVqsNgMJWgEbxtNQ5hPu2HdPrMnc5kXPwnVK6_F4UdKH0zwuLSyK9zTCqqnMKHMO6aykpyBbt7wuq4e3DUUpWt0ku6X6O7VD5PO-Mih-chKv_qMa_RWXvqFuYuvhI2xvwZ0cXRh7mz4TAUUtq-wI7PFFzvwZfRszx6J_9vdieBcjqpAXxjKFRojMqEPOjzcwv08EBVfbhPftzF8AQ0Gyqup3k0IcRMZDPRtxYKh6O6rvykByyqynm8ZLl7CZd7foKdRweNZ130tFjib870N8-WGVWA5eqqxumo4StVkn6vuE1LstHpHdx5M84ELEDNX5gYaXgyWtHm9E9njmcr-DD8_ZdwjxFQOc6mtPMO2ALNjpWp7YUEetWBv2w6Yf7Rotrg81cp6KoqnOygKiBMEMU5j_WIScN-WtqO0f6uEn2TuGHsreQuR_mc9Ed92YSsG4aCv5r69WoSTUFOQZ0LJBh-ABk3lNF9ZGaD-8QlhrWM8v7ulcxmj6_T9vl6VDqh76W-MssQ8rr_ZqQJqUDoJYFBaNRK6LB44OlFWQkAsnvoQj_Amk8IlTteUk1s6V8P0Nhwu3uo7EK0N5981ElcGvj9JOUU4B6LWOTn7I4RHXW1Dr83CKcatwzhhB9M5l54RiVDxhErEoZ4tWjydlZ74JaEYO75BmXPvI0hctCZljwHXo6YVJ0gqaxgbDcOpjLytkyUU6QWsUFDxu4j83LimQGASoQ9gZhvZfpeIWYOe-uf-afDaZSeghUEQ5u5MUorDOsUMgesYjCYFDaxyg_EcH7TWnQxl5bPUPG6P1f0gfQqmRNu9-vW9-jlbl0WdoBwZjDRX8bWoZKZZKiVJXdSLdeXbzCMbrm3JhWyduetEp1DSvq3cGj_xKz4t6go3t3vQTqrvwB-Me3qUicvn1zWoH9_4u9fhU1RypL9GhqgbRRaAN6gM8cXoYJtppSpToY_MqFgx_wVDywov3JH9aX-W0GYADK5_ksffVk3E_qaQo9CAw5GeLTeGBEJfc30YNJQCfaJZOVWqTZf7T_2YHQoRYiimZFneNRIYCSLh71I1PoWrsddepacaS42IrshTYRzQdZsmOCcGFEz5rzqIzNuMCNez4yxmz2MzQXYCFgIbB6OW6p82v6VO52WOthOQA9hp9VT8ADf_Hb_fulA55B6JWY5Zlsxcp0hZY4i8OlMYbrGIK_IHvwcubhXKQQBwyup4PeqlCCy-Qb6SlcFJ9e_4ffowJmBI5GSK6W3l9sLlZyP4tI1v19QSQ1bCNFz4HsVEkF2pDTTIads-eDZ9bnzdo-dCOyf6fkjSxvJYRtcfd53aqvzwEWwSHTEQTjVXo__dAEsroXxA-1lCq11t2r90ErZFASuJ3sj0A6omZhDhv3UCne53lL-pD8TWddOR5a1rOqQWl7TIQ4lMMQ4M6YQP8aDFgW1s2Hbn-bqGtsGphLl9HFs97EJsVPehLDygWgZish8wsIse5YH1KgUNSjVWNhXI1q1xmDIC693XGErMHXJN0-lgXYGPtGEkTMm7ozoDmripdG6DQEPhP5VXVNFi4GLP5yzG5-Y7AoyoSHyGhd0lqdsMZ7i96D2M8cZvDAvuie-7xBJvYAWjtmgasGWKdgoaTk_3w7jRp0DVPAgZxVTC9-ipWO60MIMOMftT8uogESNl0Y7oV28KC8SLGN9cQflYuqV5vIO8BWpB0UmurCj5Gmn4CWXYsbdxKZ-jO7CyBGn4ldu8mPixCJgPCvF5z5sv20EsWfrhlCFIwEbDPCM1apgDK9HR7xiJ__EKOpPKdxyAmfxQbjBrUf6hJQGGM3-bNCTZhDLinWVXCrjGl9pXyAus987WZEt6xh3y_Q6apsQPb4EkfQUfrOlpd6ddFLrqt7-4lOY-g0Es1rP2loCzLWVDzMGE5aoFIRL5UC-fkTu_7lOx6fepfYanJetTW3A_EnRPA8J6U4vvbG3lVscaJ3Em8J-idPrl_3zWktodtgMyvWfd4kkRagO-5RTY_igFRj7DvVSY6PS3WXQ118y-5GDzGxEEa0GKVZXcN9E6FyE9WYY0xFI9NwxLQvnTuLbI_Ezf5REKlewjy6HlASgNAeWOggqpzSfhp0y69B0TjzmJLAcrH3WobrFb5OHq4zQXWTqM-B_cBwWbGhoijqrcYq0t7AtjAFA7k6uIj8F7R48-uCJmwBuxS1GgYRChARlDhg-co4KVqyuTRfbpQcOlVGFhh2QoQZKe9c_MP1QJnVn_l_06eeQK0ir37_FTYNXZuIsOYUhXugKI-x9UA7AVlcRS0Bfrhym3tya_uSqVq-CB4HiLfBDH1QYawgS2m0W5HKu2WPln7azAJdH32oLpi2Tjw_meDCLf4eQRWyNpYe4aDVrdRlU6kWav9a4YpQFM18NXVDsPnCR9JXFwoEDvweYNDIvMR1Dm_DLMeAzgHMTYgi7SYZ7i7QouejQIz-rIWEVybFW3h7qQMQ-twQhpptNetIryRo8ao2GpYpt490loCFwpF1HcLCvoLnkFWZ99OKs7VhChpA_0oXuMw7NXSROobjST0LrPugICUTxnavMfaQDpuUw76W4GHzdT9yPwluQJHYOZF-ayImcz3SGAjc3sI-ie3N53txWFlR4nccgyEeHqxkTxSYPPwMxmhi-XJkFcJhVJdeWVqyfdqnnx05KwTDP36cbIU2mmwbDYXmVlvF5exfdyW8h-mnha2HcLogt2pm5OejOmpJv7l_OTmRTOF8m-9lCDPeYni3IQZCInESt-rdUBo_rILtGf9Deo0SZb8rIlByjgaRyxVRaFs5rnvXIBXkyR5GWPFbByo_NOBZegvjkvk_epkRjcZtPFtJ5FoZbTW3jweAF1ZQOgWjPfkmEDeQGTcXcMpZ_a3cox5K-6yN3dz80mtGaKpsJihPEU13W8JZaEwtASzBK-krTIAKDw7Ylb6_FoxzILPxYCXjdNcMBDq2Zt8nUuG2qaCQniPGnJ_WlMONcBEl1WC7tneOIWKdRjV2WmjEcC3ehkNFwo-78C5Tj3vKQO_0AbAVAvV9WgbJtpHQCW02eNeDpy7sGugSsEd6hvKOaGCXwDVPAcn-N4qbY2nB4M_5it3iRk4mu9d9ZABWD7yjqMYejSNCuz5IPNKz455jrr80tHa8p-2XYHw0R09vmc5MybZWxGgs1CUcBN9WK8mjpE77-rEJmmge5dFrtVLrgR7rtMOmZg7BmFhUFHUP1VtAxdpaW9DTVcQBwLpj0RX2UXpxNEOaxqjr15M4KS2YMTb1vujz4Wu8xSb19wv2ZZUyDe_8-XFVs5TKxoq7DqLX-JjjOWGsIHQY7FsRt8oRvNUo2LAOdvNa4YPrjccEL4FOJ0N2BKIO_pFG0wYfJkq6x_-wt7s4JFDqiJno9xXTWklzgc6r6JQeaDubfbAZkGr1OCSOxLDQTdyu1m4tq1HoGdcRxnoHmiolRDgQ2faa5LPoWlPgR33TllRbP9tyOCBTVw3fjinPUbGJ7qBSGN7ApdXtcO03fZKhiFDbScqfIy3vhOJh1J_wChMv5_WTCSnIxwFe9y5m7ztAunp0FXG3twEGKXmhqkWo4azdBlDebK0vSVFCfl_ZyxGzjFcbMJ6Izihbpswnl6quqT4BJWOZECfillNXH-vExMyc-0vlT9hIY0CCK9Ou8rZ4xwswPZf-XvVLoLaxYbVQSUz_561QrxEab75mAqAPT4q3ZUiazrbyMp-7s8JnILcGEuvjowZGkGsKXgZhSWqL_HBOMA_zPZdNbez8mLPbg-pNfFS2MmqWcCNCW2FaByifwR0C34xAzuzpgWbW9f3FMcwklaCQon9z6V8i_KNzCubMGzNuPdPMV0jNRG1ywsTr5gRzh5GLDij7eWYwx9XaGrev3jinYMxF2sC4H22PMNWG-2wcjFMoppzUCt9dwtJytlAI3SwTQGO7gFYnnXJ-Wd30ERo5BgYTtoUoKJnNIGFPVLgWv1TBdIJoAatvrmH-b6bdZovjlltksdUjyyJEHxkIwWQ4fbjxXYWF4Zj1Gkgc6kfRWNEBMWaZ_INFbpg6YUr-fHvbQZvbDnmC0jivBtiYn8jeTBi6fVj4dOadRJv5FfLjF5d9RE_MiDuV8KtZMOWC5dA9yhhcvqJG78O0gzBc8JWjXVS55Nn4p0sHE3mu6qtXvX7b5kXi6FS4-vjloAC8NImkNXggZ-uUZC28A6eGYU6avYQPW-6D3vetiRi389hxePefWY90gfpsl4c1ToCDdRR-PssjID7rjKO9S9acZgipEIdYC1rxXwHeVdoFURO3fv6rlj-k2lK5kpde-r_TzZQCRAwkWIMnVfdjGbSk-FdnsdAJYnovDiRlcQB9zsJFxU0brFwiGhf5TzgRJhDp4Aa69MLe79Gv0DimnRW68nplyzIrk7-52bA9c_6Qf6YQTZgvwMce1LjLyuHOeqwu0l6_GSA8BqAKF1wjwVOoz8ZrL9oeqVKXIogd48V8GPkJIQ5pXUKwEwFy_uZyOetrtJj6F0K-IgQaA5pxMfms5vX2SS3dZr19HWfgyOYDRLz3ccck9DpwKZOQjZJwakrt5DAeehqqg1WUStfHcUqIzISzL-AvFKT92Vw631iIOIzhFTVCtkE35A94WvuHpFaYPNpYBva6ZIqTEh3sgZsiSvrmBjs4ML4PoMnXNYJwxO0cWZNGK8gvneh72oDsGwynpo4qaJMRy1ODJyGawGqWgQGu4aIncfY4iLS97-xVDFOxGAhyjZYqMhbd1KWgs3849wFxbb6NausyZ3okoM5TP8rLhG7VP6UKSuGetyeRYuxqIEV2eufakejVcg4Uz_pE9jb1Fqr2akJpwA9VySmda40cw5RX7e1t-KmdpwSIGNgx7TFawlBoNEf6o7u3GLW-Nm8AHXHCkBaSkupJPls0H0JZbzDB3ZFuDi7Cuq6CsCK3RkqtVUJnvlEPwGLOE7OPgx8YblrPZ91DGYyFr7tUjv5C9Qv_6xKSmJbO39aMydF9bYkSGn-pwQLioR-STs291wH5RXyFvZ9ybsMkb8cFKmkOj6Y-x6ztV6reoPixWy1UyB5ne-PXJSXYATOHfexfV5n3JGlOVEZH05WxL3Woo8gpsCMcfLURKngyLJtgPdU-PoA5_gPzNgNdXavOdHh3z1pz843p66srsUGU-o8HfCkLTunLLP-4PWSh5ySgDXLSw67ETXJ1HGOA7FZoqmPwbTeM_jbgoFkQa_sv-oXDYz9qM1PqcW5MvCELA1-WWs5Rzo75adteo1hTlQxMIcC54OhdimWWml-0gguCsoXoFb3cBTaZai0Xo8IDanuhk1WgshksuHCRueH1w7w5P8HjEadXgYt2HIP6gvGFFi2XnfVeV52QTFJcxqsoG9M_slPdlTs-VH3BOGKiuCblP3gEZzcMFnILdZtmr7DZLq_pG6z5E_f37F8CtOtPPInsUXpLRxgZ--ozbhDQtf-hy9qqtKQRjeZKGt0o79kyGz_uUkIrEdoFa0YHjuJG9pUIA5HbjW1g7Boi4nqAYU2woDESnvPQdyc4qNznWdImbRf1Cvu0m5x9uThtcElpN1hs7p-nLrdCGlZQjFB8pT-aBHaJRJsp2ZK0h4IsiK-EjbsfAHJterFUmkM8PaVW8oPOoIHrtdSL7uazPX1-xX_KRApAe6LAJQ8amJ81MMpIEQCEDkH52wLdUq8cH85mOZN-ZQvlkI9v70Br3u1Y5gGdVRE5Jy0PAacdGytbmepPP-05m38eURfQvcmbrs7wLZ6McoqqkcLtTThjRJozBxiiFv7EEL5UuMIWK3wlSqc1gqSOlb3Xt4epdH8i3mgKIEhFHsfEU3mjwd2-dPHWXxTJWDUIKrA5SJJS9GrQFolpBzaHepq85KyHKOJZXWlQSHHECI-yhPzd574hQWQoIXGHIaYwjH4KJKpVApL4ZdbO8kWjT7jPmM-fil2ELqMKE_iDeI7Ae76Uc3NKqlnqtGRgjpuyceFWtbPeeZNbiHsYy6UwYzrC9jtOkEqlSSN3PFA2ABJxTZxfCxCiOtUOUhAYC5D6tQaqlX7H6WgC6gjZ2m63eUA46_ymFeNI_SZKrcrfT0o0RDAnY48DdHUOtkACfkJfnzhb5Y1u-dklOeCUqH62f-W_MAwIxAoLn0eYFlqN0xsqScJKphiZXkVK6SXMtQYR2TGDuvs-pf90cNuiFWX9acUZtiXjVQ3NJyCKz83zh0ANSpg9K6XM74Wfkf4HMG-6fvqoB9lSO0cg3873V6QSUKLx1TQh6NaRswhZgPIUXV2RpQbfG98B0FCcsO_hPNTV8hcnrPaGTMamgzIBwLX7PHBlLBtpyRR3Msl2k3svh_lkP_SBo2PPd_tx0ec0puJGQphebcCU5R2fXyUeC8XXJXUXR0llom6z9xlJRNM7QXToKEw8sehXYSh41KDBhokLT3gv-6OATBwGzr2OB1uouCYHJbk53J_wFCYqMWnWg6gtGn_7PVsczblucWVJwd8VE-_ry9g2w8T7X03jikPehdGaR7U2JOkJEbG63CDbnX3bxUwrhc-TZbBKk0SjhJm7pBbc7-CN5GBiUkrOc3rZkaqKFiyunU9a55ZIO_ldZnTUbQ4ZnIKdo76j0jE7HsYZBuCgm9QCsSvKKLBLL80-VttlLsrpY77E3--k61Qf8AOjAznNkMlVEGr4IDbE-8CZYrbfr3KVrKZ-LDiX2B9vXmq_IOat5YjO82r_dUZEWXS6_7d7xAfsAaKodSDtwh55aoviIVXy_P3Qd6U0tiULq235DGSjD9ceehNMIUxTdLkScjarY2awbRsCWWxgPVZ7caSjgyUVjh139Y2i0gL36PQIYg9Vzafbx81-CJ88COc7fIBQoN0-pv3mWvNrk_GlyBL1aJ8ON6yf5LSlrYfZL-v2x4yvLXA5Rs7OMEnOthMRsA6sAhuDZWZHMi2azJM-PFwXyZIv5G4KdzMh1lBAeXzqxyj5IU0cxNypje84FFjILxszLiLHDZdiAD1I2WVTWlfpH_q3xg3pOAwIn73VyGtTYyjOMjSY_ZjhofLCKC0h90EDsaQlVPbK5TlmIhzDkWXMyj_VZDEGA8uUB5HeA64vplBYem6aadTc_6h6K5HnE708jyVkimiebqAOdSUiBgzrBV05WRrfzunr_Prji_SrLgyOvhEUQH77YTsdf5nOUn1cEp5B6J2tSqn5bGPN4cU8nTEpf5zZmEaSjE8FJ5VpElkx5Ew-IAyRpgFXu8fTEhhHRQofnLKaRYo2UJIgOkJZ4y6-p-3RJbqrMMpu-6hfS8CEY-cdRkf9MJl6Dr3emw7_D3_jAAYEFXpPMyticeArqjmzWaPK1rNmhhxf2iJayhTWdZ13UotM31yWj37wHXXpPVWS3ASI-pjJUfZpgPkfGHgVnRZzX0xGJGrdjw5bBKEX_D5kWgl7Cvi6lgLXDmbxmKhJEsROnQo3x5iCKLPXa1GgyHtOUeq6Ty4u9YSrXRPKYrA9mwGF5bUCkbE2GOGra3Dw4fXgCHCxanv-DGtvOP_xGCVGzmHfpM9OPhdRW0QaPE4AyC4R6dpgBb7lHu6BQASirV62WUyZQtDLEncb0JZ7Jy6t-AiJkTgXDjmImxsF1n_x7Xtq0G-iAWb0xiB2m7qesmLxUWPwLGZMXo6t4VV48Rc94PQQxeHHmRkbjjZizT4FU5jA-efnH-rDsEYdCwk3yS-aphX9oToguvHKH9m3NFb61QXbjaGmezkJfLmxdEK9BuyioCo0VHIToQPpi7DeQWVcBIQijiIVJgvOH_51ovaqQnCT1Zvpagh2VafTDE0nrsQrQDxJVjSYeM2HPL9A6ROCVMsY0RCDKJ1sR2EaU0ib39nzV-DmwGsiB04_Wu2hTCdpbhDTBmZ7PIUrALhb6zeYjnFLZYkeNTQK8l_dgwV-VMS-l98iuBvKaW-Li-5NJjQuyfkgEUGbTz2fPKj6VR71itEAunJUVQBpiVZVeFaZMU0NYiUxokFjjpK4gdWMGQJH5B8EwO8kWjC8s2YJ4DfNgDe4UPMvP5IVfbdODFkD-9wiMnc6T3ROXpanfgHcRJnyZl58mtcJeiad7bhuiZpoRTRynKNAVBZ9VdFw7G9-CRxHl38GvdsPfPDgS4uJc3cLhkfDwXu0JMuxnghdX4XoNSHIukGlkT3HD7q49IC-IjStmZQhkmJijZrxMQG_XlgvXixRvwxlHBKPwaYE1c1KLxgahVda36H4NE0OXrDZuQXwkEvknMzRH3OkRfJeMnns6-CNIHzUKQEYXlIIT0Om9zQjRbnAIptdgiwSmzr23VJ4iBO3nGOg6k3qf3d7kVaD1X16iPZbAOf-eLLF3RVD_93t91Y5uF8jAb-_b_lfGNTDVJ54LLL7NhrnBt7EKgjmsGGGjjaPzrMvR3MRbW6QtVOcVU8b1Lm1yo5wPKsan621-D_TDn1ECHXh9SndgLAZMR0FLmK1V2Xsx8a0XgvELdt_oT5rK9CQmKGdb98uIDWsyXyZ02x76_dGPLRlG7Z4MC6SDOXiOZFls7LtWqPbMZf6kfqHvbUJGUtushxLiZrD-pcrwTsERj-6VcQlNP3sw_eiUVZr03oLoQoUjcnW4vWY0zOJCqjt3-mXRVq1QYH-5KRyXhJRWPyN7nvLKuidRV1tyqoke3jl7Qqs-rtV9BBCai-v0MHMUIKhbii74Skun1S0KdtJN1Buw7H6hqER5JUNAqBZM3mGJp_PQbnRXZ9Yf6cBWb5WOLqQ9BmUsjD_PCb2fUIKP-PhYsj4RUzMWTr3NdDrLGSipYsHLATomKIuNPBJRy_VdjAkT9oHdduLgvRVE10EzUFh57g5HtCLlpBfGiu0_EXV6-EW0dktCDvx4rHaQhKLUxRgmXLY4eAJHxvD5lQDNP2yTVnrQGEHxGSGv31ExUBdy8WAIywmB3foEXmOeP3pe6kM9_x6JzBaOGaWFoGbxcTKrdsIxmaJy5bJQrNc0F6h0ZmtJv45k2CQ3KKdEougurqtitXWJ44XZwBeUb9a09rZKA_ujjp36sSzXGayNutetPhYj24e7OoUp3zi354dJXDW0j_kYgIidsgS0GHx5BFhtGo9GTxd4KX3OM4_0w84rY28TWPZhL0RtFkkQ0d7FDsgd7aePOghqI0TC5QhASQnU3ZK1CdVIp7xZfev0x_pWhmj54H5JTtsL67JZrJE8cUIHIEFdjDc7VpifiP6GcytZfwz9NjPs2PiY3R15EJqnsWO2UwidIQG_wUk27QoRU4i1pHL--mtsIG04KiB4nDEZX7cw1CAgUAWwH94Y_8_WOkejZkOjs1LVe9vqSodjLlDvlObf09XEc0ERfICWlWxXGEsgG2xqsLUtKMGtAnSDH85H2d1aIU36vZ6Cs_slWnbuhf5pDf8Jc5vUSsewcHpZMpUofq3I5URLk9LMEDJ3wu-iSbCM-dkWMMBR1vqdve26L_OMVdf4n60I8_d9YVZPnVIjkcvZb0pkFJS_V5aFwZ7ZRXeDTSz4AnKYVIYfYSUwkWeti9rjDMexvA7EAE4lP5r4Q_8zoKBBq4Vj2RXHQhOFQwoAXr8VrzxgLuF-WbZnm6PvQLAY-BrFXw0DpiBgvDsts_JCCqy-pV5ist4O7bxbWzc0dbmeXngV4oh8Xo8v0llQnIr05vL7Daat1RYEyzv6qPDlIIO6Vmjlk7O_srR09hnWEVIL7QXz1pMD13oeniFIY-_S0IvsArp-Rd-MuPkS5GnnYX0zSittDs7b4YfC_SzyWb4-YQ0bD5hzxFnZwPlIcqp4DC9l7Ul0FvpzYCes3WiliFFwT2C8ICps_1AD0btDFidUTFdh-rBS5d-Gi8RmaUVJCBIl-umpFl6gLQ-gJMZijLG_sb4f61T_TK04lph0DVBOpyrDrpK4UcbII92P8DAtaOV_ReTKcLZSf23lLyuWjnn6ezr9s-3PuW6-zs2z3mEeTXDc346UgwFo5imb04Jfe_Lvti8BSVngDUDuHHFQMGKweDy62437A62RHQhai4-4tEZopWNAsvdrphF7AKH4ehXZnEJj6gV-1h2Q1e8qkPKP4QUezc12LYAJRuyeJtLrifkzcSS8cN4mN4XrdYTza9XJyxwNcIWJ_pWOj9b7I6azjISSH_Ns2TkylNjAUbSVZPbj4XDu2GWeHmhvS4nhext3tfTa_OfG9mKdwBDEFAvF8RtA348SZe5JNRaZIeNusp8vB0I17S-67pB2_vf43X1CwktyvtOGxCSeNOH1uTtU_zxXmIqTjaPyHMP6Op6ok9Q8sIplR10JSBvyebth3ttzmlqRV0BNMU7m1XdMnxmuBFgs6pU8E1Cw_wyLaKHXRmOkYku0iP7eD-1uGClFen9MCNVpW68EGXMvl1K4YkiIspggQbZL3-_LEpzDpQ3qd1pXHuu-twWHS0836d-Jq8QGrerYCrevYy01XzW6fmrRV27oIANc2GSAcCEkr7dsMhCtMTiGAQHqK5LoV6zKBkGfJNeFpoKSCjcyyO5MWZUjn9qqRca7Q8Yhyxn_mNKgT2Wt9REQHl-HilGOO-Tp-JX439DklURN4IQRLwdXPCrhyNd44vzZR_Ko8kL2ZedUW9GDYKQP8j-BXQgBV-toMx0VGFqgOwXfYI8ZhdwfIsWKOiFINAAnkXqavvxuFeercm5FGXEGZQJrtStygFlxNf14-QI08itdLOzWg0v6YVa11N3kh5mV6m-ClHD79HLUho9ilactoFrQn3SCI8WmjkegpsL7h2DRowLmvd3peo7WId0ThFQkdunJjax5Nv-FmMCSoOBULY8ha8Nq2pEweZ75GkexbPD35LzqppgBwqqJ6Sv2pX3rUJRBTEIISFC8LducTuwZxiZYIJAjGm76kf-cZgcu8hfqqxSfSfFATxzOIKHra5lciPE1jQIHCC0tZKWdeVe6xhTtqdwET7apIIR302B1Fed6vqoyT-L6Euiyl-d2vqsRwn5gezsYl1qAyLa6yIsi23d9gjqFjEAHxxsCivLbW54VUL57ODoVKhftHeLcxleqdtYVzI_2rIdAW_TUyYz-hpr9An2aEeY-LEtDgzG9tfSJCnR2T7FalVDT2nwEQIZMMFu5yX1wPkGGXn1JocbWT_1e38TyYdB_nCsb7wrsTlPYLIgggVN7hVehpXTRtAqNvJ63n6fkY4NLTPmpMVrKHOuetYPpBKFKsvXZajtLFZ3zkcRh-3bbpMyHYwDC0IUwAaV3FDSjZ3ZICyMFuyjvguDNAo42J9ZnmV3gnHnepq2iYqyo7Pq7hDqPQvIVK8B6-ghmViX7BSiqIGkB_R4UfRiKl-JgcfHh3nNj3C5QVbZoiRChq8RkQpHx8X0w_KPLadXlr5cDNu6Z79yaVQ1syksFdmGdIPkmhAq-l1yVSs_9oLzSLdChiv0P9kIIIiloOXJ3Uc_j8SzcnQRIFpzZr2canfjCjwvr9erMcrQ2teg1DYGjoQbgzhuTY3rOoFVAOQORkThsWmGp4GJKPOyZcsLxZcQ5y-1kYln4wXmifCDopEyDVcsv2QvmuuF2IhlDGAWb9VN0SsDc7cRPRsOKDdXghpXpOPxmaoEqCGSBtQhcfRAVNPNI8wQGVF9a11WgAlVP4t-OUSjdU85Em4lay3Fnkd_DNISeQViZeUZyde6IElBCIgiXwtZfWRST36eCvXZJMi0kNvCR6teSIO9cmQrfPZiPysRhVB0N-N8brXNY_QOBPUyyeOUkCSUywZV9n4Q-nDMTJNSbkmWUIcULSM_QwfumX4XiRdUaFkXylGV7fHTgDWj-biLliRdNMKPUP42kyBVnAUFVwU62d9Vkxyu6I1b8DRJek_kh0MQMtSpNlweHKTnhyKyBJKjmiDLeFPAjO5HjmuGJHAYjEBqI4hQ9glm4YCCNSicK50cd5mI4jsF6qhHG23HercVL05ly4ESnLJmv8lWU3ZmIhPgAqEJzxHqVwmN_wfJW7Uih5R3VRBxaHURQM664wicEkthNUPEsL33H8NUrpz-R1TYY_LfOYlevaCfRmDf_03YoKE5vrC-g6CuSNq1KJwpTsX8LnymNi-GO72trcfAkpxsl_x3U64P2d_unbS4LUC3pFFbyH0HupfdaCvzZ4gsOulL5v4sZdsqD5y3NOqg4vGhDm5PqssB6TwLXDEFzEd1n2WUai1RyoEKF-YDGxP0H0mtqf2zJcnDqAhmV8KAwPl46rsWmvHp9aNT6jtJKCxxQO1Z8Mgqf83DRivASOALvxvf0vOCVEtqsY3rRuLgUWPXYvPqjzO6rt416dIr0JA4UYH9DWjRMsxvWYQ7n1eyT2LIvuwAKAc9nB_LQfG2RwszzJOgHJf1YU8GFj3SpQlO7hjG-qBQG9IRl3Cvz1oO-y_NupHfVJ0p9pNTcfNHd2tjYv3jFleQRQNHZ0OrqXsj4dJctdrPMSY_X61U_m7TUM-IZKonfk9N8kK-wWpnZNwPkgZ9riecfqwmEWSXsg4IY5PWKHRVhvDHXfbB76ie4ylZT1N8H8Knh56_piJiCTuHL7ykjeZgzizJ5FTmL2xDreu0oMfsv3AzBtvZfOm0CMX-79AqGn9eqXa9s3kyzpXC4Lu3ww6fcvgCbq90hzydD48022RZPkMRryv4lkqcjbrK8qdAqh_duFYTN76uIzQftqFfTKkkO1A1OQd1H3yyg2VeN1P5DVGPF8-Ui1-YUhRGxHbGiYj6mtaWDt6BtmFp9Cx6hNm8IWT4XCUG7H-ZttefWaFuSRwEX9NfCGTeQC8St_ZS_hyHYbmONtGrzl-gYhfq9xjO9UWXJLQ6IrHOJm6Fr3OUkNvJ1PZHTH8_i_S7gaHLpVVCzrne4W3kD6qTRFOtBuzuLrE-dgk8WTy2bQ-a_J6AI9XWvCP0zht8U9a2ntyD4YeI8D5Muh0eV0P9ei-drPdjja8vvL1KeE2qEysy4PQ7RzJGrN3wV9TZV3-qN7lhGJ1jpj6hKpXRlJnubBKM5LlF7tbF3wK3oq894kb4bZ-Ub68ywM_JWqBbUejT6SSGGMZGUvAQ-1H-b6mYWKMDM5q2D6IA9GxNEErMcK70dXMZ3FBvb5Q78Z4fX5-0jwkVgjDfJxW-3ywgXuOhHuiu7zgJwWojkNHrmHy6R596eCKFhADG9WDtRUd15hHCsyfyoSR3doo1XqIZkAlw2kJ-LRRCHZpo5UpQlt4pNSXD83e5XTbMeteZRvkIpB0ANQoyEwWUNAUrb8a4274rsvt63qg6I92mKt08cleIBdMBPeAcPEk2npuqWNk6QJGRy9bM2Xd8KjP2-vbf0NzS0VOvZ_3BSq4sd5Ljw_7jGTw3iaKer4Rw5uwpXBXDSR8sDli3R2ZFjCWaSzABUK9IVn3DHFOpdKm6KtrB4eRvRUCjiqcVuPQqrFF6uThz8nK5hJWFabrGJae1exVt7Hu_lSAEpwm4uAlY5-JAT3qNa9HsaNXSpaNGbRERg8mXd6zm97dKVdHxxtZvbQU5--aI3DIKxkd0HxEX97HoApS_OTd9jmgZZLwxzxlDv4IkWQncPj4cY4vnzBnkcuLEaavSyvTnlIijicvY1Q2CHcazwUNRc-BrjRSqUu424dIMfJ1SJO3_GgsAe7YFNgrUci51tO24qEjAdk9lgDA3tXZqFiFHeDgwn2YBsosAmX4piIl2J_aa4vGi5GtsQS1AjV9dZ1AUPew6JATo1449UecJ3P0j0-yKuBFQO4-E8y40ndxlAG-wdqdL9r1iIt7LqFJ5WCj_MHLXlFeY8QPxJ6APo08UBV1BEVReUM1Rfd9y6rBFgSiGos54WL5fWasTVuIE-n5xWUTL4NX9aDUgaZ3GZLMbBa-yeCHVLcx5mb5050VVqyQGcmoNvGz8B9UTQEN3U-AhoPFV3EGbbqsRM9G6fozGviIUnCuVFW57lZk6DgwnJjFghOeiswXwoX5OkbfuegNt_7SOH7uV6Xpx5HI1sd2aJVBFj-_LOT37zuDcmVtQQkozkXd7IuXB_osvUJ-QcC9mV3iV6Jc2PWJ8Pw3ba2Eh0wi1H6tLlow18Q1eIHhPZvqWS88leyMpnoUMkQpvmxde6flKYch0qgAbmv3oYSFKOz3wr4xGp4RuFdEXhM_Y3lTaCliRtLm4MaTlZZ5b0K8o7ZTZpa43-ZkIRsPfpK4kOf-Lmj0SiMHrGxCfpr2DAffKsTjjBrqE8nhJ1sDBl33UUN70wGC_Z6i_Ajgxv0E-vb2qadQkeKzmsyC9wiimfH21pgiNdi9dqm06pWeIE8whJMuD--i8fgCcrSAi_s7dPqNf1LvKSFovINva1tT9eh3CgmEJLGweS9OqaGGEEHVo7Zik3gZBkkbxMDmMcydQl9viZubFH3jvzWPWGgaJ_yqPKp-w1HkDama1Mxp-RSZD76bv8Ou0eivDyX-Y1s5xrhfsr8779y7xzGFgyR5z0_z9_6yFdgapEzQec8ff-IBSl96uBhS5MLdDjmM1hXxCfdmUHv4QtYkHDev1pgqVanSqYTkTQHmk7GEKhxfL_N1CJa5z_HA60hZIZYRbXqdbZHczC1nqkLOascjRdWKvArRx9KImHFuoNgUPx6HLgT2a_-T5NOgyveFRyl13CdUReuf52o0m7I81z2BaSk1zzeF8BWK22GnOX5kfo7OPsOZ9uAv9ztgBTuNTcgBWZJ0-DEdA8g8YnSoQDLplzjUyVAXbXKV8hflfRQx1ynOLFKw9oTBJibOCa4bRGueK5jcVJdWwIqWsXfMRfvUvpFqbUh9Nhf2e2_Vdywj0F67PSwWb9MPfYEnT9M8Z1Yx6k5lpm4oYVSn9__eiHpzZHYHhmmfk3b2p_bPpEL0hhteIgbmkBt3P2o_R_38o2PtUrH3MNGu-JQAPEqON9yAGUs3bP-bFnNU=",
+      "summary": []
+    },
+    {
+      "id": "msg_079b6f53e309acd7016ab6d8da466487d2bf1b6fd516f9f96d",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"schema_version\":\"ai-evaluator-v2/1.1\",\"case_id\":\"8-2\",\"candidate_id\":\"candidate_1\",\"action_assessment\":{\"status\":\"defect\",\"summary\":\"Most business actions are represented, but the required resubmission after making corrections is missing; the graph goes from correction directly to another approval/rejection decision.\"},\"flow_assessment\":{\"status\":\"uncertain\",\"summary\":\"The main create/clarify/submit-before-post ordering is broadly preserved, but the required correction-to-resubmission recurrence cannot be fully matched because the repeated submission step is absent.\"},\"control_flow_assessment\":{\"status\":\"defect\",\"summary\":\"The rejection/rework loop is not preserved: the graph introduces an extra approval shortcut, routes retry into correction before a clear rejection request, and ends after rejection on the later decision instead of looping back until approval.\"},\"main_error_type\":\"wrong_loop_or_recurrence\",\"explanation\":\"The source process requires a clear review loop: submit the description, if rejected and correction is requested then correct it, submit it again, and repeat until final approval, after which the job is posted. In the generated graph, correction does not return to submission, a second approval/rejection decision appears only after correction, and a rejection there terminates the process instead of continuing the rework cycle. This breaks the central recurrence behavior of the process, even though many individual actions and the successful approval-to-posting outcome are still recognizable.\",\"overall_score\":0.44,\"severity\":\"major\",\"confidence\":\"high\",\"ambiguity_flag\":false,\"ambiguity_explanation\":\"\",\"requires_human_review\":false,\"review_reason\":\"\"}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": false,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "ai_evaluator_v2_result",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "enum": [
+              "ai-evaluator-v2/1.1"
+            ],
+            "description": "Fixed output-contract version."
+          },
+          "case_id": {
+            "type": "string",
+            "description": "Case identifier copied exactly from the candidate input."
+          },
+          "candidate_id": {
+            "type": "string",
+            "description": "Candidate identifier copied exactly from the candidate input."
+          },
+          "action_assessment": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "preserved",
+                  "defect",
+                  "uncertain",
+                  "not_applicable"
+                ],
+                "description": "Diagnostic status for Action semantics; not a subscore."
+              },
+              "summary": {
+                "type": "string",
+                "description": "Concise account of preserved or defective action meaning."
+              }
+            },
+            "required": [
+              "status",
+              "summary"
+            ]
+          },
+          "flow_assessment": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "preserved",
+                  "defect",
+                  "uncertain",
+                  "not_applicable"
+                ],
+                "description": "Diagnostic status for Flow and precedence semantics; not a subscore."
+              },
+              "summary": {
+                "type": "string",
+                "description": "Concise account of preserved or defective ordering, reachability, continuation, or termination."
+              }
+            },
+            "required": [
+              "status",
+              "summary"
+            ]
+          },
+          "control_flow_assessment": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "preserved",
+                  "defect",
+                  "uncertain",
+                  "not_applicable"
+                ],
+                "description": "Diagnostic status for Control-Flow semantics; not a subscore."
+              },
+              "summary": {
+                "type": "string",
+                "description": "Concise account of preserved or defective decisions, alternatives, loops, concurrency, synchronization, or termination behavior."
+              }
+            },
+            "required": [
+              "status",
+              "summary"
+            ]
+          },
+          "main_error_type": {
+            "type": "string",
+            "enum": [
+              "none",
+              "missing_action",
+              "extra_or_duplicated_action",
+              "incorrect_action_meaning_or_grouping",
+              "wrong_ordering_or_precedence",
+              "wrong_branching_or_condition",
+              "wrong_continuation_or_termination",
+              "wrong_loop_or_recurrence",
+              "wrong_parallelism_or_synchronization",
+              "mixed_or_cascading",
+              "other_semantic_defect"
+            ],
+            "description": "Dominant root semantic defect. Use none only when no meaningful defect is found."
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Concise audit explanation connecting source behavior, generated behavior, and whole-graph impact."
+          },
+          "overall_score": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "One continuous holistic whole-graph semantic-quality score."
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "none",
+              "minor",
+              "moderate",
+              "major",
+              "fundamental"
+            ],
+            "description": "Qualitative semantic-impact descriptor, not a numeric score band or subscore."
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "description": "Confidence in the provisional evaluation from the supplied evidence, independent of graph quality."
+          },
+          "ambiguity_flag": {
+            "type": "boolean",
+            "description": "Whether material source or representation ambiguity could affect diagnosis or score."
+          },
+          "ambiguity_explanation": {
+            "type": "string",
+            "description": "Explanation of material ambiguity, or an empty string when ambiguity_flag is false."
+          },
+          "requires_human_review": {
+            "type": "boolean",
+            "description": "Whether uncertainty or input inconsistency could plausibly change the diagnosis or score."
+          },
+          "review_reason": {
+            "type": "string",
+            "description": "Reason human review is required, or an empty string when requires_human_review is false."
+          }
+        },
+        "required": [
+          "schema_version",
+          "case_id",
+          "candidate_id",
+          "action_assessment",
+          "flow_assessment",
+          "control_flow_assessment",
+          "main_error_type",
+          "explanation",
+          "overall_score",
+          "severity",
+          "confidence",
+          "ambiguity_flag",
+          "ambiguity_explanation",
+          "requires_human_review",
+          "review_reason"
+        ]
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 5119,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 1792
+    },
+    "output_tokens": 2227,
+    "output_tokens_details": {
+      "reasoning_tokens": 1881
+    },
+    "total_tokens": 7346
+  },
+  "user": null,
+  "metadata": {}
+}

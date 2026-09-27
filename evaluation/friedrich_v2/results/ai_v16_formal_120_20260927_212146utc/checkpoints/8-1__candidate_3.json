@@ -1,0 +1,46 @@
+{
+  "case_id": "8-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:46:25.699860+00:00",
+  "request_record_sha256": "66e31324760703953675c9b3c374a29a9e6ea864592cc789646eb131b264d412",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "The core hiring actions are present, but the endpoint is modeled twice: \"fill post\" is followed by \"conclude contract of employment,\" while the source suggests the post is filled precisely by concluding the contract."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required linear precedence among the clearly matched actions is preserved: advertise the post, receive/apply, check applications, and reach the hiring completion step."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a simple linear process, and the graph preserves that straight-through start-to-finish progression without wrong branching, looping, or synchronization behavior."
+    },
+    "main_error_type": "extra_or_duplicated_action",
+    "explanation": "The source describes a linear hiring process ending when the post is filled, specifically through concluding an employment contract. The graph correctly represents advertising, applications, checking, and completion, but it separates the final completion into two sequential actions: \"fill post\" and then \"conclude contract of employment.\" This most plausibly duplicates the same business endpoint rather than preserving it as a single completion act. Because the rest of the process meaning and ordering are preserved, the whole-graph impact is limited but real.",
+    "overall_score": 0.91,
+    "severity": "minor",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The phrase \"the post was filled, precisely through the conclusion of a contract of employment\" can be read either as making contract conclusion identical to filling the post, or as giving a more concrete final substep of a broader \"fill post\" activity. That interpretive choice affects whether the separate \"fill post\" node is a semantic defect or acceptable refinement.",
+    "requires_human_review": true,
+    "review_reason": "Human review could resolve whether the source intends one final action or a broader action followed by a finalizing contract step, which could change the defect diagnosis and score."
+  },
+  "overall_score_decimal": "0.91",
+  "usage": {
+    "case_id": "8-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4314,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2249,
+    "reasoning_tokens": 1815,
+    "total_tokens": 6563,
+    "estimated_api_cost_usd": "0.04048800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_02c283bd645ca905016ab98e96439c87d1a4fac9ef86edad03",
+    "retry_count": 0
+  }
+}

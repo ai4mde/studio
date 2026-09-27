@@ -1,0 +1,46 @@
+{
+  "case_id": "1-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-25T20:21:43.733718+00:00",
+  "request_record_sha256": "3e0fb019269b82b637f6dd5a0eb0252ee972b3a702228d9a65c42b83928f6029",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most business activities are present, but the storehouse work is materially misrepresented: reserve and back-order are modeled as successive actions rather than alternative outcomes for each part, and the per-item handling is not preserved."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required precedence is broken on the accepted path: assembly is allowed to occur before the storehouse branch has completed handling the parts, although the source requires all items to be reserved or back-ordered before assembly."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The accepted-order control behavior is wrong: the availability-based alternative and repetition for each part are missing, and the synchronization is misplaced so assembly, shipping, and finishing occur inside one parallel branch before joining with the storehouse branch."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source requires that, after acceptance, storehouse handling and engineering preparation proceed in parallel, with storehouse repeating per part and choosing either reserve or back-order for each item; only once all items are handled and preparation is finished may assembly start, followed by shipping and process completion. In the generated graph, reserve and back-order are executed sequentially in a single pass, no per-item loop or availability-based choice is modeled, and assembly/shipping/finishing are placed before the join, so they can occur before storehouse completion. This distorts the main accepted-order behavior even though the overall order/reject skeleton and many action labels are present.",
+    "overall_score": 0.35,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.35",
+  "usage": {
+    "case_id": "1-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5940,
+    "cached_input_tokens": 0,
+    "output_tokens": 2435,
+    "reasoning_tokens": 2045,
+    "total_tokens": 8375,
+    "estimated_api_cost_usd": "0.05137500",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_047d61a21b9e6dbd016ab6d7b5ac8087d2b0f35cc36cf36f77",
+    "retry_count": 0
+  }
+}

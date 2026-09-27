@@ -1,0 +1,46 @@
+{
+  "case_id": "1-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-25T20:22:11.835965+00:00",
+  "request_record_sha256": "19d860e711961c2c5248ba1cea5d53c413621e360c8362f406f2222ddc92751a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "1-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "The graph captures receiving, accepting/rejecting, informing, part-list handling, and preparation, but it omits the required actions to assemble the bicycle and ship it to the customer."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Early order relations are mostly preserved, but the graph imposes an unsupported sequence from reserve to back-order even though these should be alternatives, and the required continuation to later fulfillment actions is not preserved because assembly and shipping are absent."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The accept/reject choice and the parallel split between storehouse work and engineering preparation are present, but the per-item conditional handling is wrong, the required repetition for each part-list item is missing, and the accepted path terminates after synchronization instead of continuing to assembly and shipping."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires that, after acceptance, storehouse work and engineering preparation proceed in parallel; within the storehouse work, each item must be checked and then either reserved or back-ordered, repeating for every item; once both branches are complete, the bicycle must be assembled and then shipped. The generated graph preserves the initial acceptance/rejection and the high-level parallel split, but it turns reserve and back-order into a sequential path instead of a conditional alternative, omits the per-item repetition, and ends the accepted case immediately after the join. As a result, accepted orders never reach the required assembly and shipment outcome, and the item-handling logic is materially incorrect.",
+    "overall_score": 0.37,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.37",
+  "usage": {
+    "case_id": "1-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5482,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2094,
+    "reasoning_tokens": 1693,
+    "total_tokens": 7576,
+    "estimated_api_cost_usd": "0.04108300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ce53ac6527bda29016ab6d7d8614c87d29986541ccf1a68b5",
+    "retry_count": 0
+  }
+}

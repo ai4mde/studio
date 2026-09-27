@@ -1,0 +1,46 @@
+{
+  "case_id": "10-12",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:59:23.810522+00:00",
+  "request_record_sha256": "b6bc9c8efee2cd42829dcfb9757db064ee5e651f081a784fa2f75cd647b52243",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-12",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source activities are represented with correct meaning: EC informs INQ, INQ notifies IP, IP checks feasibility at the desired time, and IP either confirms or rejects the change."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved: inform INQ -> notify IP -> check change timing -> reach either confirm or reject. No required order is reversed or omitted."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The post-check alternative is modeled correctly as a binary decision between confirmation and rejection, with each branch terminating appropriately."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the full process meaning from the text. It includes the three sequential preparatory actions, followed by a decision after the IP check that leads to exactly one of the two stated outcomes: confirming or rejecting the change. The extra merge on the confirmation side does not introduce any behavioral change, so no meaningful semantic defect is present.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-12",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4685,
+    "cached_input_tokens": 1792,
+    "output_tokens": 518,
+    "reasoning_tokens": 236,
+    "total_tokens": 5203,
+    "estimated_api_cost_usd": "0.01545050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f5bead5bbc88694016ab991b6504c87d1bb4225bbd4f5db5d",
+    "retry_count": 0
+  }
+}

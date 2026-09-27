@@ -1,0 +1,46 @@
+{
+  "case_id": "3-6",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:33:55.391896+00:00",
+  "request_record_sha256": "6ad70cc919581d5857f302496fd073cf0ff8fd1ab5783b311dca31c1648f52af",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-6",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most main actions are present, but completeness checking is incorrectly duplicated and the required re-check after updated forms is not properly represented; severity evaluation is also unnecessarily duplicated across branches."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required recurrence/order around incomplete forms is not preserved: after updated forms are received, the graph does not route back to a completeness check before possible registration, and key decisions occur before their corresponding evaluation/check actions."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The rejection branch is preserved, but the graph uses wrong decision placement and a wrong loop: incomplete forms lead to a separate success/retry decision, retry returns to informing again rather than re-checking, and success can reach registration without the mandated re-check of updated forms."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "In the source, incomplete forms must trigger: inform claimant to update forms -> receive updated forms -> check the forms again, and only then, if complete, register the claim. In the generated graph, completeness is decided before the checking action, and after an incomplete outcome the process goes to a new success/retry decision. From there, the claim can proceed to registration without re-checking updated forms, while the retry path loops from receiving updated forms back to informing the claimant again instead of back to completeness checking. This breaks the central recurrence and acceptance logic of the process, even though the initial receipt, insured/not-insured split, rejection notification, and final registration action are present.",
+    "overall_score": 0.4,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.4",
+  "usage": {
+    "case_id": "3-6",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5969,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2408,
+    "reasoning_tokens": 2011,
+    "total_tokens": 8377,
+    "estimated_api_cost_usd": "0.04701050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_00b3a93e197edae7016ab98ba6a1a087d18e8ee7a87761f66f",
+    "retry_count": 0
+  }
+}

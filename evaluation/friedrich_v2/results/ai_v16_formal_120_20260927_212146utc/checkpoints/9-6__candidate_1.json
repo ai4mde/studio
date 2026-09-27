@@ -1,0 +1,46 @@
+{
+  "case_id": "9-6",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:52:48.543077+00:00",
+  "request_record_sha256": "153c526add815db5099c5135c2933fe7168c9b788ed6686ddf832ee3db610c34",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-6",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most core activities are present, but the departmental fail paths omit redoing revise-and-test work, and the modeled restart behavior is reduced to notifications rather than actual stop-and-restart execution."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The main straight-through precedence is preserved: locate/distribute precedes parallel departmental work, which precedes combine/test and then manufacturing on success. The main semantic problems are retry/restart control behavior rather than simple action ordering reversals."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Parallel branches are created, but successful completion of one design does not actually interrupt and restart the other branch, departmental test failures do not loop back through the full department cycle, and combined-design failure terminates instead of starting another design cycle."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source process is fundamentally iterative and interrupt-driven: each department repeats review-plan-revise-test until its test passes, a passing update forces the other department to stop and restart, and a failed combined test sends both designs into another cycle. In the generated graph, departmental test-fail branches go to review/create-plan and then end, a department pass only sends a notification without causing the other branch to restart, and combined-test failure goes to an 'initiate new design cycle' action and then ends. These defects change the central behavior of rework, interruption, and continuation, so the graph preserves the rough skeleton of the process but not its required execution semantics.",
+    "overall_score": 0.39,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.39",
+  "usage": {
+    "case_id": "9-6",
+    "candidate_id": "candidate_1",
+    "input_tokens": 7335,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2220,
+    "reasoning_tokens": 1827,
+    "total_tokens": 9555,
+    "estimated_api_cost_usd": "0.04760550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_08035a945fabcbfb016ab990156e6487d18e789cbcea585ad6",
+    "retry_count": 0
+  }
+}

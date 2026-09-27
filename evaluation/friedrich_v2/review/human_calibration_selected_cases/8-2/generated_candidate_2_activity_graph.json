@@ -1,0 +1,103 @@
+{
+  "edges": [
+    {
+      "source": "n5",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n7",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n6",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "create job description from vacancy information",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "clarify vacancy information with department if needed",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "submit job description for consideration",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "post the job",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "type": "initial"
+    },
+    {
+      "id": "n6",
+      "type": "final"
+    },
+    {
+      "id": "n7",
+      "label": "repeat job description submission and correction until approval is obtained?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n8",
+      "name": "correct job description as requested by department",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "resubmit job description for consideration",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    }
+  ]
+}

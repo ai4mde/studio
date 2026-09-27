@@ -1,0 +1,5 @@
+dimension,code_metric,usable_pairs_N,spearman_rho,missing_or_NA_excluded,pairwise_complete_only,applicable_candidates,coverage_mean_usable,coverage_min_usable,coverage_max_usable,indeterminate_count_usable_total,candidates_with_indeterminate_usable,coverage_mean_all_applicable,indeterminate_count_all_applicable_total
+Action,action_F1,120,0.419783947612,0,True,120,1,1,1,0,0,1,0
+Flow,flow_scorable_F1,120,0.490751289068,0,True,120,0.8463647597759624325,0.2,1.0,239,55,0.8463647597759624325,239
+Control Node,control_node_scorable_F1,96,0.314186457426,24,True,99,0.922064393939393939583333333333333333333333333333,0.2,1.0,27,18,0.894123048668503214141414141414141414141414141414,30
+Control Relation,control_relation_scorable_F1,96,0.299583995904,24,True,99,0.870233585858585859791666666666666666666666666667,0.38461538461538464,1.0,100,41,0.843862871135598409494949494949494949494949494949,106

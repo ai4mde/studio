@@ -1,0 +1,46 @@
+{
+  "case_id": "2-2",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:29:05.122924+00:00",
+  "request_record_sha256": "59ebb8b4d7df65fc288e73fd1b073ca65204e3a4c306015f04e146e472283e2f",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "2-2",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Most meaningful business activities are present with acceptable abstraction; the main semantic problem is not missing work but how the supplier-concurrence branch is routed onward."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The main linear precedence relations are largely maintained, including data entry/checking, contract-document retry, customer decision, and post-switch billing/import sequence; the decisive issue is branch continuation rather than general ordering."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The supplier-concurrence branch is merged back into the normal continuation and reaches CIS contract creation and later steps, although the source only explicitly allows that continuation when there are no objections/no supplier concurrence."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The generated graph captures most of the process, including the contract-document regeneration loop, the customer's withdraw-versus-confirm/timeout decision, and the parallel post-switch billing activities. However, after the grid operator finds supplier concurrence, the graph routes through conflict-resolution/termination actions and then merges back into the same path that creates the CIS contract and continues the switch process. In the source text, CIS contract creation and onward continuation are explicitly tied to the no-objection/no-supplier-concurrence case. This means the candidate permits success-path continuation for a case that the text does not authorize, which materially changes branch outcome semantics across the rest of the process.",
+    "overall_score": 0.73,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source is not fully explicit about whether, after supplier concurrence is resolved and the old agreement is terminated, the process may later rejoin the normal path. It explicitly states CIS contract creation for the no-objection case, which supports the defect diagnosis, but an alternative reading could allow later continuation.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted because the source wording around the supplier-concurrence branch and its eventual continuation could plausibly change whether the merge back to CIS contract creation is judged defective and could change the score."
+  },
+  "overall_score_decimal": "0.73",
+  "usage": {
+    "case_id": "2-2",
+    "candidate_id": "candidate_3",
+    "input_tokens": 8071,
+    "cached_input_tokens": 1792,
+    "output_tokens": 4278,
+    "reasoning_tokens": 3807,
+    "total_tokens": 12349,
+    "estimated_api_cost_usd": "0.08031550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_01f5b212a1f1938b016ab98a70eeb887d1996ac003dba89f44",
+    "retry_count": 0
+  }
+}

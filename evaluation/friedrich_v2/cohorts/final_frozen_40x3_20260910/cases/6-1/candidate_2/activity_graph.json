@@ -1,0 +1,164 @@
+{
+  "edges": [
+    {
+      "source": "n7",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "all_approved",
+      "source": "n9",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "board_check",
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "label": "no_board_check",
+      "source": "n12",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "receive invoice in central inbox",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "forward invoice to accounting employee",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "identify supplier and create invoice instance in ACME Financial Accounting",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "check invoice items and note corresponding cost centers and cost center managers on docket",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "send docket and invoice copy to first cost center manager",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "forward invoice copy to commercial manager for commercial audit",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "type": "initial"
+    },
+    {
+      "id": "n8",
+      "type": "final"
+    },
+    {
+      "id": "n9",
+      "label": "repeat cost center manager review and correction until all invoice items are approved?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n10",
+      "name": "clarify inconsistencies with supplier and, if necessary, consult cost center managers",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "send invoice copy to cost center managers again",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "label": "determine if board approval is needed based on invoice amount?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n13",
+      "name": "submit invoice and docket to Board for approval",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "origin_block_id": "T2",
+      "type": "merge"
+    }
+  ]
+}

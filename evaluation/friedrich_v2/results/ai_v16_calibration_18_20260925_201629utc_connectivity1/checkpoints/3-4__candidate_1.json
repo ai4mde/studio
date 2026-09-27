@@ -1,0 +1,46 @@
+{
+  "case_id": "3-4",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-25T20:23:55.636219+00:00",
+  "request_record_sha256": "39813b82a2eaf58b8b4322602014aa5def3c503d932aecea65bd4d2c13215461",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-4",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "The graph includes the key actions of sending the questionnaire and sending reminders, but it incorrectly repeats the questionnaire-sending action on each retry cycle."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required matched-action precedence is largely preserved: the questionnaire is sent before reminders, and reminder iterations remain reachable; the main issue is an extra repeated questionnaire action rather than a precedence reversal."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The recurrence behavior is wrong: after a no-response retry, the loop goes through sending the questionnaire again instead of repeating the reminder cycle until the completed questionnaire is received."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source process is: send questionnaire, wait for response, send reminders every additional five days until the completed questionnaire is received. The generated graph captures the basic reminder-until-response idea, and the lack of explicit wait nodes is acceptable as abstraction. However, its retry loop targets 'send questionnaire to claimant' after each reminder, which changes the repeated behavior from 'send another reminder' to 're-send the questionnaire and then remind again.' This introduces unsupported repeated business behavior and an incorrect loop target, but the overall process remains recognizable.",
+    "overall_score": 0.71,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.71",
+  "usage": {
+    "case_id": "3-4",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4224,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1443,
+    "reasoning_tokens": 1108,
+    "total_tokens": 5667,
+    "estimated_api_cost_usd": "0.02817300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_08b9c8e55f6d0cf6016ab6d84973ac87d2bcef0423ffd25b8a",
+    "retry_count": 0
+  }
+}

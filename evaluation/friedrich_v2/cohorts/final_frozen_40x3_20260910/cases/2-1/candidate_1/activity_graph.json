@@ -1,0 +1,549 @@
+{
+  "edges": [
+    {
+      "source": "n10",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "premium",
+      "source": "n12",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "label": "not_premium",
+      "source": "n12",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "label": "reprioritize",
+      "source": "n14",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "label": "continue",
+      "source": "n14",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "label": "analyzable_by_sm",
+      "source": "n18",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "source": "n19",
+      "target": "n20",
+      "type": "control"
+    },
+    {
+      "label": "send_to_rp",
+      "source": "n18",
+      "target": "n21",
+      "type": "control"
+    },
+    {
+      "source": "n21",
+      "target": "n22",
+      "type": "control"
+    },
+    {
+      "label": "problem_detected",
+      "source": "n22",
+      "target": "n23",
+      "type": "control"
+    },
+    {
+      "source": "n23",
+      "target": "n24",
+      "type": "control"
+    },
+    {
+      "source": "n24",
+      "target": "n25",
+      "type": "control"
+    },
+    {
+      "source": "n25",
+      "target": "n26",
+      "type": "control"
+    },
+    {
+      "label": "no_problem",
+      "source": "n22",
+      "target": "n27",
+      "type": "control"
+    },
+    {
+      "source": "n27",
+      "target": "n28",
+      "type": "control"
+    },
+    {
+      "source": "n28",
+      "target": "n29",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n33",
+      "target": "n34",
+      "type": "control"
+    },
+    {
+      "label": "no_problem",
+      "source": "n34",
+      "target": "n35",
+      "type": "control"
+    },
+    {
+      "label": "minor_correction",
+      "source": "n34",
+      "target": "n36",
+      "type": "control"
+    },
+    {
+      "source": "n36",
+      "target": "n37",
+      "type": "control"
+    },
+    {
+      "source": "n37",
+      "target": "n38",
+      "type": "control"
+    },
+    {
+      "label": "auto_restoration",
+      "source": "n34",
+      "target": "n39",
+      "type": "control"
+    },
+    {
+      "source": "n39",
+      "target": "n40",
+      "type": "control"
+    },
+    {
+      "source": "n40",
+      "target": "n41",
+      "type": "control"
+    },
+    {
+      "label": "restoration_within_2_days",
+      "source": "n41",
+      "target": "n42",
+      "type": "control"
+    },
+    {
+      "source": "n42",
+      "target": "n43",
+      "type": "control"
+    },
+    {
+      "source": "n43",
+      "target": "n44",
+      "type": "control"
+    },
+    {
+      "source": "n44",
+      "target": "n45",
+      "type": "control"
+    },
+    {
+      "source": "n45",
+      "target": "n46",
+      "type": "control"
+    },
+    {
+      "source": "n46",
+      "target": "n47",
+      "type": "control"
+    },
+    {
+      "label": "timeout",
+      "source": "n41",
+      "target": "n48",
+      "type": "control"
+    },
+    {
+      "source": "n35",
+      "target": "n50",
+      "type": "control"
+    },
+    {
+      "source": "n38",
+      "target": "n50",
+      "type": "control"
+    },
+    {
+      "source": "n48",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n50",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n20",
+      "target": "n33",
+      "type": "control"
+    },
+    {
+      "source": "n26",
+      "target": "n33",
+      "type": "control"
+    },
+    {
+      "source": "n29",
+      "target": "n33",
+      "type": "control"
+    },
+    {
+      "source": "n47",
+      "target": "n50",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "customer perceives service degradation",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "send problem parameters to Customer Service",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "enter problem report into system T",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "compare problem report to customer SLA",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "determine necessary counter measures and priorities",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "determine customer significance",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "create report for customer detailing current service performance and problem resolution",
+      "origin_step_id": "S7",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "report SLA violation rebate to Billing & Collections",
+      "origin_step_id": "S8",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "send report to customer",
+      "origin_step_id": "S9",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "type": "initial"
+    },
+    {
+      "id": "n11",
+      "type": "final"
+    },
+    {
+      "id": "n12",
+      "label": "determine if customer is premium and link to extra problem fix process?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n13",
+      "name": "link to extra problem fix process",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "label": "check if customer significance affects counter measures and possibly reprioritize?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n15",
+      "name": "reprioritize counter measures",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "name": "create detailed problem report",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "name": "send detailed problem report to Service Management",
+      "origin_step_id": "T2_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "label": "Service Management determines if problem is analyzable at their level or must be sent to Resource Provisioning?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n19",
+      "name": "analyze problem at Service Management",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n20",
+      "name": "create trouble report indicating type of problem",
+      "origin_step_id": "T3_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n21",
+      "name": "send detailed problem report to Resource Provisioning",
+      "origin_step_id": "T3_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n22",
+      "label": "Resource Provisioning checks if there is a problem?",
+      "origin_block_id": "T4",
+      "type": "decision"
+    },
+    {
+      "id": "n23",
+      "name": "analyze problem at Resource Provisioning",
+      "origin_step_id": "T4_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n24",
+      "name": "create trouble report",
+      "origin_step_id": "T4_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n25",
+      "name": "include trouble report in status report",
+      "origin_step_id": "T4_branch_1_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n26",
+      "name": "send status report to Service Management",
+      "origin_step_id": "T4_branch_1_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n27",
+      "name": "create notification about normal service execution",
+      "origin_step_id": "T4_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n28",
+      "name": "include notification in status report",
+      "origin_step_id": "T4_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n29",
+      "name": "send status report to Service Management",
+      "origin_step_id": "T4_branch_2_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n33",
+      "origin_block_id": "T1",
+      "type": "merge"
+    },
+    {
+      "id": "n34",
+      "label": "Service Management determines counter measures based on final status report?",
+      "origin_block_id": "T5",
+      "type": "decision"
+    },
+    {
+      "id": "n35",
+      "name": "send actual service performance to Customer Service",
+      "origin_step_id": "T5_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n36",
+      "name": "undertake corrective actions at Service Management",
+      "origin_step_id": "T5_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n37",
+      "name": "create problem resolution report",
+      "origin_step_id": "T5_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n38",
+      "name": "send problem resolution report to Customer Service",
+      "origin_step_id": "T5_branch_2_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n39",
+      "name": "create request for automatic resource restoration",
+      "origin_step_id": "T5_branch_3_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n40",
+      "name": "send restoration request to Resource Provisioning",
+      "origin_step_id": "T5_branch_3_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n41",
+      "label": "Resource Provisioning waits for restoration request within 2 days?",
+      "origin_block_id": "T6",
+      "type": "decision"
+    },
+    {
+      "id": "n42",
+      "name": "track all possible errors",
+      "origin_step_id": "T6_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n43",
+      "name": "undertake necessary corrective actions at Resource Provisioning",
+      "origin_step_id": "T6_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n44",
+      "name": "create trouble-shooting report",
+      "origin_step_id": "T6_branch_1_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n45",
+      "name": "send trouble-shooting report to Service Management",
+      "origin_step_id": "T6_branch_1_step_4",
+      "type": "action"
+    },
+    {
+      "id": "n46",
+      "name": "create problem resolution report",
+      "origin_step_id": "T6_branch_1_step_5",
+      "type": "action"
+    },
+    {
+      "id": "n47",
+      "name": "send problem resolution report to Customer Service",
+      "origin_step_id": "T6_branch_1_step_6",
+      "type": "action"
+    },
+    {
+      "id": "n48",
+      "name": "terminate process at Resource Provisioning",
+      "origin_step_id": "T6_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n50",
+      "origin_block_id": "T5",
+      "type": "merge"
+    }
+  ]
+}

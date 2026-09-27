@@ -1,0 +1,46 @@
+{
+  "case_id": "2-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:26:47.804388+00:00",
+  "request_record_sha256": "ea3d8a07978a703fa1f6936a0a54ed75f2df7c6b8182bc2cd41fe84aff15089e",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "2-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Many source actions are present, but the resource-restoration path omits the required Service Management problem-resolution-report handling before Customer Service continuation, and some branch-specific action meaning is distorted."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required precedence is broken in key places: after re-prioritization the process should continue to the detailed problem report but instead terminates, and the final Customer Service tasks are forced into an unsupported sequence rather than remaining unordered/concurrent."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Major routing errors exist: the Service-Management-can-analyze branch is wrongly continued into Resource Provisioning, the re-prioritization branch terminates instead of rejoining, the restoration branch skips the required Service Management resolution path, and the final concurrent work is modeled sequentially."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The graph captures much of the overall skeleton, but several central behaviors are not preserved. In the source, if customer significance affects measures, the process is re-prioritized and then continues to detailed reporting; here that branch ends at the final node. In the source, when Service Management can analyze the problem itself, it analyzes and creates a trouble report without sending the case through Resource Provisioning; here that branch is merged into the Resource Provisioning detection flow. In the automatic restoration case, the source requires the trouble-shooting report to return to Service Management and feed creation/sending of the problem resolution report to Customer Service; here the graph jumps directly to the final customer-reporting section. The source also requires two concurrent Customer Service activities, but the graph serializes them. These defects affect multiple major branches and materially change continuation, branching, and outcomes.",
+    "overall_score": 0.44,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.44",
+  "usage": {
+    "case_id": "2-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 10382,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2512,
+    "reasoning_tokens": 2070,
+    "total_tokens": 12894,
+    "estimated_api_cost_usd": "0.05960300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0e31da277c62c350016ab989f9966487d1869c94756f505ee4",
+    "retry_count": 0
+  }
+}

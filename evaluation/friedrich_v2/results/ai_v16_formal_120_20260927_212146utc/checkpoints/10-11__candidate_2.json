@@ -1,0 +1,46 @@
+{
+  "case_id": "10-11",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:58:48.707850+00:00",
+  "request_record_sha256": "6c473291b5c3c691872fbad435391c6852883e9c69e8b2cf95c92c13b247fef4",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-11",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All main business actions from the text are represented with acceptable paraphrases; no clear unsupported or missing action is decisive here."
+    },
+    "flow_assessment": {
+      "status": "uncertain",
+      "summary": "The main order up to the measurement outcome is preserved, but it is unclear from the source whether GO processing must occur only after successful transmission of measured values; the graph allows it after a failure notice as well."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The graph merges the reading-failure branch into the same continuation as the successful measured-values branch, so failure still leads to GO processing, sending changed values, and transmitting readings."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source most strongly suggests that after MSP performs the measurement, the process branches to either failure notification or transmission of measured values, and the later GO steps are tied to having measured values to process. The candidate correctly models request, check, denial vs measurement, and failure vs success after measurement, but it then merges both failure and success into the downstream GO actions. That makes the failure branch continue as if measured values were available, which changes branch continuation and likely permits success-only behavior after an unsuccessful reading. The wording is somewhat ambiguous, so this is a provisional defect assessment rather than a fully certain one.",
+    "overall_score": 0.67,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The text is underspecified about continuation after 'MSP informs the GO about the failure of the reading': a literal reading can suggest the subsequent GO steps still occur, while the business meaning of 'processes the measured values' suggests continuation only after successful transmission of measured values. The relation between denial and the later failure/success statement is also not perfectly explicit.",
+    "requires_human_review": true,
+    "review_reason": "Resolving whether the failure branch should terminate or continue would materially change the diagnosis and score."
+  },
+  "overall_score_decimal": "0.67",
+  "usage": {
+    "case_id": "10-11",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5355,
+    "cached_input_tokens": 4864,
+    "output_tokens": 2678,
+    "reasoning_tokens": 2235,
+    "total_tokens": 8033,
+    "estimated_api_cost_usd": "0.04261350",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_05d753004cf03e30016ab991787d0887d18646fcaf72c69f56",
+    "retry_count": 0
+  }
+}

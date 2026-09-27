@@ -1,0 +1,46 @@
+{
+  "case_id": "9-4",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:50:39.636700+00:00",
+  "request_record_sha256": "98c94a9a57e84d9a5491a1a56d354e9bf0ff228d08e2a11330d4882daabeff04",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-4",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source activities are represented with acceptable wording, including document upload, advising members before the meeting, producing minutes with action points, QA checking the minutes within 5 working days, sending them, and updating departmental records."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is maintained throughout: date finalization precedes preparation tasks, advising precedes the meeting, the meeting precedes minutes, QA precedes sending minutes, and sending precedes updating records."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a straight-through process with no explicit branching, looping, or parallel synchronization requirements, and the generated graph preserves that simple continuation to completion."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph captures the full intended process as a linear sequence: finalize dates, prepare calendars/folders/documents, advise members before the meeting, hold the meeting, produce minutes with action points, perform QA within 5 working days, send the minutes, and then update departmental records. No meaningful action is missing, added, or semantically distorted, and no required decision, loop, or synchronization behavior is lost.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "9-4",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4975,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1046,
+    "reasoning_tokens": 726,
+    "total_tokens": 6021,
+    "estimated_api_cost_usd": "0.02409550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_052c653bce6f9442016ab98fa2ad7887d1a40c5909448ce4f0",
+    "retry_count": 0
+  }
+}

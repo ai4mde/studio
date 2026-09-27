@@ -1,0 +1,192 @@
+{
+  "edges": [
+    {
+      "source": "n7",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "not_interested",
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "label": "huge_budget",
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "label": "leave_alone",
+      "source": "n10",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "interested",
+      "source": "n9",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "label": "no_contact",
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "label": "customer_contacts",
+      "source": "n15",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n14",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "determine contact details of potential customers",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "call the customer",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "determine the contact person and available project budget",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "ask the customer whether they are generally interested",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "give a detailed online presentation",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "create a quotation",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "type": "initial"
+    },
+    {
+      "id": "n8",
+      "type": "final"
+    },
+    {
+      "id": "n9",
+      "label": "determine whether the customer is generally interested?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n10",
+      "label": "if not interested, check if the potential project budget is huge?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n11",
+      "name": "head of development personally tries to acquire the customer",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "leave the customer alone",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "origin_block_id": "T1",
+      "type": "merge"
+    },
+    {
+      "id": "n15",
+      "label": "after presentation, check if the customer contacts within 2 weeks?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n16",
+      "name": "sales representative calls the customer",
+      "origin_step_id": "T3_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "origin_block_id": "T3",
+      "type": "merge"
+    }
+  ]
+}

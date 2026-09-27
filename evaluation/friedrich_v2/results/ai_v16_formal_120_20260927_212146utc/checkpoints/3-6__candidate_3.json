@@ -1,0 +1,46 @@
+{
+  "case_id": "3-6",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:34:54.916498+00:00",
+  "request_record_sha256": "285dbff460c9a8a529b0c50f8d4cf744daeb5542c4fdfb4a45aac655b279f6d6",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-6",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most required business actions are present, but severity evaluation and forms-completeness checking are duplicated/misgrouped in ways that introduce unsupported repeated checking behavior."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The main action-to-action precedence is largely retained: claim receipt precedes insurance checking, forms are sent before completeness handling, and update notification precedes the follow-up check. The main problems are routing and loop semantics rather than matched-action order."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Control behavior is materially wrong: the graph routes simple/complex before performing severity evaluation, branches on completeness before the checking action, and the incomplete-forms rework cycle does not correctly repeat the check-until-complete logic."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires: receive claim, decide insured, if insured then evaluate severity and route by that outcome, send forms, check returned forms for completeness, and if incomplete ask for updates and repeat the completeness check until complete before registration. The generated graph preserves the insured/not-insured rejection path, but it makes central control-flow mistakes in the insured path: severity routing occurs before the evaluation action, completeness is decided before the checking action, and the retry structure can progress to registration through a misplaced success/retry decision instead of correctly looping back through repeated completeness checking until complete. Because these defects affect the main claim-processing path and alter when and why registration can occur, overall semantic preservation is substantially reduced.",
+    "overall_score": 0.43,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.43",
+  "usage": {
+    "case_id": "3-6",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5852,
+    "cached_input_tokens": 1792,
+    "output_tokens": 3035,
+    "reasoning_tokens": 2643,
+    "total_tokens": 8887,
+    "estimated_api_cost_usd": "0.05612300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_04b9b323767fa290016ab98bd9db7887d1be7b129ec0e7f647",
+    "retry_count": 0
+  }
+}

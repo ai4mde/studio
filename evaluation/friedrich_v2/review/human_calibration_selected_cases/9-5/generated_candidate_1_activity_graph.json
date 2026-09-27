@@ -1,0 +1,187 @@
+{
+  "edges": [
+    {
+      "source": "n4",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "needs_supervisor",
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "label": "auto_approved",
+      "source": "n6",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "label": "completed_in_time",
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "approval_in_progress",
+      "source": "n11",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "label": "cancelled",
+      "source": "n11",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n7",
+      "target": "n10",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "receive expense report",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "create employee account if not already present",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "review expense report for automatic approval",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "type": "initial"
+    },
+    {
+      "id": "n5",
+      "type": "final"
+    },
+    {
+      "id": "n6",
+      "label": "determine if the expense is auto-approved or requires supervisor approval?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n7",
+      "label": "supervisor approves or rejects the expense?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n8",
+      "name": "send rejection notice to employee by email",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "origin_block_id": "T1",
+      "type": "merge"
+    },
+    {
+      "id": "n11",
+      "label": "handle timeouts for incomplete requests (7-day and 30-day deadlines)?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n12",
+      "name": "reimburse employee by direct deposit",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "name": "send approval in progress email to employee",
+      "origin_step_id": "T3_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "send cancellation notice to employee by email",
+      "origin_step_id": "T3_branch_3_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "name": "require employee to resubmit expense report",
+      "origin_step_id": "T3_branch_3_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n16",
+      "origin_block_id": "T3",
+      "type": "merge"
+    }
+  ]
+}

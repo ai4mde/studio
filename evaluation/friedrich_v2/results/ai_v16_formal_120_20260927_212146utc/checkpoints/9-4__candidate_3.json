@@ -1,0 +1,46 @@
+{
+  "case_id": "9-4",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:50:58.083682+00:00",
+  "request_record_sha256": "041cc9440d9fe701ec56be548207fcf0191ef5f218fac25002481ee99eab67f9",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-4",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with correct meanings, including date finalization, preparation tasks, advising members, meeting, minutes with action points, QA check, sending minutes, and updating records."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph preserves the overall required precedence from finalized dates through preparation, meeting, minutes, QA, distribution, and final records update."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a single linear process with no required branching, looping, or parallel synchronization, and the graph preserves that linear continuation and termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph semantically matches the described process end to end: dates are finalized, the Support Officer performs the meeting preparations, members are advised before the meeting, the meeting is held, minutes with action points are produced, the Coordination Unit performs the QA check within 5 working days, the minutes are sent to members, and departmental records are then updated. No meaningful action, ordering, or control-flow defect is evident from the supplied text and graph.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "9-4",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5031,
+    "cached_input_tokens": 1792,
+    "output_tokens": 880,
+    "reasoning_tokens": 575,
+    "total_tokens": 5911,
+    "estimated_api_cost_usd": "0.02174550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_07f797e3fa776432016ab98fb80db087d1af0b242bbb17ec85",
+    "retry_count": 0
+  }
+}

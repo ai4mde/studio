@@ -1,0 +1,46 @@
+{
+  "case_id": "4-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:36:24.865961+00:00",
+  "request_record_sha256": "cff005b2e6497a3e639e72909db34987e1cb5a4ab355a5b6cdbee34c92cfe82f",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "4-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the main intake, assignment, optional medical-file request, both intaker activities, documentation, and treatment-plan actions with acceptable paraphrase; omitted custodial/details are not behaviorally central."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph imposes unsupported precedence: when a medical file is required, first-intaker planning is delayed until that branch finishes, and the entire first-intaker path must finish before the second intaker can plan and meet the patient."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Independent work after assignment is collapsed into one serial path instead of allowing the first-intaker track to proceed independently and the second-intaker track to wait only on medical information if required, with synchronization only before the post-both-meetings stage."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "In the source, after assignment the secretarial office may request the medical file if needed, the first intaker should plan and perform the first visit as soon as possible, and the second intaker must wait only for medical information when that condition applies. The candidate instead serializes these behaviors: the optional medical-file branch must complete before first-intaker planning starts, and the whole first-intaker visit/documentation sequence must complete before the second intaker can even plan the first meeting. This changes the intended independence and synchronization of the process, creating wrong delays and unsupported ordering in a central part of the workflow, even though most individual actions are present.",
+    "overall_score": 0.71,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.71",
+  "usage": {
+    "case_id": "4-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 8706,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2423,
+    "reasoning_tokens": 2027,
+    "total_tokens": 11129,
+    "estimated_api_cost_usd": "0.05407800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0d7a5b7eaa3d561f016ab98c3cd0b087d193ad573a27694375",
+    "retry_count": 0
+  }
+}

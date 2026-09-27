@@ -1,0 +1,46 @@
+{
+  "case_id": "8-1",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:45:36.871959+00:00",
+  "request_record_sha256": "3a8f4a323661945a09b1afbc5c0da69de56dc2da2df9769a6a541dadf8d5e618",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-1",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the stated business activities: advertise the post, receive/apply, check applications, fill the post, and conclude the employment contract. The triggering demand is acceptably implicit as process start context."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved in a straight sequence: advertisement before applications, applications before checking, and checking before filling/contract conclusion."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a simple linear process with no required branching, looping, or parallelism, and the graph preserves that continuation to completion."
+    },
+    "main_error_type": "none",
+    "explanation": "The original text describes a linear hiring process triggered by a staffing demand: advertise the post, applicants apply, applications are checked, and the post is filled, with completion realized by concluding an employment contract. The generated graph represents these same core actions in the same order and ends after the contract conclusion. No meaningful action, ordering, or control-flow behavior is lost or contradicted.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "8-1",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4314,
+    "cached_input_tokens": 1792,
+    "output_tokens": 550,
+    "reasoning_tokens": 257,
+    "total_tokens": 4864,
+    "estimated_api_cost_usd": "0.01500300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f3d7e5eac10dd6a016ab98e7b035087d1b46a7ebab63e0498",
+    "retry_count": 0
+  }
+}

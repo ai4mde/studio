@@ -1,0 +1,46 @@
+{
+  "case_id": "10-11",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:59:05.363823+00:00",
+  "request_record_sha256": "6684682b1e84d9d6bcccf26c7d325a31936624b2681fcc4f65e4e56b5e78c54a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-11",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with acceptable wording, including request, check, deny/measure, failure/success communication, processing, sending changed values, and transmitting readings."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The required precedence from transmitting measured values to GO processing them is not enforced, because the graph also allows GO processing after the failure-notification branch."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The deny branch correctly terminates, but the failure branch wrongly merges into the same continuation as the success branch, so success-only follow-up actions occur after failure."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "In the source, after MSP performs the measurement, either MSP informs GO about failure or MSP transmits the measured values to GO; the later GO actions concern processing measured values, sending changed values to MSP, and transmitting readings to SP. In the generated graph, both the failure action and the successful transmission action merge into the same continuation leading to GO processing measured values. This wrongly lets the process continue with value-processing steps even when the reading failed. The graph otherwise captures the main actions and the denial branch termination, but this incorrect continuation materially changes one important branch outcome.",
+    "overall_score": 0.68,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.68",
+  "usage": {
+    "case_id": "10-11",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5353,
+    "cached_input_tokens": 4864,
+    "output_tokens": 1300,
+    "reasoning_tokens": 960,
+    "total_tokens": 6653,
+    "estimated_api_cost_usd": "0.02193850",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0d9b6152be50d254016ab99199382487d1b94c12e08f1a3a42",
+    "retry_count": 0
+  }
+}

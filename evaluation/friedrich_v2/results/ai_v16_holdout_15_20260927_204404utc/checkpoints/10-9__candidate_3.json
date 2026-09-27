@@ -1,0 +1,46 @@
+{
+  "case_id": "10-9",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T20:50:50.180520+00:00",
+  "request_record_sha256": "8ba58df569defd2b0156d0d13c926be400b5769f64a7aac150f2b44886ef7515",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-9",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most business actions are present, but the graph collapses the source’s two possible change origins into a single 'request change' action and does not clearly preserve an MPO-initiated change as distinct from an external request."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "For the matched reviewed-and-approved path, the graph preserves the order review -> reject/confirm decision -> perform change -> success/failure communication; no clear matched-action precedence reversal is shown."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The graph forces all cases through the request review and reject/confirm decision, instead of clearly preserving the source’s possible alternative origin where the MPO himself causes the change."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source text most plausibly allows two initiation modes: a change requested by SP/PU/GO, or a change caused by the MPO himself. The generated graph models only one start route ('request change') and then sends every case through review plus a reject/confirm decision. This can wrongly require request-handling and approval logic for MPO-initiated changes, so one legitimate source scenario is not cleanly preserved. Aside from that, the approved path correctly continues to performing the measuring point change and then to reporting implementation success or notifying failure.",
+    "overall_score": 0.82,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source wording is awkward and could also be read as a single generic change-request trigger rather than two distinct initiation modes. If the first sentence is only a high-level trigger description, the graph may be fully acceptable; if it truly distinguishes SP/PU/GO-requested changes from MPO-initiated changes, the graph omits that distinction.",
+    "requires_human_review": true,
+    "review_reason": "The ambiguous first sentence could change whether the missing MPO-initiated path is a real semantic defect and could materially change the score."
+  },
+  "overall_score_decimal": "0.82",
+  "usage": {
+    "case_id": "10-9",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5191,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2251,
+    "reasoning_tokens": 1803,
+    "total_tokens": 7442,
+    "estimated_api_cost_usd": "0.04271050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_08a543bec6be40b2016ab9818e62ec87d19d70a5cb1f168eeb",
+    "retry_count": 0
+  }
+}

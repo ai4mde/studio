@@ -1,0 +1,46 @@
+{
+  "case_id": "6-4",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-25T20:24:52.516058+00:00",
+  "request_record_sha256": "8cbee7d9b7f74037a169359322562e2a2528713e3462108b6a184764a0333ee7",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-4",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the main business actions: obtaining contact details, calling, determining contact person and budget, checking interest, optionally leaving the customer alone or escalating to the head of development, giving the presentation, follow-up call after 2 weeks, and creating a quotation."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "For the matched actions that are represented, the required overall order is preserved: contact details before calling, qualification before presentation, presentation before follow-up/quotation, and quotation at the end."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The not-interested/huge-budget exception is modeled incorrectly: after the head of development tries to acquire the customer, the graph always continues to presentation instead of requiring that the customer become interested first."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source process says that if the customer is not interested, the process normally ends unless the budget is huge, in which case the head of development tries to acquire the customer; only if the customer is interested in the end does the process continue to the detailed presentation. In the generated graph, the huge-budget branch goes from the head-of-development action directly into the success path and presentation with no second interest check or failure outcome. This preserves most actions and their order, but it changes the behavior of that exception branch by turning a conditional continuation into an unconditional one, which can incorrectly lead to presentation and quotation for customers who remain uninterested.",
+    "overall_score": 0.84,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.84",
+  "usage": {
+    "case_id": "6-4",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5745,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1788,
+    "reasoning_tokens": 1400,
+    "total_tokens": 7533,
+    "estimated_api_cost_usd": "0.03715050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0c1f2c69330cf795016ab6d87f902087d2b6da1ccc8bdecbdb",
+    "retry_count": 0
+  }
+}

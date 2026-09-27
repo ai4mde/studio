@@ -1,0 +1,46 @@
+{
+  "case_id": "10-5",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:54:30.121589+00:00",
+  "request_record_sha256": "e5134a901ae3f9391369cf7497fc98a82ef1daca8d90d053a2c42d551f1e5d3e",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-5",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All required business actions are present with correct actors and objects; the final source step is acceptably split into order confirmation and sending master data."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved as a simple sequence: request bid -> send tender -> place order -> confirm/send master data."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a linear process with no branching, looping, or parallelism, and the graph preserves that behavior."
+    },
+    "main_error_type": "none",
+    "explanation": "The graph faithfully represents the source process: MPON requests a takeover bid, MPOO sends the tender, MPON places the order, and MPOO then confirms the order and sends the master data. Splitting the final textual step into two sequential actions does not materially change the process meaning, and no semantic defects in actions, ordering, or control behavior are evident.",
+    "overall_score": 1.0,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1.0",
+  "usage": {
+    "case_id": "10-5",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4363,
+    "cached_input_tokens": 1792,
+    "output_tokens": 553,
+    "reasoning_tokens": 279,
+    "total_tokens": 4916,
+    "estimated_api_cost_usd": "0.01517050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_014b72f5a1de4698016ab99090746487d1a8197b491906d109",
+    "retry_count": 0
+  }
+}

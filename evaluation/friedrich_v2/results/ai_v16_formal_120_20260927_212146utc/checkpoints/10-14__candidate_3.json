@@ -1,0 +1,46 @@
+{
+  "case_id": "10-14",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T22:00:41.224773+00:00",
+  "request_record_sha256": "be5f787546523f8c16c7288059d3a734d4e298a2b6c34e897ae646ef0e3b3c0e",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-14",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph includes the four bill-examination activities and the two possible outcomes, confirm with payment advice or reject, with acceptable abstraction of senders/recipients."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph wrongly imposes a fixed sequence across all four examination actions before the outcome decision, adding unsupported precedence between source actions that are presented as separate conditional cases."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The source describes multiple conditional invoice-handling cases leading to examination and then confirm-or-reject, but the graph models one single path where all four examinations must occur before one approval/rejection choice."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source text describes alternative conditional invoice scenarios: depending on which bill is sent, that bill is examined by the appropriate party, and then the invoice is either confirmed with payment advice or rejected. The generated graph instead serializes all four examination actions into one mandatory chain and places a single approve/reject decision only after all four. This materially changes both which paths are possible and the ordering between examinations, even though the individual action labels are mostly correct.",
+    "overall_score": 0.42,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.42",
+  "usage": {
+    "case_id": "10-14",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4837,
+    "cached_input_tokens": 3840,
+    "output_tokens": 1345,
+    "reasoning_tokens": 1023,
+    "total_tokens": 6182,
+    "estimated_api_cost_usd": "0.02362750",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_082ce711067579fc016ab991f773d487d18a2fcc15d7d41cbb",
+    "retry_count": 0
+  }
+}

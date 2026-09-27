@@ -1,0 +1,52 @@
+{
+  "created_at_utc": "2026-09-27T22:55:57.407976+00:00",
+  "code_certification_status": "CERTIFIED",
+  "ai_formal_status": "formal_complete",
+  "code_source_directory": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc",
+  "ai_source_directory": "/Users/queenie/Desktop/studio/evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc",
+  "source_file_sha256": {
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/candidate_results.csv": "59fc9c07b79702120c497186ef760852c4a2aad3d63c607f9b63d7e5b95a2171",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/candidate_results.jsonl": "c8726950afadd78165f9e8bd3d8f05cf95f6cab202a1fe45798062484b262b00",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/candidate_identity.csv": "d7539c14044478b9c1ed19375b01b6b61301a3b22d42d4ace194d8bb8d262ba9",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/certification_validation.json": "84343e86c1629a82ac7619adde8210887536853f5b1e0f667f190b4c207d6611",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/reporting_validation.json": "3b77ed90e52a97c1618285d2701da3cc97f437923376b319e17fbd9c21bb8050",
+    "evaluation/friedrich_code_v3/results/v3_1_final_certification_20260924_2135utc/run_integrity.json": "fc824a59f45e59c83815948d2dc9cfb72c8d8f980e3a6a7eee40203f8d30a19d",
+    "evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc/ai_v16_formal_120_scores.csv": "96fb0533e7e9c204445311147e1b8cf2b56a7ae8f3bce3912b3a880a8ad41c98",
+    "evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc/ai_v16_formal_120_results.jsonl": "b6f16e66471b03b25e67b11aa7517c52961b9a7a5091895823bb7095568b630e",
+    "evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc/ai_v16_formal_120_manifest.json": "db65a5c0684765e99dee5eb785df0b2d060057a115d054dd80d602193492f157",
+    "evaluation/friedrich_v2/results/ai_v16_formal_120_20260927_212146utc/ai_v16_formal_120_hashes.json": "1c1bac88f6b9b7f332a6b9d498936573789b67b3f864b67337c0ead0e3adda82"
+  },
+  "source_tree_snapshots_before_and_after": {
+    "code": {
+      "file_count": 21,
+      "tree_sha256": "41f698656dc2c60d4dfdad6c628aaa78dc4226935ede108bb1561a1f95a361ac"
+    },
+    "ai": {
+      "file_count": 369,
+      "tree_sha256": "f34217855cb2a348dc24289bd4ffeddbc0df93cc83328c66b3efa6fa471a44ad"
+    }
+  },
+  "comparison_script_path": "evaluation/code_vs_ai_v31_v16_comparison.py",
+  "comparison_script_sha256": "c2a4721b21163160b0e3f36c8cceb34cc76a243fc49e6c20b716b784c771489d",
+  "candidate_count": 120,
+  "case_count": 40,
+  "candidates_per_case": 3,
+  "activity_graph_hashes_match": true,
+  "join_one_to_one": true,
+  "evaluators_rerun": false,
+  "frozen_results_changed": false,
+  "code_composite_score_created": false,
+  "null_or_NA_replaced_with_zero": false,
+  "analysis_kind": "PRIMARY_120_CANDIDATE_COMPARISON",
+  "rank_method": "average tied ranks; percentile=(average_rank-1)/(pairwise_N-1); pairwise-complete per dimension",
+  "correlation_method": "Spearman Pearson correlation of average tied ranks; no significance threshold",
+  "scorable_f1_method": "certified reporting formula on each candidate's determinate TP/FP/FN; D=0 and all-I are N/A; established no-prediction P/F1=0 when scorable FN>0",
+  "output_sha256": {
+    "code_vs_ai_120_correlations.csv": "66038b655e9f6982f05a796a4dc93394272b015952d3cff1eda84249378324e4",
+    "code_vs_ai_120_descriptive.csv": "b7d4cb35c9cb4f486793124f605112657326ca958f8ebc53af5bf0395031a25a",
+    "code_vs_ai_120_disagreement_ranks.csv": "b5c945b498d0b5fdba9d2e7586a326ca5d69080ba65df6420a68423a63ffedbd",
+    "code_vs_ai_120_largest_disagreements.md": "ed8957c2361decf62ef16a464ef8e37ec7760097a0a63d3fa3ad6bf19740102b",
+    "code_vs_ai_120_master.csv": "1f6d882a41868fc3edb058df9ac0b8088b2726eb8390cac89c48624f590bd6df",
+    "code_vs_ai_120_summary.md": "9cbc1898c135c6998b06a06294a782bce1079ab0f22a7577aa9fea90b238406b"
+  }
+}

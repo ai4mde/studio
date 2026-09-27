@@ -1,0 +1,46 @@
+{
+  "case_id": "3-3",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:31:23.568937+00:00",
+  "request_record_sha256": "f48336cba2bd2543f48844693a1cb900540da1d8b3cdcd44e0039e5db343cc47",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-3",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business activities are largely represented: examine the claim, write/repeat the recommendation, senior review/OK-vs-Not-OK decision, return to the claims officer, and proceed on success."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The required Not-OK sequence is not preserved: the graph does not correctly place return-to-claims-officer before the repeated recommendation, and it lacks the required path from a Not-OK outcome back into the repeat cycle."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The core retry loop is incorrect. A success exit is allowed from the first decision, while the explicit Not-OK branch later terminates after return instead of looping back for repeated recommendation and re-check until OK."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source requires an iterative review cycle: after examination and recommendation, a senior claims officer checks the recommendation; if marked Not OK, the claim is sent back and the recommendation is repeated until an OK outcome allows the process to proceed. In the generated graph, the retry logic is split across two decisions, a success path exits early, and the Not-OK branch from the explicit OK/Not-OK decision goes to 'return claim to claims officer' and then ends rather than returning to the recommendation/review cycle. This changes the central behavior of the process by preventing the required repeat-until-OK loop and permitting wrong termination.",
+    "overall_score": 0.46,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.46",
+  "usage": {
+    "case_id": "3-3",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4831,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2168,
+    "reasoning_tokens": 1783,
+    "total_tokens": 6999,
+    "estimated_api_cost_usd": "0.04056550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_010a73ebe0de54b0016ab98b115b9887d1b910d60086993150",
+    "retry_count": 0
+  }
+}

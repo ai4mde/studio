@@ -1,0 +1,46 @@
+{
+  "case_id": "6-4",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-25T20:25:16.279325+00:00",
+  "request_record_sha256": "7eee48bf62d17962861a485023fe85623a076cea8f58e395584babf94f9a8903",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-4",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The key business actions are present at reasonable abstraction, including lead identification, calling, qualification, interest check, escalation for huge budget, presentation, waiting, follow-up call, quotation, and termination for non-huge-budget uninterested customers."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "For matched actions, the main precedence relations are maintained: contact details before calling and qualification, presentation before waiting, waiting before the 2-week check, and follow-up before quotation when that follow-up occurs."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The huge-budget exception path is wrong: after the head of development tries to acquire an initially uninterested customer, the graph always continues to presentation and later quotation instead of checking whether the customer becomes interested and otherwise terminating."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The source requires a conditional continuation on the huge-budget exception path: if an initially uninterested customer has a huge potential budget, the head of development tries to acquire the customer, and only if the customer is interested in the end does the process continue to detailed presentation and the later quotation phase. In the generated graph, that branch goes directly from the acquisition attempt to presentation, waiting, follow-up handling, and quotation with no decision on eventual interest. This materially changes branch behavior and permits success-path continuation for customers who may still be uninterested. Most other actions and their ordering are preserved, so the graph remains substantially correct but not semantically complete.",
+    "overall_score": 0.78,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.78",
+  "usage": {
+    "case_id": "6-4",
+    "candidate_id": "candidate_2",
+    "input_tokens": 6152,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1916,
+    "reasoning_tokens": 1524,
+    "total_tokens": 8068,
+    "estimated_api_cost_usd": "0.04008800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0b2a030464b54b96016ab6d8952c9087d29a8009aad2d8fc29",
+    "retry_count": 0
+  }
+}

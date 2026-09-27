@@ -1,0 +1,46 @@
+{
+  "case_id": "3-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:29:24.232000+00:00",
+  "request_record_sha256": "c2c35a1538a43132a8170b54aa272d859e07da415cf20ed6b74478e622d053ee",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All in-scope business actions from sending the request through storing the expanded SCT physical file are represented with faithful meaning; the final out-of-scope handoff is reasonably omitted."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required sequential precedence among the matched actions is preserved from request sending to final storage, including storage before later retrieval after the police report."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a simple linear process with an implied wait for the police report, and the graph preserves that continuation behavior without introducing incorrect branching, looping, or synchronization."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph faithfully captures the described in-scope process: the request is sent, received with SCT file retrieval, the warrant possession is forwarded to Queensland Police, the physical file is stored awaiting the report, the file is retrieved when the report is received, the new SCT document is attached, and the expanded physical file is stored. The source's final note that other internal staff later receives the physical file is explicitly marked out of scope, so its omission does not create a meaningful semantic defect. No ordering, branching, loop, or termination error materially changes the process meaning.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "3-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4638,
+    "cached_input_tokens": 1792,
+    "output_tokens": 647,
+    "reasoning_tokens": 314,
+    "total_tokens": 5285,
+    "estimated_api_cost_usd": "0.01726800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0a550036426c77b2016ab98aacc02487d19822710d9bc6f065",
+    "retry_count": 0
+  }
+}

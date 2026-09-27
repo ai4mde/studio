@@ -1,0 +1,46 @@
+{
+  "case_id": "3-1",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:29:40.614762+00:00",
+  "request_record_sha256": "02f149d666496594a5447acd6333682e1cd2adc3a6ba69f4956b319dbbe73ea1",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-1",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "All core in-scope actions are represented, but the graph omits the final handoff where other MC internal staff receives the physical SCT file."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The represented actions follow the source order correctly from request sending through storage of the expanded file; no required precedence among matched actions is reversed or lost."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source is essentially linear, and the graph preserves that linear continuation, including the await/report-triggered retrieval in an acceptable implicit form."
+    },
+    "main_error_type": "missing_action",
+    "explanation": "The graph faithfully captures the main sequence: request sent, request received and file retrieved, warrant forwarded to police, file stored awaiting the police report, file retrieved when the report is received, new document attached, and expanded file stored. The main semantic gap is that the source then continues with a handoff to other MC internal staff, while the generated graph ends immediately after storing the expanded file. Because the text marks that receiving step as 'out of scope,' this omission may be a boundary abstraction rather than a clear modeling error, but provisionally it is still the main missing behavior. The omission does not disturb the ordering or control behavior of the represented steps, so whole-graph impact is limited.",
+    "overall_score": 0.92,
+    "severity": "minor",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source explicitly includes a final receipt of the physical SCT file by other MC internal staff, but labels that step 'out of scope.' This creates a material boundary ambiguity: the candidate may either be missing a required final handoff action or may be intentionally ending at the in-scope process boundary.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted because the 'out of scope' boundary interpretation could plausibly change the diagnosis from a minor missing-action defect to full semantic preservation and thus change the score."
+  },
+  "overall_score_decimal": "0.92",
+  "usage": {
+    "case_id": "3-1",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4638,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1382,
+    "reasoning_tokens": 937,
+    "total_tokens": 6020,
+    "estimated_api_cost_usd": "0.02829300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f31c1963cbad3b9016ab98ab4b9c487d1a1154fbdb86dd375",
+    "retry_count": 0
+  }
+}

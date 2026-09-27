@@ -1,0 +1,46 @@
+{
+  "case_id": "10-9",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T20:50:02.255268+00:00",
+  "request_record_sha256": "b77c6184fde281dbbcacce20b50bf11d649a28c866297579001f334b1da635a9",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-9",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All key business actions are represented with acceptable paraphrase: change initiation, review, reject/confirm, perform the measuring point change, and report success or notify failure."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is maintained: initiation before review, review before reject/confirm, confirmed change before execution, and execution before success/failure communication."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the review outcome as reject versus confirm, terminates the rejection path, and models post-execution success versus failure communication on the confirmed path."
+    },
+    "main_error_type": "none",
+    "explanation": "Under the most defensible reading of the source, the graph preserves the intended process: a change is initiated, the MPO reviews it, the MPO either rejects or confirms it, a confirmed request leads to performing the measuring point change, and then the MPO either reports implementation or notifies failure. No meaningful action, precedence, or branching behavior is lost or contradicted in the generated graph.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source wording is grammatically unclear about the first step: it can be read either as a generic change initiation covering both an SP/PU/GO request and an MPO-initiated change, or as two distinct initiation cases that might not follow exactly the same downstream handling. That ambiguity could affect whether the single 'request change' action is fully sufficient.",
+    "requires_human_review": true,
+    "review_reason": "Human review is advisable because the ambiguous wording of the source initiation step could support an alternative interpretation with different start-case semantics, which could change the diagnosis or score."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-9",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5191,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2467,
+    "reasoning_tokens": 2070,
+    "total_tokens": 7658,
+    "estimated_api_cost_usd": "0.04595050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0cc77e7adac233a3016ab9815c4a8887d1a3a762df228ba96e",
+    "retry_count": 0
+  }
+}

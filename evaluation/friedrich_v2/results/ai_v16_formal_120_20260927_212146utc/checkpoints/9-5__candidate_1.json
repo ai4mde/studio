@@ -1,0 +1,46 @@
+{
+  "case_id": "9-5",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:51:28.258791+00:00",
+  "request_record_sha256": "8009b7552f0fae6143ca3c0ac6963f2b2680d7828dc22e5009d290e8847af5ec",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-5",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The main business actions are represented with acceptable meaning: receive report, conditionally create account, review for approval, supervisor approve/reject, rejection email, reimbursement, progress email, cancellation email, and resubmission."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The graph wrongly forces timeout actions to occur only after approval and makes the 7-day progress-email path terminate instead of allowing later completion, changing required ordering/continuation between timeout actions and eventual completion."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The 7-day and 30-day deadline behavior is modeled as exclusive post-approval branches. In the source, a 7-day 'approval in progress' email is an intermediate deadline outcome for an unfinished request, not a terminating alternative to reimbursement or later 30-day cancellation."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The source requires deadline handling for unfinished requests: after 7 days the employee receives an 'approval in progress' email, and if still unfinished within 30 days the process stops with cancellation and resubmission. The graph instead places a single timeout decision after approval and treats 'completed in time', 'approval in progress', and 'cancelled' as mutually exclusive outcomes. On the 7-day branch it sends the progress email and then ends the process, so delayed-but-eventually-completed requests cannot proceed to reimbursement, and timeout behavior cannot occur while approval is still pending. Although the core actions and the basic approval/rejection split are present, this materially changes the process behavior.",
+    "overall_score": 0.56,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.56",
+  "usage": {
+    "case_id": "9-5",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5646,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2569,
+    "reasoning_tokens": 2161,
+    "total_tokens": 8215,
+    "estimated_api_cost_usd": "0.04861800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_08b66c17d5a568db016ab98fc28ea487d18763ef4d77f45778",
+    "retry_count": 0
+  }
+}

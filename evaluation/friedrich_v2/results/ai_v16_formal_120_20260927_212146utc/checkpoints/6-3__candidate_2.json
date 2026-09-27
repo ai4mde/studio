@@ -1,0 +1,46 @@
+{
+  "case_id": "6-3",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:44:08.152359+00:00",
+  "request_record_sha256": "8828b8b18d286d19c55beda7895dcda8b4d83f29650dc4ea087fcce387835bbe",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "6-3",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most core planning, transfer, decision, procurement, and execution-related actions are present, but the final quality check is turned into duplicated/extra quality-check actions (a recheck and a check) not supported by the source."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The main source action order is largely preserved: determine details -> enter PPS -> transfer manually to ERP -> decide/procure missing parts -> proceed to execution -> quality control at the end."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The procurement decision is modeled appropriately, but the ending is semantically wrong: the source requires a single final quality check, while the graph adds a retry decision and loops back from quality recheck to earlier execution/scheduling behavior."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source describes a mostly linear process with one real decision about whether missing parts must be procured, followed later by implementation and then a final quality check. The candidate preserves the early planning/procurement sequence, but it changes the ending behavior by introducing an unsupported quality-control decision ('recheck ... and repeat if necessary?'), an extra recheck action, and a loop from that recheck back to the execution/scheduling step. This invents recurrence and rework behavior not stated in the text and makes the final quality check conditional rather than simply the final step. Because the defect is concentrated in the process ending while the earlier core sequence is mostly preserved, the whole-graph meaning is substantially but not fully preserved.",
+    "overall_score": 0.72,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.72",
+  "usage": {
+    "case_id": "6-3",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5268,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1991,
+    "reasoning_tokens": 1590,
+    "total_tokens": 7259,
+    "estimated_api_cost_usd": "0.03900300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_08a6bceea7e9bcba016ab98e11664487d1b63b564a2cf2c8cd",
+    "retry_count": 0
+  }
+}

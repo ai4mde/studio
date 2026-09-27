@@ -1,0 +1,120 @@
+{
+  "edges": [
+    {
+      "source": "n4",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "label": "not_ok",
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "ok",
+      "source": "n8",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "success",
+      "source": "n6",
+      "target": "n5",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "examine claim",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "write settlement recommendation",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "check recommendation",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "type": "initial"
+    },
+    {
+      "id": "n5",
+      "type": "final"
+    },
+    {
+      "id": "n6",
+      "label": "repeat recommendation if claim is marked as Not OK?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n7",
+      "name": "repeat settlement recommendation",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "label": "senior claims officer marks claim as OK or Not OK?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n9",
+      "name": "return claim to claims officer",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "origin_block_id": "T2",
+      "type": "merge"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "candidate_count": 15,
+  "mean_absolute_error": "0.061333333333333333333333333333333333333333333333333",
+  "median_absolute_error": "0.05",
+  "maximum_absolute_error": "0.18",
+  "maximum_error_candidates": [
+    {
+      "case_id": "10-9",
+      "candidate_id": "candidate_3"
+    }
+  ],
+  "spearman_tie_aware": "0.87922992868174814773343228592025330500327057521007",
+  "spearman_undefined": false,
+  "acceptance_threshold": null,
+  "minimum_ai_score": "0.4",
+  "maximum_ai_score": "1",
+  "technical_failure_count": 0,
+  "total_retry_count": 0,
+  "ambiguity_flag_count": 4,
+  "requires_human_review_count": 4
+}

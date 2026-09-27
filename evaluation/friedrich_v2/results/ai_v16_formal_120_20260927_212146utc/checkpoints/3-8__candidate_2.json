@@ -1,0 +1,46 @@
+{
+  "case_id": "3-8",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:35:37.648840+00:00",
+  "request_record_sha256": "daf61f01c1ef356ed051308839172d0bc4610a3cd1d9b246cba837ac54aaee48",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-8",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Core handling actions are preserved, but the customer submission of the claim/documentation is not explicitly represented; the omitted 'pick up the claim' handoff is a reasonable abstraction."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "For the matched actions, the required order is preserved: document check before registration, then insurance check, then assessment, then either positive-path authorization before payment or rejection, and finally the customer letter."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The assessment-based decision, the positive and negative alternatives, their merge, and the required continuation to send a letter in both cases are correctly represented."
+    },
+    "main_error_type": "missing_action",
+    "explanation": "The graph captures the main claim-handling sequence and the assessment outcome branching correctly, including the positive-path order of phoning the garage before scheduling payment, rejection on the negative path, and sending a letter in all cases before completion. The main semantic gap is that the source process starts when the customer submits the claim with documentation, while the generated graph starts directly at the insurer's completeness check. If that start event is intended as an explicit business action, the candidate omits it; otherwise the rest of the process meaning is well preserved.",
+    "overall_score": 0.91,
+    "severity": "minor",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source can be read either as requiring an explicit customer submission action or as allowing that submission to be absorbed into the process start condition. That interpretation boundary could change whether the candidate has a real missing-action defect or is fully acceptable.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted to decide whether the customer claim submission must be modeled explicitly or can be treated as an implicit start event, which could change the diagnosis and score."
+  },
+  "overall_score_decimal": "0.91",
+  "usage": {
+    "case_id": "3-8",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4990,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1160,
+    "reasoning_tokens": 745,
+    "total_tokens": 6150,
+    "estimated_api_cost_usd": "0.02584300",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0c026f12245ec710016ab98c1c44c487d18ca41cc4cc08f6d0",
+    "retry_count": 0
+  }
+}

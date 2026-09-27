@@ -1,0 +1,354 @@
+{
+  "artifact_hashes": {
+    "activity_graph.json": "815d5df6f2704c6cb0feeaede1d7872ab1af8417bc14c3f5e206b5ffd46615cc",
+    "ai4mde_export.json": "4d308464dbbe3abc15a43671fd4557a0dd8d623123874b20d641dd0fd3fb98ea",
+    "api_call_log.json": "3c98f9a7030f173965e319c5c7b6f4aa12ceb4c2d9ad444085cd98e3666d16ae",
+    "process_text.txt": "17d69c838c7445a74e01d8d3b9efc0ec85603460de6048ad668dfdff1a9f71f3",
+    "raw_generation_response.json": "8aa7fef96bf4b37e01e5d7152415ef01b051275a03da10030b86d6190623a525",
+    "semantic_sketch_plan.json": "1542a6664b476de741e8b7f0113ad267e26f82b9597b4ca3803d232b177d9571",
+    "technical_status.json": "1e53f36bce93f150d24c26ab457c97211e3b86d6292cd9d8a7ef8a2ffd216ca8",
+    "topology_artifact.json": "f2cd2ec36f9790c8533ee44e290f4b1c2fd67e23991302cf762f0f70f5124881"
+  },
+  "candidate_id": "candidate_2",
+  "candidate_index": 2,
+  "case_id": "5-3",
+  "complete_attempt_count": 1,
+  "frozen_version": "semantic_deterministic-gpt-4.1-2025-04-14-thesis-freeze-20260910",
+  "official_branch": "feature/thesis-ui-isolation",
+  "official_commit": "3227af4b27d07c1dca44d5561a713f58498abe56",
+  "planner_attempt_history": [
+    {
+      "attempt_kind": "initial_structured",
+      "candidate_id": "candidate_2",
+      "candidate_seed": 20260911,
+      "case_id": "5-3",
+      "complete_attempt_index": 1,
+      "completed_at_utc": "2026-09-10T11:29:33.667021+00:00",
+      "correction_request": false,
+      "error": "Error code: 400 - {'error': {'message': \"Invalid schema for response_format 'topology_artifact': In context=(), 'required' is required to be supplied and to be an array including every key in properties. Missing 'parent_branch'.\", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}",
+      "error_type": "BadRequestError",
+      "planner_stage": "topology",
+      "prompt_sha256": "bf5d7534021bd2b1e2f77a84fea99b261e54f21668aae2e911a384cfc87c40f2",
+      "request": {
+        "frequency_penalty": 0.0,
+        "max_completion_tokens": 8192,
+        "model": "gpt-4.1-2025-04-14",
+        "n": 1,
+        "presence_penalty": 0.0,
+        "seed": 20260911,
+        "temperature": 0.15,
+        "top_p": 1.0
+      },
+      "request_index": 209,
+      "run_id": "final_frozen_40x3_20260910",
+      "started_at_utc": "2026-09-10T11:29:33.438293+00:00",
+      "status": "failed",
+      "structured_output_requested": true
+    },
+    {
+      "attempt_kind": "initial_json_fallback",
+      "candidate_id": "candidate_2",
+      "candidate_seed": 20260911,
+      "case_id": "5-3",
+      "complete_attempt_index": 1,
+      "completed_at_utc": "2026-09-10T11:29:34.824304+00:00",
+      "correction_request": false,
+      "finish_reason": "stop",
+      "model_returned": "gpt-4.1-2025-04-14",
+      "planner_stage": "topology",
+      "prompt_sha256": "20c8f89c87e372f3d40e98dbd93c2ef2fb1da7ae09b7c5667b3b99f98eebcf4c",
+      "request": {
+        "frequency_penalty": 0.0,
+        "max_completion_tokens": 8192,
+        "model": "gpt-4.1-2025-04-14",
+        "n": 1,
+        "presence_penalty": 0.0,
+        "seed": 20260911,
+        "temperature": 0.15,
+        "top_p": 1.0
+      },
+      "request_index": 210,
+      "response_id": "chatcmpl-EMXGABAn0itGyjPL9Wk8CbGXwCr5r",
+      "run_id": "final_frozen_40x3_20260910",
+      "started_at_utc": "2026-09-10T11:29:33.687066+00:00",
+      "status": "success",
+      "structured_output_requested": false,
+      "system_fingerprint": "fp_a43e69cb54",
+      "usage": {
+        "completion_tokens": 143,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens": 2594,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cached_tokens": 0
+        },
+        "total_tokens": 2737
+      }
+    },
+    {
+      "attempt_kind": "initial_structured",
+      "candidate_id": "candidate_2",
+      "candidate_seed": 20260911,
+      "case_id": "5-3",
+      "complete_attempt_index": 1,
+      "completed_at_utc": "2026-09-10T11:29:35.107380+00:00",
+      "correction_request": false,
+      "error": "Error code: 400 - {'error': {'message': \"Invalid schema for response_format 'semantic_sketch_plan': In context=(), 'allOf' is not permitted.\", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}",
+      "error_type": "BadRequestError",
+      "planner_stage": "semantic",
+      "prompt_sha256": "f299490d52d6a91bbc0f3d9583d6e622aaaad2a8c0ecd15ed42e22cbb9bff8e6",
+      "request": {
+        "frequency_penalty": 0.0,
+        "max_completion_tokens": 8192,
+        "model": "gpt-4.1-2025-04-14",
+        "n": 1,
+        "presence_penalty": 0.0,
+        "seed": 20260911,
+        "temperature": 0.15,
+        "top_p": 1.0
+      },
+      "request_index": 211,
+      "run_id": "final_frozen_40x3_20260910",
+      "started_at_utc": "2026-09-10T11:29:34.856935+00:00",
+      "status": "failed",
+      "structured_output_requested": true
+    },
+    {
+      "attempt_kind": "initial_json_fallback",
+      "candidate_id": "candidate_2",
+      "candidate_seed": 20260911,
+      "case_id": "5-3",
+      "complete_attempt_index": 1,
+      "completed_at_utc": "2026-09-10T11:29:37.895364+00:00",
+      "correction_request": false,
+      "finish_reason": "stop",
+      "model_returned": "gpt-4.1-2025-04-14",
+      "planner_stage": "semantic",
+      "prompt_sha256": "66b32387c39cd8cd83f37c90b7196ac63b3fa166940ad67d2bba4c21f2531783",
+      "request": {
+        "frequency_penalty": 0.0,
+        "max_completion_tokens": 8192,
+        "model": "gpt-4.1-2025-04-14",
+        "n": 1,
+        "presence_penalty": 0.0,
+        "seed": 20260911,
+        "temperature": 0.15,
+        "top_p": 1.0
+      },
+      "request_index": 212,
+      "response_id": "chatcmpl-EMXGC2ojWmMhoSspBBBc7xOBt2wR7",
+      "run_id": "final_frozen_40x3_20260910",
+      "started_at_utc": "2026-09-10T11:29:35.133451+00:00",
+      "status": "success",
+      "structured_output_requested": false,
+      "system_fingerprint": "fp_8513af985d",
+      "usage": {
+        "completion_tokens": 412,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens": 3232,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cached_tokens": 0
+        },
+        "total_tokens": 3644
+      }
+    },
+    {
+      "attempt_kind": "correction_structured",
+      "candidate_id": "candidate_2",
+      "candidate_seed": 20260911,
+      "case_id": "5-3",
+      "complete_attempt_index": 1,
+      "completed_at_utc": "2026-09-10T11:29:38.166564+00:00",
+      "correction_request": true,
+      "error": "Error code: 400 - {'error': {'message': \"Invalid schema for response_format 'semantic_sketch_plan': In context=(), 'allOf' is not permitted.\", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}",
+      "error_type": "BadRequestError",
+      "planner_stage": "semantic",
+      "prompt_sha256": "9c7313f61a0e8ed5d62b51428ad8df1207ab68865d3de298107dc52042a81038",
+      "request": {
+        "frequency_penalty": 0.0,
+        "max_completion_tokens": 8192,
+        "model": "gpt-4.1-2025-04-14",
+        "n": 1,
+        "presence_penalty": 0.0,
+        "seed": 20260911,
+        "temperature": 0.15,
+        "top_p": 1.0
+      },
+      "request_index": 213,
+      "run_id": "final_frozen_40x3_20260910",
+      "started_at_utc": "2026-09-10T11:29:37.928169+00:00",
+      "status": "failed",
+      "structured_output_requested": true
+    },
+    {
+      "attempt_kind": "correction_json_fallback",
+      "candidate_id": "candidate_2",
+      "candidate_seed": 20260911,
+      "case_id": "5-3",
+      "complete_attempt_index": 1,
+      "completed_at_utc": "2026-09-10T11:29:40.148946+00:00",
+      "correction_request": true,
+      "finish_reason": "stop",
+      "model_returned": "gpt-4.1-2025-04-14",
+      "planner_stage": "semantic",
+      "prompt_sha256": "fd33752315be10b54564ebe180517333bc5918389541aedcba51863f9bbad3b7",
+      "request": {
+        "frequency_penalty": 0.0,
+        "max_completion_tokens": 8192,
+        "model": "gpt-4.1-2025-04-14",
+        "n": 1,
+        "presence_penalty": 0.0,
+        "seed": 20260911,
+        "temperature": 0.15,
+        "top_p": 1.0
+      },
+      "request_index": 214,
+      "response_id": "chatcmpl-EMXGEinw7vvpvjYbz3SgmJu2I4y0C",
+      "run_id": "final_frozen_40x3_20260910",
+      "started_at_utc": "2026-09-10T11:29:38.198178+00:00",
+      "status": "success",
+      "structured_output_requested": false,
+      "system_fingerprint": "fp_8513af985d",
+      "usage": {
+        "completion_tokens": 400,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens": 4661,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cached_tokens": 0
+        },
+        "total_tokens": 5061
+      }
+    },
+    {
+      "attempt_kind": "correction_structured",
+      "candidate_id": "candidate_2",
+      "candidate_seed": 20260911,
+      "case_id": "5-3",
+      "complete_attempt_index": 1,
+      "completed_at_utc": "2026-09-10T11:29:40.392968+00:00",
+      "correction_request": true,
+      "error": "Error code: 400 - {'error': {'message': \"Invalid schema for response_format 'semantic_sketch_plan': In context=(), 'allOf' is not permitted.\", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}",
+      "error_type": "BadRequestError",
+      "planner_stage": "semantic",
+      "prompt_sha256": "c2b0ebd53959104645f997f7d28a38bc3e6edc4867ae16de68e5c253b5da8893",
+      "request": {
+        "frequency_penalty": 0.0,
+        "max_completion_tokens": 8192,
+        "model": "gpt-4.1-2025-04-14",
+        "n": 1,
+        "presence_penalty": 0.0,
+        "seed": 20260911,
+        "temperature": 0.15,
+        "top_p": 1.0
+      },
+      "request_index": 215,
+      "run_id": "final_frozen_40x3_20260910",
+      "started_at_utc": "2026-09-10T11:29:40.173840+00:00",
+      "status": "failed",
+      "structured_output_requested": true
+    },
+    {
+      "attempt_kind": "correction_json_fallback",
+      "candidate_id": "candidate_2",
+      "candidate_seed": 20260911,
+      "case_id": "5-3",
+      "complete_attempt_index": 1,
+      "completed_at_utc": "2026-09-10T11:29:42.708991+00:00",
+      "correction_request": true,
+      "finish_reason": "stop",
+      "model_returned": "gpt-4.1-2025-04-14",
+      "planner_stage": "semantic",
+      "prompt_sha256": "6dec3e5433bcc036ae8d9a83560f9e97ebe27ccdb6d11b8d2bf71262d30f1604",
+      "request": {
+        "frequency_penalty": 0.0,
+        "max_completion_tokens": 8192,
+        "model": "gpt-4.1-2025-04-14",
+        "n": 1,
+        "presence_penalty": 0.0,
+        "seed": 20260911,
+        "temperature": 0.15,
+        "top_p": 1.0
+      },
+      "request_index": 216,
+      "response_id": "chatcmpl-EMXGHcj9LaldvVuKC5PcWkoDzirkN",
+      "run_id": "final_frozen_40x3_20260910",
+      "started_at_utc": "2026-09-10T11:29:40.425165+00:00",
+      "status": "success",
+      "structured_output_requested": false,
+      "system_fingerprint": "fp_8513af985d",
+      "usage": {
+        "completion_tokens": 399,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens": 4643,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cached_tokens": 3072
+        },
+        "total_tokens": 5042
+      }
+    }
+  ],
+  "prompt_hashes": {
+    "semantic": "42f8b3efe1c2b4335b177a44377b462acb0163cb27b55e207d9dac85893e116e",
+    "topology": "47efb1bfb14bb7a37d30f6f2aa9f8a2d0eaa27db0fd1126797d4fb3867a2444d"
+  },
+  "request_settings": {
+    "frequency_penalty": 0.0,
+    "max_completion_tokens": 8192,
+    "n": 1,
+    "presence_penalty": 0.0,
+    "temperature": 0.15,
+    "top_p": 1.0
+  },
+  "request_summary": {
+    "api_request_count": 8,
+    "correction_api_requests": 4,
+    "failed_api_requests": 4,
+    "json_fallback_successes": 4,
+    "returned_models": [
+      "gpt-4.1-2025-04-14"
+    ],
+    "structured_output_attempts": 4,
+    "structured_output_failures": 4,
+    "successful_api_requests": 4,
+    "system_fingerprints": [
+      "fp_8513af985d",
+      "fp_a43e69cb54"
+    ]
+  },
+  "requested_model": "gpt-4.1-2025-04-14",
+  "seed": 20260911,
+  "status": "success",
+  "technical_validation": {
+    "activity_graph_present": true,
+    "ai4mde_import_succeeded": true,
+    "ai4mde_schema_valid": true,
+    "imported_system_id": "b4697f84-ab5b-42a0-b032-382ba2f916bf",
+    "project_id": "0602da50-2fa7-403f-890e-83a4a8cc1fde",
+    "semantic_sketch_plan_present": true,
+    "status": "success",
+    "topology_artifact_present": true
+  }
+}

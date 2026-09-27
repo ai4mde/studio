@@ -1,0 +1,137 @@
+[
+  {
+    "case_id": "3-5",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "09fcbbec5b1f9d47aeccbaf6ca435c36619964b9aeba970b44f7799489ed7a25",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/3-5__candidate_1__attempt_1.json",
+    "raw_response_sha256": "f048746a7747a58af96380b1cde1a5320eaea1e56b43f42453fe7e4377db8e95"
+  },
+  {
+    "case_id": "3-5",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "7b425e310dbccb3b87412df51eb4942c763d23e35af09b3549a76ecb62d38495",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/3-5__candidate_2__attempt_1.json",
+    "raw_response_sha256": "ebcf940315d2103dfe243972e8d070bf20c7a1ff71e5cc203ed35a675a46de00"
+  },
+  {
+    "case_id": "3-5",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "ba46c8c7eea501eafde3bdee38a1195d731fc222de08de6a18abe8f14ef4b04a",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/3-5__candidate_3__attempt_1.json",
+    "raw_response_sha256": "1ffd2117cd5de5e3f426bb44b2ddef5554abbc57674929d21ae4278e6c7a816c"
+  },
+  {
+    "case_id": "5-1",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "197e46a06e8d7ccd8f4e126f487634236636c91fcd4e3d8bc10fa0b550ccfac2",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/5-1__candidate_1__attempt_1.json",
+    "raw_response_sha256": "bb39c77e32e4b97de9e0bcd68d21bcf56c785f2b44350935e8d16ae0291bd826"
+  },
+  {
+    "case_id": "5-1",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "223a20ddd1109f1a21b65e4f58b756e2d35b5ae7c6c90def318d5c4b9e0c0cdf",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/5-1__candidate_2__attempt_1.json",
+    "raw_response_sha256": "af8b4d18ef1ff34723189d994bb9593d242187cd3ac0604131bd0226737a1b11"
+  },
+  {
+    "case_id": "5-1",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "3ac6ac498aae259414c6743234caed2878496bf8a0588d77b669be34767dcbb2",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/5-1__candidate_3__attempt_1.json",
+    "raw_response_sha256": "6a8df288b507f66904974459fd1d6071e8667ef6481117f3638cee3e9124c594"
+  },
+  {
+    "case_id": "10-9",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "b77c6184fde281dbbcacce20b50bf11d649a28c866297579001f334b1da635a9",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-9__candidate_1__attempt_1.json",
+    "raw_response_sha256": "7332557abc13bcf036ba72ac3bdcb1bb039a4b8be2e5301d727bdb99c2dca692"
+  },
+  {
+    "case_id": "10-9",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "b56df94ee857e5484a815c86c7b805dd70defc10487fe61aed11559c06a8c916",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-9__candidate_2__attempt_1.json",
+    "raw_response_sha256": "559cfe143d808c4aeda2e2875fd83aa95ee90690468daee45c5ebcb5b2232612"
+  },
+  {
+    "case_id": "10-9",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "8ba58df569defd2b0156d0d13c926be400b5769f64a7aac150f2b44886ef7515",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-9__candidate_3__attempt_1.json",
+    "raw_response_sha256": "c8d07fad5b79d34a8cf927cbeeb6c4d2d82b203d014c2293a0a43b0cc8314c7b"
+  },
+  {
+    "case_id": "10-11",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "55eaed0d238ea244203b1b95ac6043959106f9abd1a6ebf9fbdec660c35b4ae3",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-11__candidate_1__attempt_1.json",
+    "raw_response_sha256": "76cef84c2d64fb477e6e7e10020ab79339e2bad58daa98b463b0fd686272a31f"
+  },
+  {
+    "case_id": "10-11",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "6c473291b5c3c691872fbad435391c6852883e9c69e8b2cf95c92c13b247fef4",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-11__candidate_2__attempt_1.json",
+    "raw_response_sha256": "115cf6bb3a2862401aedf5e96de97020de659567a03e0edc7327264c2ef572fe"
+  },
+  {
+    "case_id": "10-11",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "6684682b1e84d9d6bcccf26c7d325a31936624b2681fcc4f65e4e56b5e78c54a",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-11__candidate_3__attempt_1.json",
+    "raw_response_sha256": "302da9d39f5ac3a299d5dd0705aab48088647404e8378083a210d102909c8f8d"
+  },
+  {
+    "case_id": "10-14",
+    "candidate_id": "candidate_1",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "1e09155b8d49cf5b03c5b11bbc99d7029b06c41efa12cd917f73289e598fcf60",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-14__candidate_1__attempt_1.json",
+    "raw_response_sha256": "cd8f09dc8dbf2efc131a06cbca5438fe10cd4b19c9cb28d881b3f29b5466fec4"
+  },
+  {
+    "case_id": "10-14",
+    "candidate_id": "candidate_2",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "5ebd4459d85e98887384fdf62feed46859346538fc3e49eb775be6064e627114",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-14__candidate_2__attempt_1.json",
+    "raw_response_sha256": "e345771dc5293aa606238eb0c9364ecf2d413b7e30704df52a0927bf437cfc19"
+  },
+  {
+    "case_id": "10-14",
+    "candidate_id": "candidate_3",
+    "technical_status": "completed",
+    "retry_count": 0,
+    "request_record_sha256": "be5f787546523f8c16c7288059d3a734d4e298a2b6c34e897ae646ef0e3b3c0e",
+    "raw_response_path": "evaluation/friedrich_v2/results/ai_v16_holdout_15_20260927_204404utc/raw_responses/10-14__candidate_3__attempt_1.json",
+    "raw_response_sha256": "2d7169039f927b99b4667c714fa5ec17f11be7b9e071fb1a4c0790b15e28ee68"
+  }
+]

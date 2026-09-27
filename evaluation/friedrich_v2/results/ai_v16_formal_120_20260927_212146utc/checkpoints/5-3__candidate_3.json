@@ -1,0 +1,46 @@
+{
+  "case_id": "5-3",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:40:03.602842+00:00",
+  "request_record_sha256": "e8ebda680b164923d3347839512573d67fc06369aeab13eba72a2b5ea020bb2e",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-3",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph covers the key business activities with acceptable paraphrases: submission, registration, supervisor review with three outcomes, purchase processing, purchase order generation, waiting for delivery/invoice, and notification."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The main precedence relations among matched actions are preserved from request submission through supervisor decision and subsequent notification; the vendor-validity issue is primarily a conditional recurrence problem rather than a basic ordering error."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The approved branch does not model the source-required conditional repeat of vendor selection when a chosen vendor is invalid. Instead, selecting a different vendor is represented as a single unconditional step before confirmation."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source requires a conditional retry pattern in the approved path: after quotations and vendor selection, if the vendor is not valid, the purchase department must choose a different vendor, implying conditional re-selection until a valid vendor is confirmed. The generated graph instead places 'if vendor is not valid, purchase department selects different vendor' as a mandatory linear action with no decision or loop. This both forces an unnecessary vendor change when the first vendor is valid and fails to preserve the repeat-until-valid behavior. The rest of the process, including the supervisor's three-way decision and notification after each outcome, is largely preserved, so the defect is significant but localized rather than process-wide.",
+    "overall_score": 0.84,
+    "severity": "moderate",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.84",
+  "usage": {
+    "case_id": "5-3",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5970,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1597,
+    "reasoning_tokens": 1219,
+    "total_tokens": 7567,
+    "estimated_api_cost_usd": "0.03484800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0d0744c2b5f1924e016ab98d20d20487d1b5f7794543cbdc57",
+    "retry_count": 0
+  }
+}

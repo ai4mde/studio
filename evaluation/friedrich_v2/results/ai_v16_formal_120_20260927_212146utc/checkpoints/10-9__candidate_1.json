@@ -1,0 +1,46 @@
+{
+  "case_id": "10-9",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:56:17.644544+00:00",
+  "request_record_sha256": "b77c6184fde281dbbcacce20b50bf11d649a28c866297579001f334b1da635a9",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-9",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the request/change initiation, MPO review, reject-or-confirm outcome, measuring point change, and the final success/failure communication with acceptable paraphrasing and abstraction."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is maintained: initiation before review, review before reject/confirm, confirmation before performing the change, and performance before the final success/failure communication."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models the reject-versus-confirm decision, ends the rejection path, and continues the confirmation path to execution followed by a success/failure outcome and termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the source process behavior as a whole. It models an initial change request/change trigger, MPO review, the alternative of rejecting versus confirming the request, execution of the measuring point change only on the confirmation path, and the subsequent alternative of reporting implementation success or notifying failure. No meaningful business action is missing or invented, and the branch continuation and termination behavior are consistent with the source text.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-9",
+    "candidate_id": "candidate_1",
+    "input_tokens": 5191,
+    "cached_input_tokens": 4864,
+    "output_tokens": 819,
+    "reasoning_tokens": 516,
+    "total_tokens": 6010,
+    "estimated_api_cost_usd": "0.01431850",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ef5e9d471c375cd016ab990f8d18487d1982f55d43f6ae048",
+    "retry_count": 0
+  }
+}

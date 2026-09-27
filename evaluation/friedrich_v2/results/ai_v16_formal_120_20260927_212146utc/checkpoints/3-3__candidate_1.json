@@ -1,0 +1,46 @@
+{
+  "case_id": "3-3",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:30:56.841804+00:00",
+  "request_record_sha256": "498a72b484049d89cfa460e9124bb8a16eb897aead71fab68372a4134ec4eafa",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-3",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the required activities: examine the claim, write the settlement recommendation, check it, and repeat the recommendation on a Not OK outcome. The OK/Not OK marking and send-back are acceptably represented through the decision and retry loop rather than separate actions."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is preserved: examination precedes recommendation, recommendation precedes checking, and on retry the process returns to the recommendation before being checked again."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The decision after checking correctly separates OK from Not OK outcomes, with Not OK looping back to repeat the recommendation and OK exiting to continuation/termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The candidate preserves the described process semantics. After examination, the recommendation is written and checked; the check leads to a decision with a retry path for Not OK and a success path for OK. The retry correctly returns to repeating the recommendation and then rechecking it, while the OK path allows the process to proceed. No meaningful action, ordering, or control-flow defect affects the described behavior.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "3-3",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4431,
+    "cached_input_tokens": 1792,
+    "output_tokens": 905,
+    "reasoning_tokens": 593,
+    "total_tokens": 5336,
+    "estimated_api_cost_usd": "0.02062050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0b1c081321c41714016ab98b06836c87d18ae40b6fecdc1180",
+    "retry_count": 0
+  }
+}

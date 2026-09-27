@@ -1,0 +1,278 @@
+{
+  "id": "resp_0e597340739352a2016ab990ab13cc87d196193fcc458caff9",
+  "object": "response",
+  "created_at": 1790546091,
+  "status": "completed",
+  "access_programs": null,
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1790546094,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0e597340739352a2016ab990ab99b487d193b622b8f747a1fd",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABquZCu7nEyyZaVOrUG_quFRrNtLkchZ1jS2PdU-buunbq6y1e9VKqiLiRDUhsOaS_ju-SdagJmh6nlhHvqUQnvzVMCzTbH9sQJXTgct0vFKYhFJIkhAiNQyOAa3gokuZCcoG1LGDPzt-opK_q_GUMvSBVAQxo2JsWFlMB8NpUzMXmuVVodNPwMZWu2TQ-AW_U_quSSYMtAVc3Uht4iKzmwNRVVpWt0osN3nkfa9z1sCm40sf8kNumo2CIhWxrKqwv2-9pD9zVQ02kajo9KKYyltMztxG--Amaxjwt5LpnDc1FRfGL0JLQbnCes9FyhoSJJ0cMmWtKIPawhwVzhPVqKAiAIxz1rsibbx8dHKXM7BGiTGVVinfv9DxzGoQimDg5zvHW5KTSCpYhOHj-ofm_qQw8kYwGbujRoEeRptCYVLTLF-Y1cYtpGzHXdxqdi68HmCLjjuLwEVf4xkEEviQgebOl5t_8gIRT-SgAUukU10lb9LVNiO_d1bklYjbNgvpYBEKBsa2wZM0ARazDb0svlK-q0YMSVIUgLjtRhqGV2KN_WQtvKb9qlE_2Jh3cRF8lQzIr6ZuyifgPNZQLEOBCYzW0PSXu2oYdirdf5yPGg9FTzaVgfgLij8_oHdzgYPO9pMBDJVbtXBStJ6FVH1Pt4xAWpssMfI6cCJoW4Keqi3628RORYzOroILtNrwWagl5l6ekYh9A6T-LGLW6NxV5rtf8fY3yg2wYcUEms3snqAW8vhtKIUGLI7P8WOgtsSQdUrohGQO917QpcmKwdb6Dm-_Qza-mfuKENpxWW_1pD2O2OYMsq9C88VK_Pbjfo-NMP72uET20QJBigSZYT4FzEEvRCaz_pCFchE2nZwjo1xjrHk9158aSnp5JuQF4Ivau5fRZZZBzdyz0kuWe2Kef9gAdjlpfeXO5wmXLnJRRLp9_XBKp13Y0KqQ7AKFIcmOqsONKsDi-tOx3ChZFfSFE7hthXdgwP4nFmNlrP48oB5q5Esx33j0coXkvMWCx3DEsJmQ_KkbhqepRayzwnrUuKSfOeYPX12tpTcCM0k7Y0Z1m-wWj7iH0Pu8Gj0Eus442pN8cntYd0ZjPDRBUo3iOzU8MwWBp3WTAlAZq7fA9taOz0Ymz5tDJ877cdd8tidvRiZ-Qug67PlOetGUvP_hWvtEgQMDqQjMCZu6QDcrMML8maJO_EFvyJJcFium9wELvqXnxdG2ERy29ddXJjR7n9-eK7-m9HjAN9mAXvthkhrsIezVV686Nw0_PPf1XM9FNc74au1noOF_TWJK2Zz6fgKIqvMJn1nGg5TSB5tfxelu1c2GwzavLrsIM6phTHgjgtVKtSH7tLmLmzjVyUN4a7NS8gszdm_ktMFLUgmsrcjwZHtJkZ458mq6n8JzNlpM1Lmg1Ml3ZVmbUKOoKE3YZTYogZg2a0pYBCymBbv7_U7nluClxz4SLv73-_A13S_OMa3XvKOhFW0LNtB7rlmnCfYtNgDRlUq9l118jAoIWRpXCySvQULAZs2imzylz1-maqr2lT13NTHPXZ7KtniZRDcZo0lkzahsV3Zjg57xl4a1qGpLALAVI6k7XuYH9VmGvEyfWYU-gsnJu0QnOycO96U0RjxZkZPykok9pq3uds3sZmdsz2TTl-41tn00r-G_3fPL_N_s-VCwo8RmtSYT2-FAU25aaPH95vtVZvxnvd22UNIIBuwPr17rJKFh8xTdvsNEnNno2cFoNTdn8YQbNWeKuBYA==",
+      "summary": []
+    },
+    {
+      "id": "msg_0e597340739352a2016ab990accb3887d184285d8f9e411e15",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"schema_version\":\"ai-evaluator-v2/1.1\",\"case_id\":\"10-6\",\"candidate_id\":\"candidate_3\",\"action_assessment\":{\"status\":\"preserved\",\"summary\":\"All source actions are present with correct meaning: send dismissal, review dismissal, then either reject or confirm it.\"},\"flow_assessment\":{\"status\":\"preserved\",\"summary\":\"Required precedence is preserved: sending precedes review, and review precedes the reject/confirm outcome actions.\"},\"control_flow_assessment\":{\"status\":\"preserved\",\"summary\":\"The graph correctly models an exclusive post-review choice between rejection and confirmation, with both alternatives terminating appropriately.\"},\"main_error_type\":\"none\",\"explanation\":\"The generated graph semantically matches the source process: MSPN sends the dismissal to MSPO, MSPO reviews it, and then MSPO takes exactly one of the two stated alternatives—reject or confirm the dismissal. The decision structure and end behavior are preserved without adding or omitting meaningful behavior.\",\"overall_score\":1,\"severity\":\"none\",\"confidence\":\"high\",\"ambiguity_flag\":false,\"ambiguity_explanation\":\"\",\"requires_human_review\":false,\"review_reason\":\"\"}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": false,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "ai_evaluator_v2_result",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "enum": [
+              "ai-evaluator-v2/1.1"
+            ],
+            "description": "Fixed output-contract version."
+          },
+          "case_id": {
+            "type": "string",
+            "description": "Case identifier copied exactly from the candidate input."
+          },
+          "candidate_id": {
+            "type": "string",
+            "description": "Candidate identifier copied exactly from the candidate input."
+          },
+          "action_assessment": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "preserved",
+                  "defect",
+                  "uncertain",
+                  "not_applicable"
+                ],
+                "description": "Diagnostic status for Action semantics; not a subscore."
+              },
+              "summary": {
+                "type": "string",
+                "description": "Concise account of preserved or defective action meaning."
+              }
+            },
+            "required": [
+              "status",
+              "summary"
+            ]
+          },
+          "flow_assessment": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "preserved",
+                  "defect",
+                  "uncertain",
+                  "not_applicable"
+                ],
+                "description": "Diagnostic status for Flow and precedence semantics; not a subscore."
+              },
+              "summary": {
+                "type": "string",
+                "description": "Concise account of preserved or defective ordering, reachability, continuation, or termination."
+              }
+            },
+            "required": [
+              "status",
+              "summary"
+            ]
+          },
+          "control_flow_assessment": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "preserved",
+                  "defect",
+                  "uncertain",
+                  "not_applicable"
+                ],
+                "description": "Diagnostic status for Control-Flow semantics; not a subscore."
+              },
+              "summary": {
+                "type": "string",
+                "description": "Concise account of preserved or defective decisions, alternatives, loops, concurrency, synchronization, or termination behavior."
+              }
+            },
+            "required": [
+              "status",
+              "summary"
+            ]
+          },
+          "main_error_type": {
+            "type": "string",
+            "enum": [
+              "none",
+              "missing_action",
+              "extra_or_duplicated_action",
+              "incorrect_action_meaning_or_grouping",
+              "wrong_ordering_or_precedence",
+              "wrong_branching_or_condition",
+              "wrong_continuation_or_termination",
+              "wrong_loop_or_recurrence",
+              "wrong_parallelism_or_synchronization",
+              "mixed_or_cascading",
+              "other_semantic_defect"
+            ],
+            "description": "Dominant root semantic defect. Use none only when no meaningful defect is found."
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Concise audit explanation connecting source behavior, generated behavior, and whole-graph impact."
+          },
+          "overall_score": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "One continuous holistic whole-graph semantic-quality score."
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "none",
+              "minor",
+              "moderate",
+              "major",
+              "fundamental"
+            ],
+            "description": "Qualitative semantic-impact descriptor, not a numeric score band or subscore."
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "description": "Confidence in the provisional evaluation from the supplied evidence, independent of graph quality."
+          },
+          "ambiguity_flag": {
+            "type": "boolean",
+            "description": "Whether material source or representation ambiguity could affect diagnosis or score."
+          },
+          "ambiguity_explanation": {
+            "type": "string",
+            "description": "Explanation of material ambiguity, or an empty string when ambiguity_flag is false."
+          },
+          "requires_human_review": {
+            "type": "boolean",
+            "description": "Whether uncertainty or input inconsistency could plausibly change the diagnosis or score."
+          },
+          "review_reason": {
+            "type": "string",
+            "description": "Reason human review is required, or an empty string when requires_human_review is false."
+          }
+        },
+        "required": [
+          "schema_version",
+          "case_id",
+          "candidate_id",
+          "action_assessment",
+          "flow_assessment",
+          "control_flow_assessment",
+          "main_error_type",
+          "explanation",
+          "overall_score",
+          "severity",
+          "confidence",
+          "ambiguity_flag",
+          "ambiguity_explanation",
+          "requires_human_review",
+          "review_reason"
+        ]
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 4501,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 1792
+    },
+    "output_tokens": 334,
+    "output_tokens_details": {
+      "reasoning_tokens": 88
+    },
+    "total_tokens": 4835
+  },
+  "user": null,
+  "metadata": {}
+}

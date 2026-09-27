@@ -1,0 +1,26 @@
+{
+  "case_id": "3-3",
+  "candidate_id": "candidate_1",
+  "model": "gpt-5.4-2026-03-05",
+  "reasoning_effort": "medium",
+  "temperature": "omitted",
+  "top_p": "omitted",
+  "seed": "unsupported/omitted",
+  "store": false,
+  "stateless": true,
+  "batch": false,
+  "prompt_version": "ai-evaluator-v2-prompt/1.6",
+  "schema_version": "ai-evaluator-v2/1.1",
+  "developer_prompt_sha256": "29252ff04eb47054e9f61634b0e70db0efc67a2d5668bff6db95aa94b1be8d99",
+  "user_prompt_sha256": "dab637aad9a254de3179d04c5e0a55385ac9c7225e0562efe7dec08e3fab8762",
+  "process_text_sha256": "98bfdcbdeac988a91e30738c301a009ce685075ab4ee71c4cb854d66bb1af738",
+  "activity_graph_sha256": "d37f941ec87c76bba11471626be56fa153ba9305d71263bdada9884ebfbbb9e4",
+  "rendering_sha256": "a49605c509d536997ac14d0b992f3b08469c1555fa9f40f1d55535943d2d0aff",
+  "input_components": [
+    "case_id",
+    "candidate_id",
+    "original_process_text",
+    "frozen_activity_graph_json",
+    "deterministic_textual_rendering"
+  ]
+}

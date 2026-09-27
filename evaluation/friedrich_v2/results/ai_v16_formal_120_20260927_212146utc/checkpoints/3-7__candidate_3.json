@@ -1,0 +1,46 @@
+{
+  "case_id": "3-7",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:35:12.399699+00:00",
+  "request_record_sha256": "6a71017d59fdda4c577b50957df6c2173856794e9097156e09822d7ea2b01e7b",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-7",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All core business actions are present in the correct semantic sequence, with acceptable abstraction of actor/system details such as the Document Management system reference."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is fully preserved: search report, compile file, estimate claim, create action plan, negotiate settlement, then inform claimant."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a simple straight-through process ending after informing the claimant, and the graph preserves that linear continuation and termination behavior."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the intended process meaning: it searches the police report, combines it with claim documentation into a file, uses that to calculate an initial claim estimate, creates an action plan from the checklist, negotiates settlement based on the plan, informs the claimant of the outcome, and then ends. Minor wording abstraction does not change business behavior.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "3-7",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4522,
+    "cached_input_tokens": 1792,
+    "output_tokens": 505,
+    "reasoning_tokens": 233,
+    "total_tokens": 5027,
+    "estimated_api_cost_usd": "0.01484800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_022fe7b976db9af4016ab98c0af35c87d192817ed0858a4c57",
+    "retry_count": 0
+  }
+}

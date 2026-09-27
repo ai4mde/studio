@@ -1,0 +1,41 @@
+analysis_label,case_id,AI_best_candidates_json,AI_best_score,all_three_AI_scores_json,AI_best_unique
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,1-1,"[""candidate_3""]",0.41,"{""candidate_1"": ""0.34"", ""candidate_2"": ""0.34"", ""candidate_3"": ""0.41""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,1-2,"[""candidate_1""]",0.7,"{""candidate_1"": ""0.7"", ""candidate_2"": ""0.62"", ""candidate_3"": ""0.67""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,2-1,"[""candidate_1""]",0.58,"{""candidate_1"": ""0.58"", ""candidate_2"": ""0.46"", ""candidate_3"": ""0.44""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,2-2,"[""candidate_1""]",0.8,"{""candidate_1"": ""0.8"", ""candidate_2"": ""0.7"", ""candidate_3"": ""0.73""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,3-1,"[""candidate_1"", ""candidate_2""]",1.0,"{""candidate_1"": ""1.0"", ""candidate_2"": ""1"", ""candidate_3"": ""0.92""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,3-2,"[""candidate_1""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""0.79"", ""candidate_3"": ""0.85""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,3-3,"[""candidate_1""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""0.46"", ""candidate_3"": ""0.36""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,3-4,"[""candidate_2"", ""candidate_3""]",0.69,"{""candidate_1"": ""0.68"", ""candidate_2"": ""0.69"", ""candidate_3"": ""0.69""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,3-5,"[""candidate_3""]",0.85,"{""candidate_1"": ""0.8"", ""candidate_2"": ""0.82"", ""candidate_3"": ""0.85""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,3-6,"[""candidate_2""]",0.58,"{""candidate_1"": ""0.4"", ""candidate_2"": ""0.58"", ""candidate_3"": ""0.43""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,3-7,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,3-8,"[""candidate_1""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""0.91"", ""candidate_3"": ""0.88""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,4-1,"[""candidate_2""]",0.73,"{""candidate_1"": ""0.71"", ""candidate_2"": ""0.73"", ""candidate_3"": ""0.68""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,5-1,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,5-2,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,5-3,"[""candidate_3""]",0.84,"{""candidate_1"": ""0.77"", ""candidate_2"": ""0.76"", ""candidate_3"": ""0.84""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,5-4,"[""candidate_3""]",0.32,"{""candidate_1"": ""0.24"", ""candidate_2"": ""0.3"", ""candidate_3"": ""0.32""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,6-1,"[""candidate_3""]",0.76,"{""candidate_1"": ""0.69"", ""candidate_2"": ""0.45"", ""candidate_3"": ""0.76""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,6-2,"[""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""0.93"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,6-3,"[""candidate_2""]",0.72,"{""candidate_1"": ""0.57"", ""candidate_2"": ""0.72"", ""candidate_3"": ""0.63""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,6-4,"[""candidate_3""]",0.84,"{""candidate_1"": ""0.82"", ""candidate_2"": ""0.78"", ""candidate_3"": ""0.84""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,8-1,"[""candidate_1"", ""candidate_2""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""0.91""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,8-2,"[""candidate_2""]",0.87,"{""candidate_1"": ""0.47"", ""candidate_2"": ""0.87"", ""candidate_3"": ""0.48""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,9-1,"[""candidate_1""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""0.84"", ""candidate_3"": ""0.84""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,9-3,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1.0"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,9-4,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,9-5,"[""candidate_3""]",0.64,"{""candidate_1"": ""0.56"", ""candidate_2"": ""0.43"", ""candidate_3"": ""0.64""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,9-6,"[""candidate_3""]",0.41,"{""candidate_1"": ""0.39"", ""candidate_2"": ""0.39"", ""candidate_3"": ""0.41""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-1,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-4,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-5,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1.0,"{""candidate_1"": ""1.0"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-6,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-7,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-8,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-9,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-10,"[""candidate_2""]",1,"{""candidate_1"": ""0.72"", ""candidate_2"": ""1"", ""candidate_3"": ""0.71""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-11,"[""candidate_1""]",0.7,"{""candidate_1"": ""0.7"", ""candidate_2"": ""0.67"", ""candidate_3"": ""0.68""}",True
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-12,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-13,"[""candidate_1"", ""candidate_2"", ""candidate_3""]",1,"{""candidate_1"": ""1"", ""candidate_2"": ""1"", ""candidate_3"": ""1""}",False
+POST-HOC ORACLE ANALYSIS — NOT DEPLOYABLE CANDIDATE-SELECTION PERFORMANCE,10-14,"[""candidate_1""]",0.77,"{""candidate_1"": ""0.77"", ""candidate_2"": ""0.4"", ""candidate_3"": ""0.42""}",True

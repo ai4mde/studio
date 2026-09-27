@@ -1,0 +1,164 @@
+{
+  "edges": [
+    {
+      "source": "n6",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "label": "denied",
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "performed",
+      "source": "n8",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "label": "failure",
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "label": "success",
+      "source": "n11",
+      "target": "n13",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n15",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "source": "n13",
+      "target": "n15",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "GO requests the measurements of the MSP",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "MSP checks the received request",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "GO processes the measured values",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "GO sends the changed values to the MSP",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "GO transmits the readings to the SP",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "type": "initial"
+    },
+    {
+      "id": "n7",
+      "type": "final"
+    },
+    {
+      "id": "n8",
+      "label": "MSP either denies the request or performs the measurement?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n9",
+      "name": "MSP denies the request of the GO",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "MSP performs the measurement",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "label": "MSP either informs GO about failure or transmits measured values?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n12",
+      "name": "MSP informs the GO about the failure of the reading",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "name": "MSP transmits the measured values to the GO",
+      "origin_step_id": "T2_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

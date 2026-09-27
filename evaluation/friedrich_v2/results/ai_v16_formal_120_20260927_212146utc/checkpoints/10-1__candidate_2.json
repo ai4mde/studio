@@ -1,0 +1,46 @@
+{
+  "case_id": "10-1",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:53:51.301822+00:00",
+  "request_record_sha256": "624464369a84144ea640ba10e07b550876438b78ff94b91f0fbc927862379c58",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-1",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are present with correct meaning: send dismissal, review dismissal, then either oppose or confirm the dismissal."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is preserved: sending precedes review, and review precedes the exclusive outcome action."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an exclusive post-review choice between opposing and confirming; both branches terminate appropriately. The extra merge on the confirm branch does not change behavior."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph preserves the source process semantics: MPON sends the dismissal to MPOO, MPOO reviews it, and then MPOO takes one of two alternatives—oppose or confirm the dismissal. The decision structure and branch meanings match the text, and the asymmetric merge before finalization on one branch is behaviorally harmless rather than a semantic defect.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-1",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4557,
+    "cached_input_tokens": 1792,
+    "output_tokens": 440,
+    "reasoning_tokens": 173,
+    "total_tokens": 4997,
+    "estimated_api_cost_usd": "0.01396050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0005386e671faa45016ab9906a082c87d1b624bf1f936fd8b4",
+    "retry_count": 0
+  }
+}

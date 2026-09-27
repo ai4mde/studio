@@ -1,0 +1,46 @@
+{
+  "case_id": "3-7",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:35:01.302543+00:00",
+  "request_record_sha256": "8b20b8ddffeea6068454133f178d003ff0bb6776510bca4f021c1257087697b1",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-7",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All meaningful source activities are represented with acceptable paraphrase and granularity: search the police report, combine it with claim documentation into a file, calculate the initial estimate, create the action plan from the checklist, negotiate settlement, and inform the claimant."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required precedence is preserved as a simple linear sequence from report search through claimant notification; the file-prepares-estimate relation is adequately reflected by the ordering."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a straight-through process with no branching, looping, or parallelism, and the graph preserves that start-to-finish behavior and termination after informing the claimant."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph captures the full intended process as a linear flow: the police report is searched, combined with claim documentation into a file, used before estimating the claim, followed by creating the action plan, negotiating settlement based on it, and informing the claimant of the outcome before ending. Omitted wording such as the checklist being available in the Document Management system does not materially change the business behavior. No meaningful action, ordering, or control-flow defect is present.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "3-7",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4522,
+    "cached_input_tokens": 1792,
+    "output_tokens": 561,
+    "reasoning_tokens": 232,
+    "total_tokens": 5083,
+    "estimated_api_cost_usd": "0.01568800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_038200ce7f5a5163016ab98bff6c0087d1bc1cc9eb1adbb198",
+    "retry_count": 0
+  }
+}

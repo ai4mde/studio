@@ -1,0 +1,46 @@
+{
+  "case_id": "10-14",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T20:52:20.396143+00:00",
+  "request_record_sha256": "5ebd4459d85e98887384fdf62feed46859346538fc3e49eb775be6064e627114",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-14",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "The graph preserves the main examine and confirm/reject activities, but it omits the source bill-sending activities that trigger those examinations."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "The source does not require the four bill-examination actions to occur in sequence, but the graph forces n1→n2→n3→n4 before any outcome."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The source describes alternative bill-submission cases, each leading to examination and then confirm-or-reject, but the graph collapses them into one linear path followed by a single decision."
+    },
+    "main_error_type": "wrong_branching_or_condition",
+    "explanation": "The original text describes multiple alternative invoice cases: depending on which bill is sent and to whom, the relevant party examines that bill, after which the invoice is either confirmed with payment advice or rejected. The generated graph instead makes all four examination actions mandatory and sequential before one confirm/reject decision. This changes the process from alternative case handling into a single accumulated workflow and also omits the bill-sending trigger actions. Because the defect affects the core routing and imposes unsupported precedence across the main cases, the whole-graph semantic preservation is substantially reduced.",
+    "overall_score": 0.41,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.41",
+  "usage": {
+    "case_id": "10-14",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4865,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1243,
+    "reasoning_tokens": 906,
+    "total_tokens": 6108,
+    "estimated_api_cost_usd": "0.02677550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_058b80e6cbc28bda016ab981f4417087d1ac3bdca832bae4f6",
+    "retry_count": 0
+  }
+}

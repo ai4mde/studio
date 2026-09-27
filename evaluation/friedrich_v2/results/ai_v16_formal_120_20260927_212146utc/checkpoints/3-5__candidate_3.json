@@ -1,0 +1,46 @@
+{
+  "case_id": "3-5",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:33:26.132617+00:00",
+  "request_record_sha256": "ba46c8c7eea501eafde3bdee38a1195d731fc222de08de6a18abe8f14ef4b04a",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "3-5",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph covers the main business actions from collection through sorting, registration, quality check, rejection handling, fee taking, posting documents, and creating the physical court file; action wording and grouping are acceptable."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Most required precedences are preserved, but the compliant path imposes an unsupported order: posting the receipt/documents must occur before capturing party details and printing the file, whereas the source indicates these end activities occur meantime rather than in that fixed sequence."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The decision between compliant and non-compliant mail is modeled correctly, but the compliant branch loses the source-indicated parallel or parallel-compatible behavior by serializing the Assistant Registry Manager posting step and the Cashier file-creation step."
+    },
+    "main_error_type": "wrong_parallelism_or_synchronization",
+    "explanation": "The source text is preserved well up to and including the compliance check and the rejection/compliance split. The main semantic defect is at the end of the compliant path: after matter details are captured and fees are taken, the text says the Assistant Registry Manager posts the receipt and copied documents while, meantime, the Cashier captures party details and prints the Physical Court File. The generated graph instead forces a single sequence of post-to-party first and only then capture/print file. This removes the source-indicated concurrent or at least unordered relationship between those two end activities. Because the defect is localized to the successful branch ending and does not otherwise replace the process, the whole-graph impact is moderate rather than major.",
+    "overall_score": 0.85,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The word 'Meantime' most naturally suggests concurrent or at least unordered execution of the posting step and the Cashier's file-creation step, but a weaker narrative reading is also possible. That interpretation boundary could change whether the observed serialization is a semantic defect and could affect the score.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted because the source phrase 'Meantime' may be read as explicit parallelism or as looser narrative timing, and that distinction could change the diagnosis and score."
+  },
+  "overall_score_decimal": "0.85",
+  "usage": {
+    "case_id": "3-5",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5647,
+    "cached_input_tokens": 4864,
+    "output_tokens": 1973,
+    "reasoning_tokens": 1470,
+    "total_tokens": 7620,
+    "estimated_api_cost_usd": "0.03276850",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0d7e7e17ac1a8ec8016ab98b8d774487d1b164ea97e61e4ab9",
+    "retry_count": 0
+  }
+}

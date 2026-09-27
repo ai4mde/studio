@@ -1,0 +1,46 @@
+{
+  "case_id": "10-10",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:57:59.012026+00:00",
+  "request_record_sha256": "bbc29e15f0aae6c8f7d67e81f569d10309540c1525d46ac4bda43c6a603c071d",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-10",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All major source activities are represented with acceptable paraphrases, including examination, reject/confirm decision outcomes, conditional notification of GO/MSP, repair, sharing repair results, and resolution notices."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "If the source is read literally, the post-decision actions follow the reject/confirm step generally, but the graph makes them reachable only after confirmation and not after rejection."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The rejected branch terminates immediately, while the source text only explicitly makes the GO/MSP failure notice conditional; it does not clearly terminate the process after rejection."
+    },
+    "main_error_type": "wrong_continuation_or_termination",
+    "explanation": "The graph correctly models the initial report/suspicion, examination, the reject-versus-confirm decision, and the confirmed-failure notification followed by repair and resolution steps. The main semantic issue is branch continuation: after rejection, the graph goes directly to the end. In the source text, only informing GO and MSP of the confirmed failure is explicitly conditional; the later repair, sharing of repair results, and resolution notices are stated afterward without an explicit condition. Under that literal reading, the generated graph wrongly terminates the rejected branch and omits the required continuation from that outcome. This affects whole-graph meaning substantially, though the source wording leaves some ambiguity about whether the later repair/resolution steps were intended only for the confirmed case.",
+    "overall_score": 0.71,
+    "severity": "moderate",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The text explicitly conditions only the notification of GO and MSP on confirmation. A literal reading makes the later repair and resolution steps unconditional after the decision, but a pragmatic reading could treat those later steps as implicitly applying only when the failure is confirmed. This ambiguity could change whether the rejected branch's early termination is a real defect and could change the score.",
+    "requires_human_review": true,
+    "review_reason": "Human review is warranted because the source text is materially ambiguous about whether repair and subsequent resolution notifications occur after both decision outcomes or only after confirmation."
+  },
+  "overall_score_decimal": "0.71",
+  "usage": {
+    "case_id": "10-10",
+    "candidate_id": "candidate_3",
+    "input_tokens": 5281,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1628,
+    "reasoning_tokens": 1150,
+    "total_tokens": 6909,
+    "estimated_api_cost_usd": "0.03359050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f4fc53202d537b8016ab991537d3c87d1b2cdd53dbc50112e",
+    "retry_count": 0
+  }
+}

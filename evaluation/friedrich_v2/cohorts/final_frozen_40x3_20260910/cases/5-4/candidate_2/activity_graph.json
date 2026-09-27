@@ -1,0 +1,200 @@
+{
+  "edges": [
+    {
+      "source": "n3",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "receipts_ok",
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "label": "receipts_problem",
+      "source": "n7",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n11",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n5",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n14",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "label": "exit",
+      "source": "n15",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "label": "exit",
+      "source": "n11",
+      "target": "n17",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "employee submits expense report with receipts",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "treasurer checks receipts against expense report",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "type": "initial"
+    },
+    {
+      "id": "n4",
+      "type": "final"
+    },
+    {
+      "id": "n5",
+      "label": "supervisor approves or rejects the expense report?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n6",
+      "name": "supervisor approves expense report",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "label": "treasurer checks receipts and either accepts or returns report for correction?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n8",
+      "name": "treasurer accepts expenses for processing",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "process payment and wait for confirmation",
+      "origin_step_id": "T3_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "treasurer returns report to employee for corrections",
+      "origin_step_id": "T3_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "label": "employee corrects receipts and resubmits, returning to supervisor review?",
+      "origin_block_id": "T4",
+      "type": "decision"
+    },
+    {
+      "id": "n12",
+      "name": "employee corrects receipts and resubmits report",
+      "origin_step_id": "T4_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n14",
+      "name": "supervisor rejects expense report",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n15",
+      "label": "employee corrects and resubmits the report until supervisor approves?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n16",
+      "name": "employee corrects and resubmits expense report",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

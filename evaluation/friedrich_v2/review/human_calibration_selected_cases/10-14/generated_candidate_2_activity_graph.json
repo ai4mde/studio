@@ -1,0 +1,113 @@
+{
+  "edges": [
+    {
+      "source": "n5",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "approved",
+      "source": "n7",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "label": "rejected",
+      "source": "n7",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n6",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "examine bill for temporary continuation of metering point operations",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "examine bill for temporary continuation of measurement",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "examine bill for additional readings",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "examine bill for equipment acquisition",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "type": "initial"
+    },
+    {
+      "id": "n6",
+      "type": "final"
+    },
+    {
+      "id": "n7",
+      "label": "decide whether to confirm or reject the invoice?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n8",
+      "name": "confirm invoice with payment advice to MPOO or MSPO",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "reject invoice of MPOO or MSPO",
+      "origin_step_id": "T1_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "origin_block_id": "T1",
+      "type": "merge"
+    }
+  ]
+}

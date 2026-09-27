@@ -1,0 +1,46 @@
+{
+  "case_id": "5-2",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:38:18.748802+00:00",
+  "request_record_sha256": "1855f7f0e95ee82b2473353c6db06157f9240a30c8b80b897f29c4baac12d99e",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-2",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "The graph captures the main business actions: employee submission, supervisor receipt, supervisor approval/rejection, HR notification and management on approval, and return to employee with rejection-reason review on rejection. The source's registration wording is acceptably abstracted into submission/receipt."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is maintained: submit before supervisor receipt and decision; approval before HR notification and HR procedures; rejection before return to employee and review of rejection reasons."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The approve/reject decision and branch membership are represented correctly, with appropriate continuation on each branch and termination after branch-specific handling. There is minor wording ambiguity about whether post-rejection review is optional, but the modeled routing is a reasonable reading of the text."
+    },
+    "main_error_type": "none",
+    "explanation": "The candidate preserves the described vacation-request process: the employee submits the request, the supervisor receives it and decides approval or rejection, approval leads to notifying HR and completing HR procedures, and rejection leads to returning the application to the employee and reviewing the rejection reasons. The omitted separate 'registration' step is reasonably absorbed into the submission/receipt sequence, and the extra merge node does not change behavior. No meaningful semantic defect is evident on the most defensible reading.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The phrase 'the application is returned to the applicant/employee who can review the rejection reasons' can be read either as a normal rejected-path step or as implying that review is merely optional after return. The graph models review as part of the rejected path. That ambiguity could slightly affect the control-flow diagnosis or score.",
+    "requires_human_review": true,
+    "review_reason": "Human review is advisable because the source wording about post-rejection review is materially ambiguous enough to support either a fully preserved reading or a minor control-flow overcommitment."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "5-2",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4816,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2178,
+    "reasoning_tokens": 1733,
+    "total_tokens": 6994,
+    "estimated_api_cost_usd": "0.04067800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f6c64d3cf4fad56016ab98cb07e9487d1b14b24169a69aa82",
+    "retry_count": 0
+  }
+}

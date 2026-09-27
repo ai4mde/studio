@@ -1,0 +1,46 @@
+{
+  "case_id": "5-4",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:40:29.801251+00:00",
+  "request_record_sha256": "77989cfeef13d6cbbe707206778fdad3a6cff759e8b7fb054e5535c6a9ed1a6d",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "5-4",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "Most business actions are present, but the treasurer receipt-check is effectively duplicated/misgrouped, including an extra treasurer-check action after payment confirmation."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Required precedence is broken: corrected reports do not return to supervisor review before further handling, and the path after payment confirmation continues to another treasurer check instead of ending."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "The rejection and receipt-problem branches have wrong retry/return targets and unsupported exit routes; reports can bypass renewed supervisor approval, and the payment-confirmed branch does not terminate where required."
+    },
+    "main_error_type": "mixed_or_cascading",
+    "explanation": "The source requires any report returned for correction—whether rejected by the supervisor or sent back by the treasurer—to be corrected by the employee and then go again to a supervisor before proceeding. It also requires the process to end after payment confirmation. In the generated graph, both correction scenarios loop locally or exit to a merge that leads to treasurer checking/finalization, never back to supervisor review, and the payment-confirmation path continues to an additional treasurer-check step before ending. These are central whole-process routing errors, not mere notation differences, so the intended approval-and-resubmission behavior is not reliably preserved.",
+    "overall_score": 0.24,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.24",
+  "usage": {
+    "case_id": "5-4",
+    "candidate_id": "candidate_1",
+    "input_tokens": 6200,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1984,
+    "reasoning_tokens": 1630,
+    "total_tokens": 8184,
+    "estimated_api_cost_usd": "0.04122800",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0ff955e56e93b75f016ab98d34186487d1a1a8b5a4b2a1caa6",
+    "retry_count": 0
+  }
+}

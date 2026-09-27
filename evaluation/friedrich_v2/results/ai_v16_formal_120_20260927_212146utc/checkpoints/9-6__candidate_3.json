@@ -1,0 +1,46 @@
+{
+  "case_id": "9-6",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:53:41.277125+00:00",
+  "request_record_sha256": "d427d0235f17526f7feb4b58717278cdd107a56e584cf51f9bf7789f0a989be2",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "9-6",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "Most named business activities are represented with acceptable paraphrase: locate/distribute designs, departmental review/plan/revise/test, cross-department notification, combine/test, and send to manufacturing."
+    },
+    "flow_assessment": {
+      "status": "defect",
+      "summary": "Base within-branch order is mostly correct, but required recurrence is broken: local test-fail paths and combined-test-fail do not lead back into another required design cycle, and the other-department restart effect is not enforced."
+    },
+    "control_flow_assessment": {
+      "status": "defect",
+      "summary": "Core control behavior is wrong. A successful update should interrupt and restart the other department's work, but the graph only notifies and then proceeds. Local fail branches and combined-fail terminate instead of looping back to restart the appropriate work."
+    },
+    "main_error_type": "wrong_loop_or_recurrence",
+    "explanation": "The source process is fundamentally iterative and interrupt-driven: each department retries after its own failed test, a passed departmental revision forces the other department to stop and restart, and a failed combined test starts another joint design cycle. In the generated graph, departmental fail branches go to review/create-plan and then end the process, the combined-design fail branch also ends after an 'initiate new design cycle' action instead of actually looping, and the cross-department 'restart' is only a notification with no interrupt/restart effect on the other branch. Although many actions and the basic initial parallel decomposition are present, these defects change the process's main retry and restart behavior across the whole graph.",
+    "overall_score": 0.41,
+    "severity": "major",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.41",
+  "usage": {
+    "case_id": "9-6",
+    "candidate_id": "candidate_3",
+    "input_tokens": 7341,
+    "cached_input_tokens": 1792,
+    "output_tokens": 1916,
+    "reasoning_tokens": 1519,
+    "total_tokens": 9257,
+    "estimated_api_cost_usd": "0.04306050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0907942c43ff573b016ab9904db47887d18377d3d3973c93a4",
+    "retry_count": 0
+  }
+}

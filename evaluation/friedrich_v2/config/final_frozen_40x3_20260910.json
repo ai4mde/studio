@@ -1,0 +1,99 @@
+{
+  "schema_version": "friedrich-v2-run-config/v1",
+  "run_id": "final_frozen_40x3_20260910",
+  "run_type": "formal_40x3",
+  "evaluation_version": "Final frozen thesis generator",
+  "generator_commit": "3227af4b27d07c1dca44d5561a713f58498abe56",
+  "generator_branch": "feature/thesis-ui-isolation",
+  "generator_worktree": "/Users/queenie/Desktop/studio-thesis-ui-isolation",
+  "frozen_version": "semantic_deterministic-gpt-4.1-2025-04-14-thesis-freeze-20260910",
+  "dataset_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d",
+  "case_ids": [
+    "1-1", "1-2", "2-1", "2-2", "3-1", "3-2", "3-3", "3-4", "3-5", "3-6",
+    "3-7", "3-8", "4-1", "5-1", "5-2", "5-3", "5-4", "6-1", "6-2", "6-3",
+    "6-4", "8-1", "8-2", "9-1", "9-3", "9-4", "9-5", "9-6", "10-1", "10-4",
+    "10-5", "10-6", "10-7", "10-8", "10-9", "10-10", "10-11", "10-12", "10-13", "10-14"
+  ],
+  "candidates_per_case": 3,
+  "candidate_seeds": {
+    "candidate_1": 20260910,
+    "candidate_2": 20260911,
+    "candidate_3": 20260912
+  },
+  "evaluation_support": {
+    "formal_reporting_n": 40,
+    "formal_candidate_slots": 120,
+    "excluded_cases": [
+      {"case_id": "1-3", "reason": "inclusive-choice behavior represented by two Inclusive gateways"},
+      {"case_id": "1-4", "reason": "combined converging-diverging gateway"},
+      {"case_id": "7-1", "reason": "explicit InclusiveGateway in the reference model"},
+      {"case_id": "8-3", "reason": "combined converging-diverging gateway"},
+      {"case_id": "9-2", "reason": "combined converging-diverging gateway"},
+      {"case_id": "10-2", "reason": "inclusive-choice behavior represented by four Inclusive gateways"},
+      {"case_id": "10-3", "reason": "inclusive-choice behavior represented by two Inclusive gateways"}
+    ],
+    "exclusion_policy": "Excluded from primary Action, Flow, and Control-Flow/Structure formal averages.",
+    "policy_basis": "The frozen adapter cannot reliably represent inclusive-choice or combined converging-diverging gateway semantics for cross-notation behavioral scoring."
+  },
+  "source": {
+    "repository_identity": "FabianFriedrich/Text2Process",
+    "dataset_commit": "4015ddfe5338ae3f1e12fb2d8c474244fbf8647d",
+    "source_manifest_path": "evaluation/friedrich_v2/manifests/source_manifest.json",
+    "source_manifest_sha256": "7e295b28a95506dfb436fa0f7adf3c76aadfb847a7329731905ecbe137d5c15b",
+    "process_text_decoding_policy": "Decode as UTF-8; on UnicodeDecodeError decode as Windows-1252."
+  },
+  "generation": {
+    "repository_identity": "AI4MDE Studio final frozen thesis generator",
+    "endpoint": "http://127.0.0.1:18000/api/v1/generate-model",
+    "pipeline_profile": "semantic_deterministic",
+    "response_mode": "full",
+    "candidate_count": 3,
+    "model": "gpt-4.1-2025-04-14",
+    "request_settings": {
+      "temperature": 0.15,
+      "top_p": 1.0,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "n": 1,
+      "max_completion_tokens": 8192
+    },
+    "candidate_seed_policy": "Each permanent candidate slot uses its fixed seed for Topology Planner, Semantic Planner, Structured Outputs fallback, and all correction calls.",
+    "candidate_retry_policy": "Three permanent candidate slots; maximum three complete top-level attempts per slot; accept the first adapter-valid ActivityGraph; never retry a successful slot; never inspect evaluation scores.",
+    "planner_correction_policy": "One initial response plus at most two validation corrections per planner stage.",
+    "sdk_max_retries": 2,
+    "structured_output_policy": "Attempt Structured Outputs first and preserve the existing JSON response-format fallback behavior."
+  },
+  "prompt_identity": {
+    "semantic_path": "api/model/llm/templates/activity_semantic_sketch_experiment_prompt.jinja",
+    "semantic_sha256": "42f8b3efe1c2b4335b177a44377b462acb0163cb27b55e207d9dac85893e116e",
+    "topology_path": "api/model/llm/templates/activity_topology_experiment_prompt.jinja",
+    "topology_sha256": "47efb1bfb14bb7a37d30f6f2aa9f8a2d0eaa27db0fd1126797d4fb3867a2444d"
+  },
+  "runtime": {
+    "generation_python": "3.12.1",
+    "openai_sdk": "1.47.0",
+    "pydantic": "2.8.2"
+  },
+  "evaluation": {
+    "methodology": "Existing frozen Friedrich semantic evaluation; no methodology or threshold changes.",
+    "dimensions": ["Action", "Flow", "Control-Flow/Structure"],
+    "action_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "action_model_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "action_threshold": 0.44,
+    "human_review_seed": 20260827,
+    "failure_policy": "Failed candidates retain N/A Action, Flow, and Control-Flow/Structure metrics; successful candidates are never retried for model quality."
+  },
+  "artifacts": {
+    "output_root": "evaluation/friedrich_v2/cohorts/final_frozen_40x3_20260910",
+    "results_output_root": "evaluation/friedrich_v2/results/final_frozen_40x3_20260910",
+    "api_call_log": "evaluation/friedrich_v2/cohorts/final_frozen_40x3_20260910/logs/api_calls.jsonl",
+    "artifact_inventory": "evaluation/friedrich_v2/cohorts/final_frozen_40x3_20260910/manifests/artifact_inventory.json",
+    "collision_policy": "Fail if either output root contains artifacts for a different run_id; resume only when the stored run_id and frozen identities match exactly.",
+    "hash_policy": "Record SHA-256 for every evaluated ActivityGraph and all run-identity inputs."
+  },
+  "preparation": {
+    "status": "prepared_not_started",
+    "generation_started": false,
+    "evaluation_started": false
+  }
+}

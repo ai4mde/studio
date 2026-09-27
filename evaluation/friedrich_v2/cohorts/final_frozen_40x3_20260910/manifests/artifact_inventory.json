@@ -1,0 +1,2069 @@
+{
+  "candidate_artifact_pattern": "cases/{case_id}/{candidate_id}/{artifact_name}",
+  "candidate_records": [
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "1-1",
+      "files": [
+        "cases/1-1/candidate_1/activity_graph.json",
+        "cases/1-1/candidate_1/ai4mde_export.json",
+        "cases/1-1/candidate_1/api_call_log.json",
+        "cases/1-1/candidate_1/candidate_manifest.json",
+        "cases/1-1/candidate_1/process_text.txt",
+        "cases/1-1/candidate_1/raw_generation_response.json",
+        "cases/1-1/candidate_1/semantic_sketch_plan.json",
+        "cases/1-1/candidate_1/technical_status.json",
+        "cases/1-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "1-1",
+      "files": [
+        "cases/1-1/candidate_2/activity_graph.json",
+        "cases/1-1/candidate_2/ai4mde_export.json",
+        "cases/1-1/candidate_2/api_call_log.json",
+        "cases/1-1/candidate_2/candidate_manifest.json",
+        "cases/1-1/candidate_2/process_text.txt",
+        "cases/1-1/candidate_2/raw_generation_response.json",
+        "cases/1-1/candidate_2/semantic_sketch_plan.json",
+        "cases/1-1/candidate_2/technical_status.json",
+        "cases/1-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "1-1",
+      "files": [
+        "cases/1-1/candidate_3/activity_graph.json",
+        "cases/1-1/candidate_3/ai4mde_export.json",
+        "cases/1-1/candidate_3/api_call_log.json",
+        "cases/1-1/candidate_3/candidate_manifest.json",
+        "cases/1-1/candidate_3/process_text.txt",
+        "cases/1-1/candidate_3/raw_generation_response.json",
+        "cases/1-1/candidate_3/semantic_sketch_plan.json",
+        "cases/1-1/candidate_3/technical_status.json",
+        "cases/1-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "1-2",
+      "files": [
+        "cases/1-2/candidate_1/activity_graph.json",
+        "cases/1-2/candidate_1/ai4mde_export.json",
+        "cases/1-2/candidate_1/api_call_log.json",
+        "cases/1-2/candidate_1/candidate_manifest.json",
+        "cases/1-2/candidate_1/process_text.txt",
+        "cases/1-2/candidate_1/raw_generation_response.json",
+        "cases/1-2/candidate_1/semantic_sketch_plan.json",
+        "cases/1-2/candidate_1/technical_status.json",
+        "cases/1-2/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "1-2",
+      "files": [
+        "cases/1-2/candidate_2/activity_graph.json",
+        "cases/1-2/candidate_2/ai4mde_export.json",
+        "cases/1-2/candidate_2/api_call_log.json",
+        "cases/1-2/candidate_2/candidate_manifest.json",
+        "cases/1-2/candidate_2/process_text.txt",
+        "cases/1-2/candidate_2/raw_generation_response.json",
+        "cases/1-2/candidate_2/semantic_sketch_plan.json",
+        "cases/1-2/candidate_2/technical_status.json",
+        "cases/1-2/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "1-2",
+      "files": [
+        "cases/1-2/candidate_3/activity_graph.json",
+        "cases/1-2/candidate_3/ai4mde_export.json",
+        "cases/1-2/candidate_3/api_call_log.json",
+        "cases/1-2/candidate_3/candidate_manifest.json",
+        "cases/1-2/candidate_3/process_text.txt",
+        "cases/1-2/candidate_3/raw_generation_response.json",
+        "cases/1-2/candidate_3/semantic_sketch_plan.json",
+        "cases/1-2/candidate_3/technical_status.json",
+        "cases/1-2/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "2-1",
+      "files": [
+        "cases/2-1/candidate_1/activity_graph.json",
+        "cases/2-1/candidate_1/ai4mde_export.json",
+        "cases/2-1/candidate_1/api_call_log.json",
+        "cases/2-1/candidate_1/candidate_manifest.json",
+        "cases/2-1/candidate_1/process_text.txt",
+        "cases/2-1/candidate_1/raw_generation_response.json",
+        "cases/2-1/candidate_1/semantic_sketch_plan.json",
+        "cases/2-1/candidate_1/technical_status.json",
+        "cases/2-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "2-1",
+      "files": [
+        "cases/2-1/candidate_2/activity_graph.json",
+        "cases/2-1/candidate_2/ai4mde_export.json",
+        "cases/2-1/candidate_2/api_call_log.json",
+        "cases/2-1/candidate_2/candidate_manifest.json",
+        "cases/2-1/candidate_2/process_text.txt",
+        "cases/2-1/candidate_2/raw_generation_response.json",
+        "cases/2-1/candidate_2/semantic_sketch_plan.json",
+        "cases/2-1/candidate_2/technical_status.json",
+        "cases/2-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "2-1",
+      "files": [
+        "cases/2-1/candidate_3/activity_graph.json",
+        "cases/2-1/candidate_3/ai4mde_export.json",
+        "cases/2-1/candidate_3/api_call_log.json",
+        "cases/2-1/candidate_3/candidate_manifest.json",
+        "cases/2-1/candidate_3/process_text.txt",
+        "cases/2-1/candidate_3/raw_generation_response.json",
+        "cases/2-1/candidate_3/semantic_sketch_plan.json",
+        "cases/2-1/candidate_3/technical_status.json",
+        "cases/2-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "2-2",
+      "files": [
+        "cases/2-2/candidate_1/activity_graph.json",
+        "cases/2-2/candidate_1/ai4mde_export.json",
+        "cases/2-2/candidate_1/api_call_log.json",
+        "cases/2-2/candidate_1/candidate_manifest.json",
+        "cases/2-2/candidate_1/process_text.txt",
+        "cases/2-2/candidate_1/raw_generation_response.json",
+        "cases/2-2/candidate_1/semantic_sketch_plan.json",
+        "cases/2-2/candidate_1/technical_status.json",
+        "cases/2-2/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "2-2",
+      "files": [
+        "cases/2-2/candidate_2/activity_graph.json",
+        "cases/2-2/candidate_2/ai4mde_export.json",
+        "cases/2-2/candidate_2/api_call_log.json",
+        "cases/2-2/candidate_2/candidate_manifest.json",
+        "cases/2-2/candidate_2/process_text.txt",
+        "cases/2-2/candidate_2/raw_generation_response.json",
+        "cases/2-2/candidate_2/semantic_sketch_plan.json",
+        "cases/2-2/candidate_2/technical_status.json",
+        "cases/2-2/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "2-2",
+      "files": [
+        "cases/2-2/candidate_3/activity_graph.json",
+        "cases/2-2/candidate_3/ai4mde_export.json",
+        "cases/2-2/candidate_3/api_call_log.json",
+        "cases/2-2/candidate_3/candidate_manifest.json",
+        "cases/2-2/candidate_3/process_text.txt",
+        "cases/2-2/candidate_3/raw_generation_response.json",
+        "cases/2-2/candidate_3/semantic_sketch_plan.json",
+        "cases/2-2/candidate_3/technical_status.json",
+        "cases/2-2/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "3-1",
+      "files": [
+        "cases/3-1/candidate_1/activity_graph.json",
+        "cases/3-1/candidate_1/ai4mde_export.json",
+        "cases/3-1/candidate_1/api_call_log.json",
+        "cases/3-1/candidate_1/candidate_manifest.json",
+        "cases/3-1/candidate_1/process_text.txt",
+        "cases/3-1/candidate_1/raw_generation_response.json",
+        "cases/3-1/candidate_1/semantic_sketch_plan.json",
+        "cases/3-1/candidate_1/technical_status.json",
+        "cases/3-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "3-1",
+      "files": [
+        "cases/3-1/candidate_2/activity_graph.json",
+        "cases/3-1/candidate_2/ai4mde_export.json",
+        "cases/3-1/candidate_2/api_call_log.json",
+        "cases/3-1/candidate_2/candidate_manifest.json",
+        "cases/3-1/candidate_2/process_text.txt",
+        "cases/3-1/candidate_2/raw_generation_response.json",
+        "cases/3-1/candidate_2/semantic_sketch_plan.json",
+        "cases/3-1/candidate_2/technical_status.json",
+        "cases/3-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "3-1",
+      "files": [
+        "cases/3-1/candidate_3/activity_graph.json",
+        "cases/3-1/candidate_3/ai4mde_export.json",
+        "cases/3-1/candidate_3/api_call_log.json",
+        "cases/3-1/candidate_3/candidate_manifest.json",
+        "cases/3-1/candidate_3/process_text.txt",
+        "cases/3-1/candidate_3/raw_generation_response.json",
+        "cases/3-1/candidate_3/semantic_sketch_plan.json",
+        "cases/3-1/candidate_3/technical_status.json",
+        "cases/3-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "3-2",
+      "files": [
+        "cases/3-2/candidate_1/activity_graph.json",
+        "cases/3-2/candidate_1/ai4mde_export.json",
+        "cases/3-2/candidate_1/api_call_log.json",
+        "cases/3-2/candidate_1/candidate_manifest.json",
+        "cases/3-2/candidate_1/process_text.txt",
+        "cases/3-2/candidate_1/raw_generation_response.json",
+        "cases/3-2/candidate_1/semantic_sketch_plan.json",
+        "cases/3-2/candidate_1/technical_status.json",
+        "cases/3-2/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "3-2",
+      "files": [
+        "cases/3-2/candidate_2/activity_graph.json",
+        "cases/3-2/candidate_2/ai4mde_export.json",
+        "cases/3-2/candidate_2/api_call_log.json",
+        "cases/3-2/candidate_2/candidate_manifest.json",
+        "cases/3-2/candidate_2/process_text.txt",
+        "cases/3-2/candidate_2/raw_generation_response.json",
+        "cases/3-2/candidate_2/semantic_sketch_plan.json",
+        "cases/3-2/candidate_2/technical_status.json",
+        "cases/3-2/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "3-2",
+      "files": [
+        "cases/3-2/candidate_3/activity_graph.json",
+        "cases/3-2/candidate_3/ai4mde_export.json",
+        "cases/3-2/candidate_3/api_call_log.json",
+        "cases/3-2/candidate_3/candidate_manifest.json",
+        "cases/3-2/candidate_3/process_text.txt",
+        "cases/3-2/candidate_3/raw_generation_response.json",
+        "cases/3-2/candidate_3/semantic_sketch_plan.json",
+        "cases/3-2/candidate_3/technical_status.json",
+        "cases/3-2/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "3-3",
+      "files": [
+        "cases/3-3/candidate_1/activity_graph.json",
+        "cases/3-3/candidate_1/ai4mde_export.json",
+        "cases/3-3/candidate_1/api_call_log.json",
+        "cases/3-3/candidate_1/candidate_manifest.json",
+        "cases/3-3/candidate_1/process_text.txt",
+        "cases/3-3/candidate_1/raw_generation_response.json",
+        "cases/3-3/candidate_1/semantic_sketch_plan.json",
+        "cases/3-3/candidate_1/technical_status.json",
+        "cases/3-3/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "3-3",
+      "files": [
+        "cases/3-3/candidate_2/activity_graph.json",
+        "cases/3-3/candidate_2/ai4mde_export.json",
+        "cases/3-3/candidate_2/api_call_log.json",
+        "cases/3-3/candidate_2/candidate_manifest.json",
+        "cases/3-3/candidate_2/process_text.txt",
+        "cases/3-3/candidate_2/raw_generation_response.json",
+        "cases/3-3/candidate_2/semantic_sketch_plan.json",
+        "cases/3-3/candidate_2/technical_status.json",
+        "cases/3-3/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "3-3",
+      "files": [
+        "cases/3-3/candidate_3/activity_graph.json",
+        "cases/3-3/candidate_3/ai4mde_export.json",
+        "cases/3-3/candidate_3/api_call_log.json",
+        "cases/3-3/candidate_3/candidate_manifest.json",
+        "cases/3-3/candidate_3/process_text.txt",
+        "cases/3-3/candidate_3/raw_generation_response.json",
+        "cases/3-3/candidate_3/semantic_sketch_plan.json",
+        "cases/3-3/candidate_3/technical_status.json",
+        "cases/3-3/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "3-4",
+      "files": [
+        "cases/3-4/candidate_1/activity_graph.json",
+        "cases/3-4/candidate_1/ai4mde_export.json",
+        "cases/3-4/candidate_1/api_call_log.json",
+        "cases/3-4/candidate_1/candidate_manifest.json",
+        "cases/3-4/candidate_1/process_text.txt",
+        "cases/3-4/candidate_1/raw_generation_response.json",
+        "cases/3-4/candidate_1/semantic_sketch_plan.json",
+        "cases/3-4/candidate_1/technical_status.json",
+        "cases/3-4/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "3-4",
+      "files": [
+        "cases/3-4/candidate_2/activity_graph.json",
+        "cases/3-4/candidate_2/ai4mde_export.json",
+        "cases/3-4/candidate_2/api_call_log.json",
+        "cases/3-4/candidate_2/candidate_manifest.json",
+        "cases/3-4/candidate_2/process_text.txt",
+        "cases/3-4/candidate_2/raw_generation_response.json",
+        "cases/3-4/candidate_2/semantic_sketch_plan.json",
+        "cases/3-4/candidate_2/technical_status.json",
+        "cases/3-4/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "3-4",
+      "files": [
+        "cases/3-4/candidate_3/activity_graph.json",
+        "cases/3-4/candidate_3/ai4mde_export.json",
+        "cases/3-4/candidate_3/api_call_log.json",
+        "cases/3-4/candidate_3/candidate_manifest.json",
+        "cases/3-4/candidate_3/process_text.txt",
+        "cases/3-4/candidate_3/raw_generation_response.json",
+        "cases/3-4/candidate_3/semantic_sketch_plan.json",
+        "cases/3-4/candidate_3/technical_status.json",
+        "cases/3-4/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "3-5",
+      "files": [
+        "cases/3-5/candidate_1/activity_graph.json",
+        "cases/3-5/candidate_1/ai4mde_export.json",
+        "cases/3-5/candidate_1/api_call_log.json",
+        "cases/3-5/candidate_1/candidate_manifest.json",
+        "cases/3-5/candidate_1/process_text.txt",
+        "cases/3-5/candidate_1/raw_generation_response.json",
+        "cases/3-5/candidate_1/semantic_sketch_plan.json",
+        "cases/3-5/candidate_1/technical_status.json",
+        "cases/3-5/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "3-5",
+      "files": [
+        "cases/3-5/candidate_2/activity_graph.json",
+        "cases/3-5/candidate_2/ai4mde_export.json",
+        "cases/3-5/candidate_2/api_call_log.json",
+        "cases/3-5/candidate_2/candidate_manifest.json",
+        "cases/3-5/candidate_2/process_text.txt",
+        "cases/3-5/candidate_2/raw_generation_response.json",
+        "cases/3-5/candidate_2/semantic_sketch_plan.json",
+        "cases/3-5/candidate_2/technical_status.json",
+        "cases/3-5/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "3-5",
+      "files": [
+        "cases/3-5/candidate_3/activity_graph.json",
+        "cases/3-5/candidate_3/ai4mde_export.json",
+        "cases/3-5/candidate_3/api_call_log.json",
+        "cases/3-5/candidate_3/candidate_manifest.json",
+        "cases/3-5/candidate_3/process_text.txt",
+        "cases/3-5/candidate_3/raw_generation_response.json",
+        "cases/3-5/candidate_3/semantic_sketch_plan.json",
+        "cases/3-5/candidate_3/technical_status.json",
+        "cases/3-5/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "3-6",
+      "files": [
+        "cases/3-6/candidate_1/activity_graph.json",
+        "cases/3-6/candidate_1/ai4mde_export.json",
+        "cases/3-6/candidate_1/api_call_log.json",
+        "cases/3-6/candidate_1/candidate_manifest.json",
+        "cases/3-6/candidate_1/process_text.txt",
+        "cases/3-6/candidate_1/raw_generation_response.json",
+        "cases/3-6/candidate_1/semantic_sketch_plan.json",
+        "cases/3-6/candidate_1/technical_status.json",
+        "cases/3-6/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "3-6",
+      "files": [
+        "cases/3-6/candidate_2/activity_graph.json",
+        "cases/3-6/candidate_2/ai4mde_export.json",
+        "cases/3-6/candidate_2/api_call_log.json",
+        "cases/3-6/candidate_2/candidate_manifest.json",
+        "cases/3-6/candidate_2/process_text.txt",
+        "cases/3-6/candidate_2/raw_generation_response.json",
+        "cases/3-6/candidate_2/semantic_sketch_plan.json",
+        "cases/3-6/candidate_2/technical_status.json",
+        "cases/3-6/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "3-6",
+      "files": [
+        "cases/3-6/candidate_3/activity_graph.json",
+        "cases/3-6/candidate_3/ai4mde_export.json",
+        "cases/3-6/candidate_3/api_call_log.json",
+        "cases/3-6/candidate_3/candidate_manifest.json",
+        "cases/3-6/candidate_3/process_text.txt",
+        "cases/3-6/candidate_3/raw_generation_response.json",
+        "cases/3-6/candidate_3/semantic_sketch_plan.json",
+        "cases/3-6/candidate_3/technical_status.json",
+        "cases/3-6/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "3-7",
+      "files": [
+        "cases/3-7/candidate_1/activity_graph.json",
+        "cases/3-7/candidate_1/ai4mde_export.json",
+        "cases/3-7/candidate_1/api_call_log.json",
+        "cases/3-7/candidate_1/candidate_manifest.json",
+        "cases/3-7/candidate_1/process_text.txt",
+        "cases/3-7/candidate_1/raw_generation_response.json",
+        "cases/3-7/candidate_1/semantic_sketch_plan.json",
+        "cases/3-7/candidate_1/technical_status.json",
+        "cases/3-7/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "3-7",
+      "files": [
+        "cases/3-7/candidate_2/activity_graph.json",
+        "cases/3-7/candidate_2/ai4mde_export.json",
+        "cases/3-7/candidate_2/api_call_log.json",
+        "cases/3-7/candidate_2/candidate_manifest.json",
+        "cases/3-7/candidate_2/process_text.txt",
+        "cases/3-7/candidate_2/raw_generation_response.json",
+        "cases/3-7/candidate_2/semantic_sketch_plan.json",
+        "cases/3-7/candidate_2/technical_status.json",
+        "cases/3-7/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "3-7",
+      "files": [
+        "cases/3-7/candidate_3/activity_graph.json",
+        "cases/3-7/candidate_3/ai4mde_export.json",
+        "cases/3-7/candidate_3/api_call_log.json",
+        "cases/3-7/candidate_3/candidate_manifest.json",
+        "cases/3-7/candidate_3/process_text.txt",
+        "cases/3-7/candidate_3/raw_generation_response.json",
+        "cases/3-7/candidate_3/semantic_sketch_plan.json",
+        "cases/3-7/candidate_3/technical_status.json",
+        "cases/3-7/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "3-8",
+      "files": [
+        "cases/3-8/candidate_1/activity_graph.json",
+        "cases/3-8/candidate_1/ai4mde_export.json",
+        "cases/3-8/candidate_1/api_call_log.json",
+        "cases/3-8/candidate_1/candidate_manifest.json",
+        "cases/3-8/candidate_1/process_text.txt",
+        "cases/3-8/candidate_1/raw_generation_response.json",
+        "cases/3-8/candidate_1/semantic_sketch_plan.json",
+        "cases/3-8/candidate_1/technical_status.json",
+        "cases/3-8/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "3-8",
+      "files": [
+        "cases/3-8/candidate_2/activity_graph.json",
+        "cases/3-8/candidate_2/ai4mde_export.json",
+        "cases/3-8/candidate_2/api_call_log.json",
+        "cases/3-8/candidate_2/candidate_manifest.json",
+        "cases/3-8/candidate_2/process_text.txt",
+        "cases/3-8/candidate_2/raw_generation_response.json",
+        "cases/3-8/candidate_2/semantic_sketch_plan.json",
+        "cases/3-8/candidate_2/technical_status.json",
+        "cases/3-8/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "3-8",
+      "files": [
+        "cases/3-8/candidate_3/activity_graph.json",
+        "cases/3-8/candidate_3/ai4mde_export.json",
+        "cases/3-8/candidate_3/api_call_log.json",
+        "cases/3-8/candidate_3/candidate_manifest.json",
+        "cases/3-8/candidate_3/process_text.txt",
+        "cases/3-8/candidate_3/raw_generation_response.json",
+        "cases/3-8/candidate_3/semantic_sketch_plan.json",
+        "cases/3-8/candidate_3/technical_status.json",
+        "cases/3-8/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "4-1",
+      "files": [
+        "cases/4-1/candidate_1/activity_graph.json",
+        "cases/4-1/candidate_1/ai4mde_export.json",
+        "cases/4-1/candidate_1/api_call_log.json",
+        "cases/4-1/candidate_1/candidate_manifest.json",
+        "cases/4-1/candidate_1/process_text.txt",
+        "cases/4-1/candidate_1/raw_generation_response.json",
+        "cases/4-1/candidate_1/semantic_sketch_plan.json",
+        "cases/4-1/candidate_1/technical_status.json",
+        "cases/4-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "4-1",
+      "files": [
+        "cases/4-1/candidate_2/activity_graph.json",
+        "cases/4-1/candidate_2/ai4mde_export.json",
+        "cases/4-1/candidate_2/api_call_log.json",
+        "cases/4-1/candidate_2/candidate_manifest.json",
+        "cases/4-1/candidate_2/process_text.txt",
+        "cases/4-1/candidate_2/raw_generation_response.json",
+        "cases/4-1/candidate_2/semantic_sketch_plan.json",
+        "cases/4-1/candidate_2/technical_status.json",
+        "cases/4-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "4-1",
+      "files": [
+        "cases/4-1/candidate_3/activity_graph.json",
+        "cases/4-1/candidate_3/ai4mde_export.json",
+        "cases/4-1/candidate_3/api_call_log.json",
+        "cases/4-1/candidate_3/candidate_manifest.json",
+        "cases/4-1/candidate_3/process_text.txt",
+        "cases/4-1/candidate_3/raw_generation_response.json",
+        "cases/4-1/candidate_3/semantic_sketch_plan.json",
+        "cases/4-1/candidate_3/technical_status.json",
+        "cases/4-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "5-1",
+      "files": [
+        "cases/5-1/candidate_1/activity_graph.json",
+        "cases/5-1/candidate_1/ai4mde_export.json",
+        "cases/5-1/candidate_1/api_call_log.json",
+        "cases/5-1/candidate_1/candidate_manifest.json",
+        "cases/5-1/candidate_1/process_text.txt",
+        "cases/5-1/candidate_1/raw_generation_response.json",
+        "cases/5-1/candidate_1/semantic_sketch_plan.json",
+        "cases/5-1/candidate_1/technical_status.json",
+        "cases/5-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "5-1",
+      "files": [
+        "cases/5-1/candidate_2/activity_graph.json",
+        "cases/5-1/candidate_2/ai4mde_export.json",
+        "cases/5-1/candidate_2/api_call_log.json",
+        "cases/5-1/candidate_2/candidate_manifest.json",
+        "cases/5-1/candidate_2/process_text.txt",
+        "cases/5-1/candidate_2/raw_generation_response.json",
+        "cases/5-1/candidate_2/semantic_sketch_plan.json",
+        "cases/5-1/candidate_2/technical_status.json",
+        "cases/5-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "5-1",
+      "files": [
+        "cases/5-1/candidate_3/activity_graph.json",
+        "cases/5-1/candidate_3/ai4mde_export.json",
+        "cases/5-1/candidate_3/api_call_log.json",
+        "cases/5-1/candidate_3/candidate_manifest.json",
+        "cases/5-1/candidate_3/process_text.txt",
+        "cases/5-1/candidate_3/raw_generation_response.json",
+        "cases/5-1/candidate_3/semantic_sketch_plan.json",
+        "cases/5-1/candidate_3/technical_status.json",
+        "cases/5-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "5-2",
+      "files": [
+        "cases/5-2/candidate_1/activity_graph.json",
+        "cases/5-2/candidate_1/ai4mde_export.json",
+        "cases/5-2/candidate_1/api_call_log.json",
+        "cases/5-2/candidate_1/candidate_manifest.json",
+        "cases/5-2/candidate_1/process_text.txt",
+        "cases/5-2/candidate_1/raw_generation_response.json",
+        "cases/5-2/candidate_1/semantic_sketch_plan.json",
+        "cases/5-2/candidate_1/technical_status.json",
+        "cases/5-2/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "5-2",
+      "files": [
+        "cases/5-2/candidate_2/activity_graph.json",
+        "cases/5-2/candidate_2/ai4mde_export.json",
+        "cases/5-2/candidate_2/api_call_log.json",
+        "cases/5-2/candidate_2/candidate_manifest.json",
+        "cases/5-2/candidate_2/process_text.txt",
+        "cases/5-2/candidate_2/raw_generation_response.json",
+        "cases/5-2/candidate_2/semantic_sketch_plan.json",
+        "cases/5-2/candidate_2/technical_status.json",
+        "cases/5-2/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "5-2",
+      "files": [
+        "cases/5-2/candidate_3/activity_graph.json",
+        "cases/5-2/candidate_3/ai4mde_export.json",
+        "cases/5-2/candidate_3/api_call_log.json",
+        "cases/5-2/candidate_3/candidate_manifest.json",
+        "cases/5-2/candidate_3/process_text.txt",
+        "cases/5-2/candidate_3/raw_generation_response.json",
+        "cases/5-2/candidate_3/semantic_sketch_plan.json",
+        "cases/5-2/candidate_3/technical_status.json",
+        "cases/5-2/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "5-3",
+      "files": [
+        "cases/5-3/candidate_1/activity_graph.json",
+        "cases/5-3/candidate_1/ai4mde_export.json",
+        "cases/5-3/candidate_1/api_call_log.json",
+        "cases/5-3/candidate_1/candidate_manifest.json",
+        "cases/5-3/candidate_1/process_text.txt",
+        "cases/5-3/candidate_1/raw_generation_response.json",
+        "cases/5-3/candidate_1/semantic_sketch_plan.json",
+        "cases/5-3/candidate_1/technical_status.json",
+        "cases/5-3/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "5-3",
+      "files": [
+        "cases/5-3/candidate_2/activity_graph.json",
+        "cases/5-3/candidate_2/ai4mde_export.json",
+        "cases/5-3/candidate_2/api_call_log.json",
+        "cases/5-3/candidate_2/candidate_manifest.json",
+        "cases/5-3/candidate_2/process_text.txt",
+        "cases/5-3/candidate_2/raw_generation_response.json",
+        "cases/5-3/candidate_2/semantic_sketch_plan.json",
+        "cases/5-3/candidate_2/technical_status.json",
+        "cases/5-3/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "5-3",
+      "files": [
+        "cases/5-3/candidate_3/activity_graph.json",
+        "cases/5-3/candidate_3/ai4mde_export.json",
+        "cases/5-3/candidate_3/api_call_log.json",
+        "cases/5-3/candidate_3/candidate_manifest.json",
+        "cases/5-3/candidate_3/process_text.txt",
+        "cases/5-3/candidate_3/raw_generation_response.json",
+        "cases/5-3/candidate_3/semantic_sketch_plan.json",
+        "cases/5-3/candidate_3/technical_status.json",
+        "cases/5-3/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "5-4",
+      "files": [
+        "cases/5-4/candidate_1/activity_graph.json",
+        "cases/5-4/candidate_1/ai4mde_export.json",
+        "cases/5-4/candidate_1/api_call_log.json",
+        "cases/5-4/candidate_1/candidate_manifest.json",
+        "cases/5-4/candidate_1/process_text.txt",
+        "cases/5-4/candidate_1/raw_generation_response.json",
+        "cases/5-4/candidate_1/semantic_sketch_plan.json",
+        "cases/5-4/candidate_1/technical_status.json",
+        "cases/5-4/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "5-4",
+      "files": [
+        "cases/5-4/candidate_2/activity_graph.json",
+        "cases/5-4/candidate_2/ai4mde_export.json",
+        "cases/5-4/candidate_2/api_call_log.json",
+        "cases/5-4/candidate_2/candidate_manifest.json",
+        "cases/5-4/candidate_2/process_text.txt",
+        "cases/5-4/candidate_2/raw_generation_response.json",
+        "cases/5-4/candidate_2/semantic_sketch_plan.json",
+        "cases/5-4/candidate_2/technical_status.json",
+        "cases/5-4/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "5-4",
+      "files": [
+        "cases/5-4/candidate_3/activity_graph.json",
+        "cases/5-4/candidate_3/ai4mde_export.json",
+        "cases/5-4/candidate_3/api_call_log.json",
+        "cases/5-4/candidate_3/candidate_manifest.json",
+        "cases/5-4/candidate_3/process_text.txt",
+        "cases/5-4/candidate_3/raw_generation_response.json",
+        "cases/5-4/candidate_3/semantic_sketch_plan.json",
+        "cases/5-4/candidate_3/technical_status.json",
+        "cases/5-4/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "6-1",
+      "files": [
+        "cases/6-1/candidate_1/activity_graph.json",
+        "cases/6-1/candidate_1/ai4mde_export.json",
+        "cases/6-1/candidate_1/api_call_log.json",
+        "cases/6-1/candidate_1/candidate_manifest.json",
+        "cases/6-1/candidate_1/process_text.txt",
+        "cases/6-1/candidate_1/raw_generation_response.json",
+        "cases/6-1/candidate_1/semantic_sketch_plan.json",
+        "cases/6-1/candidate_1/technical_status.json",
+        "cases/6-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "6-1",
+      "files": [
+        "cases/6-1/candidate_2/activity_graph.json",
+        "cases/6-1/candidate_2/ai4mde_export.json",
+        "cases/6-1/candidate_2/api_call_log.json",
+        "cases/6-1/candidate_2/candidate_manifest.json",
+        "cases/6-1/candidate_2/process_text.txt",
+        "cases/6-1/candidate_2/raw_generation_response.json",
+        "cases/6-1/candidate_2/semantic_sketch_plan.json",
+        "cases/6-1/candidate_2/technical_status.json",
+        "cases/6-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "6-1",
+      "files": [
+        "cases/6-1/candidate_3/activity_graph.json",
+        "cases/6-1/candidate_3/ai4mde_export.json",
+        "cases/6-1/candidate_3/api_call_log.json",
+        "cases/6-1/candidate_3/candidate_manifest.json",
+        "cases/6-1/candidate_3/process_text.txt",
+        "cases/6-1/candidate_3/raw_generation_response.json",
+        "cases/6-1/candidate_3/semantic_sketch_plan.json",
+        "cases/6-1/candidate_3/technical_status.json",
+        "cases/6-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "6-2",
+      "files": [
+        "cases/6-2/candidate_1/activity_graph.json",
+        "cases/6-2/candidate_1/ai4mde_export.json",
+        "cases/6-2/candidate_1/api_call_log.json",
+        "cases/6-2/candidate_1/candidate_manifest.json",
+        "cases/6-2/candidate_1/process_text.txt",
+        "cases/6-2/candidate_1/raw_generation_response.json",
+        "cases/6-2/candidate_1/semantic_sketch_plan.json",
+        "cases/6-2/candidate_1/technical_status.json",
+        "cases/6-2/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "6-2",
+      "files": [
+        "cases/6-2/candidate_2/activity_graph.json",
+        "cases/6-2/candidate_2/ai4mde_export.json",
+        "cases/6-2/candidate_2/api_call_log.json",
+        "cases/6-2/candidate_2/candidate_manifest.json",
+        "cases/6-2/candidate_2/process_text.txt",
+        "cases/6-2/candidate_2/raw_generation_response.json",
+        "cases/6-2/candidate_2/semantic_sketch_plan.json",
+        "cases/6-2/candidate_2/technical_status.json",
+        "cases/6-2/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "6-2",
+      "files": [
+        "cases/6-2/candidate_3/activity_graph.json",
+        "cases/6-2/candidate_3/ai4mde_export.json",
+        "cases/6-2/candidate_3/api_call_log.json",
+        "cases/6-2/candidate_3/candidate_manifest.json",
+        "cases/6-2/candidate_3/process_text.txt",
+        "cases/6-2/candidate_3/raw_generation_response.json",
+        "cases/6-2/candidate_3/semantic_sketch_plan.json",
+        "cases/6-2/candidate_3/technical_status.json",
+        "cases/6-2/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "6-3",
+      "files": [
+        "cases/6-3/candidate_1/activity_graph.json",
+        "cases/6-3/candidate_1/ai4mde_export.json",
+        "cases/6-3/candidate_1/api_call_log.json",
+        "cases/6-3/candidate_1/candidate_manifest.json",
+        "cases/6-3/candidate_1/process_text.txt",
+        "cases/6-3/candidate_1/raw_generation_response.json",
+        "cases/6-3/candidate_1/semantic_sketch_plan.json",
+        "cases/6-3/candidate_1/technical_status.json",
+        "cases/6-3/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "6-3",
+      "files": [
+        "cases/6-3/candidate_2/activity_graph.json",
+        "cases/6-3/candidate_2/ai4mde_export.json",
+        "cases/6-3/candidate_2/api_call_log.json",
+        "cases/6-3/candidate_2/candidate_manifest.json",
+        "cases/6-3/candidate_2/process_text.txt",
+        "cases/6-3/candidate_2/raw_generation_response.json",
+        "cases/6-3/candidate_2/semantic_sketch_plan.json",
+        "cases/6-3/candidate_2/technical_status.json",
+        "cases/6-3/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "6-3",
+      "files": [
+        "cases/6-3/candidate_3/activity_graph.json",
+        "cases/6-3/candidate_3/ai4mde_export.json",
+        "cases/6-3/candidate_3/api_call_log.json",
+        "cases/6-3/candidate_3/candidate_manifest.json",
+        "cases/6-3/candidate_3/process_text.txt",
+        "cases/6-3/candidate_3/raw_generation_response.json",
+        "cases/6-3/candidate_3/semantic_sketch_plan.json",
+        "cases/6-3/candidate_3/technical_status.json",
+        "cases/6-3/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "6-4",
+      "files": [
+        "cases/6-4/candidate_1/activity_graph.json",
+        "cases/6-4/candidate_1/ai4mde_export.json",
+        "cases/6-4/candidate_1/api_call_log.json",
+        "cases/6-4/candidate_1/candidate_manifest.json",
+        "cases/6-4/candidate_1/process_text.txt",
+        "cases/6-4/candidate_1/raw_generation_response.json",
+        "cases/6-4/candidate_1/semantic_sketch_plan.json",
+        "cases/6-4/candidate_1/technical_status.json",
+        "cases/6-4/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "6-4",
+      "files": [
+        "cases/6-4/candidate_2/activity_graph.json",
+        "cases/6-4/candidate_2/ai4mde_export.json",
+        "cases/6-4/candidate_2/api_call_log.json",
+        "cases/6-4/candidate_2/candidate_manifest.json",
+        "cases/6-4/candidate_2/process_text.txt",
+        "cases/6-4/candidate_2/raw_generation_response.json",
+        "cases/6-4/candidate_2/semantic_sketch_plan.json",
+        "cases/6-4/candidate_2/technical_status.json",
+        "cases/6-4/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "6-4",
+      "files": [
+        "cases/6-4/candidate_3/activity_graph.json",
+        "cases/6-4/candidate_3/ai4mde_export.json",
+        "cases/6-4/candidate_3/api_call_log.json",
+        "cases/6-4/candidate_3/candidate_manifest.json",
+        "cases/6-4/candidate_3/process_text.txt",
+        "cases/6-4/candidate_3/raw_generation_response.json",
+        "cases/6-4/candidate_3/semantic_sketch_plan.json",
+        "cases/6-4/candidate_3/technical_status.json",
+        "cases/6-4/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "8-1",
+      "files": [
+        "cases/8-1/candidate_1/activity_graph.json",
+        "cases/8-1/candidate_1/ai4mde_export.json",
+        "cases/8-1/candidate_1/api_call_log.json",
+        "cases/8-1/candidate_1/candidate_manifest.json",
+        "cases/8-1/candidate_1/process_text.txt",
+        "cases/8-1/candidate_1/raw_generation_response.json",
+        "cases/8-1/candidate_1/semantic_sketch_plan.json",
+        "cases/8-1/candidate_1/technical_status.json",
+        "cases/8-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "8-1",
+      "files": [
+        "cases/8-1/candidate_2/activity_graph.json",
+        "cases/8-1/candidate_2/ai4mde_export.json",
+        "cases/8-1/candidate_2/api_call_log.json",
+        "cases/8-1/candidate_2/candidate_manifest.json",
+        "cases/8-1/candidate_2/process_text.txt",
+        "cases/8-1/candidate_2/raw_generation_response.json",
+        "cases/8-1/candidate_2/semantic_sketch_plan.json",
+        "cases/8-1/candidate_2/technical_status.json",
+        "cases/8-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "8-1",
+      "files": [
+        "cases/8-1/candidate_3/activity_graph.json",
+        "cases/8-1/candidate_3/ai4mde_export.json",
+        "cases/8-1/candidate_3/api_call_log.json",
+        "cases/8-1/candidate_3/candidate_manifest.json",
+        "cases/8-1/candidate_3/process_text.txt",
+        "cases/8-1/candidate_3/raw_generation_response.json",
+        "cases/8-1/candidate_3/semantic_sketch_plan.json",
+        "cases/8-1/candidate_3/technical_status.json",
+        "cases/8-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "8-2",
+      "files": [
+        "cases/8-2/candidate_1/activity_graph.json",
+        "cases/8-2/candidate_1/ai4mde_export.json",
+        "cases/8-2/candidate_1/api_call_log.json",
+        "cases/8-2/candidate_1/candidate_manifest.json",
+        "cases/8-2/candidate_1/process_text.txt",
+        "cases/8-2/candidate_1/raw_generation_response.json",
+        "cases/8-2/candidate_1/semantic_sketch_plan.json",
+        "cases/8-2/candidate_1/technical_status.json",
+        "cases/8-2/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "8-2",
+      "files": [
+        "cases/8-2/candidate_2/activity_graph.json",
+        "cases/8-2/candidate_2/ai4mde_export.json",
+        "cases/8-2/candidate_2/api_call_log.json",
+        "cases/8-2/candidate_2/candidate_manifest.json",
+        "cases/8-2/candidate_2/process_text.txt",
+        "cases/8-2/candidate_2/raw_generation_response.json",
+        "cases/8-2/candidate_2/semantic_sketch_plan.json",
+        "cases/8-2/candidate_2/technical_status.json",
+        "cases/8-2/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "8-2",
+      "files": [
+        "cases/8-2/candidate_3/activity_graph.json",
+        "cases/8-2/candidate_3/ai4mde_export.json",
+        "cases/8-2/candidate_3/api_call_log.json",
+        "cases/8-2/candidate_3/candidate_manifest.json",
+        "cases/8-2/candidate_3/process_text.txt",
+        "cases/8-2/candidate_3/raw_generation_response.json",
+        "cases/8-2/candidate_3/semantic_sketch_plan.json",
+        "cases/8-2/candidate_3/technical_status.json",
+        "cases/8-2/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "9-1",
+      "files": [
+        "cases/9-1/candidate_1/activity_graph.json",
+        "cases/9-1/candidate_1/ai4mde_export.json",
+        "cases/9-1/candidate_1/api_call_log.json",
+        "cases/9-1/candidate_1/candidate_manifest.json",
+        "cases/9-1/candidate_1/process_text.txt",
+        "cases/9-1/candidate_1/raw_generation_response.json",
+        "cases/9-1/candidate_1/semantic_sketch_plan.json",
+        "cases/9-1/candidate_1/technical_status.json",
+        "cases/9-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "9-1",
+      "files": [
+        "cases/9-1/candidate_2/activity_graph.json",
+        "cases/9-1/candidate_2/ai4mde_export.json",
+        "cases/9-1/candidate_2/api_call_log.json",
+        "cases/9-1/candidate_2/candidate_manifest.json",
+        "cases/9-1/candidate_2/process_text.txt",
+        "cases/9-1/candidate_2/raw_generation_response.json",
+        "cases/9-1/candidate_2/semantic_sketch_plan.json",
+        "cases/9-1/candidate_2/technical_status.json",
+        "cases/9-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "9-1",
+      "files": [
+        "cases/9-1/candidate_3/activity_graph.json",
+        "cases/9-1/candidate_3/ai4mde_export.json",
+        "cases/9-1/candidate_3/api_call_log.json",
+        "cases/9-1/candidate_3/candidate_manifest.json",
+        "cases/9-1/candidate_3/process_text.txt",
+        "cases/9-1/candidate_3/raw_generation_response.json",
+        "cases/9-1/candidate_3/semantic_sketch_plan.json",
+        "cases/9-1/candidate_3/technical_status.json",
+        "cases/9-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "9-3",
+      "files": [
+        "cases/9-3/candidate_1/activity_graph.json",
+        "cases/9-3/candidate_1/ai4mde_export.json",
+        "cases/9-3/candidate_1/api_call_log.json",
+        "cases/9-3/candidate_1/candidate_manifest.json",
+        "cases/9-3/candidate_1/process_text.txt",
+        "cases/9-3/candidate_1/raw_generation_response.json",
+        "cases/9-3/candidate_1/semantic_sketch_plan.json",
+        "cases/9-3/candidate_1/technical_status.json",
+        "cases/9-3/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "9-3",
+      "files": [
+        "cases/9-3/candidate_2/activity_graph.json",
+        "cases/9-3/candidate_2/ai4mde_export.json",
+        "cases/9-3/candidate_2/api_call_log.json",
+        "cases/9-3/candidate_2/candidate_manifest.json",
+        "cases/9-3/candidate_2/process_text.txt",
+        "cases/9-3/candidate_2/raw_generation_response.json",
+        "cases/9-3/candidate_2/semantic_sketch_plan.json",
+        "cases/9-3/candidate_2/technical_status.json",
+        "cases/9-3/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "9-3",
+      "files": [
+        "cases/9-3/candidate_3/activity_graph.json",
+        "cases/9-3/candidate_3/ai4mde_export.json",
+        "cases/9-3/candidate_3/api_call_log.json",
+        "cases/9-3/candidate_3/candidate_manifest.json",
+        "cases/9-3/candidate_3/process_text.txt",
+        "cases/9-3/candidate_3/raw_generation_response.json",
+        "cases/9-3/candidate_3/semantic_sketch_plan.json",
+        "cases/9-3/candidate_3/technical_status.json",
+        "cases/9-3/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "9-4",
+      "files": [
+        "cases/9-4/candidate_1/activity_graph.json",
+        "cases/9-4/candidate_1/ai4mde_export.json",
+        "cases/9-4/candidate_1/api_call_log.json",
+        "cases/9-4/candidate_1/candidate_manifest.json",
+        "cases/9-4/candidate_1/process_text.txt",
+        "cases/9-4/candidate_1/raw_generation_response.json",
+        "cases/9-4/candidate_1/semantic_sketch_plan.json",
+        "cases/9-4/candidate_1/technical_status.json",
+        "cases/9-4/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "9-4",
+      "files": [
+        "cases/9-4/candidate_2/activity_graph.json",
+        "cases/9-4/candidate_2/ai4mde_export.json",
+        "cases/9-4/candidate_2/api_call_log.json",
+        "cases/9-4/candidate_2/candidate_manifest.json",
+        "cases/9-4/candidate_2/process_text.txt",
+        "cases/9-4/candidate_2/raw_generation_response.json",
+        "cases/9-4/candidate_2/semantic_sketch_plan.json",
+        "cases/9-4/candidate_2/technical_status.json",
+        "cases/9-4/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "9-4",
+      "files": [
+        "cases/9-4/candidate_3/activity_graph.json",
+        "cases/9-4/candidate_3/ai4mde_export.json",
+        "cases/9-4/candidate_3/api_call_log.json",
+        "cases/9-4/candidate_3/candidate_manifest.json",
+        "cases/9-4/candidate_3/process_text.txt",
+        "cases/9-4/candidate_3/raw_generation_response.json",
+        "cases/9-4/candidate_3/semantic_sketch_plan.json",
+        "cases/9-4/candidate_3/technical_status.json",
+        "cases/9-4/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "9-5",
+      "files": [
+        "cases/9-5/candidate_1/activity_graph.json",
+        "cases/9-5/candidate_1/ai4mde_export.json",
+        "cases/9-5/candidate_1/api_call_log.json",
+        "cases/9-5/candidate_1/candidate_manifest.json",
+        "cases/9-5/candidate_1/process_text.txt",
+        "cases/9-5/candidate_1/raw_generation_response.json",
+        "cases/9-5/candidate_1/semantic_sketch_plan.json",
+        "cases/9-5/candidate_1/technical_status.json",
+        "cases/9-5/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "9-5",
+      "files": [
+        "cases/9-5/candidate_2/activity_graph.json",
+        "cases/9-5/candidate_2/ai4mde_export.json",
+        "cases/9-5/candidate_2/api_call_log.json",
+        "cases/9-5/candidate_2/candidate_manifest.json",
+        "cases/9-5/candidate_2/process_text.txt",
+        "cases/9-5/candidate_2/raw_generation_response.json",
+        "cases/9-5/candidate_2/semantic_sketch_plan.json",
+        "cases/9-5/candidate_2/technical_status.json",
+        "cases/9-5/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "9-5",
+      "files": [
+        "cases/9-5/candidate_3/activity_graph.json",
+        "cases/9-5/candidate_3/ai4mde_export.json",
+        "cases/9-5/candidate_3/api_call_log.json",
+        "cases/9-5/candidate_3/candidate_manifest.json",
+        "cases/9-5/candidate_3/process_text.txt",
+        "cases/9-5/candidate_3/raw_generation_response.json",
+        "cases/9-5/candidate_3/semantic_sketch_plan.json",
+        "cases/9-5/candidate_3/technical_status.json",
+        "cases/9-5/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "9-6",
+      "files": [
+        "cases/9-6/candidate_1/activity_graph.json",
+        "cases/9-6/candidate_1/ai4mde_export.json",
+        "cases/9-6/candidate_1/api_call_log.json",
+        "cases/9-6/candidate_1/candidate_manifest.json",
+        "cases/9-6/candidate_1/process_text.txt",
+        "cases/9-6/candidate_1/raw_generation_response.json",
+        "cases/9-6/candidate_1/semantic_sketch_plan.json",
+        "cases/9-6/candidate_1/technical_status.json",
+        "cases/9-6/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "9-6",
+      "files": [
+        "cases/9-6/candidate_2/activity_graph.json",
+        "cases/9-6/candidate_2/ai4mde_export.json",
+        "cases/9-6/candidate_2/api_call_log.json",
+        "cases/9-6/candidate_2/candidate_manifest.json",
+        "cases/9-6/candidate_2/process_text.txt",
+        "cases/9-6/candidate_2/raw_generation_response.json",
+        "cases/9-6/candidate_2/semantic_sketch_plan.json",
+        "cases/9-6/candidate_2/technical_status.json",
+        "cases/9-6/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "9-6",
+      "files": [
+        "cases/9-6/candidate_3/activity_graph.json",
+        "cases/9-6/candidate_3/ai4mde_export.json",
+        "cases/9-6/candidate_3/api_call_log.json",
+        "cases/9-6/candidate_3/candidate_manifest.json",
+        "cases/9-6/candidate_3/process_text.txt",
+        "cases/9-6/candidate_3/raw_generation_response.json",
+        "cases/9-6/candidate_3/semantic_sketch_plan.json",
+        "cases/9-6/candidate_3/technical_status.json",
+        "cases/9-6/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-1",
+      "files": [
+        "cases/10-1/candidate_1/activity_graph.json",
+        "cases/10-1/candidate_1/ai4mde_export.json",
+        "cases/10-1/candidate_1/api_call_log.json",
+        "cases/10-1/candidate_1/candidate_manifest.json",
+        "cases/10-1/candidate_1/process_text.txt",
+        "cases/10-1/candidate_1/raw_generation_response.json",
+        "cases/10-1/candidate_1/semantic_sketch_plan.json",
+        "cases/10-1/candidate_1/technical_status.json",
+        "cases/10-1/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-1",
+      "files": [
+        "cases/10-1/candidate_2/activity_graph.json",
+        "cases/10-1/candidate_2/ai4mde_export.json",
+        "cases/10-1/candidate_2/api_call_log.json",
+        "cases/10-1/candidate_2/candidate_manifest.json",
+        "cases/10-1/candidate_2/process_text.txt",
+        "cases/10-1/candidate_2/raw_generation_response.json",
+        "cases/10-1/candidate_2/semantic_sketch_plan.json",
+        "cases/10-1/candidate_2/technical_status.json",
+        "cases/10-1/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-1",
+      "files": [
+        "cases/10-1/candidate_3/activity_graph.json",
+        "cases/10-1/candidate_3/ai4mde_export.json",
+        "cases/10-1/candidate_3/api_call_log.json",
+        "cases/10-1/candidate_3/candidate_manifest.json",
+        "cases/10-1/candidate_3/process_text.txt",
+        "cases/10-1/candidate_3/raw_generation_response.json",
+        "cases/10-1/candidate_3/semantic_sketch_plan.json",
+        "cases/10-1/candidate_3/technical_status.json",
+        "cases/10-1/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-4",
+      "files": [
+        "cases/10-4/candidate_1/activity_graph.json",
+        "cases/10-4/candidate_1/ai4mde_export.json",
+        "cases/10-4/candidate_1/api_call_log.json",
+        "cases/10-4/candidate_1/candidate_manifest.json",
+        "cases/10-4/candidate_1/process_text.txt",
+        "cases/10-4/candidate_1/raw_generation_response.json",
+        "cases/10-4/candidate_1/semantic_sketch_plan.json",
+        "cases/10-4/candidate_1/technical_status.json",
+        "cases/10-4/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-4",
+      "files": [
+        "cases/10-4/candidate_2/activity_graph.json",
+        "cases/10-4/candidate_2/ai4mde_export.json",
+        "cases/10-4/candidate_2/api_call_log.json",
+        "cases/10-4/candidate_2/candidate_manifest.json",
+        "cases/10-4/candidate_2/process_text.txt",
+        "cases/10-4/candidate_2/raw_generation_response.json",
+        "cases/10-4/candidate_2/semantic_sketch_plan.json",
+        "cases/10-4/candidate_2/technical_status.json",
+        "cases/10-4/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-4",
+      "files": [
+        "cases/10-4/candidate_3/activity_graph.json",
+        "cases/10-4/candidate_3/ai4mde_export.json",
+        "cases/10-4/candidate_3/api_call_log.json",
+        "cases/10-4/candidate_3/candidate_manifest.json",
+        "cases/10-4/candidate_3/process_text.txt",
+        "cases/10-4/candidate_3/raw_generation_response.json",
+        "cases/10-4/candidate_3/semantic_sketch_plan.json",
+        "cases/10-4/candidate_3/technical_status.json",
+        "cases/10-4/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-5",
+      "files": [
+        "cases/10-5/candidate_1/activity_graph.json",
+        "cases/10-5/candidate_1/ai4mde_export.json",
+        "cases/10-5/candidate_1/api_call_log.json",
+        "cases/10-5/candidate_1/candidate_manifest.json",
+        "cases/10-5/candidate_1/process_text.txt",
+        "cases/10-5/candidate_1/raw_generation_response.json",
+        "cases/10-5/candidate_1/semantic_sketch_plan.json",
+        "cases/10-5/candidate_1/technical_status.json",
+        "cases/10-5/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-5",
+      "files": [
+        "cases/10-5/candidate_2/activity_graph.json",
+        "cases/10-5/candidate_2/ai4mde_export.json",
+        "cases/10-5/candidate_2/api_call_log.json",
+        "cases/10-5/candidate_2/candidate_manifest.json",
+        "cases/10-5/candidate_2/process_text.txt",
+        "cases/10-5/candidate_2/raw_generation_response.json",
+        "cases/10-5/candidate_2/semantic_sketch_plan.json",
+        "cases/10-5/candidate_2/technical_status.json",
+        "cases/10-5/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-5",
+      "files": [
+        "cases/10-5/candidate_3/activity_graph.json",
+        "cases/10-5/candidate_3/ai4mde_export.json",
+        "cases/10-5/candidate_3/api_call_log.json",
+        "cases/10-5/candidate_3/candidate_manifest.json",
+        "cases/10-5/candidate_3/process_text.txt",
+        "cases/10-5/candidate_3/raw_generation_response.json",
+        "cases/10-5/candidate_3/semantic_sketch_plan.json",
+        "cases/10-5/candidate_3/technical_status.json",
+        "cases/10-5/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-6",
+      "files": [
+        "cases/10-6/candidate_1/activity_graph.json",
+        "cases/10-6/candidate_1/ai4mde_export.json",
+        "cases/10-6/candidate_1/api_call_log.json",
+        "cases/10-6/candidate_1/candidate_manifest.json",
+        "cases/10-6/candidate_1/process_text.txt",
+        "cases/10-6/candidate_1/raw_generation_response.json",
+        "cases/10-6/candidate_1/semantic_sketch_plan.json",
+        "cases/10-6/candidate_1/technical_status.json",
+        "cases/10-6/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-6",
+      "files": [
+        "cases/10-6/candidate_2/activity_graph.json",
+        "cases/10-6/candidate_2/ai4mde_export.json",
+        "cases/10-6/candidate_2/api_call_log.json",
+        "cases/10-6/candidate_2/candidate_manifest.json",
+        "cases/10-6/candidate_2/process_text.txt",
+        "cases/10-6/candidate_2/raw_generation_response.json",
+        "cases/10-6/candidate_2/semantic_sketch_plan.json",
+        "cases/10-6/candidate_2/technical_status.json",
+        "cases/10-6/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-6",
+      "files": [
+        "cases/10-6/candidate_3/activity_graph.json",
+        "cases/10-6/candidate_3/ai4mde_export.json",
+        "cases/10-6/candidate_3/api_call_log.json",
+        "cases/10-6/candidate_3/candidate_manifest.json",
+        "cases/10-6/candidate_3/process_text.txt",
+        "cases/10-6/candidate_3/raw_generation_response.json",
+        "cases/10-6/candidate_3/semantic_sketch_plan.json",
+        "cases/10-6/candidate_3/technical_status.json",
+        "cases/10-6/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-7",
+      "files": [
+        "cases/10-7/candidate_1/activity_graph.json",
+        "cases/10-7/candidate_1/ai4mde_export.json",
+        "cases/10-7/candidate_1/api_call_log.json",
+        "cases/10-7/candidate_1/candidate_manifest.json",
+        "cases/10-7/candidate_1/process_text.txt",
+        "cases/10-7/candidate_1/raw_generation_response.json",
+        "cases/10-7/candidate_1/semantic_sketch_plan.json",
+        "cases/10-7/candidate_1/technical_status.json",
+        "cases/10-7/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-7",
+      "files": [
+        "cases/10-7/candidate_2/activity_graph.json",
+        "cases/10-7/candidate_2/ai4mde_export.json",
+        "cases/10-7/candidate_2/api_call_log.json",
+        "cases/10-7/candidate_2/candidate_manifest.json",
+        "cases/10-7/candidate_2/process_text.txt",
+        "cases/10-7/candidate_2/raw_generation_response.json",
+        "cases/10-7/candidate_2/semantic_sketch_plan.json",
+        "cases/10-7/candidate_2/technical_status.json",
+        "cases/10-7/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-7",
+      "files": [
+        "cases/10-7/candidate_3/activity_graph.json",
+        "cases/10-7/candidate_3/ai4mde_export.json",
+        "cases/10-7/candidate_3/api_call_log.json",
+        "cases/10-7/candidate_3/candidate_manifest.json",
+        "cases/10-7/candidate_3/process_text.txt",
+        "cases/10-7/candidate_3/raw_generation_response.json",
+        "cases/10-7/candidate_3/semantic_sketch_plan.json",
+        "cases/10-7/candidate_3/technical_status.json",
+        "cases/10-7/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-8",
+      "files": [
+        "cases/10-8/candidate_1/activity_graph.json",
+        "cases/10-8/candidate_1/ai4mde_export.json",
+        "cases/10-8/candidate_1/api_call_log.json",
+        "cases/10-8/candidate_1/candidate_manifest.json",
+        "cases/10-8/candidate_1/process_text.txt",
+        "cases/10-8/candidate_1/raw_generation_response.json",
+        "cases/10-8/candidate_1/semantic_sketch_plan.json",
+        "cases/10-8/candidate_1/technical_status.json",
+        "cases/10-8/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-8",
+      "files": [
+        "cases/10-8/candidate_2/activity_graph.json",
+        "cases/10-8/candidate_2/ai4mde_export.json",
+        "cases/10-8/candidate_2/api_call_log.json",
+        "cases/10-8/candidate_2/candidate_manifest.json",
+        "cases/10-8/candidate_2/process_text.txt",
+        "cases/10-8/candidate_2/raw_generation_response.json",
+        "cases/10-8/candidate_2/semantic_sketch_plan.json",
+        "cases/10-8/candidate_2/technical_status.json",
+        "cases/10-8/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-8",
+      "files": [
+        "cases/10-8/candidate_3/activity_graph.json",
+        "cases/10-8/candidate_3/ai4mde_export.json",
+        "cases/10-8/candidate_3/api_call_log.json",
+        "cases/10-8/candidate_3/candidate_manifest.json",
+        "cases/10-8/candidate_3/process_text.txt",
+        "cases/10-8/candidate_3/raw_generation_response.json",
+        "cases/10-8/candidate_3/semantic_sketch_plan.json",
+        "cases/10-8/candidate_3/technical_status.json",
+        "cases/10-8/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-9",
+      "files": [
+        "cases/10-9/candidate_1/activity_graph.json",
+        "cases/10-9/candidate_1/ai4mde_export.json",
+        "cases/10-9/candidate_1/api_call_log.json",
+        "cases/10-9/candidate_1/candidate_manifest.json",
+        "cases/10-9/candidate_1/process_text.txt",
+        "cases/10-9/candidate_1/raw_generation_response.json",
+        "cases/10-9/candidate_1/semantic_sketch_plan.json",
+        "cases/10-9/candidate_1/technical_status.json",
+        "cases/10-9/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-9",
+      "files": [
+        "cases/10-9/candidate_2/activity_graph.json",
+        "cases/10-9/candidate_2/ai4mde_export.json",
+        "cases/10-9/candidate_2/api_call_log.json",
+        "cases/10-9/candidate_2/candidate_manifest.json",
+        "cases/10-9/candidate_2/process_text.txt",
+        "cases/10-9/candidate_2/raw_generation_response.json",
+        "cases/10-9/candidate_2/semantic_sketch_plan.json",
+        "cases/10-9/candidate_2/technical_status.json",
+        "cases/10-9/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-9",
+      "files": [
+        "cases/10-9/candidate_3/activity_graph.json",
+        "cases/10-9/candidate_3/ai4mde_export.json",
+        "cases/10-9/candidate_3/api_call_log.json",
+        "cases/10-9/candidate_3/candidate_manifest.json",
+        "cases/10-9/candidate_3/process_text.txt",
+        "cases/10-9/candidate_3/raw_generation_response.json",
+        "cases/10-9/candidate_3/semantic_sketch_plan.json",
+        "cases/10-9/candidate_3/technical_status.json",
+        "cases/10-9/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-10",
+      "files": [
+        "cases/10-10/candidate_1/activity_graph.json",
+        "cases/10-10/candidate_1/ai4mde_export.json",
+        "cases/10-10/candidate_1/api_call_log.json",
+        "cases/10-10/candidate_1/candidate_manifest.json",
+        "cases/10-10/candidate_1/process_text.txt",
+        "cases/10-10/candidate_1/raw_generation_response.json",
+        "cases/10-10/candidate_1/semantic_sketch_plan.json",
+        "cases/10-10/candidate_1/technical_status.json",
+        "cases/10-10/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-10",
+      "files": [
+        "cases/10-10/candidate_2/activity_graph.json",
+        "cases/10-10/candidate_2/ai4mde_export.json",
+        "cases/10-10/candidate_2/api_call_log.json",
+        "cases/10-10/candidate_2/candidate_manifest.json",
+        "cases/10-10/candidate_2/process_text.txt",
+        "cases/10-10/candidate_2/raw_generation_response.json",
+        "cases/10-10/candidate_2/semantic_sketch_plan.json",
+        "cases/10-10/candidate_2/technical_status.json",
+        "cases/10-10/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-10",
+      "files": [
+        "cases/10-10/candidate_3/activity_graph.json",
+        "cases/10-10/candidate_3/ai4mde_export.json",
+        "cases/10-10/candidate_3/api_call_log.json",
+        "cases/10-10/candidate_3/candidate_manifest.json",
+        "cases/10-10/candidate_3/process_text.txt",
+        "cases/10-10/candidate_3/raw_generation_response.json",
+        "cases/10-10/candidate_3/semantic_sketch_plan.json",
+        "cases/10-10/candidate_3/technical_status.json",
+        "cases/10-10/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-11",
+      "files": [
+        "cases/10-11/candidate_1/activity_graph.json",
+        "cases/10-11/candidate_1/ai4mde_export.json",
+        "cases/10-11/candidate_1/api_call_log.json",
+        "cases/10-11/candidate_1/candidate_manifest.json",
+        "cases/10-11/candidate_1/process_text.txt",
+        "cases/10-11/candidate_1/raw_generation_response.json",
+        "cases/10-11/candidate_1/semantic_sketch_plan.json",
+        "cases/10-11/candidate_1/technical_status.json",
+        "cases/10-11/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-11",
+      "files": [
+        "cases/10-11/candidate_2/activity_graph.json",
+        "cases/10-11/candidate_2/ai4mde_export.json",
+        "cases/10-11/candidate_2/api_call_log.json",
+        "cases/10-11/candidate_2/candidate_manifest.json",
+        "cases/10-11/candidate_2/process_text.txt",
+        "cases/10-11/candidate_2/raw_generation_response.json",
+        "cases/10-11/candidate_2/semantic_sketch_plan.json",
+        "cases/10-11/candidate_2/technical_status.json",
+        "cases/10-11/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-11",
+      "files": [
+        "cases/10-11/candidate_3/activity_graph.json",
+        "cases/10-11/candidate_3/ai4mde_export.json",
+        "cases/10-11/candidate_3/api_call_log.json",
+        "cases/10-11/candidate_3/candidate_manifest.json",
+        "cases/10-11/candidate_3/process_text.txt",
+        "cases/10-11/candidate_3/raw_generation_response.json",
+        "cases/10-11/candidate_3/semantic_sketch_plan.json",
+        "cases/10-11/candidate_3/technical_status.json",
+        "cases/10-11/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-12",
+      "files": [
+        "cases/10-12/candidate_1/activity_graph.json",
+        "cases/10-12/candidate_1/ai4mde_export.json",
+        "cases/10-12/candidate_1/api_call_log.json",
+        "cases/10-12/candidate_1/candidate_manifest.json",
+        "cases/10-12/candidate_1/process_text.txt",
+        "cases/10-12/candidate_1/raw_generation_response.json",
+        "cases/10-12/candidate_1/semantic_sketch_plan.json",
+        "cases/10-12/candidate_1/technical_status.json",
+        "cases/10-12/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-12",
+      "files": [
+        "cases/10-12/candidate_2/activity_graph.json",
+        "cases/10-12/candidate_2/ai4mde_export.json",
+        "cases/10-12/candidate_2/api_call_log.json",
+        "cases/10-12/candidate_2/candidate_manifest.json",
+        "cases/10-12/candidate_2/process_text.txt",
+        "cases/10-12/candidate_2/raw_generation_response.json",
+        "cases/10-12/candidate_2/semantic_sketch_plan.json",
+        "cases/10-12/candidate_2/technical_status.json",
+        "cases/10-12/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-12",
+      "files": [
+        "cases/10-12/candidate_3/activity_graph.json",
+        "cases/10-12/candidate_3/ai4mde_export.json",
+        "cases/10-12/candidate_3/api_call_log.json",
+        "cases/10-12/candidate_3/candidate_manifest.json",
+        "cases/10-12/candidate_3/process_text.txt",
+        "cases/10-12/candidate_3/raw_generation_response.json",
+        "cases/10-12/candidate_3/semantic_sketch_plan.json",
+        "cases/10-12/candidate_3/technical_status.json",
+        "cases/10-12/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-13",
+      "files": [
+        "cases/10-13/candidate_1/activity_graph.json",
+        "cases/10-13/candidate_1/ai4mde_export.json",
+        "cases/10-13/candidate_1/api_call_log.json",
+        "cases/10-13/candidate_1/candidate_manifest.json",
+        "cases/10-13/candidate_1/process_text.txt",
+        "cases/10-13/candidate_1/raw_generation_response.json",
+        "cases/10-13/candidate_1/semantic_sketch_plan.json",
+        "cases/10-13/candidate_1/technical_status.json",
+        "cases/10-13/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-13",
+      "files": [
+        "cases/10-13/candidate_2/activity_graph.json",
+        "cases/10-13/candidate_2/ai4mde_export.json",
+        "cases/10-13/candidate_2/api_call_log.json",
+        "cases/10-13/candidate_2/candidate_manifest.json",
+        "cases/10-13/candidate_2/process_text.txt",
+        "cases/10-13/candidate_2/raw_generation_response.json",
+        "cases/10-13/candidate_2/semantic_sketch_plan.json",
+        "cases/10-13/candidate_2/technical_status.json",
+        "cases/10-13/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-13",
+      "files": [
+        "cases/10-13/candidate_3/activity_graph.json",
+        "cases/10-13/candidate_3/ai4mde_export.json",
+        "cases/10-13/candidate_3/api_call_log.json",
+        "cases/10-13/candidate_3/candidate_manifest.json",
+        "cases/10-13/candidate_3/process_text.txt",
+        "cases/10-13/candidate_3/raw_generation_response.json",
+        "cases/10-13/candidate_3/semantic_sketch_plan.json",
+        "cases/10-13/candidate_3/technical_status.json",
+        "cases/10-13/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_1",
+      "case_id": "10-14",
+      "files": [
+        "cases/10-14/candidate_1/activity_graph.json",
+        "cases/10-14/candidate_1/ai4mde_export.json",
+        "cases/10-14/candidate_1/api_call_log.json",
+        "cases/10-14/candidate_1/candidate_manifest.json",
+        "cases/10-14/candidate_1/process_text.txt",
+        "cases/10-14/candidate_1/raw_generation_response.json",
+        "cases/10-14/candidate_1/semantic_sketch_plan.json",
+        "cases/10-14/candidate_1/technical_status.json",
+        "cases/10-14/candidate_1/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_2",
+      "case_id": "10-14",
+      "files": [
+        "cases/10-14/candidate_2/activity_graph.json",
+        "cases/10-14/candidate_2/ai4mde_export.json",
+        "cases/10-14/candidate_2/api_call_log.json",
+        "cases/10-14/candidate_2/candidate_manifest.json",
+        "cases/10-14/candidate_2/process_text.txt",
+        "cases/10-14/candidate_2/raw_generation_response.json",
+        "cases/10-14/candidate_2/semantic_sketch_plan.json",
+        "cases/10-14/candidate_2/technical_status.json",
+        "cases/10-14/candidate_2/topology_artifact.json"
+      ],
+      "status": "success"
+    },
+    {
+      "attempt_count": 1,
+      "candidate_id": "candidate_3",
+      "case_id": "10-14",
+      "files": [
+        "cases/10-14/candidate_3/activity_graph.json",
+        "cases/10-14/candidate_3/ai4mde_export.json",
+        "cases/10-14/candidate_3/api_call_log.json",
+        "cases/10-14/candidate_3/candidate_manifest.json",
+        "cases/10-14/candidate_3/process_text.txt",
+        "cases/10-14/candidate_3/raw_generation_response.json",
+        "cases/10-14/candidate_3/semantic_sketch_plan.json",
+        "cases/10-14/candidate_3/technical_status.json",
+        "cases/10-14/candidate_3/topology_artifact.json"
+      ],
+      "status": "success"
+    }
+  ],
+  "evaluated_candidate_slots": 0,
+  "evaluation_started": false,
+  "expected_artifact_names": [
+    "process_text.txt",
+    "candidate_manifest.json",
+    "api_call_log.json",
+    "raw_generation_response.json",
+    "topology_artifact.json",
+    "semantic_sketch_plan.json",
+    "activity_graph.json",
+    "ai4mde_export.json"
+  ],
+  "expected_candidate_slots": 120,
+  "expected_case_count": 40,
+  "failed_candidate_slots": 0,
+  "generated_candidate_slots": 120,
+  "generation_started": true,
+  "hash_algorithm": "SHA-256",
+  "last_updated_at_utc": "2026-09-10T11:34:59.809310+00:00",
+  "notes": "Populate incrementally after each generation attempt. A terminal failure remains an inventory record and is not assigned semantic scores.",
+  "run_id": "final_frozen_40x3_20260910",
+  "schema_version": "friedrich-final-artifact-inventory/v1",
+  "status": "complete",
+  "successful_candidate_slots": 120
+}

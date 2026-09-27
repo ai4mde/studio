@@ -1,0 +1,46 @@
+{
+  "case_id": "10-6",
+  "candidate_id": "candidate_1",
+  "completed_at_utc": "2026-09-27T21:54:46.302888+00:00",
+  "request_record_sha256": "56b61e899741a6e090bc494c970e8dc2e6868d7c24c49542df3733af2709a1c9",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-6",
+    "candidate_id": "candidate_1",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are present with correct meaning: send dismissal, review dismissal, then either reject or confirm the dismissal."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is preserved: sending precedes review, and review precedes the final reject/confirm outcome."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an exclusive post-review decision between rejection and confirmation, with proper branch merge and termination."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph faithfully preserves the source process: MSPN sends the dismissal to MSPO, MSPO reviews it, and then exactly one of two alternatives occurs—MSPO rejects or confirms the dismissal—after which the process ends. No meaningful action, ordering, or control-flow defect is present.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-6",
+    "candidate_id": "candidate_1",
+    "input_tokens": 4501,
+    "cached_input_tokens": 1792,
+    "output_tokens": 336,
+    "reasoning_tokens": 88,
+    "total_tokens": 4837,
+    "estimated_api_cost_usd": "0.01226050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0f13b9b902989d37016ab990a2ccb887d1b8700d2dbb8d7615",
+    "retry_count": 0
+  }
+}

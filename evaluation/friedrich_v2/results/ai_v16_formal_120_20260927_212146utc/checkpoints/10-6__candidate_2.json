@@ -1,0 +1,46 @@
+{
+  "case_id": "10-6",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:54:50.628824+00:00",
+  "request_record_sha256": "8338bed06778b688b51509f490e6f241532de9738620050d42278e0fe919f4fb",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-6",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with correct meaning: send dismissal, review dismissal, then reject or confirm the dismissal."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is preserved: sending precedes review, and review precedes the alternative reject/confirm outcome actions."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an exclusive post-review choice between rejecting and confirming the dismissal, with proper termination after either branch."
+    },
+    "main_error_type": "none",
+    "explanation": "The generated graph semantically matches the source process: MSPN sends the dismissal to MSPO, MSPO reviews it, and then MSPO performs exactly one of two alternatives—reject or confirm the dismissal. The exclusive decision and branch structure preserve the intended behavior, and no meaningful action, ordering, or control-flow defect is present.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-6",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4501,
+    "cached_input_tokens": 1792,
+    "output_tokens": 336,
+    "reasoning_tokens": 79,
+    "total_tokens": 4837,
+    "estimated_api_cost_usd": "0.01226050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0dc62626a7ab2bc4016ab990a6c7f087d19c86d2197a6461f7",
+    "retry_count": 0
+  }
+}

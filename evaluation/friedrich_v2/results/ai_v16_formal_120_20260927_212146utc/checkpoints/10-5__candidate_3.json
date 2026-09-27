@@ -1,0 +1,46 @@
+{
+  "case_id": "10-5",
+  "candidate_id": "candidate_3",
+  "completed_at_utc": "2026-09-27T21:54:42.313306+00:00",
+  "request_record_sha256": "54320dd0861217e14fc19b95d8f595314d41fab16a25b1bcbe032d795c6d9b86",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-5",
+    "candidate_id": "candidate_3",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All required business actions are present with correct meaning; the final source step is acceptably split into order confirmation and sending master data."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The required linear precedence is preserved: request bid -> send tender -> place order -> confirm order -> send master data."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The source describes a simple straight-through process with no branching, looping, or parallelism, and the graph preserves that behavior."
+    },
+    "main_error_type": "none",
+    "explanation": "The graph faithfully represents the source process as a single sequential flow. It includes the request for a takeover bid, the tender sent by MPOO, the order placed by MPON, and the final MPOO behavior. Splitting the last textual step into two sequential actions—confirming the order and sending master data—preserves the stated meaning rather than changing it. No meaningful action, ordering, or control-flow defect is present.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-5",
+    "candidate_id": "candidate_3",
+    "input_tokens": 4363,
+    "cached_input_tokens": 1792,
+    "output_tokens": 383,
+    "reasoning_tokens": 99,
+    "total_tokens": 4746,
+    "estimated_api_cost_usd": "0.01262050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0b4954d26ff44d48016ab9909e31c087d1aabfe6926bda0434",
+    "retry_count": 0
+  }
+}

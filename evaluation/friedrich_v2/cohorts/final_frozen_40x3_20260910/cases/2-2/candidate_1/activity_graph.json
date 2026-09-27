@@ -1,0 +1,349 @@
+{
+  "edges": [
+    {
+      "source": "n13",
+      "target": "n1",
+      "type": "control"
+    },
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    },
+    {
+      "source": "n2",
+      "target": "n3",
+      "type": "control"
+    },
+    {
+      "source": "n3",
+      "target": "n4",
+      "type": "control"
+    },
+    {
+      "source": "n4",
+      "target": "n5",
+      "type": "control"
+    },
+    {
+      "source": "n5",
+      "target": "n6",
+      "type": "control"
+    },
+    {
+      "source": "n6",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "source": "n7",
+      "target": "n15",
+      "type": "control"
+    },
+    {
+      "label": "retry",
+      "source": "n15",
+      "target": "n16",
+      "type": "control"
+    },
+    {
+      "source": "n16",
+      "target": "n17",
+      "type": "control"
+    },
+    {
+      "source": "n17",
+      "target": "n7",
+      "type": "control"
+    },
+    {
+      "label": "success",
+      "source": "n15",
+      "target": "n8",
+      "type": "control"
+    },
+    {
+      "source": "n8",
+      "target": "n9",
+      "type": "control"
+    },
+    {
+      "source": "n9",
+      "target": "n10",
+      "type": "control"
+    },
+    {
+      "source": "n10",
+      "target": "n18",
+      "type": "control"
+    },
+    {
+      "label": "supplier_concurrence",
+      "source": "n18",
+      "target": "n19",
+      "type": "control"
+    },
+    {
+      "source": "n19",
+      "target": "n20",
+      "type": "control"
+    },
+    {
+      "source": "n20",
+      "target": "n21",
+      "type": "control"
+    },
+    {
+      "label": "no_supplier_concurrence",
+      "source": "n18",
+      "target": "n21",
+      "type": "control"
+    },
+    {
+      "source": "n21",
+      "target": "n11",
+      "type": "control"
+    },
+    {
+      "source": "n11",
+      "target": "n22",
+      "type": "control"
+    },
+    {
+      "label": "withdraw",
+      "source": "n22",
+      "target": "n23",
+      "type": "control"
+    },
+    {
+      "label": "confirm_or_timeout",
+      "source": "n22",
+      "target": "n24",
+      "type": "control"
+    },
+    {
+      "source": "n23",
+      "target": "n14",
+      "type": "control"
+    },
+    {
+      "source": "n24",
+      "target": "n25",
+      "type": "control"
+    },
+    {
+      "source": "n25",
+      "target": "n26",
+      "type": "control"
+    },
+    {
+      "source": "n25",
+      "target": "n27",
+      "type": "control"
+    },
+    {
+      "source": "n27",
+      "target": "n28",
+      "type": "control"
+    },
+    {
+      "source": "n28",
+      "target": "n29",
+      "type": "control"
+    },
+    {
+      "source": "n26",
+      "target": "n30",
+      "type": "control"
+    },
+    {
+      "source": "n29",
+      "target": "n30",
+      "type": "control"
+    },
+    {
+      "source": "n30",
+      "target": "n12",
+      "type": "control"
+    },
+    {
+      "source": "n12",
+      "target": "n14",
+      "type": "control"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "receive customer data",
+      "origin_step_id": "S1",
+      "type": "action"
+    },
+    {
+      "id": "n2",
+      "name": "enter customer data into CRM system",
+      "origin_step_id": "S2",
+      "type": "action"
+    },
+    {
+      "id": "n3",
+      "name": "compare customer data with internal customer database and check for completeness and plausibility",
+      "origin_step_id": "S3",
+      "type": "action"
+    },
+    {
+      "id": "n4",
+      "name": "correct errors in customer data based on error list",
+      "origin_step_id": "S4",
+      "type": "action"
+    },
+    {
+      "id": "n5",
+      "name": "create new customer object if customer does not exist",
+      "origin_step_id": "S5",
+      "type": "action"
+    },
+    {
+      "id": "n6",
+      "name": "prepare contract documents for power supplier switch",
+      "origin_step_id": "S6",
+      "type": "action"
+    },
+    {
+      "id": "n7",
+      "name": "automatically check contract documents in CIS for successful generation",
+      "origin_step_id": "S7",
+      "type": "action"
+    },
+    {
+      "id": "n8",
+      "name": "send confirmation document to customer",
+      "origin_step_id": "S8",
+      "type": "action"
+    },
+    {
+      "id": "n9",
+      "name": "send switch-over request to grid operator",
+      "origin_step_id": "S9",
+      "type": "action"
+    },
+    {
+      "id": "n10",
+      "name": "grid operator checks switch-over request for supplier concurrence",
+      "origin_step_id": "S10",
+      "type": "action"
+    },
+    {
+      "id": "n11",
+      "name": "create CIS contract",
+      "origin_step_id": "S11",
+      "type": "action"
+    },
+    {
+      "id": "n12",
+      "name": "import meter data to systems that require the information",
+      "origin_step_id": "S12",
+      "type": "action"
+    },
+    {
+      "id": "n13",
+      "type": "initial"
+    },
+    {
+      "id": "n14",
+      "type": "final"
+    },
+    {
+      "id": "n15",
+      "label": "retry contract document generation until successful?",
+      "origin_block_id": "T1",
+      "type": "decision"
+    },
+    {
+      "id": "n16",
+      "name": "analyze and resolve issues causing contract document generation failure",
+      "origin_step_id": "T1_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n17",
+      "name": "generate contract documents again",
+      "origin_step_id": "T1_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n18",
+      "label": "branch based on grid operator's supplier concurrence?",
+      "origin_block_id": "T2",
+      "type": "decision"
+    },
+    {
+      "id": "n19",
+      "name": "grid operator informs all involved suppliers and demands resolution of the conflict",
+      "origin_step_id": "T2_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n20",
+      "name": "grid operator communicates with old supplier and terminates sales agreement",
+      "origin_step_id": "T2_branch_1_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n21",
+      "origin_block_id": "T2",
+      "type": "merge"
+    },
+    {
+      "id": "n22",
+      "label": "customer decides to withdraw or confirm contract (or timeout after 7 days)?",
+      "origin_block_id": "T3",
+      "type": "decision"
+    },
+    {
+      "id": "n23",
+      "name": "end process at customer service",
+      "origin_step_id": "T3_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n24",
+      "origin_block_id": "T3",
+      "type": "merge"
+    },
+    {
+      "id": "n25",
+      "origin_block_id": "T4",
+      "type": "fork"
+    },
+    {
+      "id": "n26",
+      "name": "grid operator transmits power meter data to customer service",
+      "origin_step_id": "T4_branch_1_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n27",
+      "name": "grid operator transmits power meter data to old supplier",
+      "origin_step_id": "T4_branch_2_step_1",
+      "type": "action"
+    },
+    {
+      "id": "n28",
+      "name": "grid operator computes final billing based on meter data and sends it to old supplier",
+      "origin_step_id": "T4_branch_2_step_2",
+      "type": "action"
+    },
+    {
+      "id": "n29",
+      "name": "old supplier creates and sends final billing to customer",
+      "origin_step_id": "T4_branch_2_step_3",
+      "type": "action"
+    },
+    {
+      "id": "n30",
+      "origin_block_id": "T4",
+      "type": "join"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "10-8",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:56:00.851009+00:00",
+  "request_record_sha256": "4d0f866cac5ac261decd5f7fbb8a6eccf7d74f7ba07d1eeab79d39be984e79b9",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "10-8",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "preserved",
+      "summary": "All source actions are represented with faithful meanings: deregistration, verification, reject/preliminary confirm alternatives, self-assignment as MSP, and the three notifications."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "The represented actions follow the required precedence: deregistration before verification, then the decision, with assignment and notifications occurring after the confirmation path."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly models an alternative between rejection and preliminary confirmation, with rejection terminating and confirmation continuing to assignment and notifications."
+    },
+    "main_error_type": "none",
+    "explanation": "The candidate preserves the source process semantics: MSPO deregisters, GO verifies, then GO either rejects or preliminarily confirms the deregistration. The graph routes the rejection branch to termination and the confirmation branch to GO self-assignment followed by informing MSPO, MPO, and SP. That is a coherent and most defensible reading of the source, and no meaningful action, ordering, branching, or continuation defect is evident in the JSON.",
+    "overall_score": 1,
+    "severity": "none",
+    "confidence": "medium",
+    "ambiguity_flag": true,
+    "ambiguity_explanation": "The source text lists the reject/confirm alternative and then continues with assignment and notifications without explicitly stating whether those later steps occur only after preliminary confirmation or after either outcome. The graph assumes they occur only on the confirmation path, which is the most plausible interpretation but not textually explicit.",
+    "requires_human_review": true,
+    "review_reason": "A stricter literal reading of the source could argue that post-decision steps are underspecified across the two outcomes, and that ambiguity could change the control-flow diagnosis or score."
+  },
+  "overall_score_decimal": "1",
+  "usage": {
+    "case_id": "10-8",
+    "candidate_id": "candidate_2",
+    "input_tokens": 5043,
+    "cached_input_tokens": 1792,
+    "output_tokens": 783,
+    "reasoning_tokens": 401,
+    "total_tokens": 5826,
+    "estimated_api_cost_usd": "0.02032050",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_0482722b70f740dd016ab990e62b9087d1a47796fec3a59ea7",
+    "retry_count": 0
+  }
+}

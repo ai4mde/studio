@@ -1,0 +1,15 @@
+{
+  "candidate_count": 18,
+  "mean_absolute_error": "0.093888888888888888888888888888888888888888888888889",
+  "median_absolute_error": "0.075",
+  "maximum_absolute_error": "0.37",
+  "maximum_error_candidates": [
+    {
+      "case_id": "1-1",
+      "candidate_id": "candidate_2"
+    }
+  ],
+  "spearman_tie_aware": "0.95596876057550818103498976233172888702382264972877",
+  "spearman_undefined": false,
+  "acceptance_threshold": null
+}

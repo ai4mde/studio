@@ -1,0 +1,46 @@
+{
+  "case_id": "8-2",
+  "candidate_id": "candidate_2",
+  "completed_at_utc": "2026-09-27T21:47:19.144945+00:00",
+  "request_record_sha256": "c8327e99141b510a03556cdc593761705402bb1ac9f8b44ed967e1049cdc5b1c",
+  "result": {
+    "schema_version": "ai-evaluator-v2/1.1",
+    "case_id": "8-2",
+    "candidate_id": "candidate_2",
+    "action_assessment": {
+      "status": "defect",
+      "summary": "All main activities are present, but the retry path duplicates the renewed submission: after correction the graph performs both “resubmit job description for consideration” and then “submit job description for consideration,” adding an unsupported extra submission action."
+    },
+    "flow_assessment": {
+      "status": "preserved",
+      "summary": "Required precedence is largely preserved: description creation/clarification precedes submission, rejection leads to correction before renewed consideration, and approval precedes posting. The extra resubmission step does not by itself reverse or violate matched-action ordering."
+    },
+    "control_flow_assessment": {
+      "status": "preserved",
+      "summary": "The graph correctly represents the approval-versus-retry decision, looping from rejection/correction back to renewed consideration and continuing to posting only after approval."
+    },
+    "main_error_type": "extra_or_duplicated_action",
+    "explanation": "The source process is: create the job description, optionally clarify with the department if needed, submit it for consideration, and if it is rejected, correct it and submit it again until it is finally approved, then post the job. The candidate preserves that overall structure, including the retry loop and approval-only continuation to posting. However, on the rejection path it adds two submission actions in sequence—“resubmit job description for consideration” followed by the original “submit job description for consideration.” The source requires only one renewed submission after each correction, so the graph introduces unsupported duplicated business behavior while otherwise keeping the main ordering and branch logic intact.",
+    "overall_score": 0.87,
+    "severity": "minor",
+    "confidence": "high",
+    "ambiguity_flag": false,
+    "ambiguity_explanation": "",
+    "requires_human_review": false,
+    "review_reason": ""
+  },
+  "overall_score_decimal": "0.87",
+  "usage": {
+    "case_id": "8-2",
+    "candidate_id": "candidate_2",
+    "input_tokens": 4725,
+    "cached_input_tokens": 1792,
+    "output_tokens": 2043,
+    "reasoning_tokens": 1665,
+    "total_tokens": 6768,
+    "estimated_api_cost_usd": "0.03842550",
+    "model": "gpt-5.4-2026-03-05",
+    "response_id": "resp_051ce4fc97ddbc3d016ab98ecf04e887d184b9925abacf45ec",
+    "retry_count": 0
+  }
+}
