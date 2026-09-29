@@ -506,23 +506,18 @@ django = ">=4.2"
 
 [[package]]
 name = "django-ninja"
-version = "1.2.1"
+version = "1.7.1"
 description = "Django Ninja - Fast Django REST framework"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "django_ninja-1.2.1-py3-none-any.whl", hash = "sha256:acb7a0005e84acdb0ae96066c42c7f304f988a078d370e5952382b928bb28a08"},
-    {file = "django_ninja-1.2.1.tar.gz", hash = "sha256:667ff27304039d4692421709ae532fd62b16a4d34a969ef850d5cd22cb46090a"},
+    {file = "django_ninja-1.7.1-py3-none-any.whl", hash = "sha256:61137e9fbb97ca15a92cdbfdcf9f6a738464b328c6cb11090faf17042035ec69"},
+    {file = "django_ninja-1.7.1.tar.gz", hash = "sha256:2183ee5426a8c95bfabae1b7f60c471a56c48022296eaaf1cc54b00010b07ee6"},
 ]
 
 [package.dependencies]
 Django = ">=3.1"
 pydantic = ">=2.0,<3.0.0"
-
-[package.extras]
-dev = ["pre-commit"]
-doc = ["markdown-include", "mkdocs", "mkdocs-material", "mkdocstrings"]
-test = ["django-stubs", "mypy (==1.7.1)", "psycopg2-binary", "pytest", "pytest-asyncio", "pytest-cov", "pytest-django", "ruff (==0.4.2)"]
 
 [[package]]
 name = "django-stubs"
@@ -1706,4 +1701,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12,<3.14"
-content-hash = "1e7adf3df7592f0af5ce8633255cc8c41fe0f77a24d50e3b351fd2413fe36867"
+content-hash = "8f18122d3060b491e8a6ec4e4b5eff6709112777fa5fe09779e15b8f48d0b962"
