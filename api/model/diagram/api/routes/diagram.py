@@ -7,6 +7,7 @@ from diagram.models import Diagram
 from diagram.api.schemas.diagram import (
     DiagramCreate,
     DiagramRead,
+    DiagramReadFull,
     DiagramUpdate,
 )
 from metadata.api.helpers import create_instance, update_instance
@@ -20,7 +21,7 @@ def list_diagrams(request, system_id: UUID):
     return Diagram.objects.filter(system_id=system_id)
 
 
-@router.get("/{diagram_id}/", response=DiagramRead)  # TODO change to full diagram schema when implemented
+@router.get("/{diagram_id}/", response=DiagramReadFull)
 def read_diagram(request, diagram_id: UUID):
     return get_object_or_404(Diagram, id=diagram_id)
 
