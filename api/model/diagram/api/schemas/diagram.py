@@ -4,6 +4,7 @@ from ninja import ModelSchema
 
 from diagram.models import Diagram
 from diagram.api.schemas.node import NodeRead
+from diagram.api.schemas.edge import EdgeRead
 
 
 class DiagramRead(ModelSchema):
@@ -13,7 +14,7 @@ class DiagramRead(ModelSchema):
 
 
 class RelatedDiagramRead(ModelSchema):
-    nodes: list[UUID]
+    nodes: list[EdgeRead]
 
     class Meta:
         model = Diagram
@@ -22,7 +23,7 @@ class RelatedDiagramRead(ModelSchema):
 
 class DiagramReadFull(DiagramRead):
     nodes: list[NodeRead]
-    edges: list[UUID]
+    edges: list[EdgeRead]
     related_diagrams: list[RelatedDiagramRead]
 
     @staticmethod

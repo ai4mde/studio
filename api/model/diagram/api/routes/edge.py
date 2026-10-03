@@ -23,7 +23,7 @@ from metadata.models import Relation
 router = Router()
 
 
-@router.get("/", response=list[EdgeRead])
+@router.get("/edge/", response=list[EdgeRead])
 def list_edges(
     request,
     diagram_id: UUID | None = None,
@@ -36,7 +36,7 @@ def list_edges(
     return edges
 
 
-@router.get("/{edge_id}/", response=EdgeRead)
+@router.get("/edge/{edge_id}/", response=EdgeRead)
 def read_edge(
     request,
     edge_id: UUID,
@@ -47,16 +47,16 @@ def read_edge(
     )
 
 
-@router.post("/", response=EdgeRead)
+@router.post("/{diagram_id}/edge/", response=EdgeRead)
 @transaction.atomic
 def create_edge(
     request,
+    diagram_id: UUID,
     payload: EdgeCreate,
 ):
     data = payload.model_dump(exclude_unset=True)
 
     relation_data = data.pop("relation")
-    diagram_id = data.pop("diagram")
     source_id = data.pop("source_id")
     target_id = data.pop("target_id")
 
@@ -97,7 +97,7 @@ def create_edge(
     return edge
 
 
-@router.patch("/{edge_id}/", response=EdgeRead)
+@router.patch("/edge/{edge_id}/", response=EdgeRead)
 @transaction.atomic
 def update_edge(
     request,
@@ -151,7 +151,7 @@ def update_edge(
     return edge
 
 
-@router.delete("/{edge_id}/", response={204: None})
+@router.delete("/edge/{edge_id}/", response={204: None})
 @transaction.atomic
 def delete_edge(
     request,

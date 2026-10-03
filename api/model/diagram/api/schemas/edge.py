@@ -43,7 +43,6 @@ class EdgeCreate(ModelSchema):
     class Meta:
         model = Edge
         fields = [
-            "diagram",
             "width",
             "color",
             "font",

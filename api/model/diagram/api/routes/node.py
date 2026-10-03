@@ -6,20 +6,20 @@ from ninja import Router
 from ninja.errors import HttpError
 from pydantic import ValidationError
 
-from metadata.api.schemas.classifier import get_classifier_schemas
 from diagram.api.schemas.node import (
     NodeCreate,
     NodeRead,
     NodeUpdate,
 )
-from metadata.models import Classifier
 from diagram.models import Diagram, Node
+from metadata.api.schemas.classifier import get_classifier_schemas
+from metadata.models import Classifier
 
 
 router = Router()
 
 
-@router.get("/", response=list[NodeRead])
+@router.get("/node/", response=list[NodeRead])
 def list_nodes(
     request,
     diagram_id: UUID | None = None,
@@ -32,7 +32,7 @@ def list_nodes(
     return nodes
 
 
-@router.get("/{node_id}/", response=NodeRead)
+@router.get("/node/{node_id}/", response=NodeRead)
 def read_node(
     request,
     node_id: UUID,
@@ -43,16 +43,16 @@ def read_node(
     )
 
 
-@router.post("/", response=NodeRead)
+@router.post("/{diagram_id}/node/", response=NodeRead)
 @transaction.atomic
 def create_node(
     request,
+    diagram_id: UUID,
     payload: NodeCreate,
 ):
     data = payload.model_dump(exclude_unset=True)
 
     classifier_data = data.pop("classifier")
-    diagram_id = data.pop("diagram")
 
     diagram = get_object_or_404(
         Diagram,
@@ -77,7 +77,7 @@ def create_node(
     return node
 
 
-@router.patch("/{node_id}/", response=NodeRead)
+@router.patch("/node/{node_id}/", response=NodeRead)
 @transaction.atomic
 def update_node(
     request,
@@ -131,7 +131,7 @@ def update_node(
     return node
 
 
-@router.delete("/{node_id}/", response={204: None})
+@router.delete("/node/{node_id}/", response={204: None})
 @transaction.atomic
 def delete_node(
     request,

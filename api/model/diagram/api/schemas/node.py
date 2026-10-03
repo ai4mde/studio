@@ -34,7 +34,6 @@ class NodeCreate(ModelSchema):
     class Meta:
         model = Node
         fields = [
-            "diagram",
             "parent",
             "x_position",
             "y_position",

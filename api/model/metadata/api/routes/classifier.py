@@ -1,18 +1,11 @@
 from uuid import UUID
 
 from django.shortcuts import get_object_or_404
-from ninja import Body, Router
-from ninja.errors import HttpError
-from pydantic import ValidationError
+from ninja import Router
 
-from metadata.api.schemas.classifier import get_classifier_schemas
+from metadata.api.schemas.classifier import ClassifierRead
 from metadata.models import Classifier
 
-from metadata.api.schemas.classifier import (
-    ClassifierCreate,
-    ClassifierRead,
-    ClassifierUpdate,
-)
 
 router = Router()
 
