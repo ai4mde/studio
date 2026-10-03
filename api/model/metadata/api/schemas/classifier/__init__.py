@@ -1,6 +1,6 @@
 from typing import Any
 
-from ninja import ModelSchema
+from ninja import ModelSchema, Schema
 
 from metadata.models import Classifier
 from metadata.models.types import ClassifierType
@@ -37,10 +37,11 @@ class ClassifierReadBase(ModelSchema):
         fields = ["id", "system"]
 
 
-class ClassifierCreateBase(ModelSchema):
-    class Meta:
-        model = Classifier
-        fields = ["system"]
+# Classifier does currenlty not need any additional fields for creation
+# Classifiers are always created through the Node routes
+# Which will determine the system
+class ClassifierCreateBase(Schema):
+    pass
 
 
 # Create the read and create models for all classifier types using the builder functions

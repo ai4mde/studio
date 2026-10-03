@@ -1,6 +1,6 @@
 from typing import Any
 
-from ninja import ModelSchema
+from ninja import ModelSchema, Schema
 
 from metadata.models import Relation
 from metadata.models.types import RelationType
@@ -42,14 +42,10 @@ class RelationReadBase(ModelSchema):
         ]
 
 
-class RelationCreateBase(ModelSchema):
-    class Meta:
-        model = Relation
-        fields = [
-            "system",
-            "source",
-            "target",
-        ]
+# Currently no extra attributes are required for creating a relation
+# The sourc eand target will be derived from the edge creation
+class RelationCreateBase(Schema):
+    pass
 
 
 RelationRead = build_read_union(
