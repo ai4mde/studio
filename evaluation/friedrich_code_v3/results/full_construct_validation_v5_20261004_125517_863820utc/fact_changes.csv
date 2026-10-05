@@ -1,0 +1,353 @@
+case_id,candidate_id,dimension,fact_id,old_status,new_status,old_generated_node_id,new_generated_node_id,new_reason,new_reason_code,classification,review_note
+1-1,candidate_1,Flow,SU-1-1-08->SU-1-1-10,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_1,Flow,SU-1-1-10->SU-1-1-12,indeterminate_alignment,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_1,Control Node,CF-1-1-N05,indeterminate_alignment,TP,,n18,unique Join for the source-relevant forked streams,CONTROL_NODE_UNIQUE_FORK_STREAM_JOIN_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_1,Control Relation,CF-1-1-R07,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_1,Control Relation,CF-1-1-R10,indeterminate_alignment,FN,,n18,required incoming branches synchronize at Join,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_1,Control Relation,CF-1-1-R11,indeterminate_alignment,FN,,n18,required incoming synchronization branch absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_2,Flow,SU-1-1-08->SU-1-1-10,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_2,Control Relation,CF-1-1-R07,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_2,Control Relation,CF-1-1-R09,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_3,Flow,SU-1-1-08->SU-1-1-10,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_3,Flow,SU-1-1-10->SU-1-1-12,indeterminate_alignment,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_3,Control Node,CF-1-1-N05,indeterminate_alignment,TP,,n16,unique Join for the source-relevant forked streams,CONTROL_NODE_UNIQUE_FORK_STREAM_JOIN_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_3,Control Relation,CF-1-1-R07,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_3,Control Relation,CF-1-1-R10,indeterminate_alignment,FN,,n16,required incoming branches synchronize at Join,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-1,candidate_3,Control Relation,CF-1-1-R11,indeterminate_alignment,FN,,n16,required incoming synchronization branch absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-2,candidate_1,Control Relation,CF-1-2-R04,indeterminate_alignment,FN,,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-2,candidate_1,Control Relation,CF-1-2-R05,FN,indeterminate_alignment,,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-2,candidate_2,Control Relation,CF-1-2-R04,indeterminate_alignment,FN,,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-2,candidate_2,Control Relation,CF-1-2-R05,FN,indeterminate_alignment,,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-2,candidate_3,Control Relation,CF-1-2-R04,indeterminate_alignment,FN,,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+1-2,candidate_3,Control Relation,CF-1-2-R05,FN,indeterminate_alignment,,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_1,Flow,SU-2-1-02->SU-2-1-35,TP,indeterminate_alignment,,,ambiguous accepted Action anchor,FLOW_ACTION_ANCHOR_UNRESOLVED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_1,Control Relation,CF-2-1-R02,FN,FN,n14,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_1,Control Relation,CF-2-1-R04,FN,indeterminate_alignment,n18,n18,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_2,Flow,SU-2-1-02->SU-2-1-35,TP,indeterminate_alignment,,,ambiguous accepted Action anchor,FLOW_ACTION_ANCHOR_UNRESOLVED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_2,Flow,SU-2-1-27->SU-2-1-28,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_2,Flow,SU-2-1-28->SU-2-1-29,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_2,Control Relation,CF-2-1-R02,FN,FN,n18,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_2,Control Relation,CF-2-1-R04,FN,indeterminate_alignment,n22,n22,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_3,Flow,SU-2-1-02->SU-2-1-35,TP,indeterminate_alignment,,,ambiguous accepted Action anchor,FLOW_ACTION_ANCHOR_UNRESOLVED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_3,Control Relation,CF-2-1-R02,FN,FN,n17,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-1,candidate_3,Control Relation,CF-2-1-R04,FN,indeterminate_alignment,n21,n21,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-01->SU-2-2-23,FN,indeterminate_alignment,,,ambiguous accepted Action anchor,FLOW_ACTION_ANCHOR_UNRESOLVED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-10->SU-2-2-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-10->SU-2-2-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-14->SU-2-2-17,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-15->SU-2-2-16,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-15->SU-2-2-17,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-17->SU-2-2-22,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-17->SU-2-2-28,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-17->SU-2-2-29,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-17->SU-2-2-30,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-17->SU-2-2-31,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-22->SU-2-2-26,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_1,Flow,SU-2-2-26->SU-2-2-34,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-01->SU-2-2-23,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-10->SU-2-2-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-10->SU-2-2-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-10->SU-2-2-14,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-15->SU-2-2-16,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-15->SU-2-2-17,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-17->SU-2-2-22,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-17->SU-2-2-28,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-17->SU-2-2-29,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-17->SU-2-2-30,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-17->SU-2-2-31,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-22->SU-2-2-26,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Flow,SU-2-2-26->SU-2-2-34,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_2,Control Relation,CF-2-2-R04,indeterminate_alignment,TP,n16,n16,guarded exit leaves repeatable loop,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-01->SU-2-2-23,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-10->SU-2-2-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-10->SU-2-2-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-14->SU-2-2-17,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-15->SU-2-2-16,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-15->SU-2-2-17,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-17->SU-2-2-22,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-17->SU-2-2-28,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-17->SU-2-2-29,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-17->SU-2-2-30,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-17->SU-2-2-31,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-22->SU-2-2-26,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+2-2,candidate_3,Flow,SU-2-2-26->SU-2-2-34,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_1,Control Node,CF-3-3-N01,indeterminate_alignment,TP,,n6,unique type-correct node with local semantic role evidence,CONTROL_NODE_LOCAL_SEMANTIC_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_1,Control Relation,CF-3-3-R01,indeterminate_alignment,TP,,n6,unique retry route repeats source-specific work and returns to check,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_1,Control Relation,CF-3-3-R02,indeterminate_alignment,indeterminate_alignment,,n6,final may be a scope boundary or premature termination,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_2,Control Node,CF-3-3-N01,indeterminate_alignment,TP,,n8,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_2,Control Relation,CF-3-3-R01,indeterminate_alignment,FN+FP,,n8,guarded route to required target is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_2,Control Relation,CF-3-3-R02,indeterminate_alignment,FN+FP,,n8,guarded route to required target is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_3,Control Node,CF-3-3-N01,indeterminate_alignment,TP,,n7,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_3,Control Relation,CF-3-3-R01,indeterminate_alignment,FN+FP,,n7,guarded route to required target is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-3,candidate_3,Control Relation,CF-3-3-R02,indeterminate_alignment,FN+FP,,n7,guarded route to required target is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-4,candidate_1,Control Relation,CF-3-4-R02,indeterminate_alignment,FN,n4,n4,guarded route to required target is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-4,candidate_2,Control Relation,CF-3-4-R02,indeterminate_alignment,FN,n4,n4,guarded route to required target is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-4,candidate_3,Control Relation,CF-3-4-R02,indeterminate_alignment,FN,n4,n4,guarded route to required target is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-5,candidate_3,Flow,SU-3-5-08->SU-3-5-11,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-5,candidate_3,Flow,SU-3-5-11->SU-3-5-13,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-5,candidate_3,Flow,SU-3-5-13->SU-3-5-16,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-5,candidate_3,Flow,SU-3-5-16->SU-3-5-17,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-5,candidate_3,Control Relation,CF-3-5-R02,indeterminate_alignment,TP,n9,n9,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-5,candidate_3,Control Relation,CF-3-5-R03,indeterminate_alignment,TP,n9,n9,branch-local termination and exclusions,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_1,Flow,SU-3-6-02->SU-3-6-04,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_1,Flow,SU-3-6-02->SU-3-6-05,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_1,Control Relation,CF-3-6-R03,FN,indeterminate_alignment,n5,n5,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_1,Control Relation,CF-3-6-R04,FN+FP,FN,n9,n9,no recurrence path returns to the identified owner,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_2,Flow,SU-3-6-02->SU-3-6-04,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_2,Flow,SU-3-6-02->SU-3-6-05,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_2,Flow,SU-3-6-05->SU-3-6-06,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_2,Control Relation,CF-3-6-R03,FN,indeterminate_alignment,n5,n5,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_2,Control Relation,CF-3-6-R04,indeterminate_alignment,FN,n8,n8,no recurrence path returns to the identified owner,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_3,Flow,SU-3-6-02->SU-3-6-04,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_3,Flow,SU-3-6-02->SU-3-6-05,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_3,Control Relation,CF-3-6-R03,FN,indeterminate_alignment,n5,n5,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-6,candidate_3,Control Relation,CF-3-6-R04,FN+FP,FN,n9,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-8,candidate_1,Flow,SU-3-8-10->SU-3-8-11,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-8,candidate_2,Flow,SU-3-8-10->SU-3-8-11,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+3-8,candidate_3,Flow,SU-3-8-10->SU-3-8-11,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+4-1,candidate_1,Flow,SU-4-1-15->SU-4-1-16,indeterminate_alignment,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+4-1,candidate_1,Flow,SU-4-1-16->SU-4-1-19,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_1,Flow,SU-5-2-02->SU-5-2-04,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_1,Flow,SU-5-2-04->SU-5-2-09,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_1,Control Node,CF-5-2-N01,FN,TP,,n5,unique type-correct node with local semantic role evidence,CONTROL_NODE_LOCAL_SEMANTIC_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_1,Control Relation,CF-5-2-R01,FN,TP,,n5,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_1,Control Relation,CF-5-2-R02,FN,TP,,n5,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_1,Control Relation,CF-5-2-R03,FN,TP,,n5,guarded return reaches final without excluded work,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_2,Flow,SU-5-2-02->SU-5-2-04,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_2,Flow,SU-5-2-04->SU-5-2-09,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_2,Control Node,CF-5-2-N01,FN,TP,,n5,unique type-correct node with local semantic role evidence,CONTROL_NODE_LOCAL_SEMANTIC_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_2,Control Relation,CF-5-2-R01,FN,TP,,n5,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_2,Control Relation,CF-5-2-R02,FN,TP,,n5,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_2,Control Relation,CF-5-2-R03,FN,TP,,n5,guarded return reaches final without excluded work,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_3,Flow,SU-5-2-02->SU-5-2-04,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_3,Flow,SU-5-2-04->SU-5-2-09,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_3,Control Node,CF-5-2-N01,FN,TP,,n5,unique type-correct node with local semantic role evidence,CONTROL_NODE_LOCAL_SEMANTIC_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_3,Control Relation,CF-5-2-R01,FN,TP,,n5,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_3,Control Relation,CF-5-2-R02,FN,TP,,n5,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-2,candidate_3,Control Relation,CF-5-2-R03,FN,TP,,n5,guarded return reaches final without excluded work,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_1,Flow,SU-5-3-04->SU-5-3-19,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_1,Flow,SU-5-3-18->SU-5-3-19,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_1,Control Relation,CF-5-3-R01,FN+FP,TP,n7,n7,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_1,Control Relation,CF-5-3-R02,FN,indeterminate_alignment,n7,n7,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_1,Control Relation,CF-5-3-R03,FN+FP,TP,n7,n7,guard and explicit branch continuation agree,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_1,Control Relation,CF-5-3-R04,FN,TP,n7,n7,guarded return reaches final without excluded work,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_1,Control Relation,CF-5-3-R05,FN,FN,n11,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_2,Flow,SU-5-3-04->SU-5-3-17,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_2,Flow,SU-5-3-17->SU-5-3-09,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_2,Flow,SU-5-3-18->SU-5-3-17,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_2,Control Relation,CF-5-3-R01,FN+FP,TP,n7,n7,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_2,Control Relation,CF-5-3-R02,FN+FP,indeterminate_alignment,n7,n7,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_2,Control Relation,CF-5-3-R04,indeterminate_alignment,TP,n7,n7,guarded return reaches final without excluded work,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_2,Control Relation,CF-5-3-R05,FN,FN,n10,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_3,Control Relation,CF-5-3-R01,FN+FP,TP,n7,n7,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-3,candidate_3,Control Relation,CF-5-3-R04,indeterminate_alignment,TP,n7,n7,guarded return reaches final without excluded work,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-02->SU-5-4-04,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-02->SU-5-4-05,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-02->SU-5-4-07,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-03->SU-5-4-12,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-04->SU-5-4-09,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-04->SU-5-4-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-05->SU-5-4-09,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-05->SU-5-4-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-06->SU-5-4-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-07->SU-5-4-09,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-07->SU-5-4-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-08->SU-5-4-12,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-10->SU-5-4-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Flow,SU-5-4-12->SU-5-4-15,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Control Node,CF-5-4-N02,TP,TP,n17,n8,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Control Node,CF-5-4-N04,TP,TP,n8,n17,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Control Relation,CF-5-4-R01,FN+FP,TP,n7,n7,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Control Relation,CF-5-4-R03,FN,TP,n17,n8,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Control Relation,CF-5-4-R04,FN+FP,TP,n17,n8,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Control Relation,CF-5-4-R06,FN,indeterminate_alignment,n8,n17,source-specific repeated work is not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_1,Control Relation,CF-5-4-R07,FN,FN,n8,n17,guarded route to required target is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_2,Control Node,CF-5-4-N01,TP,TP,n15,n5,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_2,Control Node,CF-5-4-N04,TP,indeterminate_alignment,n5,,multiple plausible nodes remain after wrong-role assignment released,CONTROL_NODE_RELEASED_ROLE_AMBIGUITY_V4,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_2,Control Relation,CF-5-4-R01,FN+FP,TP,n15,n5,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_2,Control Relation,CF-5-4-R02,FN,TP,n15,n5,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_2,Control Relation,CF-5-4-R06,indeterminate_alignment,indeterminate_alignment,n5,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_2,Control Relation,CF-5-4-R07,indeterminate_alignment,indeterminate_alignment,n5,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Flow,SU-5-4-02->SU-5-4-07,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Flow,SU-5-4-07->SU-5-4-09,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Flow,SU-5-4-09->SU-5-4-15,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Control Node,CF-5-4-N01,TP,TP,n15,n5,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Control Node,CF-5-4-N04,TP,TP,n5,n11,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Control Relation,CF-5-4-R01,FN+FP,TP,n15,n5,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Control Relation,CF-5-4-R02,FN,TP,n15,n5,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Control Relation,CF-5-4-R06,indeterminate_alignment,indeterminate_alignment,n5,n11,source-specific repeated work is not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+5-4,candidate_3,Control Relation,CF-5-4-R07,indeterminate_alignment,indeterminate_alignment,n5,n11,Action anchor alignment remains ambiguous after registered evidence checks,CONTROL_RELATION_ANCHOR_AMBIGUITY_AFTER_EVIDENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-06->SU-6-1-07,FN,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-07->SU-6-1-08,TP,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-08->SU-6-1-13,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-09->SU-6-1-20,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-10->SU-6-1-20,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-11->SU-6-1-20,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-13->SU-6-1-20,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-17->SU-6-1-13,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Flow,SU-6-1-19->SU-6-1-20,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Control Relation,CF-6-1-R03,TP,FN,n12,n12,correction retry does not route to the required next participant,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Control Relation,CF-6-1-R04,indeterminate_alignment,FN,n12,n12,exit branch bypasses the required earlier continuation,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_1,Control Relation,CF-6-1-R08,FN+FP,indeterminate_alignment,n15,n15,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Flow,SU-6-1-05->SU-6-1-06,indeterminate_alignment,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Flow,SU-6-1-08->SU-6-1-13,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Flow,SU-6-1-13->SU-6-1-20,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Flow,SU-6-1-17->SU-6-1-13,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Flow,SU-6-1-26->SU-6-1-27,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Control Node,CF-6-1-N05,indeterminate_alignment,FN,,,required logical control node not matched,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Control Relation,CF-6-1-R03,TP,FN,n9,n9,correction retry does not route to the required next participant,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Control Relation,CF-6-1-R04,TP,FN,n9,n9,exit branch bypasses the required earlier continuation,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Control Relation,CF-6-1-R08,FN+FP,indeterminate_alignment,n12,n12,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_2,Control Relation,CF-6-1-R10,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-07->SU-6-1-08,FN+FP,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-08->SU-6-1-13,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-09->SU-6-1-20,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-10->SU-6-1-20,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-11->SU-6-1-20,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-13->SU-6-1-14,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-13->SU-6-1-20,FN+FP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-17->SU-6-1-13,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Flow,SU-6-1-19->SU-6-1-20,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Control Relation,CF-6-1-R03,FN+FP,FN,n12,n12,correction retry does not route to the required next participant,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-1,candidate_3,Control Relation,CF-6-1-R08,FN+FP,indeterminate_alignment,n19,n19,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-2,candidate_1,Flow,SU-6-2-02->SU-6-2-06,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-2,candidate_2,Flow,SU-6-2-02->SU-6-2-06,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-2,candidate_3,Flow,SU-6-2-02->SU-6-2-06,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_1,Flow,SU-6-3-02->SU-6-3-07,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_1,Flow,SU-6-3-07->SU-6-3-09,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_1,Flow,SU-6-3-10->SU-6-3-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_1,Flow,SU-6-3-11->SU-6-3-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_2,Flow,SU-6-3-10->SU-6-3-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_2,Flow,SU-6-3-11->SU-6-3-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_3,Flow,SU-6-3-02->SU-6-3-07,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_3,Flow,SU-6-3-07->SU-6-3-09,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_3,Flow,SU-6-3-10->SU-6-3-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-3,candidate_3,Flow,SU-6-3-11->SU-6-3-12,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Flow,SU-6-4-06->SU-6-4-07,FN,ABSENT,,,,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Flow,SU-6-4-13->SU-6-4-14,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Control Node,CF-6-4-N04,TP,FN,n15,,previously claimed node has a distinct source role,CONTROL_NODE_WRONG_ROLE_RELEASED_V4,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Control Node,CF-6-4-N06,TP,TP,n10,n15,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Control Relation,CF-6-4-R02,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Control Relation,CF-6-4-R09,FN,FN,n15,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Control Relation,CF-6-4-R10,FN+FP,FN,n15,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Control Relation,CF-6-4-R12,FN,indeterminate_alignment,n10,n15,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_1,Control Relation,CF-6-4-R13,FN,indeterminate_alignment,n10,n15,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_2,Flow,SU-6-4-06->SU-6-4-07,FN,ABSENT,,,,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_2,Flow,SU-6-4-13->SU-6-4-14,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_2,Control Node,CF-6-4-N02,indeterminate_alignment,FN,,,required logical control node not matched,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_2,Control Relation,CF-6-4-R02,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_2,Control Relation,CF-6-4-R04,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_2,Control Relation,CF-6-4-R12,FN,indeterminate_alignment,n18,n18,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_2,Control Relation,CF-6-4-R13,FN,indeterminate_alignment,n18,n18,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Flow,SU-6-4-06->SU-6-4-07,FN,ABSENT,,,,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Flow,SU-6-4-13->SU-6-4-14,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Control Node,CF-6-4-N04,TP,FN,n15,,previously claimed node has a distinct source role,CONTROL_NODE_WRONG_ROLE_RELEASED_V4,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Control Node,CF-6-4-N06,TP,TP,n10,n15,unique type-correct local Control Node role,CONTROL_NODE_UNIQUE_ROLE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Control Relation,CF-6-4-R02,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Control Relation,CF-6-4-R09,FN,FN,n15,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Control Relation,CF-6-4-R10,FN+FP,FN,n15,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Control Relation,CF-6-4-R12,FN,indeterminate_alignment,n10,n15,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+6-4,candidate_3,Control Relation,CF-6-4-R13,FN,indeterminate_alignment,n10,n15,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_1,Flow,SU-8-2-03->SU-8-2-04,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_1,Control Node,CF-8-2-N01,indeterminate_alignment,FN,,,required logical control node not matched,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_1,Control Node,CF-8-2-N02,FN,indeterminate_alignment,,,multiple plausible local-semantic Control Node assignments,CONTROL_NODE_LOCAL_SEMANTIC_AMBIGUITY,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_1,Control Relation,CF-8-2-R01,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_1,Control Relation,CF-8-2-R02,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_1,Control Relation,CF-8-2-R04,FN,indeterminate_alignment,,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_2,Flow,SU-8-2-03->SU-8-2-04,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_2,Flow,SU-8-2-09->SU-8-2-10,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_2,Control Node,CF-8-2-N01,indeterminate_alignment,FN,,,required logical control node not matched,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_2,Control Relation,CF-8-2-R01,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_2,Control Relation,CF-8-2-R02,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_3,Flow,SU-8-2-03->SU-8-2-04,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_3,Flow,SU-8-2-04->SU-8-2-09,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_3,Flow,SU-8-2-09->SU-8-2-10,TP,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_3,Control Node,CF-8-2-N01,indeterminate_alignment,FN,,,required logical control node not matched,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_3,Control Node,CF-8-2-N02,FN,indeterminate_alignment,,,multiple plausible local-semantic Control Node assignments,CONTROL_NODE_LOCAL_SEMANTIC_AMBIGUITY,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_3,Control Relation,CF-8-2-R01,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_3,Control Relation,CF-8-2-R02,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+8-2,candidate_3,Control Relation,CF-8-2-R04,FN,indeterminate_alignment,,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_1,Flow,SU-9-1-10->SU-9-1-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_1,Control Node,CF-9-1-N03,FN,TP,,n10,case-wide logical type and structural context match,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_1,Control Node,CF-9-1-N05,FN,TP,,n19,unique type-correct node with local semantic role evidence,CONTROL_NODE_LOCAL_SEMANTIC_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_1,Control Relation,CF-9-1-R03,FN,TP,,n10,guard and explicit branch continuation agree,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_1,Control Relation,CF-9-1-R06,FN,TP,,n19,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_2,Flow,SU-9-1-10->SU-9-1-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_2,Control Node,CF-9-1-N03,FN,TP,,n10,case-wide logical type and structural context match,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_2,Control Node,CF-9-1-N05,FN,TP,,n19,unique type-correct node with local semantic role evidence,CONTROL_NODE_LOCAL_SEMANTIC_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_2,Control Relation,CF-9-1-R03,FN,TP,,n10,guard and explicit branch continuation agree,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_2,Control Relation,CF-9-1-R06,FN,TP,,n19,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_3,Flow,SU-9-1-10->SU-9-1-11,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_3,Control Node,CF-9-1-N03,FN,TP,,n9,case-wide logical type and structural context match,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_3,Control Node,CF-9-1-N05,FN,TP,,n18,unique type-correct node with local semantic role evidence,CONTROL_NODE_LOCAL_SEMANTIC_PRESENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_3,Control Relation,CF-9-1-R03,FN,TP,,n9,guard and explicit branch continuation agree,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-1,candidate_3,Control Relation,CF-9-1-R06,FN,TP,,n18,guard and target preserved on one outgoing branch,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_1,Flow,SU-9-5-01->SU-9-5-02,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_1,Flow,SU-9-5-02->SU-9-5-03,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_1,Flow,SU-9-5-07->SU-9-5-09,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_1,Control Relation,CF-9-5-R10,FN,indeterminate_alignment,,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_1,Control Relation,CF-9-5-R12,FN,indeterminate_alignment,,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_2,Flow,SU-9-5-01->SU-9-5-02,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_2,Flow,SU-9-5-02->SU-9-5-03,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_2,Flow,SU-9-5-07->SU-9-5-09,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_3,Flow,SU-9-5-01->SU-9-5-02,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_3,Flow,SU-9-5-02->SU-9-5-03,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_3,Flow,SU-9-5-07->SU-9-5-09,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Flow,SU-9-6-05->SU-9-6-06,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Flow,SU-9-6-07->SU-9-6-17,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Flow,SU-9-6-10->SU-9-6-11,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Flow,SU-9-6-12->SU-9-6-17,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Flow,SU-9-6-17->SU-9-6-18,indeterminate_alignment,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Control Relation,CF-9-6-R05,FN,FN,n21,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Control Relation,CF-9-6-R07,FN,FN,n12,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Control Relation,CF-9-6-R08,FN,FN,n21,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_1,Control Relation,CF-9-6-R13,FN,FN,n27,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_2,Flow,SU-9-6-05->SU-9-6-06,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_2,Control Relation,CF-9-6-R03,FN,FN,n12,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_2,Control Relation,CF-9-6-R05,FN,FN,n20,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_2,Control Relation,CF-9-6-R07,FN,FN,n12,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_2,Control Relation,CF-9-6-R08,FN,FN,n20,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_3,Flow,SU-9-6-05->SU-9-6-06,FN+FP,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_3,Flow,SU-9-6-07->SU-9-6-17,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_3,Flow,SU-9-6-12->SU-9-6-17,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_3,Flow,SU-9-6-17->SU-9-6-18,indeterminate_alignment,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_3,Control Relation,CF-9-6-R07,FN,FN,n12,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_3,Control Relation,CF-9-6-R08,FN,FN,n21,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-6,candidate_3,Control Relation,CF-9-6-R13,FN,FN,n27,,required recurrence is absent from the acyclic candidate graph,CONTROL_RELATION_ABSENT_LOOP_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-4,candidate_1,Flow,SU-10-4-03->SU-10-4-04,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-4,candidate_1,Control Relation,CF-10-4-R02,FN,indeterminate_alignment,n11,n11,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-4,candidate_2,Flow,SU-10-4-03->SU-10-4-04,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-4,candidate_2,Control Relation,CF-10-4-R02,FN,indeterminate_alignment,n11,n11,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-4,candidate_3,Flow,SU-10-4-03->SU-10-4-04,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-4,candidate_3,Control Relation,CF-10-4-R02,FN,indeterminate_alignment,n9,n9,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_1,Flow,SU-10-9-02->SU-10-9-03,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_1,Control Relation,CF-10-9-R04,indeterminate_alignment,TP,n5,n5,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_2,Flow,SU-10-9-01->SU-10-9-03,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_2,Flow,SU-10-9-02->SU-10-9-03,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_2,Flow,SU-10-9-03->SU-10-9-05,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_2,Flow,SU-10-9-05->SU-10-9-08,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_2,Control Node,CF-10-9-N01,indeterminate_alignment,FN,,,required logical control node not matched,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_2,Control Relation,CF-10-9-R01,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_2,Control Relation,CF-10-9-R02,indeterminate_alignment,FN,,,owning Control Node is absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_2,Control Relation,CF-10-9-R05,FN,indeterminate_alignment,n5,n5,unique explicit guarded path not established,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_3,Flow,SU-10-9-02->SU-10-9-03,FN,indeterminate_alignment,,,required Action anchor has no accepted semantic match,FLOW_ACTION_ANCHOR_UNMATCHED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-9,candidate_3,Control Relation,CF-10-9-R04,indeterminate_alignment,TP,n5,n5,explicit decision outcome and unique continuing branch,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Flow,SU-10-10-02->SU-10-10-03,FN+FP,indeterminate_alignment,,,ambiguous accepted Action anchor,FLOW_ACTION_ANCHOR_UNRESOLVED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Flow,SU-10-10-06->SU-10-10-07,indeterminate_alignment,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Flow,SU-10-10-07->SU-10-10-08,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Flow,SU-10-10-08->SU-10-10-09,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Flow,SU-10-10-09->SU-10-10-10,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Control Node,CF-10-10-N01,FN,indeterminate_alignment,,,Action anchor alignment remains ambiguous after registered evidence checks,CONTROL_NODE_ANCHOR_AMBIGUITY_AFTER_EVIDENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Control Node,CF-10-10-N02,FN,indeterminate_alignment,,,Action anchor alignment remains ambiguous after registered evidence checks,CONTROL_NODE_ANCHOR_AMBIGUITY_AFTER_EVIDENCE,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Control Relation,CF-10-10-R01,FN,indeterminate_alignment,,,owning Control Node alignment remains indeterminate after relation checks,CONTROL_RELATION_OWNER_ASSIGNMENT_UNRESOLVED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Control Relation,CF-10-10-R02,FN,indeterminate_alignment,,,Control Node owner is not uniquely identified,CONTROL_RELATION_LOCAL_EVIDENCE_V3,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_1,Control Relation,CF-10-10-R03,FN,indeterminate_alignment,,,owning Control Node alignment remains indeterminate after relation checks,CONTROL_RELATION_OWNER_ASSIGNMENT_UNRESOLVED,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_2,Flow,SU-10-10-06->SU-10-10-07,FN+FP,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_2,Flow,SU-10-10-08->SU-10-10-09,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_2,Flow,SU-10-10-09->SU-10-10-10,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_3,Flow,SU-10-10-06->SU-10-10-07,FN+FP,FN,,,required forward precedence absent,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_3,Flow,SU-10-10-08->SU-10-10-09,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-10,candidate_3,Flow,SU-10-10-09->SU-10-10-10,indeterminate_alignment,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-11,candidate_1,Flow,SU-10-11-06->SU-10-11-07,ABSENT,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-11,candidate_2,Flow,SU-10-11-06->SU-10-11-07,ABSENT,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+10-11,candidate_3,Flow,SU-10-11-06->SU-10-11-07,ABSENT,TP,,,accepted Action alignment preserves forward reachability,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection

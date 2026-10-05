@@ -1,0 +1,591 @@
+{
+  "passed": 65,
+  "total": 65,
+  "checks": [
+    {
+      "case_id": "2-2",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-2-2-N05",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "2-2",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-2-2-R03",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "2-2",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-2-2-R05",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "2-2",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-2-2-R03",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "2-2",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-2-2-R05",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "2-2",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-2-2-R03",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "2-2",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-2-2-R05",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "3-3",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-3-3-R01",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "3-6",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-3-6-R02",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "5-3",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-5-3-R02",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "5-4",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-5-4-N01",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "5-4",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-5-4-N02",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "5-4",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-5-4-N04",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "5-4",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-5-4-R02",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "8-2",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-8-2-R03",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "3-3",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-3-3-R02",
+      "expected": "indeterminate_alignment",
+      "actual": "indeterminate_alignment",
+      "passed": true
+    },
+    {
+      "case_id": "6-1",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-6-1-R02",
+      "expected": "indeterminate_alignment",
+      "actual": "indeterminate_alignment",
+      "passed": true
+    },
+    {
+      "case_id": "6-1",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-6-1-R03",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "6-1",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-6-1-R02",
+      "expected": "indeterminate_alignment",
+      "actual": "indeterminate_alignment",
+      "passed": true
+    },
+    {
+      "case_id": "6-1",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-6-1-R03",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "6-1",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-6-1-R04",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "6-4",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-6-4-R03",
+      "expected": "indeterminate_alignment",
+      "actual": "indeterminate_alignment",
+      "passed": true
+    },
+    {
+      "case_id": "5-2",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-5-2-N01",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "5-2",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-5-2-R01",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "5-2",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-5-2-R02",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "1-1",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-1-1-N05",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "1-1",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-1-1-R10",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "3-6",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-3-6-R01",
+      "expected": "FN+FP",
+      "actual": "FN+FP",
+      "passed": true
+    },
+    {
+      "case_id": "9-1",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-9-1-N01",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-1",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-1-R01",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-1",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-1-R08",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "5-4",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-5-4-N03",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "2-2",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-2-2-N02",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "6-4",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-6-4-R02",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "6-4",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-6-4-R02",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R05",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R07",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R08",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R13",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R03",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R05",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R07",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R08",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R07",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R08",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-6",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-6-R13",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "10-9",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-10-9-R02",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "10-9",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-10-9-R02",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "10-9",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-10-9-R02",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "5-4",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Node",
+      "fact_id": "CF-5-4-N04",
+      "expected": "indeterminate_alignment",
+      "actual": "indeterminate_alignment",
+      "passed": true
+    },
+    {
+      "case_id": "3-6",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Relation",
+      "fact_id": "CF-3-6-R04",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "3-6",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-3-6-R04",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Node",
+      "fact_id": "CF-9-5-N04",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Node",
+      "fact_id": "CF-9-5-N05",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R08",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R10",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R12",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Node",
+      "fact_id": "CF-9-5-N04",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Node",
+      "fact_id": "CF-9-5-N05",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R08",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R10",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R12",
+      "expected": "TP",
+      "actual": "TP",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-9-5-N04",
+      "expected": "indeterminate_alignment",
+      "actual": "indeterminate_alignment",
+      "passed": true
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-9-5-N05",
+      "expected": "indeterminate_alignment",
+      "actual": "indeterminate_alignment",
+      "passed": true
+    },
+    {
+      "case_id": "6-4",
+      "candidate_id": "candidate_1",
+      "dimension": "Control Node",
+      "fact_id": "CF-6-4-N04",
+      "expected": "FN",
+      "actual": "FN",
+      "passed": true
+    }
+  ]
+}

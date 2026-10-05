@@ -1,0 +1,13 @@
+{
+  "status": "READY_TO_FREEZE_REVIEW_NOT_FROZEN",
+  "run_manifest_sha256": "80a918ba0df8de93ac5f4f0eff5524c4467c7544c411e9a66af2b1d0f9e6a1ac",
+  "run_result_sha256": "fc4cf409a789846a037cbb22f8816c5bac8f86302a05e2768a70ebd9491727b3",
+  "review_file_sha256": {
+    "final_code_validation_integrity.json": "01e37b4c35e57645d8a9f15c7253d669ab168e561a2c23f50d8bacf0ce13c07e",
+    "final_code_validation_report.md": "ef746cd0020d85fdbc0f2722eb5b6a9efa63300058820bf23d041f11f438b644",
+    "incremental_change_audit.csv": "c3cee563d716ebc8f87b65b54a6b02108550257bf00ef1ba8d36e2a31c75073f",
+    "known_fix_checks.json": "79e045797528fda404693e672945fc5f11dc5af7e105e38948a5b954d5ff7a99",
+    "targeted_checks_in_normal_run.json": "5b242d84459da9bd3d3ad7a4e50bceef4a1cd831fc8249a2e15fb56e9ccdc313"
+  },
+  "freeze_performed": false
+}

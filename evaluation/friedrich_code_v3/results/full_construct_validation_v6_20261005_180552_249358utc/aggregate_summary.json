@@ -1,0 +1,65 @@
+{
+  "dimensions": {
+    "Action": {
+      "tp": 946,
+      "fp": 0,
+      "fn": 188,
+      "numeric_candidates": 120,
+      "null_candidates": 0,
+      "coverage": 1.0,
+      "pooled_precision": 1.0,
+      "pooled_recall": 0.8342151675485009,
+      "pooled_f1": 0.9096153846153847
+    },
+    "Flow": {
+      "tp": 723,
+      "fp": 49,
+      "fn": 122,
+      "indeterminate": 331,
+      "required": 1176,
+      "na_candidates": 0,
+      "indeterminate_candidates": 66,
+      "numeric_candidates": 54,
+      "null_candidates": 66,
+      "coverage": 0.7185374149659864,
+      "pooled_precision": 0.9365284974093264,
+      "pooled_recall": 0.855621301775148,
+      "pooled_f1": 0.8942486085343229
+    },
+    "Control Node": {
+      "tp": 432,
+      "fp": 0,
+      "fn": 69,
+      "indeterminate": 24,
+      "required": 525,
+      "na_candidates": 0,
+      "indeterminate_candidates": 15,
+      "numeric_candidates": 105,
+      "null_candidates": 15,
+      "coverage": 0.9542857142857143,
+      "pooled_precision": 1.0,
+      "pooled_recall": 0.8622754491017964,
+      "pooled_f1": 0.9260450160771704
+    },
+    "Control Relation": {
+      "tp": 267,
+      "fp": 39,
+      "fn": 224,
+      "indeterminate": 97,
+      "required": 588,
+      "na_candidates": 21,
+      "indeterminate_candidates": 42,
+      "numeric_candidates": 57,
+      "null_candidates": 63,
+      "coverage": 0.8350340136054422,
+      "pooled_precision": 0.8725490196078431,
+      "pooled_recall": 0.5437881873727087,
+      "pooled_f1": 0.670012547051443
+    }
+  },
+  "changed_action_mappings": 0,
+  "changed_facts": 8,
+  "changed_candidate_dimensions": 4,
+  "changed_candidates": 2,
+  "source_fact_adjudication_pending": "6-4/SU-6-4-16"
+}

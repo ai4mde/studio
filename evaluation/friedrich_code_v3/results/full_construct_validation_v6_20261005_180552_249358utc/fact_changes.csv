@@ -1,0 +1,9 @@
+case_id,candidate_id,dimension,fact_id,old_status,new_status,old_generated_node_id,new_generated_node_id,new_reason,new_reason_code,classification,review_note
+9-5,candidate_2,Control Node,CF-9-5-N05,FN,TP,,n11,unique generated Decision explicitly represents two compatible source roles,CONTROL_NODE_EXPLICIT_SHARED_ROLE_V5,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_2,Control Relation,CF-9-5-R10,FN,TP,,n11,explicit shared-owner terminal branch reaches final without excluded work,CONTROL_RELATION_SHARED_OWNER_TERMINAL_V4,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_2,Control Relation,CF-9-5-R11,FN,FN,,n11,guard or branch target differs from frozen fact,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_2,Control Relation,CF-9-5-R12,FN,TP,,n11,explicit shared-owner terminal branch reaches final without excluded work,CONTROL_RELATION_SHARED_OWNER_TERMINAL_V4,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_3,Control Node,CF-9-5-N05,FN,TP,,n12,unique generated Decision explicitly represents two compatible source roles,CONTROL_NODE_EXPLICIT_SHARED_ROLE_V5,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_3,Control Relation,CF-9-5-R10,FN,TP,,n12,explicit shared-owner terminal branch reaches final without excluded work,CONTROL_RELATION_SHARED_OWNER_TERMINAL_V4,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_3,Control Relation,CF-9-5-R11,FN,FN,,n12,guard or branch target differs from frozen fact,,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection
+9-5,candidate_3,Control Relation,CF-9-5-R12,FN,TP,,n12,explicit shared-owner terminal branch reaches final without excluded work,CONTROL_RELATION_SHARED_OWNER_TERMINAL_V4,AMBIGUOUS / NEEDS REVIEW,Fact semantics need inspection

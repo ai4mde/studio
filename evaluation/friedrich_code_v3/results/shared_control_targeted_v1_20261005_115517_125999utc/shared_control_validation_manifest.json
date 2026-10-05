@@ -1,0 +1,31 @@
+{
+  "status": "TARGETED_PASS_READY_FOR_ONE_NORMAL_120_VALIDATION",
+  "configuration_version": "friedrich-code-combined-construct-candidate/8",
+  "control_node_version": "friedrich-code-control-node-shared-roles/5",
+  "control_relation_version": "friedrich-code-control-relation-shared-owner/4",
+  "previous_checks": 52,
+  "total_checks": 65,
+  "passed_checks": 65,
+  "integrated_candidate_count": 26,
+  "integrated_unexpected_changes": 0,
+  "frozen_roster_sha256": "f96893bd709cd51a9499e7f7829d454d0c70642896ae9a29128f1fe271506980",
+  "last_normal_validation_sha256": "91511cc959213b368e49a6e5283edd3784c5486273f539d3cc56a1308f7f9a60",
+  "component_sha256": {
+    "control_node_shared_roles_v5.py": "9f5564a97458f707db644b0237bddbbabf2e63bb87e4ade6d0844486006ac34b",
+    "control_relation_shared_owner_v4.py": "a0eb767def1642a53236c1ef88361ed9e187abb58b82102dc60f321460ac48cf",
+    "combined_candidate_v8.py": "5350a54c6ea9d12866f8f2ae3bba98d01cb5d38b1f2664085d1f00b75a672cae",
+    "run_shared_control_targeted_v1.py": "fd74fd70ea293f71b83b0ae5b3b000fd7075acd5481409b6a10bf47eab1371a4",
+    "shared_control_targeted_regression_set_v1.csv": "1335311619309a89a3bb1d4f7dcdd906adeef54cd81b99376264493bb618e2a1"
+  },
+  "audit_sha256": {
+    "targeted_summary.json": "ae9d30c0a598069d6b93049610c18ea41ca5718f351d29f803b5eb930e9e0772",
+    "integrated_targeted_audit.json": "354645a06700c11810e35f786438a1aea40a5258fed335b365fa0801bcad0189",
+    "targeted_fact_results.jsonl": "a5db0d354956e646b488a0b9055097c10166baf45237ffa912109d333b84085d",
+    "candidate_control_results.jsonl": "c5581aff3d83aaf66c1909d90a092825b25ab2d7a1b5c6ad29bd8411c273572d"
+  },
+  "frozen_v3_2_package_files_verified": 25,
+  "frozen_v3_2_package_mismatches": 0,
+  "api_calls": 0,
+  "full_120_run": false,
+  "freeze_performed": false
+}

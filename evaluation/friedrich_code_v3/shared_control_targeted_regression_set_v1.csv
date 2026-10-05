@@ -1,0 +1,66 @@
+case_id,candidate_id,dimension,fact_id,role,expected_after_patch,pass_criterion,source_group
+2-2,candidate_1,Control Node,CF-2-2-N05,confirmed_regression,TP,The source withdrawal/confirmation Decision is visibly n22. The case-wide assignment gives that node to an unrelated customer-object fact; the fallback leaves N05 indeterminate because its Action anchor is ambiguous.,G1
+2-2,candidate_1,Control Relation,CF-2-2-R03,confirmed_regression,TP,"The negative document-check route visibly repeats generation, but the local fallback rejects loop_recurrence before inspecting this cycle (guard_edge_count=0).",G2
+2-2,candidate_1,Control Relation,CF-2-2-R05,confirmed_regression,TP,"The positive supplier-concurrence branch is unique and reaches the required notification. The guard matcher also admits the explicit no_supplier_concurrence sibling, so the fallback abstains at two matches.",G3
+2-2,candidate_2,Control Relation,CF-2-2-R03,confirmed_regression,TP,"The negative document-check route visibly repeats generation, but the local fallback rejects loop_recurrence before inspecting this cycle (guard_edge_count=0).",G2
+2-2,candidate_2,Control Relation,CF-2-2-R05,confirmed_regression,TP,"The positive supplier-concurrence branch is unique and reaches the required notification. The guard matcher also admits the explicit no_supplier_concurrence sibling, so the fallback abstains at two matches.",G3
+2-2,candidate_3,Control Relation,CF-2-2-R03,confirmed_regression,TP,"The negative document-check route visibly repeats generation, but the local fallback rejects loop_recurrence before inspecting this cycle (guard_edge_count=0).",G2
+2-2,candidate_3,Control Relation,CF-2-2-R05,confirmed_regression,TP,"The positive supplier-concurrence branch is unique and reaches the required notification. The guard matcher also admits the explicit no_supplier_concurrence sibling, so the fallback abstains at two matches.",G3
+3-3,candidate_1,Control Relation,CF-3-3-R01,confirmed_regression,TP,"The repeat occurrence is n7, while the accepted initial recommendation is n2. The inherited target lookup misses n7 and calls the visible retry absent.",G2
+3-6,candidate_2,Control Relation,CF-3-6-R02,confirmed_regression,TP,"The insured route reaches a control-typed node that explicitly performs the required severity evaluation. Local continuation evidence excludes Decision nodes, and guard matching also conflates insured with not_insured.",G4
+5-3,candidate_3,Control Relation,CF-5-3-R02,confirmed_regression,TP,The source change-request branch is visibly represented; literal guard matching misses this context-supported wording and abstains.,G5
+5-4,candidate_1,Control Node,CF-5-4-N01,confirmed_regression,TP,"The primary supervisor approval/rejection control point is uniquely n7 by actor, object, and phase. A case-wide tie with n17 suppresses that presence.",G1
+5-4,candidate_1,Control Node,CF-5-4-N02,confirmed_regression,TP,The treasurer receipt-check control point is uniquely n8. The assignment tie with n13 ignores the different actor and operation.,G1
+5-4,candidate_1,Control Node,CF-5-4-N04,confirmed_regression,TP,The supervisor-reapproval logical point is expressed by n17. Whether its exit reaches supervisor review is a separate Control Relation question; the node-presence assignment ties n7/n8 instead.,G1
+5-4,candidate_1,Control Relation,CF-5-4-R02,confirmed_regression,TP,"The approved route is explicit, but its source owner N01 is indeterminate because of the node assignment tie; the relation fallback refuses to score with no unique owner.",G1
+8-2,candidate_2,Control Relation,CF-8-2-R03,confirmed_regression,TP,The rejected-description correction cycle is explicit. The fallback does not inspect loop_recurrence and reports no unique guarded path.,G2
+3-3,candidate_1,Control Relation,CF-3-3-R02,reviewed_unresolved,indeterminate_alignment,"The OK edge goes directly from n6 to final n5, while the source says claim handling “proceeds” beyond the described excerpt. A final node could mark the boundary of the described subprocess or premature termination; the graph does not distinguish these meanings. Keep the loop-exit/continuation judgment indeterminate.",HUMAN-C
+6-1,candidate_1,Control Relation,CF-6-1-R02,reviewed_unresolved,indeterminate_alignment,"The combined n12 “review and correction” retry route reaches supplier clarification, but there is no separate item-rejection/annotated-docket operation and no reliable owner for N01. Missing Action evidence alone must not be called a relation FN; the precise inconsistency-to-rejection route is unassessable.",HUMAN-C
+6-1,candidate_1,Control Relation,CF-6-1-R03,reviewed_unresolved,FN,"Source requires passing an accurate item to the *next* cost-center manager while more items remain. n12 retry instead enters supplier clarification n13 and resubmission n14 to managers; this is the correction cycle, not next-manager iteration. The required route is contradicted/absent.",HUMAN-B
+6-1,candidate_2,Control Relation,CF-6-1-R02,reviewed_unresolved,indeterminate_alignment,"The combined n9 retry route reaches supplier clarification, but no separate item-rejection/annotated-docket operation or reliable N01 owner is present. The exact source branch cannot be established; keep indeterminate.",HUMAN-C
+6-1,candidate_2,Control Relation,CF-6-1-R03,reviewed_unresolved,FN,"Source requires next-manager iteration. n9 retry enters supplier clarification n10 and resubmission n11 to managers, then returns to n5; no distinct next-manager route is represented.",HUMAN-B
+6-1,candidate_2,Control Relation,CF-6-1-R04,reviewed_unresolved,FN,Source explicitly sends the copy back to Accounting once all items are correct. n9 all_approved instead goes to Board check n12 and then commercial manager n6; the return to Accounting is bypassed on the depicted branch.,HUMAN-B
+6-4,candidate_3,Control Relation,CF-6-4-R03,reviewed_unresolved,indeterminate_alignment,"The text lists knowing someone as one possible way to obtain contact details, but does not state that it must be a separately modelled Decision branch. The required source relation and SU-6-4-04 need human source-fact adjudication. The candidate has generic contact-details acquisition n1 and no explicit known-contact gateway; retain indeterminate pending that adjudication.",HUMAN-D
+5-2,candidate_1,Control Node,CF-5-2-N01,known_correct_node,TP,Decision role remains present,COUNTEREXAMPLE
+5-2,candidate_1,Control Relation,CF-5-2-R01,known_correct_relation,TP,Known correct guarded relation stays TP,COUNTEREXAMPLE
+5-2,candidate_1,Control Relation,CF-5-2-R02,known_correct_relation,TP,Known correct guarded relation stays TP,COUNTEREXAMPLE
+1-1,candidate_1,Control Node,CF-1-1-N05,known_correct_join,TP,Join presence stays TP even though synchronization is faulty,COUNTEREXAMPLE
+1-1,candidate_1,Control Relation,CF-1-1-R10,wrong_sync_negative,FN,Faulty synchronization remains a Relation defect,COUNTEREXAMPLE
+3-6,candidate_1,Control Relation,CF-3-6-R01,wrong_branch_negative,FN+FP,Contradictory rejection branch remains negative,COUNTEREXAMPLE
+9-1,candidate_1,Control Node,CF-9-1-N01,known_correct_node,TP,Existing distinct Decision match stays TP,COUNTEREXAMPLE
+9-1,candidate_1,Control Relation,CF-9-1-R01,known_correct_relation,TP,Existing correct relation stays TP,COUNTEREXAMPLE
+9-1,candidate_1,Control Relation,CF-9-1-R08,wrong_relation_negative,FN,Known absent or incorrect relation remains FN,COUNTEREXAMPLE
+5-4,candidate_1,Control Node,CF-5-4-N03,missing_merge_negative,FN,A missing source-equivalent Merge must not be guessed from a different merge,COUNTEREXAMPLE
+2-2,candidate_1,Control Node,CF-2-2-N02,wrong_role_negative,FN,Customer-object creation must not claim the withdraw/confirm node n22,COUNTEREXAMPLE
+6-4,candidate_1,Control Relation,CF-6-4-R02,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_ACQUISITION_BRANCH_ABSTAIN
+6-4,candidate_3,Control Relation,CF-6-4-R02,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_ACQUISITION_BRANCH_ABSTAIN
+9-6,candidate_1,Control Relation,CF-9-6-R05,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_1,Control Relation,CF-9-6-R07,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_1,Control Relation,CF-9-6-R08,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_1,Control Relation,CF-9-6-R13,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_2,Control Relation,CF-9-6-R03,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_2,Control Relation,CF-9-6-R05,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_2,Control Relation,CF-9-6-R07,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_2,Control Relation,CF-9-6-R08,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_3,Control Relation,CF-9-6-R07,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_3,Control Relation,CF-9-6-R08,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+9-6,candidate_3,Control Relation,CF-9-6-R13,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_LOOP_ABSTAIN
+10-9,candidate_1,Control Relation,CF-10-9-R02,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_ORIGIN_BRANCH_ABSTAIN
+10-9,candidate_2,Control Relation,CF-10-9-R02,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_ORIGIN_BRANCH_ABSTAIN
+10-9,candidate_3,Control Relation,CF-10-9-R02,new_confirmed_regression,FN,FN is supported; new indeterminate status is a regression,ABSENT_ORIGIN_BRANCH_ABSTAIN
+5-4,candidate_2,Control Node,CF-5-4-N04,semantic_adjudication,indeterminate_alignment,"Two candidate correction/reapproval Decisions (n11,n15) plausibly express return to supervisor review; neither is uniquely assignable. The old n5 is primary approval, not reapproval. Do not score routing here.",SUPERVISOR_RETURN
+3-6,candidate_1,Control Relation,CF-3-6-R04,absent_required_loop_control,FN,"Source requires updated forms to be checked again. Candidate recurrence cycles only through correction/information, without returning to the completeness-check owner.",ABSENT_OWNER_RECURRENCE
+3-6,candidate_2,Control Relation,CF-3-6-R04,absent_required_loop_control,FN,"Source requires updated forms to be checked again. Candidate recurrence cycles only through correction/information, without returning to the completeness-check owner.",ABSENT_OWNER_RECURRENCE
+9-5,candidate_2,Control Node,CF-9-5-N04,shared_node_gate,TP,7-day role stays assigned to the explicit shared time Decision,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_2,Control Node,CF-9-5-N05,shared_node_gate,TP,30-day role is also present in the same explicit shared time Decision,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_2,Control Relation,CF-9-5-R08,shared_node_gate,TP,Progress branch stays assessable,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_2,Control Relation,CF-9-5-R10,shared_node_gate,TP,Cancellation branch is visible from the shared owner,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_2,Control Relation,CF-9-5-R12,shared_node_gate,TP,Cancellation terminates before success-only work,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_3,Control Node,CF-9-5-N04,shared_node_gate,TP,7-day role stays assigned to the explicit shared time Decision,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_3,Control Node,CF-9-5-N05,shared_node_gate,TP,30-day role is also present in the same explicit shared time Decision,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_3,Control Relation,CF-9-5-R08,shared_node_gate,TP,Progress branch stays assessable,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_3,Control Relation,CF-9-5-R10,shared_node_gate,TP,Cancellation branch is visible from the shared owner,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_3,Control Relation,CF-9-5-R12,shared_node_gate,TP,Cancellation terminates before success-only work,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_1,Control Node,CF-9-5-N04,shared_node_gate,indeterminate_alignment,Ambiguous time roles must not be force-assigned,SHARED_ROLE_COUNTEREXAMPLE
+9-5,candidate_1,Control Node,CF-9-5-N05,shared_node_gate,indeterminate_alignment,Ambiguous time roles must not be force-assigned,SHARED_ROLE_COUNTEREXAMPLE
+6-4,candidate_1,Control Node,CF-6-4-N04,shared_node_gate,FN,Unrelated Decision wording must not satisfy absent role,SHARED_ROLE_COUNTEREXAMPLE

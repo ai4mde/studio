@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "candidate_count": 120,
+  "case_count": 40,
+  "targeted_checks_passed": 65,
+  "targeted_checks_total": 65,
+  "action_flow_unchanged_from_previous": true,
+  "non_9_5_control_outputs_unchanged": true,
+  "incremental_changes": 8,
+  "expected_fixes": 6,
+  "expected_construct_changes": 2,
+  "confirmed_regressions": 0,
+  "true_relation_na_candidates": 21,
+  "na_null_and_omitted": true,
+  "frozen_v3_2_package_files_verified": 25,
+  "frozen_v3_2_package_hash_mismatches": 0,
+  "component_hashes_match_run_manifest": true,
+  "output_hashes_match_run_manifest": true,
+  "formal_overall_code_f1": 0.8499803890695803,
+  "api_calls": 0,
+  "technical_exceptions": 0,
+  "freeze_performed": false
+}

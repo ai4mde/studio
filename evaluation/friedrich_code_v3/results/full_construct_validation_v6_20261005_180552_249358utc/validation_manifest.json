@@ -1,0 +1,34 @@
+{
+  "status": "OFFLINE_FULL_SCOPE_VALIDATION",
+  "configuration_version": "friedrich-code-combined-construct-candidate/8",
+  "candidate_count": 120,
+  "case_count": 40,
+  "api_calls": 0,
+  "formal_run": false,
+  "frozen_roster_sha256": "f96893bd709cd51a9499e7f7829d454d0c70642896ae9a29128f1fe271506980",
+  "frozen_baseline_sha256": "daa3108cbe3ee8dedfaea863ef378a160f8f057065662a7b9dd8474ccc285832",
+  "previous_reviewed_validation_sha256": "91511cc959213b368e49a6e5283edd3784c5486273f539d3cc56a1308f7f9a60",
+  "targeted_manifest_sha256": "96c7da83b12e97ce1ed850532f121af6d9d43ee678b136cf7c661f05c68ac090",
+  "flow_snapshot": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/fixed_flow_inventory/corpus_v1/v3_2_alignment_flow_facts_1",
+  "flow_snapshot_manifest_sha256": "875dd3e99ec6b7024dc169e40feb39e698e2824ce14be2774148106122734226",
+  "source_action_eligibility_snapshot": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/source_action_eligibility/corpus_v1/v1",
+  "source_action_eligibility_sha256": "ea19459015b3508cda3c7987ee5275278b4c1be6847cf4c73ac0979127117bb3",
+  "component_hashes": {
+    "action_operation_guard_v4.py": "6cdbf14ae9fc476c96a725344f80168014e632c156ff82ab3e2d84794409788f",
+    "flow_matched_action_v1.py": "86cfd24ff7659ba01ec7058e78bd17cf09d2efef662b2856b77ffe5aba06a361",
+    "control_node_role_assignment_v4.py": "3d8307649dce37437a3cbefc14fa7ac7ff4179ea590c3b0eae18f9377a434c1d",
+    "control_node_shared_roles_v5.py": "9f5564a97458f707db644b0237bddbbabf2e63bb87e4ade6d0844486006ac34b",
+    "control_relation_local_evidence_v3.py": "53b9b7d5e018ebbf54ef84b6f1f3116f9935d6d068199a4019ef8a5f0e536f5d",
+    "control_relation_shared_owner_v4.py": "a0eb767def1642a53236c1ef88361ed9e187abb58b82102dc60f321460ac48cf",
+    "candidate_reporting_v1.py": "46c822d1b35ada1b9edb2fbad1b07da039234c39969945dc37a7635901cb63ca",
+    "combined_candidate_v8.py": "5350a54c6ea9d12866f8f2ae3bba98d01cb5d38b1f2664085d1f00b75a672cae",
+    "run_full_construct_validation_v6.py": "b8eee746b6756689b69784b4d40c9dcc3a5bd7cb4ddf5065f12afce6d379c4bd"
+  },
+  "output_hashes": {
+    "fact_changes.csv": "3fa600c4f9aa3a8fc3b9ca2518d4c7d8ab87f3688d7b826d4aa101c7dd82dcb7",
+    "aggregate_summary.json": "26e06fb5e748555a377708e0c0303c79e86bdec3fa2f793c906d31df260014f4",
+    "action_alignment_changes.csv": "d04d4acc53465e0ff58b51a6c2e1634c69a4dd94c20889091ed93ecf77dddea4",
+    "candidate_results.jsonl": "fc4cf409a789846a037cbb22f8816c5bac8f86302a05e2768a70ebd9491727b3",
+    "candidate_dimension_changes.csv": "1308f9a5f47265a324c34fd75c6605a49892984a07d8930b8eebbddb6da70ffe"
+  }
+}

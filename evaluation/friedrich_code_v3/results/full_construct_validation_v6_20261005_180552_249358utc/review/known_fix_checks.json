@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "10_11_transmission_to_processing_present": true,
+    "6_4_contact_before_budget_absent": true,
+    "5_2_approval_not_matched_to_receipt": true,
+    "5_2_decision_present": true,
+    "5_2_three_branch_relations_tp": true,
+    "1_1_join_present": true,
+    "1_1_late_sync_relation_fn": true,
+    "8_2_clarification_valid_matches": true,
+    "8_2_correction_request_ambiguity_candidate_2": true,
+    "5_2_unmatched_approval_flow_indeterminate": true,
+    "9_6_absent_loops_fn": true,
+    "10_9_absent_origin_branch_fn": true,
+    "6_4_absent_exhibition_branch_fn": true,
+    "5_4_c2_n04_indeterminate": true,
+    "true_relation_na_null_and_omitted": true
+  },
+  "all_passed": true,
+  "basis": "All relevant non-9-5 Action, Flow, Node, and Relation outputs exactly match the previous reviewed run; the 65 normal-output targeted checks pass.",
+  "true_relation_na_candidate_count": 21
+}

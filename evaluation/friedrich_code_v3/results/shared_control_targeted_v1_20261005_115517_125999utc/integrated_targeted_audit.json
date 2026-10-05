@@ -1,0 +1,138 @@
+{
+  "status": "PASS",
+  "candidate_count": 26,
+  "fact_checks": 65,
+  "failures": [],
+  "changed_facts": [
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Node Source",
+      "fact_id": "CF-9-5-N05",
+      "before": [
+        "FN",
+        null
+      ],
+      "after": [
+        "TP",
+        "n11"
+      ]
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R10",
+      "before": [
+        "FN",
+        null
+      ],
+      "after": [
+        "TP",
+        "n11"
+      ]
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R11",
+      "before": [
+        "FN",
+        null
+      ],
+      "after": [
+        "FN",
+        "n11"
+      ]
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_2",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R12",
+      "before": [
+        "FN",
+        null
+      ],
+      "after": [
+        "TP",
+        "n11"
+      ]
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Node Source",
+      "fact_id": "CF-9-5-N05",
+      "before": [
+        "FN",
+        null
+      ],
+      "after": [
+        "TP",
+        "n12"
+      ]
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R10",
+      "before": [
+        "FN",
+        null
+      ],
+      "after": [
+        "TP",
+        "n12"
+      ]
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R11",
+      "before": [
+        "FN",
+        null
+      ],
+      "after": [
+        "FN",
+        "n12"
+      ]
+    },
+    {
+      "case_id": "9-5",
+      "candidate_id": "candidate_3",
+      "dimension": "Control Relation",
+      "fact_id": "CF-9-5-R12",
+      "before": [
+        "FN",
+        null
+      ],
+      "after": [
+        "TP",
+        "n12"
+      ]
+    }
+  ],
+  "shared_owners": {
+    "9-5/candidate_2": {
+      "n11": [
+        "CF-9-5-N04",
+        "CF-9-5-N05"
+      ]
+    },
+    "9-5/candidate_3": {
+      "n12": [
+        "CF-9-5-N04",
+        "CF-9-5-N05"
+      ]
+    }
+  },
+  "frozen_roster_sha256": "f96893bd709cd51a9499e7f7829d454d0c70642896ae9a29128f1fe271506980",
+  "last_normal_validation_sha256": "91511cc959213b368e49a6e5283edd3784c5486273f539d3cc56a1308f7f9a60",
+  "api_calls": 0,
+  "full_120_run": false
+}

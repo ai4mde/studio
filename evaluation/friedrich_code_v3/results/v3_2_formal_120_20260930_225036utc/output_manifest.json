@@ -1,0 +1,14 @@
+{
+  "run_id": "v3_2_formal_120_20260930_225036utc",
+  "status": "FORMAL 120-CANDIDATE V3.2 EVALUATION COMPLETED",
+  "formal_run_sha256": "2c4da06206b746186d174767d77000deb928c89e56ab3ea4865a909f5cfac162",
+  "output_hashes": {
+    "run_identity_before.json": "5d4b3950313700129633b2c2d6dbae2cec9c079a96cc18dc7ecfbf3c5d409404",
+    "run_integrity.json": "fcbffee70f5afba51ac01cd6443bd43471b2eab29d52f2d05fd7d1771d321bb9",
+    "candidate_results.jsonl": "daa3108cbe3ee8dedfaea863ef378a160f8f057065662a7b9dd8474ccc285832",
+    "candidate_results.csv": "c69fb36c2894571a16222d4a9584399f4a788ae994841945ca95218f9c9f229a",
+    "case_summary.json": "f149c1d8571b64dcc6f0b346574f8a3b80affe9d20feff0964b27e04448f98e2",
+    "aggregate_summary.json": "35e507495608245f3f8366b0825822e9bc3fee091a2b4b4700f67e47af30318f",
+    "formal_evaluation_report.md": "b49fba89e8038c041da0d00a9631cc80816a9834f48515954ae535f1e07936fd"
+  }
+}

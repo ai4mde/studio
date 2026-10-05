@@ -1,0 +1,30 @@
+{
+  "status": "OFFLINE_FULL_SCOPE_VALIDATION",
+  "configuration_version": "friedrich-code-combined-construct-candidate/7",
+  "candidate_count": 120,
+  "case_count": 40,
+  "api_calls": 0,
+  "formal_run": false,
+  "frozen_roster_sha256": "f96893bd709cd51a9499e7f7829d454d0c70642896ae9a29128f1fe271506980",
+  "frozen_baseline_sha256": "daa3108cbe3ee8dedfaea863ef378a160f8f057065662a7b9dd8474ccc285832",
+  "flow_snapshot": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/fixed_flow_inventory/corpus_v1/v3_2_alignment_flow_facts_1",
+  "flow_snapshot_manifest_sha256": "875dd3e99ec6b7024dc169e40feb39e698e2824ce14be2774148106122734226",
+  "source_action_eligibility_snapshot": "/Users/queenie/Desktop/studio/evaluation/friedrich_code_v3/source_action_eligibility/corpus_v1/v1",
+  "source_action_eligibility_sha256": "ea19459015b3508cda3c7987ee5275278b4c1be6847cf4c73ac0979127117bb3",
+  "component_hashes": {
+    "action_operation_guard_v4.py": "6cdbf14ae9fc476c96a725344f80168014e632c156ff82ab3e2d84794409788f",
+    "flow_matched_action_v1.py": "86cfd24ff7659ba01ec7058e78bd17cf09d2efef662b2856b77ffe5aba06a361",
+    "control_node_role_assignment_v4.py": "3d8307649dce37437a3cbefc14fa7ac7ff4179ea590c3b0eae18f9377a434c1d",
+    "control_relation_local_evidence_v3.py": "53b9b7d5e018ebbf54ef84b6f1f3116f9935d6d068199a4019ef8a5f0e536f5d",
+    "candidate_reporting_v1.py": "46c822d1b35ada1b9edb2fbad1b07da039234c39969945dc37a7635901cb63ca",
+    "combined_candidate_v7.py": "cf9c40ddc737d28ff4609ae102beec769f60f41445b62f932c82106a9bf3d5be",
+    "run_full_construct_validation_v5.py": "d1f18ac70e0db34d56a4a650f81441eeff6fe0310e80de2b809c35a101219724"
+  },
+  "output_hashes": {
+    "fact_changes.csv": "dcb83130b50c7d4db407f0d137f594461bf5d0de3dd9b533f2c1c48d46f00476",
+    "aggregate_summary.json": "be0c7682a5fa55717a962a015f348c3288bcac12da99d5c7ea97395ffec347ba",
+    "action_alignment_changes.csv": "beb48b297455147fed2ab94a1d935cf6b96fea3422f29cb8c6665c2ad7a547f4",
+    "candidate_results.jsonl": "91511cc959213b368e49a6e5283edd3784c5486273f539d3cc56a1308f7f9a60",
+    "candidate_dimension_changes.csv": "63d876b42d042bf199552c71c17dc79ebd40b6c4a96f4978deb718216943d510"
+  }
+}

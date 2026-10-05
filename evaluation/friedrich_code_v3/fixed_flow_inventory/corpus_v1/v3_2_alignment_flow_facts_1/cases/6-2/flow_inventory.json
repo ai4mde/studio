@@ -1,0 +1,19 @@
+{
+  "case_id": "6-2",
+  "removed_recurrence_edges": [],
+  "required_precedence": [
+    [
+      "SU-6-2-02",
+      "SU-6-2-06"
+    ],
+    [
+      "SU-6-2-03",
+      "SU-6-2-06"
+    ],
+    [
+      "SU-6-2-04",
+      "SU-6-2-05"
+    ]
+  ],
+  "unresolved_cycle_pairs": []
+}

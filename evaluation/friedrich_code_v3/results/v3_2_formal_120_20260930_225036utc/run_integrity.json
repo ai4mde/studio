@@ -1,0 +1,10 @@
+{
+  "completed_at_utc": "2026-09-30T22:50:58.838835+00:00",
+  "candidate_slots_processed": 120,
+  "file_count_compared": 669,
+  "changed_files_or_identities": [],
+  "pre_run_snapshot_sha256": "5e00200e069aa0ef109366ef29f3e1f7b3cfbf65d144e9babd9f21652ee54fad",
+  "post_run_snapshot_sha256": "5e00200e069aa0ef109366ef29f3e1f7b3cfbf65d144e9babd9f21652ee54fad",
+  "certified_v3_1_outputs_exact": true,
+  "integrity_passed": true
+}

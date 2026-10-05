@@ -1,0 +1,19 @@
+{
+  "contract_version": "v3.2-structural-endpoint-presence-1",
+  "status": "APPROVED_FOR_PREFLIGHT",
+  "base_v3_1_corpus_sha256": "5f9765bda2ea5d9d9f4a78603207bb0a2ed6532fd0c935149c275595c7d5be8a",
+  "component": "Control Node",
+  "source_derived_facts_unchanged": true,
+  "structural_checks_per_candidate": [
+    {"name": "Start", "parsed_node_type": "initial", "required_count": 1},
+    {"name": "End", "parsed_node_type": "final", "required_count": 1}
+  ],
+  "presence_rule": "At least one parsed node of the named type is TP; absence is FN.",
+  "additional_nodes": "No additional TP or automatic FP.",
+  "excluded_claims": ["source-derived endpoint semantics", "connectivity", "termination-path correctness", "endpoint multiplicity"],
+  "indeterminate_policy": "Parsed graph presence is determinate; malformed candidates retain the V3.1 technical status and receive no component scores.",
+  "denominator_rule": "Two fixed structural requirements are added to each candidate's existing source-derived Control Node denominator.",
+  "coverage_rule": "(TP + FN) / (TP + FN + indeterminate_alignment_count)",
+  "unchanged_components": ["Action", "Flow", "Control Relation"],
+  "unchanged_gateway_types": ["Decision", "Merge", "Fork", "Join"]
+}

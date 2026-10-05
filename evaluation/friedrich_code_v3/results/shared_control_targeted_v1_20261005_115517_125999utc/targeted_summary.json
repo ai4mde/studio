@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "fact_checks": 65,
+  "passed": 65,
+  "failed": 0,
+  "by_role": {
+    "absent_required_loop_control": {
+      "total": 2,
+      "passed": 2
+    },
+    "confirmed_regression": {
+      "total": 15,
+      "passed": 15
+    },
+    "known_correct_join": {
+      "total": 1,
+      "passed": 1
+    },
+    "known_correct_node": {
+      "total": 2,
+      "passed": 2
+    },
+    "known_correct_relation": {
+      "total": 3,
+      "passed": 3
+    },
+    "missing_merge_negative": {
+      "total": 1,
+      "passed": 1
+    },
+    "new_confirmed_regression": {
+      "total": 16,
+      "passed": 16
+    },
+    "reviewed_unresolved": {
+      "total": 7,
+      "passed": 7
+    },
+    "semantic_adjudication": {
+      "total": 1,
+      "passed": 1
+    },
+    "shared_node_gate": {
+      "total": 13,
+      "passed": 13
+    },
+    "wrong_branch_negative": {
+      "total": 1,
+      "passed": 1
+    },
+    "wrong_relation_negative": {
+      "total": 1,
+      "passed": 1
+    },
+    "wrong_role_negative": {
+      "total": 1,
+      "passed": 1
+    },
+    "wrong_sync_negative": {
+      "total": 1,
+      "passed": 1
+    }
+  },
+  "failures": [],
+  "unintended_changes": [],
+  "candidate_count": 26,
+  "api_calls": 0,
+  "review_gate_sha256": "1335311619309a89a3bb1d4f7dcdd906adeef54cd81b99376264493bb618e2a1",
+  "saved_input_sha256": "d70a37446f2d03b5a17a48d67a92e3c90b82b860e20fe2a3c843e86b14cd0a43",
+  "frozen_roster_sha256": "f96893bd709cd51a9499e7f7829d454d0c70642896ae9a29128f1fe271506980"
+}

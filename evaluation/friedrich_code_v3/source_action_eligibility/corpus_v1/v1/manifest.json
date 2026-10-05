@@ -1,0 +1,23 @@
+{
+  "version": "source-action-eligibility/1",
+  "status": "VALIDATION_CANDIDATE",
+  "decision": "C: retain reviewed reference-only source fact as provenance, unscorable in primary Action evaluation",
+  "rule": "A standalone Action unit with no process-text-grounded occurrence is not a required Action in the process-text-conditioned primary comparison; retain its reference-only evidence separately. A unit with a text-grounded occurrence remains eligible.",
+  "frozen_corpus_sha256": "5f9765bda2ea5d9d9f4a78603207bb0a2ed6532fd0c935149c275595c7d5be8a",
+  "reviewed_inventory_path": "/Users/queenie/Desktop/studio-semantic-v2/evaluation/friedrich_semantic_v2/inventories/corpus_v1/cases/6-4/inventory_reviewed.json",
+  "reviewed_inventory_file_sha256": "1940704e3018c909bd646da5d40fc5a277541d0a2e2b3c2b1a988b2095bde51c",
+  "reviewed_inventory_canonical_sha256": "0c9aa4c7b34e28aba47ea873202864cd7b544225f069a1dfc2f5d63976aa2557",
+  "case_id": "6-4",
+  "excluded_primary_units": [
+    "SU-6-4-16"
+  ],
+  "retained_reference_only_occurrences": [
+    "SO-6-4-16"
+  ],
+  "source_process_text_sha256": "291fa9e3f6e7705028bf5abd54086361b397486ef355e78e488de187bbc8468d",
+  "reference_node_ids": [
+    "103"
+  ],
+  "corpus_wide_check": "Two reference-only occurrences in the 40-case reviewed corpus: SO-6-4-16 is standalone; SO-3-3-06 repeats a unit with text-grounded SO-3-3-05, so its Action unit remains eligible.",
+  "frozen_files_modified": false
+}
