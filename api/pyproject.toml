@@ -28,7 +28,7 @@ groq = "^0.15.0"
 [tool.poetry.group.dev.dependencies]
 black = "^26.5.1"
 ruff = "^0.16.9"
-django-stubs = {extras = ["compatible-mypy"], version = "^4.2.7"}
+django-stubs = {version = "^5.2", extras = ["compatible-mypy"]}
 
 [build-system]
 requires = ["poetry-core"]
@@ -36,6 +36,10 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
+
+[[tool.mypy.overrides]]
+module = ["channels.*"]
+follow_untyped_imports = true
 
 [tool.django-stubs]
 django_settings_module = "model.settings"
