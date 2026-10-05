@@ -18,6 +18,23 @@
 
 AI4MDE is an open-source research initiative at [LIACS](https://liacs.leidenuniv.nl/) that aims to bridge the gap between AI and Model-Driven Engineering. AI4MDE is a web-based environment in which users can design and manage UML Class, Activity, and Use Case Diagrams via a user-friendly interface. The platform provides the option to generate fully functional Django software prototypes from these diagrams.  
 
+## Current thesis Code evaluator
+
+The **one current thesis Code evaluator** is on branch `codex/code-evaluator-thesis-final`.
+Use the explicit validated scoring entry point
+`evaluation.friedrich_code_v3.combined_candidate_v8.evaluate_combined_candidate_v8`.
+Its [final README](evaluation/friedrich_code_v3/README.md) explains the construct and replay
+contract; the [freeze manifest](evaluation/friedrich_code_v3/freeze/thesis_final_v8_20261005/final_code_v8_freeze_manifest.json)
+identifies the exact validated code, inputs, and evidence. The validated **Formal Overall
+Code F1 is 0.8499803891** (40 cases, 120 candidates).
+
+**Do not use generic package imports or old runner entry points as the thesis-final
+evaluator.** Use the explicit `combined_candidate_v8` entry point. V3.1, V3.2,
+intermediate combined evaluators, and earlier runners are **historical / provenance
+only**. Some older-named modules are still live v8 helper dependencies; keep them.
+See the [evaluator navigation guide](docs/code-evaluator-navigation.md) and the
+[separate public-export proposal](docs/code-evaluator-public-export-proposal.md).
+
 ## ⚡️ Quick start
 To get up and running with the AI4MDE tool in no time, use the code below. For more explanations and environment requirements, read [docs/setup.md](./docs/setup.md) (you will need Docker, Git, and, if you are on Windows, WSL).
 
