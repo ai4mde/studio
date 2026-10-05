@@ -15,7 +15,7 @@
 
 | Material | Role now |
 | --- | --- |
-| V3.1 evaluator implementation, certification bundle, and branch `codex/code-evaluator-v3-1-certified` | Certified earlier milestone; retain for reproducibility and historical comparison. |
+| V3.1 evaluator implementation, certification bundle, and branch `code-evaluator-v3-1-certified` | Certified earlier milestone; retain for reproducibility and historical comparison. |
 | V3.2 formal results | Historical formal evidence; retain. Frozen inventories that v8 still reads are active v8 inputs, even if their paths contain earlier version names. |
 | `combined_candidate_v2.py` and `combined_candidate_v3.py` and their earlier configurations | Developmental entry points and replay/provenance dependencies where imported; do not select them for thesis-final scoring. |
 | Earlier Action, Control Node, and Control Relation component versions | Superseded as public scoring choices; **some older-named modules remain live helper dependencies of v8**. Preserve every imported helper recorded in the freeze manifest. |
