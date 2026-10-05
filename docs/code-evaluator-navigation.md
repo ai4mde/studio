@@ -2,7 +2,7 @@
 
 ## CURRENT THESIS CODE EVALUATOR
 
-- **Branch:** `codex/code-evaluator-thesis-final`.
+- **Branch:** `thesis-code-evaluator-final`.
 - **Validated scoring entry point:** `evaluation.friedrich_code_v3.combined_candidate_v8.evaluate_combined_candidate_v8` in [`combined_candidate_v8.py`](../evaluation/friedrich_code_v3/combined_candidate_v8.py).
 - **Final evaluator README:** [`evaluation/friedrich_code_v3/README.md`](../evaluation/friedrich_code_v3/README.md).
 - **Freeze manifest:** [`final_code_v8_freeze_manifest.json`](../evaluation/friedrich_code_v3/freeze/thesis_final_v8_20261005/final_code_v8_freeze_manifest.json), SHA-256 `cfcfc68de14208c0f7f10ed6f85e8e89a1ff7aa283c8fed24f2ea857439434ef`.

@@ -20,7 +20,7 @@ AI4MDE is an open-source research initiative at [LIACS](https://liacs.leidenuniv
 
 ## Current thesis Code evaluator
 
-The **one current thesis Code evaluator** is on branch `codex/code-evaluator-thesis-final`.
+The **one current thesis Code evaluator** is on branch `thesis-code-evaluator-final`.
 Use the explicit validated scoring entry point
 `evaluation.friedrich_code_v3.combined_candidate_v8.evaluate_combined_candidate_v8`.
 Its [final README](evaluation/friedrich_code_v3/README.md) explains the construct and replay
