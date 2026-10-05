@@ -26,8 +26,8 @@ groq = "^0.15.0"
 
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.12.1"
-ruff = "^0.1.13"
+black = "^26.5.1"
+ruff = "^0.16.9"
 django-stubs = {extras = ["compatible-mypy"], version = "^4.2.7"}
 
 [build-system]
@@ -39,3 +39,6 @@ plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
 django_settings_module = "model.settings"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
