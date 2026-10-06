@@ -38,7 +38,7 @@ router = Router()
 # Interfaces
 
 
-@router.get("/interfaces/", response=list[InterfaceRead])
+@router.get("/", response=list[InterfaceRead])
 def list_interfaces(request, system_id: UUID | None = None):
     interfaces = Interface.objects.all()
 
@@ -48,17 +48,17 @@ def list_interfaces(request, system_id: UUID | None = None):
     return interfaces
 
 
-@router.get("/interfaces/{interface_id}/", response=InterfaceRead)
+@router.get("/{interface_id}/", response=InterfaceRead)
 def read_interface(request, interface_id: UUID):
     return get_object_or_404(Interface, id=interface_id)
 
 
-@router.post("/interfaces/", response=InterfaceRead)
+@router.post("/", response=InterfaceRead)
 def create_interface(request, payload: InterfaceCreate):
     return Interface.objects.create(**payload.model_dump())
 
 
-@router.patch("/interfaces/{interface_id}/", response=InterfaceRead)
+@router.patch("/{interface_id}/", response=InterfaceRead)
 def update_interface(request, interface_id: UUID, payload: InterfaceUpdate):
     interface = get_object_or_404(Interface, id=interface_id)
 
@@ -69,7 +69,7 @@ def update_interface(request, interface_id: UUID, payload: InterfaceUpdate):
     return interface
 
 
-@router.delete("/interfaces/{interface_id}/", response={204: None})
+@router.delete("/{interface_id}/", response={204: None})
 def delete_interface(request, interface_id: UUID):
     interface = get_object_or_404(Interface, id=interface_id)
     interface.delete()
