@@ -17,7 +17,7 @@ const ComponentNode: React.FC<NodeProps> = (node) => {
     <NodeWrapper node={node} selected={node.selected}>
       <div className="flex flex-col border border-solid border-black bg-white text-center font-mono">
         <div className="flex flex-col items-center gap-1 px-6 py-2">
-          <span className="text-xs">{`<<${node.data?.type}>>`}</span>
+          <span className="text-xs">{`<<${node?.type}>>`}</span>
           <span className="font-bold">
             {node.data?.name}
             {showSystem && (

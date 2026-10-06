@@ -1,48 +1,64 @@
+from typing import Any
+
 from django.db import models
 
 from .classifier import Classifier
 from .general import System
+from .typed_data_model import TypedDataModel
 from .types import RelationType
 
 
-class Relation(models.Model):
+class Relation(TypedDataModel):
+    data_type_enum = RelationType
+    data_parent_field = "relation"
+
+    data_model_aliases = {
+        RelationType.INTERFACE: "InterfaceRelation",
+    }
+
     system = models.ForeignKey(
         System,
         on_delete=models.CASCADE,
         related_name="relations",
     )
+
     source = models.ForeignKey(
         Classifier,
         related_name="relations_to",
         on_delete=models.CASCADE,
     )
+
     target = models.ForeignKey(
         Classifier,
         related_name="relations_from",
         on_delete=models.CASCADE,
     )
+
     type = models.CharField(
         max_length=32,
         choices=RelationType.choices,
+        editable=False,
     )
 
-    @property
-    def data(self):
-        # When creating a new RelationType make sure the reverse relation related name is the same as the RelationType value
-        # This will allow the Relation to get the correct data model for the relation type
-        # If this name is already taken, you can add a new entry to the RELATION_DATA_FIELDS dictionary below to map the RelationType to the correct related name
-        RELATION_DATA_FIELDS = {
-            RelationType.INTERFACE: "interfacerelation",
-        }
-        field = RELATION_DATA_FIELDS.get(self.type) or self.type
+    @classmethod
+    def create(
+        cls,
+        *,
+        system_id,
+        source_id,
+        target_id,
+        relation_type,
+        data: dict[str, Any],
+    ):
+        return cls.create_typed(
+            data_type=relation_type,
+            data=data,
+            system_id=system_id,
+            source_id=source_id,
+            target_id=target_id,
+        )
 
-        try:
-            return getattr(self, field)
-        except AttributeError:
-            return None
 
-
-# Inherit from this class when making a new node type. Make sure to use the same class anme as defined in RelationType
 class RelationDataModel(models.Model):
     relation = models.OneToOneField(
         Relation,

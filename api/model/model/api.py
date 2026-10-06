@@ -6,9 +6,9 @@ from ninja.errors import ValidationError
 
 from model.auth import auth, create_token
 
-from diagram.api import router as diagram_router
+from diagram.api.router import router as diagram_router
 from generator.api import generator_router
-from metadata.api import router as metadata_router
+from metadata.api.router import router as metadata_router
 from prose.api import prose_router
 
 
@@ -19,7 +19,7 @@ api = NinjaAPI(
     auth=auth,
 )
 api.add_router("/metadata/", metadata_router)
-api.add_router("/", diagram_router)
+api.add_router("/diagram/", diagram_router)
 api.add_router("/prose/", prose_router)
 api.add_router("/generator/", generator_router)
 

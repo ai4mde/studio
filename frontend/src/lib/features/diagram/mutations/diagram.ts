@@ -2,8 +2,14 @@ import { authAxios } from "$lib/features/auth/state/auth";
 import { queryClient } from "$lib/shared/hooks/queryClient";
 
 export const addNode = async (diagram: string, data: any) => {
+    // TODO Temporary fix, input should not be flat. The data fields should be nested
+    const { type, ...classifierData } = data;
+
     await authAxios.post(`/v1/diagram/${diagram}/node/`, {
-        cls: data,
+        classifier: {
+            type,
+            data: classifierData,
+        },
     });
 
     queryClient.invalidateQueries({

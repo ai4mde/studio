@@ -3,12 +3,34 @@ from uuid import UUID
 from ninja import ModelSchema
 
 from diagram.models import Diagram
+from diagram.api.schemas.node import NodeRead
+from diagram.api.schemas.edge import EdgeRead
 
 
-class DiagramRead(ModelSchema):    
+class DiagramRead(ModelSchema):
     class Meta:
         model = Diagram
-        fields = ["id", "name", "description", "type"]
+        fields = ["id", "name", "description", "type", "system"]
+
+
+class RelatedDiagramRead(ModelSchema):
+    nodes: list[EdgeRead]
+
+    class Meta:
+        model = Diagram
+        fields = ["id", "name", "type"]
+
+
+class DiagramReadFull(DiagramRead):
+    nodes: list[NodeRead]
+    edges: list[EdgeRead]
+    related_diagrams: list[RelatedDiagramRead]
+
+    @staticmethod
+    def resolve_related_diagrams(obj):
+        return Diagram.objects.filter(
+            system_id=obj.system_id,
+        ).exclude(id=obj.id)
 
 
 class DiagramCreate(ModelSchema):

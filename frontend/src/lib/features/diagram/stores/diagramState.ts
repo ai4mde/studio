@@ -39,27 +39,32 @@ export const useDiagramStore = create<DiagramState>((set) => ({
             // edges: [], // applyEdgeChanges(changes, state.edges, state.diagramURL),
         })),
     nodesFromAPI: (nds) => {
-        const swimlaneGroupUUID = nds.filter((n) => n?.cls?.type === 'swimlanegroup')[0]?.id;
-        set(() => ({
-            nodes: nds.map((e) => ({
-                id: e?.id,
-                type: e?.cls?.type,
-                position: {
-                    x: e.data?.position?.x ?? 0,
-                    y: e.data?.position?.y ?? 0,
-                },
-                data: {
-                    ...e.cls,
-                    systemName: e.system_name,
-                    systemId: e.system_id,
-                },
-                parentNode: e?.cls?.parentNode ?? (e?.cls?.actorNode ? swimlaneGroupUUID : null), // TODO swimlanes should also use parentNode, this might, however, also require changes in prototype generation
-                extend: e?.cls?.actorNode ? 'parent' : null,
-                connectable: e?.cls?.type === 'swimlanegroup' ? false : true,
-                zIndex: e?.cls?.type === "swimlanegroup" || e?.cls.type == "system_boundary" ? -1: 1,
-            })),
-        }))
-    },
+    set(() => ({
+        nodes: nds.map((e) => ({
+            id: e.id,
+            type: e.classifier.type,
+
+            position: {
+                x: e.x_position ?? 0,
+                y: e.y_position ?? 0,
+            },
+
+            data: {
+                ...e.classifier.data,
+                classifierId: e.classifier.id,
+                systemId: e.classifier.system,
+                height: e.height,
+                width: e.width,
+                color: e.color,
+                font: e.font,
+            },
+
+            parentNode: e.parent ?? null,
+            connectable: true,
+            zIndex: e.parent ? 0 : 1,
+        })),
+    }));
+},
     edgesFromAPI: (eds) =>
         set(() => ({
             edges: eds.map((e) => ({
