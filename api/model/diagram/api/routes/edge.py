@@ -23,19 +23,6 @@ from metadata.models import Relation
 router = Router()
 
 
-@router.get("/edge/", response=list[EdgeRead])
-def list_edges(
-    request,
-    diagram_id: UUID | None = None,
-):
-    edges = Edge.objects.all()
-
-    if diagram_id:
-        edges = edges.filter(diagram_id=diagram_id)
-
-    return edges
-
-
 @router.post("/{diagram_id}/edge/", response=EdgeRead)
 @transaction.atomic
 def create_edge(

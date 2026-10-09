@@ -24,13 +24,6 @@ class RelatedDiagramRead(ModelSchema):
 class DiagramReadFull(DiagramRead):
     nodes: list[NodeRead]
     edges: list[EdgeRead]
-    related_diagrams: list[RelatedDiagramRead]
-
-    @staticmethod
-    def resolve_related_diagrams(obj):
-        return Diagram.objects.filter(
-            system_id=obj.system_id,
-        ).exclude(id=obj.id)
 
 
 class DiagramCreate(ModelSchema):

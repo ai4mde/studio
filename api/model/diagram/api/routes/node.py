@@ -19,29 +19,6 @@ from metadata.models import Classifier
 router = Router()
 
 
-@router.get("/node/", response=list[NodeRead])
-def list_nodes(
-    request,
-    diagram_id: UUID | None = None,
-):
-    nodes = Node.objects.all()
-
-    if diagram_id:
-        nodes = nodes.filter(diagram_id=diagram_id)
-
-    return nodes
-
-
-@router.get("/node/{node_id}/", response=NodeRead)
-def read_node(
-    request,
-    node_id: UUID,
-):
-    return get_object_or_404(
-        Node,
-        id=node_id,
-    )
-
 
 @router.post("/{diagram_id}/node/", response=NodeRead)
 @transaction.atomic
