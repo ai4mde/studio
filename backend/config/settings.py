@@ -27,7 +27,7 @@ if environ.get("DEBUG", "True").lower() == "false":
 
 INSTALLED_APPS = [
     "daphne",  # ext: Use Daphne as ASGI server
-    "model",  # The main app / project is the model application
+    "config",  # The main app / project is the model application
     "metadata",  # The metadata app is used to store metadata such as projects, systems, users and so on
     "diagram",  # The diagram app is used to store diagram-specific data
     "prompt",  # The prompt app is used for the chat / prompting functionalities
@@ -53,7 +53,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "model.urls"
+ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
@@ -71,8 +71,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "model.wsgi.application"
-ASGI_APPLICATION = "model.asgi.application"
+WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
 
 DATABASES = {
     "default": {

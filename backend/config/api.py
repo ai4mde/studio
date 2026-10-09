@@ -4,8 +4,8 @@ from django.http import HttpResponse
 from ninja import NinjaAPI, Schema
 from ninja.errors import ValidationError
 
-from model.auth import auth, create_token
-from model.openapi import StudioAPI
+from config.auth import auth, create_token
+from config.openapi import StudioAPI
 
 from diagram.api.router import router as diagram_router
 from generator.api import generator_router
