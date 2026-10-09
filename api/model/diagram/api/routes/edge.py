@@ -36,17 +36,6 @@ def list_edges(
     return edges
 
 
-@router.get("/edge/{edge_id}/", response=EdgeRead)
-def read_edge(
-    request,
-    edge_id: UUID,
-):
-    return get_object_or_404(
-        Edge,
-        id=edge_id,
-    )
-
-
 @router.post("/{diagram_id}/edge/", response=EdgeRead)
 @transaction.atomic
 def create_edge(

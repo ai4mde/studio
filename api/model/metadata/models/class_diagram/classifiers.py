@@ -16,6 +16,7 @@ class Enum(ClassifierDataModel):
 
 
 class EnumLiteral(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     enum = models.ForeignKey(
         Enum,
         on_delete=models.CASCADE,
