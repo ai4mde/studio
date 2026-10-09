@@ -1,9 +1,12 @@
+import json
+from uuid import uuid4
+
+from django.contrib.auth.models import User
+from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APITestCase
+
 from generator.models import Prototype
 from metadata.models import Project, System
-from django.contrib.auth.models import User
-from uuid import uuid4
 
 prototype_metadata = {
     "diagrams": [],
@@ -11,16 +14,29 @@ prototype_metadata = {
     "useAuthentication": True
 }
 
-class PrototypeAPITests(APITestCase):
+class PrototypeAPITests(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_superuser(username='admin', password='sequoias')
+        self.user = User.objects.create_superuser(
+            username="admin",
+            password="sequoias",
+        )
 
-        auth_url = '/api/v1/auth/token'
-        auth_response = self.client.post(auth_url, {'username': 'admin', 'password': 'sequoias'}, format='json')
+        auth_response = self.client.post(
+            "/api/v1/auth/token",
+            data=json.dumps(
+                {
+                    "username": "admin",
+                    "password": "sequoias",
+                }
+            ),
+            content_type="application/json",
+        )
         self.assertEqual(auth_response.status_code, 200)
-        self.token = auth_response.json()['token']
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+
+        self.token = auth_response.json()["token"]
+        self.client.defaults["HTTP_AUTHORIZATION"] = "Token " + self.token
+
 
         self.project1 = Project.objects.create(name="TestProject",
                                                description="Testing description."

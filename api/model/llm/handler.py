@@ -28,7 +28,12 @@ def call_openai(model: str, prompt: str) -> str:
             ],
             model = model,
         )
-        return chat_completion.choices[0].message.content
+        content = chat_completion.choices[0].message.content
+
+        if content is None:
+            raise ValueError("LLM returned no message content")
+
+        return content
     except Exception as e:
         raise Exception("Failed to call LLM, error " + str(e))
 
@@ -47,7 +52,12 @@ def call_groq(model: str, prompt: str) -> str:
         ],
             model = model,
         )
-        return chat_completion.choices[0].message.content
+        content = chat_completion.choices[0].message.content
+
+        if content is None:
+            raise ValueError("LLM returned no message content")
+
+        return content
     except Exception as e:
         raise Exception("Failed to call LLM, error " + str(e))
 
