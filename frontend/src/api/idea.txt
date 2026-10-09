@@ -1,0 +1,27 @@
+Backend Communication
+
+Centralizes all communication with the Django backend, including HTTP requests, OpenAPI-generated types, and TanStack Query hooks.
+
+
+src/api/
+├── client.ts             # Shared Axios client and authentication
+├── generated/             # Types generated from Django OpenAPI
+├── diagram/
+│   ├── diagrams.ts        # HTTP endpoint functions
+│   ├── nodes.ts
+│   ├── edges.ts
+│   └── hooks/             # TanStack Query hooks
+├── metadata/
+│   ├── projects.ts
+│   ├── systems.ts
+│   └── hooks/
+└── ...                    # Other backend applications
+
+
+Principles:
+- Group endpoints and hooks by backend application/resource.
+- Use the shared Axios client for all requests.
+- Use OpenAPI-generated types instead of manually defined interfaces.
+- Keep endpoint functions independent of React.
+- Use TanStack Query hooks for caching, loading, errors, and mutations.
+- Keep UI components and unrelated state outside `src/api/`.
