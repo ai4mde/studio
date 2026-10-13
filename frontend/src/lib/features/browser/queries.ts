@@ -1,5 +1,7 @@
 import { authAxios } from "$auth/state/auth";
 import { useQuery } from "@tanstack/react-query";
+import { getProject } from "$lib/endpoints/projects";
+import type { ProjectOut } from "$lib/types/projects";
 
 export type SystemOut = {
     id: string;
@@ -7,12 +9,6 @@ export type SystemOut = {
     description?: string;
     project?: string;
 };
-
-type ProjectOut = {
-    id: string;
-    name: string;
-    description?: string;
-}
 
 export const useSystems = (projectId?: string) =>
     useQuery<SystemOut[]>({
@@ -39,13 +35,10 @@ export const useSystem = (systemId?: string) =>
         enabled: !!systemId,
     });
 
-export const useProject = (projectId? : string) => 
+export const useProject = (projectId?: string) =>
     useQuery<ProjectOut>({
         queryKey: ["project", `${projectId}`],
-        queryFn: async () => {
-            return (await authAxios.get(`/v1/metadata/projects/${projectId}`))
-                .data;
-        },
+        queryFn: () => getProject(projectId!),
         enabled: !!projectId,
     });
 

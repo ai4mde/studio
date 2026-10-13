@@ -1,5 +1,6 @@
 import { createProjectAtom } from "$browser/atoms";
-import { authAxios } from "$lib/features/auth/state/auth";
+import { createProject } from "$lib/endpoints/projects";
+import type { ProjectCreate, ProjectOut } from "$lib/types/projects";
 import { queryClient } from "$shared/hooks/queryClient";
 import {
     Button,
@@ -16,34 +17,16 @@ import { useMutation } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import React from "react";
 
-type ProjectInput = {
-    name: string;
-    description?: string;
-};
-
-type ProjectOutput = {
-    id: string;
-    name: string;
-    description: string;
-};
-
 export const CreateProject: React.FC = () => {
     const [open, setOpen] = useAtom(createProjectAtom);
     const close = () => setOpen(false);
 
     const { mutateAsync, isPending } = useMutation<
-        ProjectOutput,
+        ProjectOut,
         unknown,
-        ProjectInput
+        ProjectCreate
     >({
-        mutationFn: async ({ name, description }) => {
-            const { data } = await authAxios.post("v1/metadata/projects/", {
-                name: name,
-                description: description,
-            });
-
-            return data;
-        },
+        mutationFn: createProject,
     });
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {

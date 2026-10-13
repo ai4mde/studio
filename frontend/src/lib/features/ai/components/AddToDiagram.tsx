@@ -6,16 +6,13 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowRight, Plus } from "lucide-react";
 import React from "react";
 import { Pipeline } from "../types";
+import { getProjects } from "$lib/endpoints/projects";
+import type { ProjectOut } from "$lib/types/projects";
 
 type Props = {
     pipeline: Pipeline;
 };
 
-type ProjectOut = {
-    id: string;
-    name: string;
-    description?: string;
-};
 type SystemOut = {
     id: string;
     name: string;
@@ -49,9 +46,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
 
     const projects = useQuery<ProjectOut[]>({
         queryKey: ["projects"],
-        queryFn: async () => {
-            return (await authAxios.get("/v1/metadata/projects/")).data;
-        },
+        queryFn: getProjects,
     });
 
     const systems = useQuery<SystemOut[]>({

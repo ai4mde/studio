@@ -16,6 +16,7 @@ import {
 import ProjectLayout from "$browser/components/projects/ProjectLayout";
 import { useProject, useSystems } from "$browser/queries";
 import { authAxios } from "$auth/state/auth";
+import { exportProject } from "$lib/endpoints/projects";
 
 type ExportType = "project" | "systems";
 
@@ -58,8 +59,11 @@ const ProjectExports: React.FC = () => {
         exportType === "project" || selectedSystemIds.length > 0;
 
     const handleExportProject = async () => {
-        const response = await authAxios.get(`/v1/metadata/projects/export/${projectId}/`);
-        downloadJson(response.data, `${projectName}-export.json`);
+        if (!projectId) return;
+
+        const data = await exportProject(projectId);
+
+        downloadJson(data, `${projectName}-export.json`);
     };
 
     const handleExportSystems = async () => {

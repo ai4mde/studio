@@ -1,20 +1,20 @@
 import { createProjectAtom } from "$browser/atoms";
 import { CreateProject } from "$browser/components/projects/CreateProject";
-import { authAxios } from "$lib/features/auth/state/auth";
 import { queryClient } from "$lib/shared/hooks/queryClient";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Box, Plus, X, Upload } from "lucide-react";
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import UploadFileModal from "$shared/components/Modals/FileUploadModal";
+import {
+    getProjects,
+    deleteProject,
+    importProject,
+} from "$lib/endpoints/projects";
 
-type ProjectOut = {
-    id: string;
-    name: string;
-    description?: string;
-};
+import type { ProjectOut } from "$lib/types/projects";
 
 const ProjectsIndex: React.FC = () => {
     const [, setCreate] = useAtom(createProjectAtom);
@@ -29,9 +29,7 @@ const ProjectsIndex: React.FC = () => {
 
     const { isLoading, isSuccess, data } = useQuery<ProjectOut[]>({
         queryKey: ["projects"],
-        queryFn: async () => {
-            return (await authAxios.get("/v1/metadata/projects/")).data;
-        },
+        queryFn: getProjects,
     });
 
     const handleOpenUploadModal = () => {
@@ -60,7 +58,7 @@ const ProjectsIndex: React.FC = () => {
         try {
             const text = await selectedFile.text();
             const json = JSON.parse(text);
-            await authAxios.post("/v1/metadata/projects/import/", json);
+            await importProject(json);
 
             setSelectedFile(null);
             setShowUploadModal(false);
@@ -84,7 +82,7 @@ const ProjectsIndex: React.FC = () => {
 
     const handleDeleteProject = async (projectId: string) => {
         try {
-            await authAxios.delete(`/v1/metadata/projects/${projectId}`);
+            await deleteProject(projectId);
         } catch (error) {
             console.error('Error deleting project:', error);
         } finally {
