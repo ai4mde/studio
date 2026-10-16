@@ -4,12 +4,13 @@ import { RunModel } from "$lib/features/ai/components/RunModel";
 import { SelectModel } from "$lib/features/ai/components/SelectModel";
 import { Steps } from "$lib/features/ai/components/Steps";
 import { UploadRequirements } from "$lib/features/ai/components/UploadRequirements";
+import { isHitlPipeline } from "$lib/features/ai/hitlStorage";
 import { usePipeline } from "$lib/features/ai/queries";
 import { Button, IconButton, LinearProgress } from "@mui/joy";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Trash } from "lucide-react";
 import React from "react";
-import { useNavigate, useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
 
 type Props = Record<string, never>;
 
@@ -26,6 +27,10 @@ export const PipelineIndex: React.FC<Props> = () => {
 
     if (!pipelineId) {
         return <></>;
+    }
+
+    if (isHitlPipeline(pipelineId)) {
+        return <Navigate to={`/process-generation/${pipelineId}`} replace />;
     }
 
     if (!isSuccess) {

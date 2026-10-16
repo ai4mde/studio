@@ -1,5 +1,4 @@
 import { getEdgeParams } from "$diagram/components/utils";
-import { Position } from "postcss";
 import React, { useCallback } from "react";
 import { EdgeProps, getStraightPath, useStore, useReactFlow } from "reactflow";
 import { partialUpdateEdge } from "$diagram/mutations/diagram";
@@ -20,6 +19,8 @@ const FloatingEdge: React.FC<EdgeProps> = ({
     style,
     data,
 }) => {
+    const { diagram } = useDiagramStore();
+    const reactFlowInstance = useReactFlow();
     const sourceNode = useStore(
         useCallback((store) => store.nodeInternals.get(source), [source]),
     );
@@ -30,9 +31,8 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         return null;
     }
 
-    const { diagram } = useDiagramStore();
-    const reactFlowInstance = useReactFlow();
     const edgeData = (data?.edge_data ?? {}) as any;
+    const isPreview = data?._preview === true;
     const positionHandlers = (edgeData.position_handlers ?? []) as PositionHandler[];
     const sourceOffset = (edgeData.source_offset ?? { x: 0, y: 0 }) as PositionHandler;
     const targetOffset = (edgeData.target_offset ?? { x: 0, y: 0 }) as PositionHandler;
@@ -268,14 +268,16 @@ const FloatingEdge: React.FC<EdgeProps> = ({
 
     return (
         <>
-            <path
-                d={edgePath}
-                stroke="transparent"
-                strokeWidth={10}
-                fill="none"
-                style={{ pointerEvents: "stroke" }}
-                onClick={handleEdgeClick}
-            />
+            {!isPreview && (
+                <path
+                    d={edgePath}
+                    stroke="transparent"
+                    strokeWidth={10}
+                    fill="none"
+                    style={{ pointerEvents: "stroke" }}
+                    onClick={handleEdgeClick}
+                />
+            )}
 
             <path
                 id={id}
@@ -427,31 +429,36 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             >
                 {data?.labels?.target ?? ""}
             </text>
-            <circle
-                cx={startX}
-                cy={startY}
-                r={4}
-                fill="black"
-                style={{ pointerEvents: "auto", cursor: "grab" }}
-                onMouseDown={startEndpointDrag("source")}
-            />
-            <circle
-                cx={endX}
-                cy={endY}
-                r={4}
-                fill="black"
-                style={{ pointerEvents: "auto", cursor: "grab" }}
-                onMouseDown={startEndpointDrag("target")}
-            />
-            {positionHandlers.map((handler, index) => (
+            {!isPreview && (
                 <circle
-                    key={`handler-${id}-${index}`}
-                    cx={handler.x}
-                    cy={handler.y}
+                    cx={startX}
+                    cy={startY}
                     r={4}
                     fill="black"
-                    style={{ pointerEvents: "auto" }}
-                    onMouseDown={(event) => {
+                    style={{ pointerEvents: "auto", cursor: "grab" }}
+                    onMouseDown={startEndpointDrag("source")}
+                />
+            )}
+            {!isPreview && (
+                <circle
+                    cx={endX}
+                    cy={endY}
+                    r={4}
+                    fill="black"
+                    style={{ pointerEvents: "auto", cursor: "grab" }}
+                    onMouseDown={startEndpointDrag("target")}
+                />
+            )}
+            {!isPreview &&
+                positionHandlers.map((handler, index) => (
+                    <circle
+                        key={`handler-${id}-${index}`}
+                        cx={handler.x}
+                        cy={handler.y}
+                        r={4}
+                        fill="black"
+                        style={{ pointerEvents: "auto" }}
+                        onMouseDown={(event) => {
                         event.preventDefault();
                         const onMouseMove = (moveEvent: MouseEvent) => {
                             const position = reactFlowInstance.screenToFlowPosition({
@@ -484,19 +491,21 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                         // Attach event listeners for dragging
                         window.addEventListener("mousemove", onMouseMove);
                         window.addEventListener("mouseup", onMouseUp);
-                    }}
-                    onContextMenu={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        const updatedPositionHandlers = positionHandlers.filter((_, i) => i !== index);
-                        partialUpdateEdge(diagram, id, {
-                            data: {
-                                position_handlers: updatedPositionHandlers,
-                            },
-                        });
-                    }}
-                />
-            ))}
+                        }}
+                        onContextMenu={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            const updatedPositionHandlers = positionHandlers.filter(
+                                (_, i) => i !== index,
+                            );
+                            partialUpdateEdge(diagram, id, {
+                                data: {
+                                    position_handlers: updatedPositionHandlers,
+                                },
+                            });
+                        }}
+                    />
+                ))}
         </>
     );
 };

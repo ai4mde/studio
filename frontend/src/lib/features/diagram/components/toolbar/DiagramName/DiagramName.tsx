@@ -1,4 +1,3 @@
-import { useAuthEffect } from "$auth/hooks/authEffect";
 import { useDiagram } from "$diagram/queries";
 import { useDiagramStore } from "$diagram/stores";
 import { authAxios } from "$lib/features/auth/state/auth";
@@ -50,6 +49,12 @@ const DiagramName: React.FC = () => {
                 size="sm"
                 onClick={deviationFlag ? saveName : undefined}
                 color={deviationFlag ? "primary" : "neutral"}
+                aria-label={
+                    deviationFlag ? "Save diagram name" : "Diagram name is saved"
+                }
+                title={
+                    deviationFlag ? "Save diagram name" : "Diagram name is saved"
+                }
             >
                 <Save size={12} />
             </Chip>
