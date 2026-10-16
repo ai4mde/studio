@@ -1,0 +1,52 @@
+You are repairing a UML Activity Diagram sketch after deterministic checks detected topology weaknesses.
+
+Given the following process description:
+
+{{ process_text }}
+
+Current Activity Sketch:
+{{ activity_sketch | tojson(indent=2) }}
+
+{% if repair_report %}
+Deterministic sketch repair report:
+{{ repair_report | tojson(indent=2) }}
+{% endif %}
+
+{% if probe_diagnostics %}
+Probe compilation diagnostics:
+{{ probe_diagnostics | tojson(indent=2) }}
+{% endif %}
+
+Your job:
+- repair the sketch so its control-flow topology is internally consistent
+- preserve the original business semantics unless a topology defect makes that impossible
+- improve control block sequencing, continuation, reconnection, branch ownership, and loop closure
+- keep the sketch easy for a deterministic compiler to realize without guessing
+- use the probe diagnostics as criticism evidence when deciding which topology defects to repair
+
+Focus on topology repair only:
+- fix missing or inconsistent `next_block_id`
+- fix invalid or misplaced `child_block_ids`
+- fix incorrect block attachment using `entry_after` and `entry_after_step_id`
+- fix incorrect continuation targets using `exit_to` and `exit_to_step_id`
+- fix loop closure using `loop_back_to` and `loop_back_to_step_id` when a retry or repetition structure is already present
+- fix disconnected or orphaned control blocks
+- fix contradictory closure settings such as incompatible `requires_merge`
+
+Do not do the following unless the process text clearly makes it unavoidable:
+- do not invent new business steps
+- do not introduce speculative new control blocks
+- do not redesign the whole process
+- do not change a decision into a loop or a parallel block unless the existing sketch is topologically impossible and the text clearly supports the change
+- do not merge multiple business questions into one decision
+- do not remove valid `step_id` or `block_id` values when they can be preserved
+
+Return:
+- the same JSON schema as the Activity Sketch
+- a topology-repaired sketch
+
+Rules:
+- output JSON only
+- preserve valid identifiers where possible
+- prefer local topology fixes over broad semantic rewrites
+- when diagnostics and the sketch disagree, prefer the smallest change that resolves the reported topology defect without inventing new business semantics

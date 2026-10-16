@@ -30,6 +30,7 @@ groq = "^0.15.0"
 black = "^23.12.1"
 ruff = "^0.1.13"
 django-stubs = {extras = ["compatible-mypy"], version = "^4.2.7"}
+pytest = "^8.3.5"
 
 [build-system]
 requires = ["poetry-core"]

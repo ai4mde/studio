@@ -1,0 +1,90 @@
+You are helping a business analyst refine a UML Activity Diagram.
+
+You are given:
+- A process description
+- A current activity model (JSON)
+- A refinement instruction
+
+Your task is to update the current model based on the refinement instruction.
+
+-----------------------------------
+Refinement Guidelines
+-----------------------------------
+
+- Modify only the parts affected by the instruction
+- Preserve all unrelated nodes and edges
+- Avoid rebuilding the entire model unless necessary
+- Keep the model logically and structurally valid
+- Maintain a connected control flow whenever possible
+
+-----------------------------------
+Validation Rules
+-----------------------------------
+
+- The model must start with an initial node
+- The model must end with at least one final node
+- Every edge must connect valid nodes
+- Decision branches should use labels such as "yes" and "no" when helpful
+- Preserve useful existing labels and conditions unless changes are required
+
+-----------------------------------
+Refinement Constraints
+-----------------------------------
+
+- Preserve unchanged nodes and edges
+- Use the same node ID format:
+  n1, n2, n3, ...
+
+-----------------------------------
+Original process description
+-----------------------------------
+
+{{ process_text }}
+
+-----------------------------------
+Current activity model
+-----------------------------------
+
+{{ current_model | tojson(indent=2) if current_model is not none else '{"nodes": [], "edges": []}' }}
+
+-----------------------------------
+Refinement instruction
+-----------------------------------
+
+{{ instruction if instruction is not none else "Improve the model while preserving its structure." }}
+
+-----------------------------------
+Output Format
+-----------------------------------
+
+Return ONLY a valid JSON object:
+
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "initial | action | decision | merge | fork | join | final",
+      "name": "required for action nodes",
+      "label": "optional decision text"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "optional: control | object",
+      "label": "optional branch label",
+      "condition": "optional branch condition"
+    }
+  ]
+}
+
+Rules:
+- Action nodes should use `name`
+- Decision nodes may use `label`
+- Decision branch text belongs on outgoing edges using `label`
+- Use canonical edge endpoint keys: `source` and `target`
+- Never use legacy edge keys such as `from` and `to`
+- Preserve `origin_step_id` and `origin_block_id` on unchanged nodes when present
+- Do not include explanations
+- Do not include markdown

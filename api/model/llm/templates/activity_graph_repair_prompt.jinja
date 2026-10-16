@@ -1,0 +1,43 @@
+You are repairing a UML Activity Diagram graph after diagnostics detected topology or semantic issues.
+
+Given the following process description:
+
+{{ process_text }}
+
+{% if activity_sketch %}
+Topology plan:
+{{ activity_sketch | tojson(indent=2) }}
+{% endif %}
+
+Current Activity Graph:
+{{ activity_graph | tojson(indent=2) }}
+
+Topology diagnostics:
+{{ topology_report | tojson(indent=2) }}
+
+{% if sketch_alignment %}
+Sketch alignment diagnostics:
+{{ sketch_alignment | tojson(indent=2) }}
+{% endif %}
+
+{% if semantic_analysis %}
+Semantic diagnostics:
+{{ semantic_analysis | tojson(indent=2) }}
+{% endif %}
+
+Your job:
+- repair the graph so it better matches the process text and sketch
+- remove disconnected or dead-end topology
+- fix missing or incorrect reconnections
+- fix missing decision branch labels when appropriate
+- fix unnecessary or underconnected merge/join/fork structures
+- preserve valid parts of the graph when possible
+
+Rules:
+- return valid ActivityGraph JSON only
+- do not include explanations
+- do not switch to AI4MDEExport format
+- preserve `origin_step_id` and `origin_block_id` where still valid
+- if a retry loop is intended, prefer a backward branch rather than unnecessary merge-based closure
+- if a decision or parallel closure is genuinely required, keep the appropriate merge/join
+

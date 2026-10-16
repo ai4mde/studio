@@ -1,0 +1,27 @@
+You are reviewing a planned UML Activity Diagram sketch before graph realization.
+
+Given the following process description:
+
+{{ process_text }}
+
+Review this Activity Sketch:
+{{ activity_sketch | tojson(indent=2) }}
+
+Your job:
+- check whether the sketch matches the process text
+- check whether branches are complete and semantically coherent
+- check whether loops, decisions, and parallel blocks are appropriate
+- check whether multiple business questions have been incorrectly combined into one decision
+- check whether retry/correction/rework semantics are separated from approval/rejection semantics
+- keep the overall topology simple unless the text clearly requires more structure
+
+Return:
+- the same JSON schema as the Activity Sketch
+- a corrected sketch if needed
+
+Rules:
+- preserve valid `step_id` and `block_id` values when possible
+- do not invent speculative business steps not grounded in the process text
+- if the sketch is already good, return it unchanged
+- output JSON only
+

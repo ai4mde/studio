@@ -1,0 +1,147 @@
+You are realizing a UML Activity Diagram into valid graph JSON.
+
+Given the following process description:
+
+{{ process_text }}
+
+{% if activity_sketch %}
+Use the following topology plan as authoritative.
+The topology plan defines the intended high-level control-flow structure.
+Treat the process description mainly as lexical and semantic guidance for naming actions and branch labels.
+Do not redesign the control flow unless the process text clearly and explicitly contradicts the plan.
+
+Topology plan:
+{{ activity_sketch | tojson(indent=2) }}
+
+Topology adherence rules:
+- Use the topology plan as authoritative
+- Preserve the planned main flow and control-block ordering
+- Treat TopologyPlan `step_id` and `block_id` references as authoritative disambiguators when they are present
+- Instantiate the declared topology instead of re-planning it from the process description
+- Do not invent new decision, loop, fork, join, or merge structures unless needed to keep the graph valid
+- If a control block has `requires_merge=true`, realize an appropriate closure before continuing:
+  decision -> merge
+  parallel -> join
+- If a control block references `entry_after_step_id`, `exit_to_step_id`, or `loop_back_to_step_id`, use those references to preserve the intended topology even if nearby action names are similar
+- If a block has `exit_to`, reconnect the block to that later main-flow action
+- If a loop block has `loop_back_to`, realize a backward edge to that earlier action
+- If a branch includes `steps`, realize those branch-local action nodes on that branch before it rejoins, exits, or chains forward
+- If a branch includes `next_block_id`, continue that branch into the referenced later control block instead of collapsing the chain into one decision
+- If a branch includes `child_block_ids`, realize those referenced top-level control blocks as downstream branch-owned control flow for that branch
+- Support only one level of branch-owned downstream control blocks; do not reinterpret them as recursive nesting
+- For a `parallel` block with branch-owned downstream control blocks, always realize:
+  incoming action -> fork -> branch-owned downstream structures -> join -> exit target
+- Do not emit a join for a parallel block unless a corresponding fork is also emitted for that same split
+- Do not replace a parallel split with success/failure decision branches when the sketch specifies a `parallel` block
+- Branches marked `returns_to_main_flow=true` should normally reconnect to the main flow instead of ending abruptly
+- Loop blocks should preserve a backward flow together with an exit path
+- For retry-validation loops, realize the structure as:
+  validation action -> decision question -> retry branch back to validation -> success branch forward to the exit action
+- Simple retry loops should not introduce an explicit merge unless multiple forward branches truly rejoin later
+- If the topology plan is slightly underspecified, make the smallest valid completion that preserves its structure
+- Preserve symbolic traceability when possible:
+  - action nodes derived from main-flow steps should include `origin_step_id`
+  - control nodes derived from control blocks should include `origin_block_id`
+
+{% else %}
+No topology plan was provided.
+Create a valid UML Activity Diagram directly from the process text.
+{% endif %}
+
+Your task is to realize the topology into valid graph JSON.
+
+Realization responsibilities:
+- assign node IDs
+- create graph nodes and edges
+- add branch labels where helpful
+- realize actions using the process text for semantic naming
+- satisfy schema constraints
+- preserve the provided structure whenever possible
+
+Minimal completion behavior:
+- You may add small connector details needed to produce a valid connected graph
+- Prefer minimal completion over topology redesign
+{% if activity_sketch %}
+- Do not reinterpret the topology when the plan is already sufficient to instantiate it
+- If the process text clearly contradicts the topology plan, stay as close to the plan as possible while producing a valid graph
+{% else %}
+- Use the process text to infer a valid topology and stay close to its described control flow
+{% endif %}
+
+-----------------------------------
+Output Format
+-----------------------------------
+
+Return ONLY a valid JSON object with this structure:
+
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "action",
+      "name": "Example action"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n1",
+      "target": "n2",
+      "type": "control"
+    }
+  ]
+}
+
+Allowed node types:
+- initial
+- action
+- decision
+- merge
+- fork
+- join
+- final
+
+Node ID rules:
+- Use IDs in the format `n1`, `n2`, `n3`, ...
+- Every node ID must be unique
+
+Node realization rules:
+- Use `initial` for the start of the process
+- Use `final` for process completion
+- Use `action` nodes with `name`
+{% if activity_sketch %}
+- When a node directly realizes a planned main-flow step, include `origin_step_id`
+- When a node directly realizes a planned branch-local step, include its `origin_step_id` when one is provided
+- When a control node directly realizes a planned control block, include `origin_block_id`
+{% endif %}
+- Use `decision` nodes when the topology plan contains a decision block
+- Decision nodes should use short question-style labels that end with `?`
+- For validation and approval semantics, prefer labels like `Errors found?`, `Order approved?`, or `Payment valid?`
+- Use `merge` nodes to close decision branches when required
+- Use `fork` and `join` nodes to realize parallel blocks
+{% if not activity_sketch %}
+- For retry loops, realize the retry branch as a backward edge instead of a merge-based rejoin
+- For retry-validation flows, prefer a decision question with a `Yes` retry branch and a `No` success branch
+{% endif %}
+
+Edge realization rules:
+- Use canonical edge endpoint keys: `source` and `target`
+- Never use legacy edge keys such as `from` and `to`
+- Every edge must connect valid node IDs
+- Edge `type` must remain `control` or `object` only
+- Branch words such as `Yes`, `No`, `retry`, `approved`, and `rejected` belong in `label`, never in `type`
+- Use edge labels such as `Yes`, `No`, `retry`, or short branch names when helpful
+- Decision branches should use meaningful outgoing labels; for binary validation or approval decisions, prefer `Yes` / `No`
+- Keep the graph connected whenever possible
+
+Validation rules:
+- The model must start with one initial node
+- The model must end with at least one final node
+- Every edge must connect valid nodes
+- Decision branches should reconnect using merge nodes when the topology plan expects closure
+- Parallel branches should reconnect using join nodes when the topology plan expects closure
+- Loops must include an exit path
+- Distinct branch-local actions and chained decisions in the topology plan should be preserved instead of compressed into a single multi-way decision
+- Branch-owned downstream control blocks referenced by `child_block_ids` should be preserved instead of flattened into sequential or success/failure structures
+
+Do not include explanations.
+Do not include markdown.
