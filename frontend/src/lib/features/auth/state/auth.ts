@@ -1,8 +1,9 @@
-import { baseURL } from "$shared/globals";
-import axios from "axios";
+import { apiClient as authAxios } from "../../../../api/client"; 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { decodeJwt } from "jose";
+
+export { authAxios };
 
 type AuthStore = {
     isAuthenticated: boolean;
@@ -18,16 +19,6 @@ type AuthStore = {
     logout: () => void;
 };
 
-axios.defaults.withCredentials = true;
-axios.defaults.withXSRFToken = true;
-
-export const authAxios = axios.create({
-    baseURL: baseURL,
-    withCredentials: true,
-    xsrfCookieName: "csrftoken",
-    xsrfHeaderName: "X-CSRFTOKEN",
-    withXSRFToken: true,
-});
 
 export const useAuthStore = create(
     persist<AuthStore>(
