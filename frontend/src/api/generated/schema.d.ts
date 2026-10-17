@@ -1418,8 +1418,8 @@ export interface components {
         };
         /** SectionAttributeRead */
         SectionAttributeRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * Section
              * Format: uuid

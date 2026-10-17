@@ -1,5 +1,6 @@
 
 import type { ClassifierFilters } from "./metadata/classifier";
+import type { InterfaceFilters } from "./metadata/interface";
 
 export const queryKeys = {
     projects: {
@@ -30,4 +31,12 @@ export const queryKeys = {
         list: (filters: ClassifierFilters = {}) =>
             ["classifiers", "list", filters] as const,
     },
+    interfaces: {
+    all: ["interfaces"] as const,
+    lists: () => ["interfaces", "list"] as const,
+    list: (filters: InterfaceFilters = {}) =>
+        ["interfaces", "list", filters] as const,
+    detail: (interfaceId: string) =>
+        ["interfaces", "detail", interfaceId] as const,
+},
 };

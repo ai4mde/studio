@@ -93,6 +93,7 @@ class SectionComponent(models.Model):
 
 
 class PageSection(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     page = models.ForeignKey(
         Page,
         on_delete=models.CASCADE,
@@ -120,6 +121,7 @@ class PageSection(models.Model):
     
 
 class SectionAttribute(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     section = models.ForeignKey(
         SectionComponent,
         on_delete=models.CASCADE,
