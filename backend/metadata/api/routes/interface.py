@@ -169,7 +169,7 @@ def delete_page_section(request, page_section_id: int):
 
 @router.post("/section-attributes/", response=SectionAttributeRead)
 def create_section_attribute(request, payload: SectionAttributeCreate):
-    return SectionAttribute.objects.create(**payload.model_dump())
+    return create_instance(SectionAttribute, payload)
 
 
 @router.patch("/section-attributes/{section_attribute_id}/", response=SectionAttributeRead)

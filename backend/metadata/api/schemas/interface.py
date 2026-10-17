@@ -159,9 +159,9 @@ class InterfaceSummary(ModelSchema):
 
 
 class InterfaceRead(ModelSchema):
-    pages: list[PageRead] = []
-    categories: list[CategoryRead] = []
-    sections: list[SectionComponentRead] = []
+    pages: list[PageRead]
+    categories: list[CategoryRead]
+    sections: list[SectionComponentRead]
 
     class Meta:
         model = Interface
