@@ -1,6 +1,4 @@
-# This module contains shared schema-building utilties for typed data models.
-# It does not define API schemas directly.
-# If you want to define API schemas for a specific typed data model, you should do that in the corresponding file in the api/schemas directory.
+# Shared utilities for dynamically building typed API schemas.
 
 from functools import reduce
 from operator import or_
@@ -33,11 +31,17 @@ def build_read_union(
     for data_type in type_enum:
         schemas = get_schemas(data_type)
 
+        literal_type = Literal[data_type]  # type: ignore[valid-type]
+
+        fields = {
+            "type": (literal_type, ...),
+            "data": (schemas["read"], ...),
+        }
+
         model = create_model(
             f"{data_type.name.title()}{name}Read",
             __base__=base_model,
-            type=(Literal[data_type], ...),
-            data=(schemas["read"], ...),
+            **fields,
         )
 
         models.append(model)
@@ -60,23 +64,31 @@ def build_create_model(
     for data_type in type_enum:
         schemas = get_schemas(data_type)
 
+        literal_type = Literal[data_type]  # type: ignore[valid-type]
+
+        fields = {
+            "type": (literal_type, ...),
+            "data": (schemas["create"], ...),
+        }
+
         model = create_model(
             f"{data_type.name.title()}{name}Create",
             __base__=base_model,
-            type=(Literal[data_type], ...),
-            data=(schemas["create"], ...),
+            **fields,
         )
 
         models.append(model)
 
     union = reduce(or_, models)
 
-    class TypedCreate(RootModel):
-        root: Annotated[
-            union,  # type: ignore[valid-type]
-            Field(discriminator="type"),
-        ]
-
-    TypedCreate.__name__ = f"{name}Create"
-
-    return TypedCreate
+    return create_model(
+        f"{name}Create",
+        __base__=RootModel,
+        root=(
+            Annotated[
+                union,  # type: ignore[valid-type]
+                Field(discriminator="type"),
+            ],
+            ...,
+        ),
+    )

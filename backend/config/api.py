@@ -4,7 +4,8 @@ from django.http import HttpResponse
 from ninja import NinjaAPI, Schema
 from ninja.errors import ValidationError
 
-from model.auth import auth, create_token
+from config.auth import auth, create_token
+from config.openapi import StudioAPI
 
 from diagram.api.router import router as diagram_router
 from generator.api import generator_router
@@ -12,7 +13,7 @@ from metadata.api.router import router as metadata_router
 from prose.api import prose_router
 
 
-api = NinjaAPI(
+api = StudioAPI(
     title="AI4MDE Studio",
     version="0.0.1",  # TODO: Use package-wide versioning
     description="AI4MDE Studio API",
