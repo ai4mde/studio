@@ -92,24 +92,6 @@ export interface paths {
         patch: operations["metadata_api_routes_project_update_project"];
         trace?: never;
     };
-    "/api/v1/metadata/systems/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Systems */
-        get: operations["metadata_api_routes_system_list_systems"];
-        put?: never;
-        /** Create System */
-        post: operations["metadata_api_routes_system_create_system"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/metadata/systems/{system_id}/": {
         parameters: {
             query?: never;
@@ -129,6 +111,23 @@ export interface paths {
         patch: operations["metadata_api_routes_system_update_system"];
         trace?: never;
     };
+    "/api/v1/metadata/systems/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create System */
+        post: operations["metadata_api_routes_system_create_system"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/metadata/classifiers/": {
         parameters: {
             query?: never;
@@ -138,23 +137,6 @@ export interface paths {
         };
         /** List Classifiers */
         get: operations["metadata_api_routes_classifier_list_classifiers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/metadata/classifiers/{classifier_id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Classifier */
-        get: operations["metadata_api_routes_classifier_read_classifier"];
         put?: never;
         post?: never;
         delete?: never;
@@ -753,8 +735,34 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** ProjectList */
+        ProjectList: {
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+        };
         /** ProjectRead */
         ProjectRead: {
+            /** Systems */
+            systems: components["schemas"]["SystemList"][];
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+        };
+        /** SystemList */
+        SystemList: {
             /** Id */
             id?: string | null;
             /** Name */
@@ -823,13 +831,8 @@ export interface components {
              */
             project: string;
         };
-        /** SystemCreate */
-        SystemCreate: {
-            /**
-             * Project Id
-             * Format: uuid
-             */
-            project_id: string;
+        /** SystemUpdate */
+        SystemUpdate: {
             /** Name */
             name: string;
             /**
@@ -838,8 +841,13 @@ export interface components {
              */
             description: string | null;
         };
-        /** SystemUpdate */
-        SystemUpdate: {
+        /** SystemCreate */
+        SystemCreate: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
             /** Name */
             name: string;
             /**
@@ -2101,8 +2109,8 @@ export interface components {
         };
         /** AssociationRelationRead */
         AssociationRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2139,8 +2147,8 @@ export interface components {
         };
         /** CompositionRelationRead */
         CompositionRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2197,8 +2205,8 @@ export interface components {
         };
         /** ControlflowRelationRead */
         ControlflowRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2231,8 +2239,8 @@ export interface components {
         };
         /** DependencyRelationRead */
         DependencyRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2290,8 +2298,8 @@ export interface components {
         };
         /** ExtensionRelationRead */
         ExtensionRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2316,8 +2324,8 @@ export interface components {
         };
         /** GeneralizationRelationRead */
         GeneralizationRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2342,8 +2350,8 @@ export interface components {
         };
         /** InclusionRelationRead */
         InclusionRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2368,8 +2376,8 @@ export interface components {
         };
         /** InteractionRelationRead */
         InteractionRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2394,8 +2402,8 @@ export interface components {
         };
         /** InterfaceRelationRead */
         metadata__api__schemas__builders__InterfaceRelationRead: {
-            /** ID */
-            id?: number | null;
+            /** Id */
+            id?: string | null;
             /**
              * System
              * Format: uuid
@@ -2863,7 +2871,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectRead"][];
+                    "application/json": components["schemas"]["ProjectList"][];
                 };
             };
         };
@@ -2960,52 +2968,6 @@ export interface operations {
             };
         };
     };
-    metadata_api_routes_system_list_systems: {
-        parameters: {
-            query: {
-                project_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemRead"][];
-                };
-            };
-        };
-    };
-    metadata_api_routes_system_create_system: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SystemCreate"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemRead"];
-                };
-            };
-        };
-    };
     metadata_api_routes_system_read_system: {
         parameters: {
             query?: never;
@@ -3074,6 +3036,30 @@ export interface operations {
             };
         };
     };
+    metadata_api_routes_system_create_system: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemRead"];
+                };
+            };
+        };
+    };
     metadata_api_routes_classifier_list_classifiers: {
         parameters: {
             query?: {
@@ -3093,28 +3079,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": (components["schemas"]["metadata__api__schemas__builders__ClassClassifierRead"] | components["schemas"]["SignalClassifierRead"] | components["schemas"]["EnumClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__InterfaceClassifierRead"] | components["schemas"]["UsecaseClassifierRead"] | components["schemas"]["ActorClassifierRead"] | components["schemas"]["System_BoundaryClassifierRead"] | components["schemas"]["SwimlaneClassifierRead"] | components["schemas"]["ActionClassifierRead"] | components["schemas"]["DecisionClassifierRead"] | components["schemas"]["FinalClassifierRead"] | components["schemas"]["ForkClassifierRead"] | components["schemas"]["InitialClassifierRead"] | components["schemas"]["JoinClassifierRead"] | components["schemas"]["MergeClassifierRead"] | components["schemas"]["ObjectClassifierRead"] | components["schemas"]["EventClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__SystemClassifierRead"] | components["schemas"]["ContainerClassifierRead"] | components["schemas"]["ComponentClassifierRead"])[];
-                };
-            };
-        };
-    };
-    metadata_api_routes_classifier_read_classifier: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                classifier_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["metadata__api__schemas__builders__ClassClassifierRead"] | components["schemas"]["SignalClassifierRead"] | components["schemas"]["EnumClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__InterfaceClassifierRead"] | components["schemas"]["UsecaseClassifierRead"] | components["schemas"]["ActorClassifierRead"] | components["schemas"]["System_BoundaryClassifierRead"] | components["schemas"]["SwimlaneClassifierRead"] | components["schemas"]["ActionClassifierRead"] | components["schemas"]["DecisionClassifierRead"] | components["schemas"]["FinalClassifierRead"] | components["schemas"]["ForkClassifierRead"] | components["schemas"]["InitialClassifierRead"] | components["schemas"]["JoinClassifierRead"] | components["schemas"]["MergeClassifierRead"] | components["schemas"]["ObjectClassifierRead"] | components["schemas"]["EventClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__SystemClassifierRead"] | components["schemas"]["ContainerClassifierRead"] | components["schemas"]["ComponentClassifierRead"];
                 };
             };
         };

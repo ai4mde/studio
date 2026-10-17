@@ -15,11 +15,6 @@ from metadata.models import System
 router = Router()
 
 
-@router.get("/", response=list[SystemRead])
-def list_systems(request, project_id: UUID):
-    return System.objects.filter(project_id=project_id)
-
-
 @router.get("/{system_id}/", response=SystemRead)
 def read_system(request, system_id: UUID):
     return get_object_or_404(System, id=system_id)

@@ -1,4 +1,5 @@
 from typing import Any
+import uuid
 
 from django.db import models
 
@@ -15,6 +16,11 @@ class Relation(TypedDataModel):
     data_model_aliases = {
         RelationType.INTERFACE: "InterfaceRelation",
     }
+    
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+    )
 
     system = models.ForeignKey(
         System,

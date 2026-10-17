@@ -8,6 +8,7 @@ from metadata.api.schemas.project import (
     ProjectCreate, 
     ProjectRead, 
     ProjectUpdate,
+    ProjectList,
 )
 from metadata.models import Project
 
@@ -15,7 +16,7 @@ from metadata.models import Project
 router = Router()
 
 
-@router.get("/", response=list[ProjectRead])
+@router.get("/", response=list[ProjectList])
 def list_projects(request):
     return Project.objects.all()
 

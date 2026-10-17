@@ -1,13 +1,22 @@
 from ninja import ModelSchema
 
+from metadata.api.schemas.system import SystemList
 from metadata.models import Project
 
 
-class ProjectRead(ModelSchema):
+class ProjectList(ModelSchema):
     class Meta:
         model = Project
         fields = ["id", "name", "description"]
 
+
+class ProjectRead(ModelSchema):
+    systems: list[SystemList]
+
+    class Meta:
+        model = Project
+        fields = ["id", "name", "description"]
+    
 
 class ProjectCreate(ModelSchema):
     class Meta:

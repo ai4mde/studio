@@ -27,8 +27,3 @@ def list_classifiers(
         return classifiers.filter(system__project_id=project_id)
 
     return classifiers
-
-
-@router.get("/{classifier_id}/", response=ClassifierRead)
-def read_classifier(request, classifier_id: UUID):
-    return get_object_or_404(Classifier, id=classifier_id)

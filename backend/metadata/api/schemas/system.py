@@ -17,6 +17,12 @@ class SystemRead(ModelSchema):
         return obj.diagrams.all()
 
 
+class SystemList(ModelSchema):
+    class Meta:
+        model = System
+        fields = ["id", "name", "description"]
+
+
 class SystemCreate(ModelSchema):
     project_id: UUID
 
