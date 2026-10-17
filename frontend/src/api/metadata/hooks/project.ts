@@ -1,6 +1,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { queryKeys } from "../../querykeys";
+
 import {
     listProjects,
     getProject,
@@ -13,14 +15,14 @@ import type { ProjectUpdate } from "../project";
 
 export const useProjects = () => {
     return useQuery({
-        queryKey: ["projects"],
+        queryKey: queryKeys.projects.list(),
         queryFn: listProjects,
     });
 };
 
 export const useProject = (projectId: string) => {
     return useQuery({
-        queryKey: ["project", projectId],
+        queryKey: queryKeys.projects.detail(projectId),
         queryFn: () => getProject(projectId),
         enabled: Boolean(projectId),
     });
@@ -34,7 +36,7 @@ export const useCreateProject = () => {
 
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["projects"],
+                queryKey: queryKeys.projects.list(),
             });
         },
     });
@@ -54,10 +56,11 @@ export const useUpdateProject = () => {
 
         onSuccess: (_, { projectId }) => {
             queryClient.invalidateQueries({
-                queryKey: ["project", projectId],
+                queryKey: queryKeys.projects.detail(projectId),
             });
+
             queryClient.invalidateQueries({
-                queryKey: ["projects"],
+                queryKey: queryKeys.projects.list(),
             });
         },
     });
@@ -71,12 +74,11 @@ export const useDeleteProject = () => {
 
         onSuccess: (_, projectId) => {
             queryClient.removeQueries({
-                queryKey: ["project", projectId],
+                queryKey: queryKeys.projects.detail(projectId),
                 exact: true,
             });
-            queryClient.invalidateQueries({
-                queryKey: ["projects"],
-            });
+
+            queryClient.invalidateQueries();
         },
     });
 };

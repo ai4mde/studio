@@ -1,6 +1,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { queryKeys } from "../../querykeys";
+
 import {
     getDiagram,
     listDiagrams,
@@ -11,11 +13,9 @@ import {
 
 import type { DiagramUpdate } from "../diagram";
 
-// Queries
-
 export const useDiagram = (diagramId: string) => {
     return useQuery({
-        queryKey: ["diagram", diagramId],
+        queryKey: queryKeys.diagrams.detail(diagramId),
         queryFn: () => getDiagram(diagramId),
         enabled: Boolean(diagramId),
     });
@@ -23,22 +23,21 @@ export const useDiagram = (diagramId: string) => {
 
 export const useDiagrams = (systemId: string) => {
     return useQuery({
-        queryKey: ["diagrams", systemId],
+        queryKey: queryKeys.diagrams.list(systemId),
         queryFn: () => listDiagrams(systemId),
         enabled: Boolean(systemId),
     });
 };
-
-// Mutations
 
 export const useCreateDiagram = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: createDiagram,
-        onSuccess: () => {
+
+        onSuccess: (diagram) => {
             queryClient.invalidateQueries({
-                queryKey: ["diagrams"],
+                queryKey: queryKeys.diagrams.list(diagram.system),
             });
         },
     });
@@ -58,10 +57,11 @@ export const useUpdateDiagram = () => {
 
         onSuccess: (_, { diagramId }) => {
             queryClient.invalidateQueries({
-                queryKey: ["diagram", diagramId],
+                queryKey: queryKeys.diagrams.detail(diagramId),
             });
+
             queryClient.invalidateQueries({
-                queryKey: ["diagrams"],
+                queryKey: queryKeys.diagrams.lists(),
             });
         },
     });
@@ -75,12 +75,11 @@ export const useDeleteDiagram = () => {
 
         onSuccess: (_, diagramId) => {
             queryClient.removeQueries({
-                queryKey: ["diagram", diagramId],
+                queryKey: queryKeys.diagrams.detail(diagramId),
                 exact: true,
             });
-            queryClient.invalidateQueries({
-                queryKey: ["diagrams"],
-            });
+
+            queryClient.invalidateQueries();
         },
     });
 };

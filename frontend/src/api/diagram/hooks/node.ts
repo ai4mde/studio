@@ -1,6 +1,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { queryKeys } from "../../querykeys";
+
 import {
     createNode,
     updateNode,
@@ -8,8 +10,6 @@ import {
 } from "../node";
 
 import type { NodeCreate, NodeUpdate } from "../node";
-
-// Create node
 
 export const useCreateNode = () => {
     const queryClient = useQueryClient();
@@ -25,16 +25,15 @@ export const useCreateNode = () => {
 
         onSuccess: (_, { diagramId }) => {
             queryClient.invalidateQueries({
-                queryKey: ["diagram", diagramId],
+                queryKey: queryKeys.diagrams.detail(diagramId),
             });
+
             queryClient.invalidateQueries({
-                queryKey: ["classifiers"],
+                queryKey: queryKeys.classifiers.all,
             });
         },
     });
 };
-
-// Update node
 
 export const useUpdateNode = () => {
     const queryClient = useQueryClient();
@@ -51,19 +50,17 @@ export const useUpdateNode = () => {
 
         onSuccess: (_, { diagramId, payload }) => {
             queryClient.invalidateQueries({
-                queryKey: ["diagram", diagramId],
+                queryKey: queryKeys.diagrams.detail(diagramId),
             });
 
-            if (payload.classifier != null) {
+            if (payload.classifier !== undefined) {
                 queryClient.invalidateQueries({
-                    queryKey: ["classifiers"],
+                    queryKey: queryKeys.classifiers.all,
                 });
             }
         },
     });
 };
-
-// Delete node
 
 export const useDeleteNode = () => {
     const queryClient = useQueryClient();
@@ -76,13 +73,8 @@ export const useDeleteNode = () => {
             diagramId: string;
         }) => deleteNode(nodeId),
 
-        onSuccess: (_, { diagramId }) => {
-            queryClient.invalidateQueries({
-                queryKey: ["diagram", diagramId],
-            });
-            queryClient.invalidateQueries({
-                queryKey: ["classifiers"],
-            });
+        onSuccess: () => {
+            queryClient.invalidateQueries();
         },
     });
 };

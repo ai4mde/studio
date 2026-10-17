@@ -1,6 +1,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { queryKeys } from "../../querykeys";
+
 import {
     getSystem,
     createSystem,
@@ -12,7 +14,7 @@ import type { SystemUpdate } from "../system";
 
 export const useSystem = (systemId: string) => {
     return useQuery({
-        queryKey: ["system", systemId],
+        queryKey: queryKeys.systems.detail(systemId),
         queryFn: () => getSystem(systemId),
         enabled: Boolean(systemId),
     });
@@ -26,7 +28,7 @@ export const useCreateSystem = () => {
 
         onSuccess: (system) => {
             queryClient.invalidateQueries({
-                queryKey: ["project", system.project],
+                queryKey: queryKeys.projects.detail(system.project),
             });
         },
     });
@@ -44,12 +46,13 @@ export const useUpdateSystem = () => {
             payload: SystemUpdate;
         }) => updateSystem(systemId, payload),
 
-        onSuccess: (system, { systemId }) => {
+        onSuccess: (_, { systemId }) => {
             queryClient.invalidateQueries({
-                queryKey: ["system", systemId],
+                queryKey: queryKeys.systems.detail(systemId),
             });
+
             queryClient.invalidateQueries({
-                queryKey: ["project", system.project],
+                queryKey: queryKeys.projects.all,
             });
         },
     });
@@ -63,17 +66,15 @@ export const useDeleteSystem = () => {
             systemId,
         }: {
             systemId: string;
-            projectId: string;
         }) => deleteSystem(systemId),
 
-        onSuccess: (_, { systemId, projectId }) => {
+        onSuccess: (_, { systemId }) => {
             queryClient.removeQueries({
-                queryKey: ["system", systemId],
+                queryKey: queryKeys.systems.detail(systemId),
                 exact: true,
             });
-            queryClient.invalidateQueries({
-                queryKey: ["project", projectId],
-            });
+
+            queryClient.invalidateQueries();
         },
     });
 };

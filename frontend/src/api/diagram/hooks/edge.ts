@@ -1,6 +1,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { queryKeys } from "../../querykeys";
+
 import {
     createEdge,
     updateEdge,
@@ -23,7 +25,7 @@ export const useCreateEdge = () => {
 
         onSuccess: (_, { diagramId }) => {
             queryClient.invalidateQueries({
-                queryKey: ["diagram", diagramId],
+                queryKey: queryKeys.diagrams.detail(diagramId),
             });
         },
     });
@@ -44,7 +46,7 @@ export const useUpdateEdge = () => {
 
         onSuccess: (_, { diagramId }) => {
             queryClient.invalidateQueries({
-                queryKey: ["diagram", diagramId],
+                queryKey: queryKeys.diagrams.detail(diagramId),
             });
         },
     });
@@ -63,7 +65,7 @@ export const useDeleteEdge = () => {
 
         onSuccess: (_, { diagramId }) => {
             queryClient.invalidateQueries({
-                queryKey: ["diagram", diagramId],
+                queryKey: queryKeys.diagrams.detail(diagramId),
             });
         },
     });
