@@ -3,24 +3,12 @@ import SystemLayout from "$lib/features/browser/components/systems/SystemLayout"
 import { queryClient } from "$lib/shared/hooks/queryClient";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Component, Network, Plus, User, Workflow, Blocks, X, Download } from "lucide-react";
+import { Component, Network, Plus, User, Workflow, Blocks, X } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router";
 import { ShowMetadata } from "$metadata/components/ShowMetadata";
-
-type FlatDiagram = {
-    id: string;
-    name: string;
-    description: string;
-    type: string;
-};
-
-type SystemOut = {
-    id: string;
-    name: string;
-    description?: string;
-    diagrams: FlatDiagram[];
-};
+import { getSystem } from "$lib/endpoints/systems";
+import type { SystemOut } from "$lib/types/systems";
 
 type NewDiagram = {
     type: string;
@@ -35,11 +23,8 @@ const SystemDiagrams: React.FC = () => {
     const [diagramToDelete, setDiagramToDelete] = useState("");
 
     const system = useQuery<SystemOut>({
-        queryKey: [`system`, `${systemId}`],
-        queryFn: async () => {
-            return (await authAxios.get(`/v1/metadata/systems/${systemId}/`))
-                .data;
-        },
+        queryKey: ["system", `${systemId}`],
+        queryFn: () => getSystem(systemId!),
         enabled: !!systemId,
     });
 

@@ -4,7 +4,7 @@ import { Button, Modal, ModalDialog, ModalClose, Divider } from '@mui/joy';
 import React, { useState } from "react";
 import { createSystemAtom } from "../../atoms";
 import { useSystems } from "$browser/queries";
-import { authAxios } from "$lib/features/auth/state/auth";
+import { deleteSystem } from "$lib/endpoints/systems";
 
 type Props = {
     project: string;
@@ -18,15 +18,15 @@ export const ListSystem: React.FC<Props> = ({ project }) => {
 
     const handleDeleteSystem = async (systemId: string) => {
         try {
-            await authAxios.delete(`/v1/metadata/systems/${systemId}/`);
+            await deleteSystem(systemId);
         } catch (error) {
-            console.error('Error deleting system:', error);
+            console.error("Error deleting system:", error);
         } finally {
             setSystemToDelete("");
             setShowDeleteSystemModal(false);
             refetch();
         }
-    }
+    };
 
     const openDeleteSystemModal = (systemId: string) => {
         setShowDeleteSystemModal(true);

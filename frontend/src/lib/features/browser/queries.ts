@@ -2,36 +2,20 @@ import { authAxios } from "$auth/state/auth";
 import { useQuery } from "@tanstack/react-query";
 import { getProject } from "$lib/endpoints/projects";
 import type { ProjectOut } from "$lib/types/projects";
-
-export type SystemOut = {
-    id: string;
-    name: string;
-    description?: string;
-    project?: string;
-};
+import { getSystems, getSystem } from "$lib/endpoints/systems";
+import type { SystemOut } from "$lib/types/systems";
 
 export const useSystems = (projectId?: string) =>
     useQuery<SystemOut[]>({
         queryKey: ["systems", `${projectId}`],
-        queryFn: async () => {
-            return (
-                await authAxios.get(`/v1/metadata/systems/`, {
-                    params: {
-                        project_id: projectId,
-                    },
-                })
-            ).data;
-        },
+        queryFn: () => getSystems(projectId!),
         enabled: !!projectId,
     });
 
 export const useSystem = (systemId?: string) =>
     useQuery<SystemOut>({
         queryKey: ["system", `${systemId}`],
-        queryFn: async () => {
-            return (await authAxios.get(`/v1/metadata/systems/${systemId}/`))
-                .data;
-        },
+        queryFn: () => getSystem(systemId!),
         enabled: !!systemId,
     });
 

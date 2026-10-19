@@ -15,8 +15,8 @@ import {
 } from "@mui/joy";
 import ProjectLayout from "$browser/components/projects/ProjectLayout";
 import { useProject, useSystems } from "$browser/queries";
-import { authAxios } from "$auth/state/auth";
 import { exportProject } from "$lib/endpoints/projects";
+import { exportSystems } from "$lib/endpoints/systems";
 
 type ExportType = "project" | "systems";
 
@@ -67,16 +67,10 @@ const ProjectExports: React.FC = () => {
     };
 
     const handleExportSystems = async () => {
-        const params = new URLSearchParams();
-        selectedSystemIds.forEach((id) => {
-            params.append("system_ids", id);
-        });
+        const data = await exportSystems(selectedSystemIds);
 
-        const response = await authAxios.get(`/v1/metadata/systems/export/`, {
-            params,
-        });
-        downloadJson(response.data, `${projectName}-systems-export.json`);
-    }
+        downloadJson(data, `${projectName}-systems-export.json`);
+    };
 
     const handleExport = async () => {
         if (!projectId) return;

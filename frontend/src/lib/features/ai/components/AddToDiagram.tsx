@@ -8,15 +8,11 @@ import React from "react";
 import { Pipeline } from "../types";
 import { getProjects } from "$lib/endpoints/projects";
 import type { ProjectOut } from "$lib/types/projects";
+import { getSystems } from "$lib/endpoints/systems";
+import type { SystemOut } from "$lib/types/systems";
 
 type Props = {
     pipeline: Pipeline;
-};
-
-type SystemOut = {
-    id: string;
-    name: string;
-    description?: string;
 };
 
 type DiagramOut = {
@@ -51,15 +47,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
 
     const systems = useQuery<SystemOut[]>({
         queryKey: ["systems", `${project}`],
-        queryFn: async () => {
-            return (
-                await authAxios.get(`/v1/metadata/systems/`, {
-                    params: {
-                        project: project,
-                    },
-                })
-            ).data;
-        },
+        queryFn: () => getSystems(project!),
         enabled: !!project,
     });
 
