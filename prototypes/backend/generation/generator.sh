@@ -11,6 +11,9 @@ export ROOT=/usr/src/prototypes/
 
 export PYTHONPATH="${WORKDIR}/generation_scripts"
 
+# Validate before creating an output directory or changing any generated application.
+python "${WORKDIR}/generation_scripts/validate_ai_metadata.py" "$METADATA_FILE"
+
 # Global settings such as authentication go here
 export AUTH_PRESENT=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA_FILE")
 

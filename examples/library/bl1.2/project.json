@@ -1,0 +1,748 @@
+{
+  "id": "a714ba7b-7120-53aa-80e8-544db4235967",
+  "name": "Library BL 1.2",
+  "description": "Shared loan period, per-book returns, checkout risk and reading plans.",
+  "systems": [
+    {
+      "id": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+      "project": "a714ba7b-7120-53aa-80e8-544db4235967",
+      "name": "Library",
+      "description": "Shared loan period, per-book returns, checkout risk and reading plans.",
+      "classifiers": [
+        {
+          "id": "dd70b389-e349-5c1b-8ca4-21859c041b4e",
+          "project": "a714ba7b-7120-53aa-80e8-544db4235967",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Author",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "body": null,
+                "enum": null,
+                "name": "name",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "nationality",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "f163c2cb-718d-547b-b95e-ad2bc5990937",
+          "project": "a714ba7b-7120-53aa-80e8-544db4235967",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Book",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "body": null,
+                "enum": null,
+                "name": "title",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "isbn",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "year",
+                "type": "int",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": "17a9bbd7-4766-53e3-a083-e69fc8977a30",
+                "name": "category",
+                "type": "enum",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "9f3268ef-b30b-5011-8b96-e8673962c008",
+          "project": "a714ba7b-7120-53aa-80e8-544db4235967",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Customer",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "body": null,
+                "enum": null,
+                "name": "name",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "email",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "reading_plan",
+                "type": "str",
+                "derived": false,
+                "ai_config": {
+                  "ai_config_version": "1.2",
+                  "trigger": {
+                    "type": "user_action",
+                    "class": "Customer"
+                  },
+                  "context": {
+                    "relations": [
+                      "Loan",
+                      "BookLoan",
+                      "Book"
+                    ],
+                    "history": {
+                      "scope": "Loan.Customer",
+                      "completed_only": true,
+                      "as_of": "today",
+                      "order_by": "-return_date",
+                      "limit": 20,
+                      "unit": "book_loan",
+                      "max_scan_records": 200
+                    }
+                  },
+                  "template": {
+                    "chain": [
+                      "reading_plan_analyze_taste_v1",
+                      "reading_plan_recommend_v1",
+                      "reading_plan_sequence_v1"
+                    ]
+                  },
+                  "model_profile": "strong",
+                  "output": {
+                    "format": "reading_plan",
+                    "write_back": "reading_plan",
+                    "on_skip": "Not assessed"
+                  }
+                },
+                "description": "AI-generated compact personalized reading plan."
+              }
+            ]
+          }
+        },
+        {
+          "id": "8b53a190-1277-5eae-945b-4e653ba27421",
+          "project": "a714ba7b-7120-53aa-80e8-544db4235967",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Loan",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "body": null,
+                "enum": null,
+                "name": "loan_date",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "due_date",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "c0bc9768-60bc-5e8e-aedc-53ed33c4bce6",
+          "project": "a714ba7b-7120-53aa-80e8-544db4235967",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "BookLoan",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "body": null,
+                "enum": null,
+                "name": "late_risk",
+                "type": "str",
+                "derived": false,
+                "ai_config": {
+                  "ai_config_version": "1.2",
+                  "trigger": {
+                    "type": "post_save",
+                    "class": "BookLoan",
+                    "on": "create"
+                  },
+                  "context": {
+                    "fields": [
+                      "loan_date",
+                      "due_date"
+                    ],
+                    "relations": [
+                      "Book",
+                      "Customer",
+                      "Loan"
+                    ],
+                    "history": {
+                      "scope": "Loan.Customer",
+                      "completed_only": true,
+                      "as_of": "loan_date",
+                      "order_by": "-return_date",
+                      "limit": 10,
+                      "unit": "book_loan",
+                      "max_scan_records": 200
+                    }
+                  },
+                  "template": {
+                    "name": "library_late_risk_v3"
+                  },
+                  "model_profile": "cheap",
+                  "output": {
+                    "format": "risk_label",
+                    "write_back": "late_risk",
+                    "allowed_values": [
+                      "LOW",
+                      "MEDIUM",
+                      "HIGH"
+                    ],
+                    "on_skip": "NOT_ASSESSED",
+                    "reason": {
+                      "required": true,
+                      "max_length": 120
+                    }
+                  }
+                },
+                "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH)."
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "return_date",
+                "type": "str",
+                "derived": false,
+                "ai_config": null,
+                "description": null
+              },
+              {
+                "name": "return_result",
+                "type": "str",
+                "derived": true,
+                "body": "def return_result(self):\n    import re\n    from datetime import date\n    from django.core.exceptions import ObjectDoesNotExist\n    from django.utils import timezone\n    def parsed(value):\n        value = str(value or '').strip()\n        if not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', value):\n            raise ValueError('Invalid date')\n        return date.fromisoformat(value)\n    try:\n        start, due = parsed(self.Loan.loan_date), parsed(self.Loan.due_date)\n        if due < start or start > timezone.localdate():\n            return 'Data error'\n        if not str(self.return_date or '').strip():\n            return 'Not returned'\n        returned = parsed(self.return_date)\n        if returned < start or returned > timezone.localdate():\n            return 'Data error'\n        days = (returned - due).days\n        return 'Returned on time' if days <= 0 else f\"Returned {days} {'day' if days == 1 else 'days'} late\"\n    except (ValueError, TypeError, ObjectDoesNotExist):\n        return 'Data error' ",
+                "enum": null,
+                "ai_config": null,
+                "description": "Actual return result, derived from dates."
+              }
+            ]
+          }
+        },
+        {
+          "id": "17a9bbd7-4766-53e3-a083-e69fc8977a30",
+          "project": "a714ba7b-7120-53aa-80e8-544db4235967",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "original_system_id": null,
+          "data": {
+            "name": "BookCategory",
+            "type": "enum",
+            "literals": [
+              "FICTION",
+              "NON_FICTION",
+              "SCIENCE",
+              "HISTORY",
+              "CHILDREN"
+            ],
+            "namespace": ""
+          }
+        },
+        {
+          "id": "87eee515-6af2-5130-a5c7-fa13a97d994e",
+          "project": "a714ba7b-7120-53aa-80e8-544db4235967",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "original_system_id": null,
+          "data": {
+            "name": "librarian",
+            "type": "actor"
+          }
+        }
+      ],
+      "relations": [
+        {
+          "id": "652d76ea-e378-55bf-9b32-73e8f380592e",
+          "data": {
+            "type": "association",
+            "label": "writes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "source": "dd70b389-e349-5c1b-8ca4-21859c041b4e",
+          "target": "f163c2cb-718d-547b-b95e-ad2bc5990937"
+        },
+        {
+          "id": "ce8cf18d-6e4d-5136-8f8f-4e6bc17ac27a",
+          "data": {
+            "type": "association",
+            "label": "makes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "source": "9f3268ef-b30b-5011-8b96-e8673962c008",
+          "target": "8b53a190-1277-5eae-945b-4e653ba27421"
+        },
+        {
+          "id": "c07e22fe-f0c8-5b49-8646-13f69f0b207f",
+          "data": {
+            "type": "association",
+            "label": "contains",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "source": "8b53a190-1277-5eae-945b-4e653ba27421",
+          "target": "c0bc9768-60bc-5e8e-aedc-53ed33c4bce6"
+        },
+        {
+          "id": "ee4a3330-b7f3-5c92-8acc-9e7ef397b003",
+          "data": {
+            "type": "association",
+            "label": "includes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "source": "f163c2cb-718d-547b-b95e-ad2bc5990937",
+          "target": "c0bc9768-60bc-5e8e-aedc-53ed33c4bce6"
+        }
+      ],
+      "diagrams": [
+        {
+          "id": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "name": "Structure",
+          "description": "Library BL-1.2 domain model",
+          "type": "classes",
+          "nodes": [
+            {
+              "id": "5b565a26-ee50-5925-bb2d-987bb4bbb9b0",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "cls": "8b53a190-1277-5eae-945b-4e653ba27421",
+              "data": {
+                "position": {
+                  "x": 225,
+                  "y": 135
+                }
+              }
+            },
+            {
+              "id": "20662896-e15c-5894-9889-afa75e48b58d",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "cls": "c0bc9768-60bc-5e8e-aedc-53ed33c4bce6",
+              "data": {
+                "position": {
+                  "x": 255,
+                  "y": -60
+                }
+              }
+            },
+            {
+              "id": "21f21fea-838b-5997-a04a-a1cff963cbe7",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "cls": "9f3268ef-b30b-5011-8b96-e8673962c008",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 210
+                }
+              }
+            },
+            {
+              "id": "2d0050a7-1a64-5b9f-95fe-0df2c3d14061",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "cls": "f163c2cb-718d-547b-b95e-ad2bc5990937",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": -105
+                }
+              }
+            },
+            {
+              "id": "8e086e73-7df9-5a05-bd3f-6f2dab6fd48d",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "cls": "17a9bbd7-4766-53e3-a083-e69fc8977a30",
+              "data": {
+                "position": {
+                  "x": -225,
+                  "y": -30
+                }
+              }
+            },
+            {
+              "id": "715b9387-d6c1-5794-8e4d-2a06d24376ee",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "cls": "dd70b389-e349-5c1b-8ca4-21859c041b4e",
+              "data": {
+                "position": {
+                  "x": -30,
+                  "y": 75
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "5228e7b0-f140-5f61-abfc-fa5170654b49",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "rel": "652d76ea-e378-55bf-9b32-73e8f380592e",
+              "data": {}
+            },
+            {
+              "id": "673de3d4-6e60-5486-8e85-f1c22c7ce8f8",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "rel": "ce8cf18d-6e4d-5136-8f8f-4e6bc17ac27a",
+              "data": {}
+            },
+            {
+              "id": "e550774c-4493-5a51-aed8-f97a783ff95c",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "rel": "c07e22fe-f0c8-5b49-8646-13f69f0b207f",
+              "data": {}
+            },
+            {
+              "id": "3ce5d9d2-c826-5dbb-a9f6-a1526520e34d",
+              "diagram": "309b08d7-0a84-50e7-9016-32517a21fd9b",
+              "rel": "ee4a3330-b7f3-5c92-8acc-9e7ef397b003",
+              "data": {}
+            }
+          ]
+        }
+      ],
+      "interfaces": [
+        {
+          "id": "acc4302b-11b4-5c0c-8c34-cbecf0cbcd9a",
+          "data": {
+            "pages": [
+              {
+                "id": "df47071f-361d-5915-bbe9-2c80a868fbaa",
+                "name": "loans",
+                "type": {
+                  "label": "Normal",
+                  "value": "normal"
+                },
+                "action": null,
+                "category": null,
+                "sections": [
+                  {
+                    "label": "loans",
+                    "value": "9e5bf15d-0185-52b7-8067-cfb2c74efb43"
+                  },
+                  {
+                    "label": "book_loans",
+                    "value": "76996d30-f0d2-58b8-ab43-0d670e747fac"
+                  }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [
+              {
+                "id": "76996d30-f0d2-58b8-ab43-0d670e747fac",
+                "name": "book_loans",
+                "text": "Add books, view checkout risk, and return each book separately.",
+                "class": "c0bc9768-60bc-5e8e-aedc-53ed33c4bce6",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "late_risk",
+                    "type": "str",
+                    "derived": false,
+                    "ai_config": {
+                      "ai_config_version": "1.2",
+                      "trigger": {
+                        "type": "post_save",
+                        "class": "BookLoan",
+                        "on": "create"
+                      },
+                      "context": {
+                        "fields": [
+                          "loan_date",
+                          "due_date"
+                        ],
+                        "relations": [
+                          "Book",
+                          "Customer",
+                          "Loan"
+                        ],
+                        "history": {
+                          "scope": "Loan.Customer",
+                          "completed_only": true,
+                          "as_of": "loan_date",
+                          "order_by": "-return_date",
+                          "limit": 10,
+                          "unit": "book_loan",
+                          "max_scan_records": 200
+                        }
+                      },
+                      "template": {
+                        "name": "library_late_risk_v3"
+                      },
+                      "model_profile": "cheap",
+                      "output": {
+                        "format": "risk_label",
+                        "write_back": "late_risk",
+                        "allowed_values": [
+                          "LOW",
+                          "MEDIUM",
+                          "HIGH"
+                        ],
+                        "on_skip": "NOT_ASSESSED",
+                        "reason": {
+                          "required": true,
+                          "max_length": 120
+                        }
+                      }
+                    },
+                    "description": "AI-generated late-return risk label (LOW/MEDIUM/HIGH)."
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "return_date",
+                    "type": "str",
+                    "derived": false,
+                    "ai_config": null,
+                    "description": null
+                  },
+                  {
+                    "name": "return_result",
+                    "type": "str",
+                    "derived": true,
+                    "body": "def return_result(self):\n    import re\n    from datetime import date\n    from django.core.exceptions import ObjectDoesNotExist\n    from django.utils import timezone\n    def parsed(value):\n        value = str(value or '').strip()\n        if not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', value):\n            raise ValueError('Invalid date')\n        return date.fromisoformat(value)\n    try:\n        start, due = parsed(self.Loan.loan_date), parsed(self.Loan.due_date)\n        if due < start or start > timezone.localdate():\n            return 'Data error'\n        if not str(self.return_date or '').strip():\n            return 'Not returned'\n        returned = parsed(self.return_date)\n        if returned < start or returned > timezone.localdate():\n            return 'Data error'\n        days = (returned - due).days\n        return 'Returned on time' if days <= 0 else f\"Returned {days} {'day' if days == 1 else 'days'} late\"\n    except (ValueError, TypeError, ObjectDoesNotExist):\n        return 'Data error' ",
+                    "enum": null,
+                    "ai_config": null,
+                    "description": "Actual return result, derived from dates."
+                  }
+                ],
+                "operations": {
+                  "create": true,
+                  "delete": false,
+                  "update": true
+                }
+              },
+              {
+                "id": "9e5bf15d-0185-52b7-8067-cfb2c74efb43",
+                "name": "loans",
+                "text": "Create a borrowing group, then add its books today.",
+                "class": "8b53a190-1277-5eae-945b-4e653ba27421",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "loan_date",
+                    "type": "str",
+                    "derived": false,
+                    "ai_config": null,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "due_date",
+                    "type": "str",
+                    "derived": false,
+                    "ai_config": null,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": true,
+                  "delete": false,
+                  "update": true
+                },
+                "methods": []
+              }
+            ],
+            "settings": {
+              "managerAccess": false
+            },
+            "categories": []
+          },
+          "name": "librarian",
+          "actor": "87eee515-6af2-5130-a5c7-fa13a97d994e",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "description": "Librarian application"
+        },
+        {
+          "id": "ec9cd288-40dc-5657-8982-96a5c67c3774",
+          "data": {
+            "pages": [
+              {
+                "id": "b770aa85-5942-5015-b0cd-fdc4eb4e7c85",
+                "name": "customers",
+                "type": {
+                  "label": "Normal",
+                  "value": "normal"
+                },
+                "action": null,
+                "category": null,
+                "sections": [
+                  {
+                    "label": "customers",
+                    "value": "7de4f764-0d1d-579e-94f5-beb125a1f1a2"
+                  }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [
+              {
+                "id": "7de4f764-0d1d-579e-94f5-beb125a1f1a2",
+                "name": "customers",
+                "text": "Customers",
+                "class": "9f3268ef-b30b-5011-8b96-e8673962c008",
+                "methods": [
+                  {
+                    "body": "def generate_reading_plan(self):\n    pass",
+                    "name": "generate_reading_plan"
+                  }
+                ],
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "name",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "email",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "reading_plan",
+                    "type": "str",
+                    "derived": false,
+                    "description": "AI-generated compact personalized reading plan."
+                  }
+                ],
+                "operations": {
+                  "create": false,
+                  "delete": false,
+                  "update": false
+                }
+              }
+            ],
+            "settings": {
+              "managerAccess": false
+            },
+            "categories": []
+          },
+          "name": "member",
+          "actor": "87eee515-6af2-5130-a5c7-fa13a97d994e",
+          "system": "a98454a6-4de6-50e3-85ff-3adf8cee599f",
+          "description": "member application"
+        }
+      ]
+    }
+  ]
+}

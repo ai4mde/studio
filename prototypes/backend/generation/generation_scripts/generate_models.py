@@ -166,6 +166,8 @@ def main():
     with open(metadata_path, 'r', encoding='utf-8') as f:
         metadata = f.read()
 
+    from utils.ai_generation import validate_metadata
+    bindings = validate_metadata(metadata)
     ai_managed = detect_ai_config(metadata)
     print(f"[AI4MDE][ai_config] detected {len(ai_managed)} AI-managed attribute(s)")
     application_names = get_apps(metadata).split()
@@ -175,7 +177,8 @@ def main():
         "app_name": "shared_models",
         "models": retrieve_models(metadata),
         "authentication_present": sys.argv[3] == "True",
-        "user_types": application_names
+        "user_types": application_names,
+        **bindings
     }
     if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         raise Exception("Failed to generate shared_models/models.py")

@@ -18,6 +18,11 @@ class TemplateEntry:
 TEMPLATE_DIR = Path(__file__).resolve().parent / "prompt_templates"
 
 TEMPLATE_REGISTRY = {
+    "library_late_risk_v3": TemplateEntry("library_late_risk_v3", "library_late_risk_v3.j2"),
+    "library_late_risk_v2": TemplateEntry(
+        prompt_name="library_late_risk_v2",
+        filename="library_late_risk_v2.j2",
+    ),
     "library_late_risk_v1": TemplateEntry(
         prompt_name="library_late_risk_v1",
         filename="library_late_risk_v1.j2",

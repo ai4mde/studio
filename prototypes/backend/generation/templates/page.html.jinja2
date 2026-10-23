@@ -1,8 +1,32 @@
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{% macro object_label(model, variable) -%}
+{% if library_ai_enabled and model == 'Loan' -%}
+Loan #{{ '{{' }} {{ variable }}.pk {{ '}}' }} · {{ '{{' }} {{ variable }}.Customer.name {{ '}}' }} · {{ '{{' }} {{ variable }}.loan_date {{ '}}' }} → {{ '{{' }} {{ variable }}.due_date {{ '}}' }}
+{%- else -%}
+{{ '{{' }} {{ variable }} {{ '}}' }}
+{%- endif %}
+{%- endmacro %}
+{% macro field_value(model, variable, attribute) -%}
+{% if attribute.ai_managed -%}
+{{ '{%' }} if {{ variable }}.{{ attribute }} == {{ ai_fields[model].on_skip|tojson }} or not {{ variable }}.{{ attribute }} {{ '%}' }}Not assessed{{ '{%' }} else {{ '%}' }}{{ '{{' }} {{ variable }}.{{ attribute }} {{ '}}' }}{{ '{%' }} endif {{ '%}' }}
+{%- else -%}
+{{ '{{' }} {{ variable }}.{{ attribute }} {{ '}}' }}
+{%- endif %}
+{%- endmacro %}
 {% raw %}{% block content %}{% endraw %}
 
-
+{% raw %}
+{% if form.errors %}
+<div class="form-errors" role="alert">
+{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+{% for field in form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}
+</div>
+{% endif %}
+{% endraw %}
 <div>
+    {% if library_ai_enabled and page.section_components|selectattr('primary_model', 'equalto', 'BookLoan')|list %}
+    <p>Checkout: first create a Loan for the reader, then add each BookLoan to that Loan. Return each book separately.</p>
+    {% endif %}
     {% if page.type == 'activity' %}<h2>{{ page.activity_name}}</h2>{% endif %}
     {%- for section_component in page.section_components %}
 
@@ -21,9 +45,9 @@
         <tr>
             {%- for attribute in section_component.attributes %}
             {%- if attribute.ai_managed %}
-            <th class="ai-managed-header" title="AI-managed value. Its configured trigger controls when it refreshes - for example, when the record is saved, or when an AI action is run.">{{ attribute }} <span class="ai-badge">AI</span></th>
+            <th class="ai-managed-header" title="AI-managed value. Checkout assessments are snapshots; reading plans refresh only through their declared action.">{% if section_component.primary_model in lifecycle and attribute.name == "late_risk" %}Checkout risk{% else %}{{ attribute }}{% endif %} <span class="ai-badge">AI</span></th>
             {%- else %}
-            <th>{{ attribute }}</th>
+            <th>{% if section_component.primary_model in lifecycle and attribute.name == "return_result" %}Actual return result{% else %}{{ attribute }}{% endif %}</th>
             {%- endif %}
             {%- endfor %}
             {%- for parent_model in section_component.parent_models %}
@@ -52,7 +76,7 @@
                 {% if attribute.updatable and not attribute.derived and not attribute.ai_managed %}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING %}
-                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="{% if section_component.primary_model in lifecycle and attribute.name in ["loan_date", "due_date", "return_date"] %}date{% else %}text{% endif %}" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
                     {%- elif attribute.type == AttributeType.INTEGER %}
                     <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
@@ -71,7 +95,8 @@
 
                 {% else %}
                 {% if attribute.type == AttributeType.STRING %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                <td style="text-align:center;">{{ field_value(section_component.primary_model, section_component.primary_model, attribute) }}{% if section_component.primary_model == 'Loan' and section_component.primary_model in lifecycle and attribute.name == 'loan_date' %}{{ '{%' }} if Loan.can_edit_group {{ '%}' }}<small>Awaiting books</small>{{ '{%' }} endif {{ '%}' }}{% endif %}
+                </td>
                 
                 {% elif attribute.type == AttributeType.INTEGER %}
                 <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
@@ -87,11 +112,15 @@
                 {% endfor %}
                 {% for parent_model in section_component.parent_models %}
                 <td style="text-align:center;">
+                    {% if parent_model in frozen_parents.get(section_component.primary_model, []) %}
+                    <span class="frozen-association">{{ object_label(parent_model, 'update_instance.' ~ parent_model) }}</span>
+                    {% else %}
                     <select name="{{ parent_model }}">
                         {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
-                        {% raw %}<option value="{{ i.id }}"{% if i.id == update_instance.{% endraw %}{{ parent_model }}{% raw %}.id %} selected{% endif %}>{{ i }}</option>{% endraw %}
+                        {% raw %}<option value="{{ i.id }}"{% if i.id == update_instance.{% endraw %}{{ parent_model }}{% raw %}.id %} selected{% endif %}>{% endraw %}{{ object_label(parent_model, 'i') }}</option>
                         {% raw %}{% endfor %}{% endraw %}
                     </select>
+                    {% endif %}
                 </td>
                 {% endfor %}
                 <td>
@@ -107,7 +136,8 @@
             {#- ATTRIBUTE VALUES #}
             {% for attribute in section_component.attributes -%}
             {% if attribute.type == AttributeType.STRING -%}
-            <td style="text-align:center;"{% if attribute.ai_managed %} class="ai-managed-cell"{% endif %}>{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;"{% if attribute.ai_managed %} class="ai-managed-cell"{% endif %}>{{ field_value(section_component.primary_model, section_component.primary_model, attribute) }}{% if section_component.primary_model == 'Loan' and section_component.primary_model in lifecycle and attribute.name == 'loan_date' %}{{ '{%' }} if Loan.can_edit_group {{ '%}' }}<small>Awaiting books</small>{{ '{%' }} endif {{ '%}' }}{% endif %}
+            </td>
 
             {%- elif attribute.type == AttributeType.INTEGER %}
             <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
@@ -121,7 +151,7 @@
             {% endif -%}
             {% endfor -%}
             {% for parent_model in section_component.parent_models -%}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{{ object_label(parent_model, section_component.primary_model ~ '.' ~ parent_model) }}</td>
             {% endfor -%}
             {% if section_component.has_update_operation -%}
             {% raw %}{% endif %}{% endraw %}
@@ -131,7 +161,7 @@
             {% if section_component.has_update_operation -%}
 
             {#- UPDATE BUTTON -#}
-            {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
+            {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance{% if section_component.primary_model == "Loan" and section_component.primary_model in lifecycle %} and {{ section_component.primary_model }}.can_edit_group{% endif %} {% raw %}%}{% endraw %}
             <td>
                 <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                     <input type="hidden" name="instance_id_{{ section_component.primary_model }}"  value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
@@ -187,12 +217,12 @@
             <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes -%}
-                {% if attribute.derived or attribute.ai_managed -%}
+                {% if attribute.derived or attribute.ai_managed or (section_component.primary_model == "BookLoan" and section_component.primary_model in lifecycle and attribute.name == "return_date") -%}
                 <td></td>
                 {% else -%}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING -%}
-                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
+                    <input type="{% if section_component.primary_model in lifecycle and attribute.name in ["loan_date", "due_date", "return_date"] %}date{% else %}text{% endif %}" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.INTEGER -%}
                     <input type="number" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.BOOLEAN -%}
@@ -212,7 +242,7 @@
                 <td>
                     <select name="{{ parent_model }}">
                         {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
-                        {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                        {% raw %}<option value="{{ i.id }}">{% endraw %}{{ object_label(parent_model, 'i') }}</option>
                         {% raw %}{% endfor %}{% endraw %}
                     </select>
                 </td>

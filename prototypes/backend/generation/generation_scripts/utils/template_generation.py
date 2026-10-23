@@ -72,7 +72,8 @@ def generate_change_user_assignment(application_component: ApplicationComponent,
     return False
 
 
-def generate_templates(application_component: ApplicationComponent, system_id: str) -> bool:
+def generate_templates(application_component: ApplicationComponent, system_id: str, bindings=None) -> bool:
+    bindings = {"library_ai_enabled": False, "ownership": {}, "frozen_parents": {}, "ai_fields": {}, "lifecycle": {}, "model_constraints": {}, **(bindings or {})}
     project_name = project_name_sanitization(application_component.project)
     application_name = app_name_sanitization(application_component.name)
     pages_in_app = application_component.pages
@@ -103,6 +104,7 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
             "project_name": project_name,
             "application_name": application_name,
             "page": page,
+            **bindings,
         }
         if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
             raise Exception("Failed to generate template: " + page.name)

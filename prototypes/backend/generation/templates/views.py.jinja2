@@ -11,11 +11,14 @@ from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
 
 {% if section_component.has_create_operation %}
 class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
+    app_role = '{{ application_name }}'
+    page_models = [{% for model in models_on_pages[page]['primary_models'] %}{{ model }}{% if not loop.last %}, {% endif %}{% endfor %}]
+    parent_models = [{% for model in models_on_pages[page]['parent_models'] %}{{ model }}{% if not loop.last %}, {% endif %}{% endfor %}]
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes if not attribute.ai_managed %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes if not attribute.ai_managed and not attribute.derived %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -28,6 +31,9 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     {% endif %}
 
     def form_valid(self, form):
+        {% if section_component.primary_model in lifecycle %}
+        return self.library_form_valid(form)
+        {% endif %}
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived -%}
@@ -55,11 +61,14 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
 
 {% if section_component.has_update_operation %}
 class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
+    app_role = '{{ application_name }}'
+    page_models = [{% for model in models_on_pages[page]['primary_models'] %}{{ model }}{% if not loop.last %}, {% endif %}{% endfor %}]
+    parent_models = [{% for model in models_on_pages[page]['parent_models'] %}{{ model }}{% if not loop.last %}, {% endif %}{% endfor %}]
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes if not attribute.ai_managed %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes if not attribute.ai_managed and not attribute.derived %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -71,7 +80,14 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
     {% endif %}
 
+    frozen_parents = {{ frozen_parents.get(section_component.primary_model, []) }}
+
     def form_valid(self, form):
+        {% if section_component.primary_model in lifecycle %}
+        return self.library_form_valid(form)
+        {% endif %}
+        if not self.validate_frozen_parents(form):
+            return self.form_invalid(form)
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived -%}
@@ -83,7 +99,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         {% endif -%}
         {% endif -%}
         {% endfor -%}
-        {% for parent_model in section_component.parent_models -%}
+        {% for parent_model in section_component.parent_models if parent_model not in frozen_parents.get(section_component.primary_model, []) -%}
         instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
         {% endfor -%}
         return super().form_valid(form)
@@ -91,6 +107,9 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
 
 {% if section_component.has_delete_operation -%}
 class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
+    app_role = '{{ application_name }}'
+    page_models = [{% for model in models_on_pages[page]['primary_models'] %}{{ model }}{% if not loop.last %}, {% endif %}{% endfor %}]
+    parent_models = [{% for model in models_on_pages[page]['parent_models'] %}{{ model }}{% if not loop.last %}, {% endif %}{% endfor %}]
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
     {% endif -%}
@@ -121,45 +140,26 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
 {% endfor -%}
 {% endfor -%}
 
-{# List views #}
+{# List views: model-specific actions and query scopes share the page metadata. #}
 {% for page in pages %}
 class {{ application_name }}_{{ page }}_ListView(GenericListView):
-    {% if authentication_present -%}
+    app_role = '{{ application_name }}'
+    page_models = [{% for model in models_on_pages[page]['primary_models'] %}{{ model }}{% if not loop.last %}, {% endif %}{% endfor %}]
+    parent_models = [{% for model in models_on_pages[page]['parent_models'] %}{{ model }}{% if not loop.last %}, {% endif %}{% endfor %}]
+    {% if authentication_present %}
     required_roles = ['{{ application_name }}']
-    {% endif -%}
-    template_name='{{ application_name }}_{{ page }}.html'
+    {% endif %}
+    template_name = '{{ application_name }}_{{ page }}.html'
     model = {{ models_on_pages[page]['primary_models'][0] }}
     context_object_name = '{{ models_on_pages[page]['primary_models'][0] }}_list'
-
-    {% if page.type == 'activity' -%}
-    def get_queryset(self):
-        return self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
-    {% endif -%}
-
-    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' %}
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        {% for model in models_on_pages[page]['parent_models'] -%}
-        context['parent_{{model}}_list'] = {{model}}.objects.all()
-        {% endfor -%}
-        {% if page.type == 'activity' -%}
-        {% if models_on_pages[page]['primary_models'] | length > 1 -%}
-        {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
-        context['{{ primary_model }}_list'] = self.active_process_node.active_process.{{ primary_model.lower() }}s
-        {% endfor -%}
-        {% endif -%}
-        context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
-        {% endif -%}
-        {% if page.type != 'activity' -%}
-        {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
-        context['{{ primary_model }}_list'] = {{ primary_model }}.objects.all()
+    allowed_actions = {
+        {% for section_component in page.section_components %}
+        {% for method in section_component.custom_methods %}
+        'custom_{{ section_component.primary_model }}_{{ method }}': ({{ section_component.primary_model }}, '{{ method }}'),
         {% endfor %}
-        {% endif %}
-        return context
-
-    {% endif -%}
-{% endfor -%}
-
+        {% endfor %}
+    }
+{% endfor %}
 
 {# Home render view #}
 class HomeRenderView(GenericTemplateView):

@@ -76,6 +76,14 @@ class {{ model.name }}(models.Model):
     pass
     {% endif -%}
 
+    {% if model_constraints.get(model.name) %}
+    class Meta:
+        constraints = [
+            {% for constraint in model_constraints[model.name] %}
+            models.UniqueConstraint(fields={{ constraint.fields }}, name='{{ constraint.name }}'),
+            {% endfor %}
+        ]
+    {% endif %}
     {% if model.object_name_attribute %}
     def __str__(self):
         return str(self.{{ model.object_name_attribute }})

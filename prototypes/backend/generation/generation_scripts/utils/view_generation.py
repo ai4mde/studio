@@ -3,7 +3,8 @@ from utils.sanitization import project_name_sanitization, app_name_sanitization
 from utils.definitions.application_component import ApplicationComponent
 from utils.loading_json_utils import retrieve_models_on_pages
 
-def generate_views(application_component: ApplicationComponent, system_id: str) -> bool:
+def generate_views(application_component: ApplicationComponent, system_id: str, bindings=None) -> bool:
+    bindings = {"library_ai_enabled": False, "ownership": {}, "frozen_parents": {}, "ai_fields": {}, "lifecycle": {}, "model_constraints": {}, **(bindings or {})}
     project_name = application_component.project
     application_name = application_component.name
     pages_in_app = application_component.pages
@@ -21,11 +22,13 @@ def generate_views(application_component: ApplicationComponent, system_id: str) 
         "application_name": application_name,
         "pages": pages_in_app,
         "models_on_pages": models_on_pages,
-        "authentication_present": application_component.authentication_present
+        "authentication_present": application_component.authentication_present,
+        **bindings,
     }
 
     data_shared = {
         "authentication_present": application_component.authentication_present,
+        **bindings,
     }
 
     if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):

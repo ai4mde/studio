@@ -53,6 +53,9 @@
     
     <div class="content">
         {% raw %}
+        {% if messages %}
+        <div class="action-feedback" role="status">{% for message in messages %}<p class="{{ message.tags }}">{{ message }}</p>{% endfor %}</div>
+        {% endif %}
         {% block content %}
 
         {% endblock %}

@@ -1,0 +1,107 @@
+{
+  "fixture_version": "1.2",
+  "test_today": "2026-09-15",
+  "current_loan": {
+    "loan_date": "2026-09-15",
+    "due_date": "2026-09-29"
+  },
+  "books": [
+    {
+      "key": "science",
+      "title": "Demo Science Book",
+      "category": "SCIENCE",
+      "author": "Demo Author"
+    },
+    {
+      "key": "history",
+      "title": "Demo History Book",
+      "category": "HISTORY",
+      "author": "Demo Author"
+    },
+    {
+      "key": "children",
+      "title": "Demo Children Book",
+      "category": "CHILDREN",
+      "author": "Demo Author"
+    }
+  ],
+  "bob_completed_loans": [
+    {
+      "key": "B01",
+      "book": "science",
+      "loan_date": "2026-01-01",
+      "due_date": "2026-01-15",
+      "return_date": "2026-01-14"
+    },
+    {
+      "key": "B02",
+      "book": "science",
+      "loan_date": "2026-02-01",
+      "due_date": "2026-02-15",
+      "return_date": "2026-02-15"
+    },
+    {
+      "key": "B03",
+      "book": "science",
+      "loan_date": "2026-03-01",
+      "due_date": "2026-03-15",
+      "return_date": "2026-03-13"
+    },
+    {
+      "key": "B04",
+      "book": "history",
+      "loan_date": "2026-04-01",
+      "due_date": "2026-04-15",
+      "return_date": "2026-04-20"
+    },
+    {
+      "key": "B05",
+      "book": "history",
+      "loan_date": "2026-05-01",
+      "due_date": "2026-05-15",
+      "return_date": "2026-05-24"
+    },
+    {
+      "key": "B06",
+      "book": "history",
+      "loan_date": "2026-06-01",
+      "due_date": "2026-06-15",
+      "return_date": "2026-06-29"
+    }
+  ],
+  "expected_baseline": {
+    "order": [
+      "B06",
+      "B05",
+      "B04",
+      "B03",
+      "B02",
+      "B01"
+    ],
+    "by_category": {
+      "SCIENCE": {
+        "max_days_overdue": 0,
+        "records": 3,
+        "late_records": 0
+      },
+      "HISTORY": {
+        "max_days_overdue": 14,
+        "records": 3,
+        "late_records": 3
+      }
+    },
+    "selected_record_count": 6,
+    "late_record_count": 3
+  },
+  "identity": {
+    "member_username": "demo_member",
+    "member_email": "bob@example.com",
+    "customer_name": "bob",
+    "customer_email": "bob@example.com"
+  },
+  "notes": [
+    "All book names are synthetic demonstration data, not recommendations or bibliographic claims.",
+    "Freeze the application date in offline tests only. The live demo uses its actual local date.",
+    "Each gate uses an isolated DB fixture; do not accumulate mutated cases in one shared dataset."
+  ]
+}

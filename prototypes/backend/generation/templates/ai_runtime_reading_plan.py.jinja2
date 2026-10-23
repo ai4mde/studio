@@ -1,64 +1,90 @@
-from typing import List
+"""BL-1.0 borrowed-and-returned history -> taste -> recommendation -> sequence."""
+from collections import Counter
+from typing import Annotated
 
-from pydantic import BaseModel
+from django.utils import timezone
+from pydantic import BaseModel, Field, StringConstraints, field_validator
 
-from ai_runtime.chains import ChainRunner, ChainStep
-from ai_runtime.routing import call_model
+from .chains import ChainRunner, ChainStep
+from .configuration import validate_ai_config
+from .context import retrieve_customer_history
+from .execution import perform_call, safe_error
+from .outcomes import RunOutcome
+
+NonEmpty = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1)]
 
 
 class TasteProfile(BaseModel):
-    genres: List[str]
+    genres: list[NonEmpty] = Field(min_length=1)
     notes: str = ""
 
 
 class Recommendation(BaseModel):
-    books: List[str]
+    books: list[NonEmpty] = Field(min_length=3, max_length=3)
+
+    @field_validator("books")
+    @classmethod
+    def distinct_books(cls, books):
+        if len({book.casefold() for book in books}) != 3:
+            raise ValueError("Three distinct recommended books are required")
+        return books
 
 
 class ReadingPlan(BaseModel):
-    ordered: List[str]
-    summary: str
+    ordered: list[NonEmpty] = Field(min_length=3, max_length=3)
+    summary: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=255)]
 
 
-STEPS = [
-    ChainStep(name="analyze_taste", prompt_name="reading_plan_analyze_taste_v1",
-              output_schema=TasteProfile, output_key="taste"),
-    ChainStep(name="recommend", prompt_name="reading_plan_recommend_v1",
-              output_schema=Recommendation, output_key="recommendation"),
-    ChainStep(name="sequence", prompt_name="reading_plan_sequence_v1",
-              output_schema=ReadingPlan, output_key="plan"),
-]
+def validate_sequence(plan, context):
+    if Counter(plan.ordered) != Counter(context["recommendation"]["books"]):
+        raise ValueError("The sequence must be a permutation of the recommended books")
 
 
-def _build_taste_context(instance):
-    # M02: the member's borrowed-book history from the generated ORM.
-    from shared_models.models import Loan, BookLoan
-    borrowed = []
-    for loan in Loan.objects.filter(Customer=instance):
-        for bl in BookLoan.objects.filter(Loan=loan):
-            book = bl.Book
-            if book is not None:
-                borrowed.append({"title": getattr(book, "title", "") or "",
-                                 "category": getattr(book, "category", "") or "",
-                                 "author": getattr(getattr(book, "Author", None), "name", "") or ""})
-    return {"borrowed_books": borrowed}
+STEP_REGISTRY = {
+    "reading_plan_analyze_taste_v1": ChainStep("reading_plan_analyze_taste_v1", TasteProfile, "taste", "analyze_taste"),
+    "reading_plan_recommend_v1": ChainStep("reading_plan_recommend_v1", Recommendation, "recommendation", "recommend"),
+    "reading_plan_sequence_v1": ChainStep("reading_plan_sequence_v1", ReadingPlan, "plan", "sequence", validate_context=validate_sequence),
+}
+
+
+def _skip(outcome, config, instance, reason):
+    outcome.status, outcome.skip_reason = "skipped", reason
+    old = (getattr(instance, "reading_plan", None) or "").strip()
+    if not old or old == config["output"]["on_skip"]:
+        outcome.value, outcome.should_write = config["output"]["on_skip"], True
+    return outcome
 
 
 def run_reading_plan(ai_config, instance):
-    """M04 chain orchestration for Customer.reading_plan. Returns (summary<=255, ChainResult, mode)
-    for write-back + logging. Routes via the strong profile (M06)."""
-    model_profile = ai_config.get("model_profile", "strong")
-    modes = []
+    outcome = RunOutcome()
+    try:
+        config = validate_ai_config(ai_config, instance.__class__.__name__, "reading_plan")
+        history = retrieve_customer_history(instance, config["context"]["history"], as_of=timezone.localdate())
+        outcome.diagnostics = history.diagnostics
+        if history.skip_reason:
+            return _skip(outcome, config, instance, history.skip_reason)
+        outcome.context = {"borrowed_books": [
+            {key: row[key] for key in ("title", "category", "author")} for row in history.rows]}
 
-    def llm_caller(prompt):
-        routed = call_model(model_profile, prompt)
-        modes.append(routed["mode"])
-        return routed["content"]
+        def caller(prompt, step):
+            return perform_call(outcome, config, prompt, step.prompt_name)
 
-    context = _build_taste_context(instance)
-    result = ChainRunner(STEPS, llm_caller).run(context)
-    summary = None
-    if result.success and "plan" in result.outputs:
-        summary = result.outputs["plan"].summary[:255]
-    mode = modes[0] if modes else None
-    return summary, result, mode
+        steps = [STEP_REGISTRY[name] for name in config["template"]["chain"]]
+        result = ChainRunner(steps, caller).run(outcome.context)
+        outcome.step_details = result.step_details
+        outcome.prompts = [{key: d[key] for key in ("template", "template_sha256", "prompt", "prompt_sha256")}
+                           for d in result.step_details if "prompt" in d]
+        outcome.failed_step = result.failed_step
+        outcome.parsed_output = {key: value.model_dump() for key, value in result.outputs.items()}
+        if not result.success:
+            outcome.error = {"code": result.error.code, "message": result.error.message}
+            if result.error.code == "prompt_budget_exceeded":
+                outcome.diagnostics["budget_kind"] = "prompt_chars"
+                return _skip(outcome, config, instance, "prompt_budget_exceeded")
+            outcome.status = "chain_error"
+            return outcome
+        outcome.value = result.outputs["plan"].summary
+        outcome.should_write = True
+    except Exception as exc:
+        outcome.status, outcome.error = "action_error", safe_error(exc)
+    return outcome

@@ -1,90 +1,54 @@
-import json
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Literal
+"""BL-1.0 single-call orchestration. The generated hook owns write-back."""
+from typing import Annotated, Literal
 
-from django.conf import settings
-from pydantic import create_model
-
-from .context import build_context
-from .parsers import JsonOutputParser
-from .routing import call_model
-from .templates import render_prompt
-
-LOG_PATH = Path(settings.BASE_DIR) / "ai_invocations.jsonl"
+from .configuration import validate_ai_config
+from .execution import PromptBudgetExceeded, perform_call, prompt_record, safe_error
+from .outcomes import RunOutcome
 
 
-def _build_output_schema(write_back, allowed_values):
-    # M05 declarative output spec drives the M03 validation schema.
-    if not write_back:
-        raise ValueError("ai_config.output.write_back is required")
-    if not allowed_values:
-        raise ValueError("ai_config.output.allowed_values is required for risk_label output")
+def _build_output_schema(write_back, allowed_values, reason_max_length=120):
+    from pydantic import StringConstraints, create_model
     annotation = Literal[tuple(allowed_values)]
-    return create_model("AiOutput", **{write_back: (annotation, ...)})
+    reason = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=reason_max_length)]
+    return create_model("AiOutput", **{write_back: (annotation, ...), "reason": (reason, ...)})
 
 
 def invoke(ai_config, instance, created=None):
-    """Step 7 - full runtime for one AI-managed attribute. Orchestrates
-    M02 context -> M01 render -> M06 route -> M03 parse, logs a full trace, and returns the
-    parsed write-back value (or None). The generated hook performs the ORM write-back.
-
-    Fail-open (M07 error semantics): any runtime/provider failure is logged as an
-    'invoke_error' record and yields value=None. It must never propagate into the caller's
-    post_save signal, so a business save can never be broken by AI availability."""
-    model_profile = ai_config.get("model_profile")
-    template_name = ai_config.get("template", {}).get("name")
-    output_cfg = ai_config.get("output", {})
-    write_back = output_cfg.get("write_back")
-    allowed_values = output_cfg.get("allowed_values")
-
-    context = None
-    routed = {}
-    raw = ""
-    value = None
-    status = "success"
-    error = None
-
+    result = RunOutcome()
     try:
-        context = build_context(ai_config, instance)                 # M02
-        prompt = render_prompt(template_name, context)               # M01
-        routed = call_model(model_profile, prompt)                   # M06
-        raw = routed.get("content", "")
-        schema = _build_output_schema(write_back, allowed_values)    # M05 -> M03
-        parsed = JsonOutputParser(schema).parse(raw)                 # M03
-        if parsed.success:
-            value = getattr(parsed.data, write_back)
-        else:
-            status = "parse_error"
-            error = {"code": parsed.error.code, "message": parsed.error.message}
-    except Exception as exc:  # noqa: BLE001 - fail-open boundary, see docstring
-        status = "invoke_error"
-        error = {"code": type(exc).__name__, "message": str(exc)}
-
-    record = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "event": "invoke",
-        "trigger": ai_config.get("trigger", {}).get("type"),
-        "created": created,
-        "model": instance.__class__.__name__,
-        "pk": instance.pk,
-        "model_profile": model_profile,
-        "mode": routed.get("mode"),
-        "provider": routed.get("provider"),
-        "routed_model": routed.get("model"),
-        "template": template_name,
-        "context": context,
-        "raw_output": raw,
-        "parsed_output": value,
-        "write_back": {"field": write_back, "value": value},
-        "status": status,
-        "error": error,
-        "ai_config_version": ai_config.get("ai_config_version"),
-    }
-    try:
-        with LOG_PATH.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
-    except OSError:
-        pass  # logging must also never break the business save
-
-    return value
+        from .context import build_context
+        from .parsers import JsonOutputParser
+        from .templates import render_prompt
+        config = validate_ai_config(ai_config, instance.__class__.__name__, "late_risk")
+        if created is not True:
+            result.status, result.skip_reason = "skipped", "not_created"
+            return result
+        built = build_context(config, instance)
+        result.context, result.diagnostics = built.context, built.diagnostics
+        if built.skip_reason:
+            result.status, result.skip_reason = "skipped", built.skip_reason
+            result.value, result.should_write = config["output"]["on_skip"], True
+            return result
+        name = config["template"]["name"]
+        prompt = render_prompt(name, built.context)
+        result.prompts.append(prompt_record(name, prompt))
+        raw = perform_call(result, config, prompt, name)
+        result.raw_output = raw
+        output = config["output"]
+        schema = _build_output_schema(output["write_back"], output["allowed_values"], output["reason"]["max_length"])
+        parsed = JsonOutputParser(schema).parse(raw)
+        if not parsed.success:
+            result.status = "parse_error"
+            result.error = {"code": parsed.error.code, "message": parsed.error.message}
+            return result
+        result.parsed_output = parsed.data.model_dump()
+        result.value = getattr(parsed.data, output["write_back"])
+        result.reason = parsed.data.reason
+        result.should_write = True
+    except PromptBudgetExceeded:
+        result.status, result.skip_reason = "skipped", "prompt_budget_exceeded"
+        result.value, result.should_write = config["output"]["on_skip"], True
+        result.diagnostics["budget_kind"] = "prompt_chars"
+    except Exception as exc:
+        result.status, result.error = "invoke_error", safe_error(exc)
+    return result

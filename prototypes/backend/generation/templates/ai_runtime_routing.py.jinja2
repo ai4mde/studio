@@ -1,57 +1,58 @@
+"""Profile routing with explicit SDK timeouts, no automatic retries, and per-purpose fakes."""
+import json
 import os
 
-# M06 Model Routing & Abstraction. Profile -> (provider, model).
-# Profiles are routing abstractions: "cheap" = the lower-cost / lower-latency profile of
-# this deployment, "strong" = the higher-capability profile selected for the multi-step
-# task. The model binding is replaceable deployment configuration, decoupled from any
-# particular model or parameter count (M06).
-# Bindings selected on 2026-08-23; per-account availability is established empirically by
-# the F0 provider probes (docs/evidence/realmode/m0_*.json|.status), which gate this file:
-#   cheap/groq   : openai/gpt-oss-20b                (probe-gated fallback adopted 2026-08-23:
-#                                                     primary moonshotai/kimi-k2-instruct-0905
-#                                                     returned 404 for this account, see
-#                                                     docs/evidence/realmode/m0_groq_kimi_k2_0905.*)
-#   strong/openai: gpt-5.1                            (probe-gated; fallback: keep gpt-4o if its
-#                                                     probe passes while gpt-5.1's does not)
-MODEL_PROFILES = {
-    "cheap":  {"provider": "groq",   "model": "openai/gpt-oss-20b"},
-    "strong": {"provider": "openai", "model": "gpt-5.1"},
-}
+from .configuration import MODEL_PROFILES
 
 
-def _fake_content(model_profile):
-    return ('{"late_risk": "LOW", "reason": "fake", '
-            '"genres": ["fiction"], "notes": "fake taste", '
-            '"books": ["Book A", "Book B", "Book C"], '
-            '"ordered": ["Book A", "Book B", "Book C"], '
-            '"summary": "1) Book A; 2) Book B; 3) Book C"}')
+def _fake_content(purpose, allowed_values=None):
+    if purpose == "library_late_risk_v3":
+        return json.dumps({"late_risk": allowed_values[0], "reason": "Illustrative judgement based on the supplied history."})
+    if purpose == "reading_plan_analyze_taste_v1":
+        return json.dumps({"genres": ["science", "history"], "notes": "Borrowed and returned science and history books."})
+    if purpose == "reading_plan_recommend_v1":
+        return json.dumps({"books": ["Demo Recommendation A", "Demo Recommendation B", "Demo Recommendation C"]})
+    if purpose == "reading_plan_sequence_v1":
+        return json.dumps({"ordered": ["Demo Recommendation B", "Demo Recommendation A", "Demo Recommendation C"],
+                           "summary": "1) Demo Recommendation B; 2) Demo Recommendation A; 3) Demo Recommendation C"})
+    raise ValueError(f"Unsupported fake purpose: {purpose}")
 
 
-def _call_groq(model, prompt):
-    from groq import Groq
-
-    client = Groq()
-    resp = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}])
-    return resp.choices[0].message.content
-
-
-def _call_openai(model, prompt):
-    from openai import OpenAI
-
-    client = OpenAI()
-    resp = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}])
-    return resp.choices[0].message.content
-
-
-def call_model(model_profile, prompt):
-    spec = MODEL_PROFILES[model_profile]
-    provider, model = spec["provider"], spec["model"]
-    if os.environ.get("AI_RUNTIME_FAKE") == "1":
-        return {"mode": "fake", "provider": provider, "model": model, "content": _fake_content(model_profile)}
-    if provider == "groq":
-        content = _call_groq(model, prompt)
-    elif provider == "openai":
-        content = _call_openai(model, prompt)
+def _call_provider(spec, prompt, call_record, *, base_url=None):
+    import httpx
+    if spec["provider"] == "openai":
+        from openai import OpenAI
+        factory = OpenAI
+    elif spec["provider"] == "groq":
+        from groq import Groq
+        factory = Groq
     else:
-        raise ValueError(f"unknown provider for profile {model_profile!r}: {provider!r}")
-    return {"mode": "real", "provider": provider, "model": model, "content": content}
+        raise ValueError("Unknown provider")
+
+    def on_request(request):
+        # Local SDK transport tests are not external provider calls.
+        if request.url.host not in {"localhost", "127.0.0.1", "::1"}:
+            call_record["external_http_calls"] += 1
+
+    with httpx.Client(timeout=spec["timeout_s"], event_hooks={"request": [on_request]}) as transport:
+        kwargs = {"timeout": spec["timeout_s"], "max_retries": 0, "http_client": transport}
+        if base_url is not None:
+            kwargs["base_url"] = base_url
+        with factory(**kwargs) as client:
+            call_record["provider_attempts"] += 1
+            response = client.chat.completions.create(
+                model=spec["model"], messages=[{"role": "user", "content": prompt}])
+            return response.choices[0].message.content
+
+
+def call_model(model_profile, prompt, purpose=None, allowed_values=None, call_record=None):
+    spec = MODEL_PROFILES[model_profile]
+    mode = "fake" if os.environ.get("AI_RUNTIME_FAKE") == "1" else "real"
+    record = call_record if call_record is not None else {}
+    record.setdefault("provider_attempts", 0)
+    record.setdefault("external_http_calls", 0)
+    record.update(mode=mode, model_profile=model_profile, provider=spec["provider"],
+                  routed_model=spec["model"], timeout_s=spec["timeout_s"], max_retries=0)
+    content = (_fake_content(purpose, allowed_values) if mode == "fake"
+               else _call_provider(spec, prompt, record))
+    return {"mode": mode, "provider": spec["provider"], "model": spec["model"], "content": content}

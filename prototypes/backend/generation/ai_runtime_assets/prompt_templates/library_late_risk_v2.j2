@@ -1,0 +1,19 @@
+Advise a librarian about this book at the checkout date {{ as_of }}.
+The current return outcome is unknown. This is illustrative decision support, not a calibrated probability.
+
+Current book: {{ current.title }}; category {{ current.category }}; author {{ current.author or 'unknown' }}.
+Loan period: {{ current.loan_days }} days.
+
+Selected completed transactions: {{ facts.loans }}; late transactions: {{ facts.late_loans }}.
+History below contains book rows; multiple rows may belong to the SAME transaction.
+{% for h in history %}- Loan {{ h.loan_id }}, book {{ h.book_id }}: {{ h.title }} | {{ h.category }} | borrowed {{ h.loan_date }}, due {{ h.due_date }}, returned {{ h.return_date }} | {{ h.days_overdue }} days overdue.
+{% endfor %}
+Per-category facts (transactions are deduplicated within each category; do not add category counts):
+{% for category, counts in by_category.items() %}- {{ category }}: {{ counts.loans }} transactions, {{ counts.late_loans }} late, maximum {{ counts.max_days_overdue }} days overdue.
+{% endfor %}
+Consider these observed facts and the current category. If there is no history for that category,
+identify any semantic inference as uncertain; never invent its borrowing history or numerical outcomes.
+Allowed labels, ordered from LOWER to HIGHER late-return risk: {{ allowed_values | tojson }}.
+Use only one of these labels. Return only JSON with the following fields:
+{{ {write_back: allowed_values[0], 'reason': 'One short reason based on the supplied facts.'} | tojson }}
+The reason must be non-empty and at most {{ reason_max_length }} characters after trimming whitespace.

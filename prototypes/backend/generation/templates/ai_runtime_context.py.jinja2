@@ -1,22 +1,126 @@
-"""M02 Retrieval / grounding - generated-app-specific context extraction.
-Realizes the declared ai_config.context for the Library model by traversing the generated
-ORM. Hand-written for this demonstrator; auto-deriving traversal from ai_config for arbitrary
-models is future generator work (thesis limitation). M02 is data-facing: the retrieval
-substrate is application-specific by design."""
+"""BL-1.0 Library history adapter. Selection is configurable; traversal is not."""
+from __future__ import annotations
+
+import re
+from datetime import date
+
+from django.utils import timezone
+
+from .outcomes import ContextOutcome, HistoryOutcome
+
+
+def clean(value):
+    return str(value).strip() if value is not None else ""
+
+
+def parse_date(value):
+    value = clean(value)
+    if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+        raise ValueError("expected YYYY-MM-DD")
+    return date.fromisoformat(value)
+
+
+def valid_book(book):
+    return bool(book and clean(book.title) and clean(book.category) in
+                {value for value, _ in book._meta.get_field("category").choices})
+
+
+def retrieve_customer_history(customer, policy, *, as_of, exclude_loan_pk=None):
+    from shared_models.models import BookLoan
+    qs = BookLoan.objects.filter(Loan__Customer=customer)
+    if exclude_loan_pk is not None:
+        qs = qs.exclude(Loan_id=exclude_loan_pk)
+    diagnostics = {
+        "history_unit": "book_loan", "candidate_record_count": qs.count(),
+        "completed_candidate_count": 0, "not_completed_count": 0,
+        "eligible_record_count": 0, "selected_record_count": 0, "selected_record_ids": [],
+        "excluded_rows": [], "excluded_count": 0, "budget_kind": None, "as_of": as_of.isoformat(),
+    }
+    outcome = HistoryOutcome(diagnostics=diagnostics)
+    if diagnostics["candidate_record_count"] > policy["max_scan_records"]:
+        diagnostics["budget_kind"] = "record_count"
+        outcome.skip_reason = "history_budget_exceeded"
+        return outcome
+    eligible = []
+    for bl in qs.select_related("Loan", "Book", "Book__Author").order_by("pk"):
+        if not clean(bl.return_date):
+            diagnostics["not_completed_count"] += 1
+            continue
+        diagnostics["completed_candidate_count"] += 1
+        reason = None
+        try:
+            start, due, returned = map(parse_date, (bl.Loan.loan_date, bl.Loan.due_date, bl.return_date))
+            if due < start:
+                reason = "due_before_loan"
+            elif returned < start:
+                reason = "return_before_loan"
+            elif policy["as_of"] == "loan_date" and returned >= as_of:
+                reason = "not_before_as_of"
+            elif policy["as_of"] == "today" and returned > as_of:
+                reason = "future_return"
+            elif not valid_book(bl.Book):
+                reason = "invalid_book"
+        except (ValueError, TypeError):
+            reason = "unparseable"
+        if reason:
+            diagnostics["excluded_rows"].append({"bookloan_id": bl.pk, "loan_id": bl.Loan_id, "reason": reason})
+            continue
+        delta = (returned - due).days
+        eligible.append({"loan_id": bl.Loan_id, "bookloan_id": bl.pk, "book_id": bl.Book_id,
+            "title": clean(bl.Book.title), "category": clean(bl.Book.category),
+            "author": clean(getattr(bl.Book.Author, "name", "")),
+            "loan_date": start.isoformat(), "due_date": due.isoformat(), "return_date": returned.isoformat(),
+            "return_delta_days": delta, "days_overdue": max(0, delta), "late": delta > 0})
+    diagnostics["excluded_count"] = len(diagnostics["excluded_rows"])
+    diagnostics["eligible_record_count"] = len(eligible)
+    if not eligible:
+        outcome.skip_reason = "no_valid_history" if diagnostics["completed_candidate_count"] else "empty_history"
+        return outcome
+    first = "return_date" if policy["order_by"] == "-return_date" else "loan_date"
+    second = "loan_date" if first == "return_date" else "return_date"
+    outcome.rows = sorted(eligible, key=lambda row: (row[first], row[second], row["bookloan_id"]), reverse=True)[:policy["limit"]]
+    diagnostics["selected_record_count"] = len(outcome.rows)
+    diagnostics["selected_record_ids"] = [row["bookloan_id"] for row in outcome.rows]
+    return outcome
+
+
+def compute_facts(history):
+    categories = {}
+    for row in history.rows:
+        counts = categories.setdefault(row["category"], {"records": 0, "late_records": 0, "max_days_overdue": 0})
+        counts["records"] += 1
+        counts["late_records"] += int(row["late"])
+        counts["max_days_overdue"] = max(counts["max_days_overdue"], row["days_overdue"])
+    return {"records": len(history.rows), "late_records": sum(row["late"] for row in history.rows),
+            "by_category": dict(sorted(categories.items()))}
 
 
 def build_context(ai_config, instance):
-    # instance is a BookLoan. Declared context fields live on the related Loan; related
-    # objects are reached via the generator's PascalCase FK names.
     loan = getattr(instance, "Loan", None)
     book = getattr(instance, "Book", None)
-    customer = getattr(loan, "Customer", None) if loan is not None else None
-    author = getattr(book, "Author", None) if book is not None else None
-    return {
-        "book_title": getattr(book, "title", "") or "",
-        "author_name": getattr(author, "name", "") or "",
-        "customer_name": getattr(customer, "name", "") or "",
-        "loan_date": getattr(loan, "loan_date", "") or "",
-        "due_date": getattr(loan, "due_date", "") or "",
-        "return_date": getattr(loan, "return_date", "") or "",
-    }
+    if loan is None or book is None or getattr(loan, "Customer", None) is None or not valid_book(book):
+        return ContextOutcome(skip_reason="invalid_current_record")
+    try:
+        as_of, due = parse_date(loan.loan_date), parse_date(loan.due_date)
+        today = timezone.localdate()
+        if due < as_of or as_of > today:
+            raise ValueError("invalid current loan interval")
+    except (TypeError, ValueError):
+        return ContextOutcome(skip_reason="invalid_current_dates")
+    timing = {"as_of": as_of.isoformat(),
+              "assessment_mode": "checkout_assessment" if as_of == today else "historical_simulation"}
+    if clean(instance.return_date):
+        return ContextOutcome(skip_reason="outcome_known", diagnostics=timing)
+    history = retrieve_customer_history(loan.Customer, ai_config["context"]["history"], as_of=as_of, exclude_loan_pk=loan.pk)
+    diagnostics = {**history.diagnostics, **timing}
+    if history.skip_reason:
+        return ContextOutcome(skip_reason=history.skip_reason, diagnostics=diagnostics)
+    facts = compute_facts(history)
+    return ContextOutcome(context={
+        "current": {"title": clean(book.title), "category": clean(book.category),
+                    "author": clean(getattr(book.Author, "name", "")), "loan_days": (due - as_of).days},
+        "history": history.rows, "facts": facts, "by_category": facts["by_category"],
+        "as_of": as_of.isoformat(), "allowed_values": ai_config["output"]["allowed_values"],
+        "write_back": ai_config["output"]["write_back"],
+        "reason_max_length": ai_config["output"]["reason"]["max_length"],
+    }, diagnostics=diagnostics)

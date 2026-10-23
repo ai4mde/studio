@@ -1,4 +1,4 @@
-A library member has borrowed these books:
+A library member has borrowed and returned these books (borrowing does not prove they read them):
 {% for b in borrowed_books %}- {{ b.title }} ({{ b.category }}, by {{ b.author }})
 {% endfor %}
 Identify the member's reading taste. Return ONLY JSON of the exact form:

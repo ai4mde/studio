@@ -62,6 +62,9 @@ def seed_library_demo_data(apps, schema_editor):
         user_rows[0]["is_librarian"] = True
     if has_field(User, "is_member"):
         user_rows[1]["is_member"] = True
+    if has_field(User, "email"):
+        user_rows[0]["email"] = "librarian@example.com"
+        user_rows[1]["email"] = "bob@example.com"
     User.objects.bulk_create([User(**row) for row in user_rows])
 
     authors_data = [
@@ -152,8 +155,6 @@ def seed_library_demo_data(apps, schema_editor):
             kwargs["loan_date"] = loan_date
         if has_field(Loan, "due_date"):
             kwargs["due_date"] = due_date
-        if has_field(Loan, "return_date"):
-            kwargs["return_date"] = return_date
         loan_rows.append(Loan(**kwargs))
     loans = Loan.objects.bulk_create(loan_rows)
     if any(loan.pk is None for loan in loans):
@@ -173,11 +174,54 @@ def seed_library_demo_data(apps, schema_editor):
                 **{
                     fields["bookloan_loan"]: loan,
                     fields["bookloan_book"]: books[book_title],
-                    fields["bookloan_late_risk"]: late_risk,
+                    fields["bookloan_late_risk"]: "NOT_ASSESSED",
+                    "return_date": _return_date,
                 }
             )
         )
     BookLoan.objects.bulk_create(bookloan_rows)
+
+    # Explicitly synthetic BL-1.2 history. These labels were never model assessments.
+    demo_author = Author.objects.create(**{fields["author_name"]: "Demo Author"})
+    demo_books = {}
+    for category in ("SCIENCE", "HISTORY", "CHILDREN"):
+        demo_books[category] = Book.objects.create(**{
+            fields["book_title"]: "Demo " + category.title() + " Book",
+            fields["book_category"]: category, fields["book_author"]: demo_author,
+        })
+    bob_history = [
+        ("2026-01-01", "2026-01-15", "2026-01-14", "SCIENCE"),
+        ("2026-02-01", "2026-02-15", "2026-02-15", "SCIENCE"),
+        ("2026-03-01", "2026-03-15", "2026-03-13", "SCIENCE"),
+        ("2026-04-01", "2026-04-15", "2026-04-20", "HISTORY"),
+        ("2026-05-01", "2026-05-15", "2026-05-24", "HISTORY"),
+        ("2026-06-01", "2026-06-15", "2026-06-29", "HISTORY"),
+    ]
+    bob_loans = Loan.objects.bulk_create([Loan(**{
+        fields["loan_customer"]: customers["bob"], "loan_date": start,
+        "due_date": due,
+    }) for start, due, returned, category in bob_history])
+    BookLoan.objects.bulk_create([BookLoan(**{
+        fields["bookloan_loan"]: loan, fields["bookloan_book"]: demo_books[row[3]],
+        fields["bookloan_late_risk"]: "NOT_ASSESSED", "return_date": row[2],
+    }) for loan, row in zip(bob_loans, bob_history)])
+
+    # Shared period; independent outcomes, partial return and two books in one category.
+    same_science = Book.objects.create(**{fields['book_title']: 'Demo Science Companion',
+        fields['book_category']: 'SCIENCE', fields['book_author']: demo_author})
+    group = Loan.objects.create(**{fields['loan_customer']: customers['bob'],
+        'loan_date': '2026-07-01', 'due_date': '2026-07-15'})
+    partial = Loan.objects.create(**{fields['loan_customer']: customers['bob'],
+        'loan_date': '2026-08-01', 'due_date': '2026-08-15'})
+    BookLoan.objects.bulk_create([BookLoan(**{fields['bookloan_loan']: loan,
+        fields['bookloan_book']: book, 'return_date': returned,
+        fields['bookloan_late_risk']: 'NOT_ASSESSED'}) for loan, book, returned in [
+        (group, demo_books['SCIENCE'], '2026-07-14'),
+        (group, same_science, '2026-07-15'),
+        (group, demo_books['HISTORY'], '2026-07-19'),
+        (partial, demo_books['SCIENCE'], '2026-08-14'),
+        (partial, demo_books['HISTORY'], ''),
+    ]])
 
 
 class Migration(migrations.Migration):

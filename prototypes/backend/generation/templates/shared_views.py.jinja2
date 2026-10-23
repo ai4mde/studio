@@ -1,47 +1,250 @@
-from django.apps import apps
+from __future__ import annotations
+
+import re
+
+from django.contrib import messages
+from django.core.exceptions import BadRequest, PermissionDenied
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import CreateView, UpdateView, ListView, DeleteView, TemplateView
 from django.views import View
-{% if authentication_present -%}
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-
 from workflow_engine.models import ActiveProcessNode
+{% if authentication_present %}
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+{% endif %}
+{% if library_ai_enabled %}
+from shared_models.models import Customer, User
+from ai_runtime.outcomes import RunOutcome
+{% endif %}
+
+LIBRARY_AI_ENABLED = {{ library_ai_enabled }}
+OWNERSHIP = {{ ownership }}
+LIFECYCLE = {{ lifecycle }}
 
 
+def positive_pk(value):
+    if not re.fullmatch(r"[0-9]+", value):
+        return None
+    try:
+        number = int(value)
+    except ValueError:  # Python also bounds conversion of excessively long integers.
+        return None
+    return number if number > 0 else None
+
+
+def normalized_email(value):
+    return (value or "").strip().lower()
+
+
+def _unique_email_id(model, email):
+    # Library demonstrator: stream only id/email and stop when ambiguity is established.
+    matches = []
+    for pk, value in model.objects.values_list("pk", "email").iterator():
+        if normalized_email(value) == email:
+            matches.append(pk)
+            if len(matches) > 1:
+                break
+    return matches[0] if len(matches) == 1 else None
+
+
+def scoped_queryset(request, app_role, model):
+    qs = model.objects.all()
+    if not (LIBRARY_AI_ENABLED and app_role == "member" and model.__name__ == "Customer"):
+        return qs
+    if OWNERSHIP.get(app_role, {}).get("Customer") != "email":
+        return qs.none()  # Missing/tampered protected policy can never expose the full table.
+    user = request.user
+    email = normalized_email(getattr(user, "email", None))
+    if not user.is_authenticated or not email:
+        return qs.none()
+    cache_key = (user.pk, email)
+    cached = getattr(request, "_library_binding", None)
+    if cached is None or cached[0] != cache_key:
+        customer_id = (_unique_email_id(Customer, email)
+                       if _unique_email_id(User, email) == user.pk else None)
+        request._library_binding = (cache_key, customer_id)
+    customer_id = request._library_binding[1]
+    return qs.filter(pk=customer_id) if customer_id is not None else qs.none()
+
+
+{% if authentication_present %}
 class RoleRequiredMixin(UserPassesTestMixin):
     required_roles = []
 
     def test_func(self):
-        return (
-            any(role in self.request.user.roles for role in self.required_roles)
-            if self.required_roles is not None
-            else True
-        )
-            
-{% endif -%}
+        return (any(role in self.request.user.roles for role in self.required_roles)
+                if self.required_roles is not None else True)
+{% endif %}
 
-class GenericViewMixin{% if authentication_present -%}(LoginRequiredMixin, RoleRequiredMixin){% endif %}:
+
+class GenericViewMixin{% if authentication_present %}(LoginRequiredMixin, RoleRequiredMixin){% endif %}:
     model = None
     template_name = None
     context_object_name = None
+    app_role = None
+    page_models = ()
+    parent_models = ()
+
+    @property
+    def active_process_node(self):
+        node_id = self.kwargs.get("active_process_node_id")
+        return get_object_or_404(ActiveProcessNode, pk=node_id) if node_id is not None else None
+
+    def page_queryset(self, model):
+        qs = scoped_queryset(self.request, self.app_role, model)
+        if self.kwargs.get("active_process_node_id") is not None:
+            associated = getattr(self.active_process_node.active_process, model.__name__.lower() + "s")
+            qs = qs.filter(pk__in=associated.all().values("pk"))
+        return qs
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.model.__name__ in LIFECYCLE and getattr(self, 'object', None) is not None and 'data' in kwargs:
+            data = kwargs['data'].copy()
+            for field in self.fields:
+                if field not in data:
+                    data[field] = getattr(self.object, field) or ''
+            kwargs['data'] = data
+        return kwargs
+
+    def library_form_valid(self, form):
+        # Fixed Library adapter, activated only by validated 1.2 bindings.
+        from shared_models.models import Loan, BookLoan, Book, Customer
+        from ai_runtime.context import clean, parse_date, valid_book
+        from django.db import transaction, IntegrityError
+        from django.utils import timezone
+        from django.http import HttpResponseRedirect
+        name = self.model.__name__
+        updating = bool(getattr(self, 'object', None) and self.object.pk)
+        today = timezone.localdate()
+        def one(key, fallback=None):
+            values = self.request.POST.getlist(key)
+            if not values and fallback is not None:
+                return fallback
+            if len(values) != 1:
+                raise ValueError(key + ': exactly one value is required')
+            return values[0]
+        def parent(model, key, fallback=None):
+            value = positive_pk(str(one(key, fallback)))
+            if value is None:
+                raise ValueError(key + ': select a valid object')
+            return get_object_or_404(scoped_queryset(self.request, self.app_role, model), pk=value)
+        try:
+            with transaction.atomic():
+                original = self.model.objects.get(pk=self.object.pk) if updating else None
+                instance = original if updating else self.model()
+                if name == 'Loan':
+                    if 'return_date' in self.request.POST:
+                        raise ValueError('Return each book through its BookLoan; Loan no longer accepts return_date.')
+                    customer = parent(Customer, 'Customer', original.Customer_id if updating else None)
+                    start = parse_date(one('loan_date', original.loan_date if updating else None))
+                    due = parse_date(one('due_date', original.due_date if updating else None))
+                    if due < start:
+                        raise ValueError('Due date must not precede the loan date.')
+                    frozen = updating and BookLoan.objects.filter(Loan=original).exists()
+                    if frozen:
+                        if (customer.pk, start.isoformat(), due.isoformat()) != (original.Customer_id, original.loan_date, original.due_date):
+                            raise ValueError('Reader and loan period are fixed after the first book is added.')
+                    elif start != today:
+                        raise ValueError('An empty borrowing group must use today as its loan date.')
+                    instance.Customer, instance.loan_date, instance.due_date = customer, start.isoformat(), due.isoformat()
+                else:
+                    loan = parent(Loan, 'Loan', original.Loan_id if updating else None)
+                    book = parent(Book, 'Book', original.Book_id if updating else None)
+                    start, due = parse_date(loan.loan_date), parse_date(loan.due_date)
+                    if due < start:
+                        raise ValueError('Invalid loan period.')
+                    values = self.request.POST.getlist('return_date')
+                    if len(values) > 1:
+                        raise ValueError('return_date: exactly one value is allowed')
+                    returned = clean(values[0]) if values else clean(original.return_date) if updating else ''
+                    if updating:
+                        if (loan.pk, book.pk) != (original.Loan_id, original.Book_id):
+                            raise ValueError('The original Loan and Book cannot be changed.')
+                        if clean(original.return_date) and returned != clean(original.return_date):
+                            raise ValueError('A recorded return cannot be changed or cleared.')
+                        if returned and not start <= parse_date(returned) <= today:
+                            raise ValueError('Return date must be between the loan date and today.')
+                    else:
+                        if start != today:
+                            raise ValueError('Books can only be added on the loan date.')
+                        if any(clean(value) for value in BookLoan.objects.filter(Loan=loan).values_list('return_date', flat=True)):
+                            raise ValueError('No more books can be added after a book in this group has been returned.')
+                        if not valid_book(book):
+                            raise ValueError('Book title and a valid category are required.')
+                        if returned:
+                            raise ValueError('A newly borrowed book cannot already have a return date.')
+                        if BookLoan.objects.filter(Loan=loan, Book=book).exists():
+                            raise ValueError('This borrowing group already contains this book.')
+                    instance.Loan, instance.Book, instance.return_date = loan, book, returned
+                instance.save()
+                self.object = instance
+        except (ValueError, TypeError) as exc:
+            form.add_error(None, str(exc))
+            return self.form_invalid(form)
+        except IntegrityError as exc:
+            # Only the declared duplicate-pair conflict is converted; other DB errors propagate.
+            message = str(exc)
+            if name != 'BookLoan' or not ('bl_bookloan_loan_book_uniq' in message or
+                    ('UNIQUE constraint failed' in message and 'Book_id' in message and 'Loan_id' in message)):
+                raise
+            form.add_error(None, 'This borrowing group already contains this book.')
+            return self.form_invalid(form)
+        outcome = getattr(self.object, '_ai_last_outcome', None)
+        if not updating and name == 'BookLoan' and outcome is not None:
+            if outcome.status == 'success':
+                messages.success(self.request, 'Book borrowed. Checkout risk: ' + str(outcome.value) + '.')
+            elif outcome.status == 'skipped':
+                reasons = {'empty_history': 'no completed borrowing history',
+                    'no_valid_history': 'no usable completed history',
+                    'history_budget_exceeded': 'history processing limit exceeded',
+                    'prompt_budget_exceeded': 'input processing limit exceeded'}
+                messages.info(self.request, 'Book borrowed. Risk not assessed: ' + reasons.get(outcome.skip_reason, 'required information unavailable') + '.')
+            else:
+                messages.error(self.request, 'Book borrowed, but the risk assessment could not be completed.')
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        for model in self.page_models:
+            qs = self.page_queryset(model)
+            if model.__name__ in LIFECYCLE:
+                from shared_models.models import BookLoan
+                if model.__name__ == 'Loan':
+                    rows = list(qs.select_related('Customer'))
+                    occupied = set(BookLoan.objects.filter(Loan_id__in=[row.pk for row in rows]).values_list('Loan_id', flat=True))
+                    for row in rows:
+                        row.can_edit_group = row.pk not in occupied
+                    qs = rows
+                else:
+                    qs = qs.select_related('Loan', 'Book', 'Loan__Customer')
+            context[model.__name__ + "_list"] = qs
+        for model in self.parent_models:
+            qs = scoped_queryset(self.request, self.app_role, model)
+            if model.__name__ == 'Loan' and 'Loan' in LIFECYCLE:
+                from shared_models.models import BookLoan
+                from django.utils import timezone
+                from ai_runtime.context import clean
+                returned = {pk for pk, value in BookLoan.objects.values_list('Loan_id', 'return_date') if clean(value)}
+                qs = qs.filter(loan_date=timezone.localdate().isoformat()).exclude(pk__in=returned)
+            context["parent_" + model.__name__ + "_list"] = qs
+        if self.kwargs.get("active_process_node_id") is not None:
+            context["active_process_node_id"] = self.kwargs["active_process_node_id"]
+        return context
 
 
-class GenericTemplateView({% if authentication_present -%}LoginRequiredMixin, RoleRequiredMixin, {% endif %}TemplateView):
+class GenericTemplateView({% if authentication_present %}LoginRequiredMixin, RoleRequiredMixin, {% endif %}TemplateView):
     template_name = None
 
 
-class GenericView({% if authentication_present -%}LoginRequiredMixin, RoleRequiredMixin, {% endif %}View):
+class GenericView({% if authentication_present %}LoginRequiredMixin, RoleRequiredMixin, {% endif %}View):
     pass
 
 
 class GenericListView(GenericViewMixin, ListView):
-    
-    @property
-    def active_process_node(self) -> ActiveProcessNode | None:
-        return get_object_or_404(
-            ActiveProcessNode,
-            pk=self.kwargs.get('active_process_node_id'),
-        ) if 'active_process_node_id' in self.kwargs else None
+    allowed_actions = {}
+
+    def get_queryset(self):
+        return self.page_queryset(self.model)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -50,47 +253,61 @@ class GenericListView(GenericViewMixin, ListView):
         return context
 
     def post(self, request, *args, **kwargs):
-        # M07 user_action invocation arrives as POST (CSRF-protected). Post/Redirect/Get:
-        # after executing, redirect back to the same page so a browser refresh can never
-        # replay the LLM call or the write-back.
         self._execute_custom_method()
         return redirect(request.path)
 
-    def _get_related_keys(self, partial_key: str) -> list[str]:
-        return [
-            key for key in self.request.GET
-            if key.startswith(partial_key) and key != partial_key
-        ]
+    def _get_related_keys(self, partial_key):
+        return [key for key in self.request.GET if key.startswith(partial_key) and key != partial_key]
 
-    def _add_create_context(self, context: dict) -> None:
-        create_keys = self._get_related_keys('create_')
-        if not create_keys:
-            return
-        for key in create_keys:
-            if self.request.GET[key] == 'true':
+    def _add_create_context(self, context):
+        for key in self._get_related_keys("create_"):
+            if self.request.GET[key] == "true":
                 context[key] = True
                 break
-        
-    def _add_update_context(self, context: dict) -> None:
-        update_keys = self._get_related_keys('instance_id_')
-        if not update_keys:
-            return
-        for key in update_keys:
-            if model := apps.get_model('shared_models', key.split("_")[-1]):
-                context['update_instance'] = get_object_or_404(model, pk=self.request.GET[key])
-                break
-    
-    def _execute_custom_method(self) -> None:
-        custom_method_keys = [
-            key for key in self.request.POST
-            if key.startswith('custom_') and key != 'custom_'
-        ]
-        for key in custom_method_keys:
-            _, model, method = key.split("_", 2)
-            if model_instance := apps.get_model('shared_models', model):
-                instance = get_object_or_404(model_instance, pk=self.request.POST[key])
-                getattr(instance, method)()
-                break
+
+    def _add_update_context(self, context):
+        models = {model.__name__: model for model in self.page_models}
+        for key in self._get_related_keys("instance_id_"):
+            model = models.get(key[len("instance_id_"):])
+            if model is None:
+                raise PermissionDenied("Model is not declared on this page")
+            value = positive_pk(self.request.GET[key])
+            if value is None:
+                raise BadRequest("Invalid object id")
+            context["update_instance"] = get_object_or_404(self.page_queryset(model), pk=value)
+            break
+
+    def _execute_custom_method(self):
+        keys = [key for key in self.request.POST if key.startswith("custom_")]
+        if len(keys) != 1 or len(self.request.POST.getlist(keys[0])) != 1:
+            raise BadRequest("Exactly one action and one target are required")
+        key = keys[0]
+        if key not in self.allowed_actions:
+            raise PermissionDenied("Action is not declared on this page")
+        model, method = self.allowed_actions[key]
+        value = positive_pk(self.request.POST[key])
+        if value is None:
+            raise BadRequest("Invalid object id")
+        instance = get_object_or_404(self.page_queryset(model), pk=value)
+        outcome = getattr(instance, method)()
+        {% if library_ai_enabled %}
+        if isinstance(outcome, RunOutcome):
+            if outcome.status == "success":
+                messages.success(self.request, "Your reading plan has been updated.")
+            elif outcome.status == "skipped":
+                reasons = {
+                    "empty_history": "there are no completed borrowing records",
+                    "no_valid_history": "there is no usable completed borrowing history",
+                    "history_budget_exceeded": "the history exceeds this demonstrator's processing limit",
+                    "prompt_budget_exceeded": "the input exceeds this demonstrator's processing limit",
+                }
+                reason = reasons.get(outcome.skip_reason, "the required history is unavailable")
+                suffix = " Your previous plan has been kept." if not outcome.should_write else ""
+                messages.info(self.request, "No new reading plan was generated because " + reason + "." + suffix)
+            else:
+                messages.error(self.request, "A new reading plan could not be generated. Any existing plan has been kept.")
+        {% endif %}
+
 
 class GenericCreateView(GenericViewMixin, CreateView):
     fields = None
@@ -100,6 +317,27 @@ class GenericCreateView(GenericViewMixin, CreateView):
 class GenericUpdateView(GenericViewMixin, UpdateView):
     fields = None
     success_url = None
+    frozen_parents = ()
+
+    def validate_frozen_parents(self, form):
+        if not self.frozen_parents:
+            return True
+        fields = [name + "_id" for name in self.frozen_parents]
+        original = self.model.objects.values(*fields).get(pk=self.object.pk)
+        valid = True
+        for parent in self.frozen_parents:
+            values = self.request.POST.getlist(parent)
+            if parent not in self.request.POST:
+                continue
+            if len(values) != 1 or positive_pk(values[0]) != original[parent + "_id"]:
+                form.add_error(None, "This checkout assessment is fixed to its original " + parent + ". The association cannot be changed.")
+                valid = False
+        return valid
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["update_instance"] = self.object
+        return context
 
 
 class GenericDeleteView(GenericViewMixin, DeleteView):
