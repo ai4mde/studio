@@ -3,3 +3,9 @@ site/
 docs/backend/build/
 docs/guides/build/
 docs/backend/source/api/
+
+# Generated evidence stays local until a documented run is explicitly retained.
+docs/evidence/**/run_*/
+
+# Local agent settings.
+.claude/

@@ -1,2 +1,0 @@
-PASS G-reset-safety reset -> restore deep-match -> reset
-snapshot classes: ['BookLoan', 'Customer']
