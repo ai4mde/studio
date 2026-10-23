@@ -36,4 +36,4 @@ class SystemUpdate(ModelSchema):
     class Meta:
         model = System
         fields = ["name", "description"]
-        fields_optional = "_all__"
+        fields_optional = "__all__"

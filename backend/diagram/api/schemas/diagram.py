@@ -39,4 +39,4 @@ class DiagramUpdate(ModelSchema):
     class Meta:
         model = Diagram
         fields = ["name", "description"]
-        fields_optional = "_all__"
+        fields_optional = "__all__"

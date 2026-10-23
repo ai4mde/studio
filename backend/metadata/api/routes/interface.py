@@ -152,13 +152,13 @@ def create_page_section(request, payload: PageSectionCreate):
 
 
 @router.patch("/page-sections/{page_section_id}/", response=PageSectionRead)
-def update_page_section(request, page_section_id: int, payload: PageSectionUpdate):
+def update_page_section(request, page_section_id: UUID, payload: PageSectionUpdate):
     page_section = get_object_or_404(PageSection, id=page_section_id)
     return update_instance(page_section, payload)
 
 
 @router.delete("/page-sections/{page_section_id}/", response={204: None})
-def delete_page_section(request, page_section_id: int):
+def delete_page_section(request, page_section_id: UUID):
     page_section = get_object_or_404(PageSection, id=page_section_id)
     page_section.delete()
     return 204, None
@@ -173,13 +173,13 @@ def create_section_attribute(request, payload: SectionAttributeCreate):
 
 
 @router.patch("/section-attributes/{section_attribute_id}/", response=SectionAttributeRead)
-def update_section_attribute(request, section_attribute_id: int, payload: SectionAttributeUpdate):
+def update_section_attribute(request, section_attribute_id: UUID, payload: SectionAttributeUpdate):
     section_attribute = get_object_or_404(SectionAttribute, id=section_attribute_id)
     return update_instance(section_attribute, payload)
 
 
 @router.delete("/section-attributes/{section_attribute_id}/", response={204: None})
-def delete_section_attribute(request, section_attribute_id: int):
+def delete_section_attribute(request, section_attribute_id: UUID):
     section_attribute = get_object_or_404(SectionAttribute, id=section_attribute_id)
     section_attribute.delete()
     return 204, None
