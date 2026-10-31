@@ -1,4 +1,4 @@
-from typing import Literal, TypeAlias, TypedDict
+from typing import Literal, NotRequired, TypeAlias, TypedDict
 
 
 # Serialization
@@ -47,3 +47,48 @@ DeltaOperation: TypeAlias = (
 )
 
 ProjectDelta: TypeAlias = list[DeltaOperation]
+
+# Merge operations
+MergeConflictKind = Literal[
+    "FIELD",
+    "CREATE_CREATE",
+    "DELETE_UPDATE",
+    "UPDATE_DELETE",
+    "MISSING_REFERENCE",
+]
+
+
+class MergeConflict(TypedDict):
+    kind: MergeConflictKind
+    model: str
+    id: str
+    field: str | None
+    base: object
+    local: object
+    incoming: object
+
+
+class MergeResult(TypedDict):
+    state: ProjectState | None
+    conflicts: list[MergeConflict]
+
+
+MergeResolutionChoice = Literal[
+    "LOCAL",
+    "INCOMING",
+    "BASE",
+    "CUSTOM",
+    "DELETE_OBJECT",
+    "RESTORE_TARGET",
+]
+
+
+class MergeResolution(TypedDict):
+    """User-selected action for one merge conflict."""
+
+    kind: MergeConflictKind
+    model: str
+    id: str
+    field: str | None
+    choice: MergeResolutionChoice
+    value: NotRequired[object]  # Required only when choice is CUSTOM.

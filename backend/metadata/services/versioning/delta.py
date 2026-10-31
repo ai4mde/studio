@@ -1,12 +1,14 @@
 from copy import deepcopy
 from uuid import UUID
 
-from .constants import (
+from django.apps import apps
+
+from metadata.services.versioning.constants import (
     PROJECT_MODEL_SCOPES,
     SNAPSHOT_FORMAT,
     SNAPSHOT_SCHEMA_VERSION,
 )
-from .types import (
+from metadata.services.versioning.types import (
     ProjectState,
     ProjectDelta,
     FieldChange,
@@ -68,6 +70,7 @@ def _validate_snapshot(snapshot: ProjectState) -> None:
         )
 
     for model, rows in models.items():
+        pk_field = apps.get_model(model)._meta.pk.attname
         if not isinstance(rows, dict):
             raise ProjectDeltaError(
                 f"{model} must contain a mapping of IDs to rows"
@@ -77,7 +80,7 @@ def _validate_snapshot(snapshot: ProjectState) -> None:
             if (
                 not isinstance(object_id, str)
                 or not isinstance(row, dict)
-                or row.get("id") != object_id
+                or str(row.get(pk_field)) != object_id
                 or not all(isinstance(name, str) for name in row)
             ):
                 raise ProjectDeltaError(
@@ -156,7 +159,7 @@ def generate_delta(
                     if old[field] != new[field]
                 }
 
-                if "id" in changes:
+                if apps.get_model(model)._meta.pk.attname in changes:
                     raise ProjectDeltaError(
                         f"Cannot change the primary key of {model}({object_id})"
                     )
@@ -231,7 +234,7 @@ def apply_delta(state: ProjectState, delta: ProjectDelta) -> ProjectState:
 
             if (
                 not isinstance(data, dict)
-                or data.get("id") != object_id
+                or str(data.get(apps.get_model(model)._meta.pk.attname)) != object_id
             ):
                 raise ProjectDeltaError(
                     f"Invalid CREATE row for {model}({object_id})"
@@ -268,7 +271,7 @@ def apply_delta(state: ProjectState, delta: ProjectDelta) -> ProjectState:
             if (
                 not isinstance(changes, dict)
                 or not changes
-                or "id" in changes
+                or apps.get_model(model)._meta.pk.attname in changes
             ):
                 raise ProjectDeltaError(
                     f"Invalid UPDATE fields for {model}({object_id})"

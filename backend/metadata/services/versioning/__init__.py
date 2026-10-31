@@ -1,7 +1,10 @@
-from .serializer import (
-    ProjectSerializationError,
-    serialize_project,
-    project_snapshot_json,
+from .applicator import (
+    ProjectApplicationError,
+    apply_project_changes,
+)
+from .checkout import (
+    ProjectCheckoutError,
+    checkout_version,
 )
 from .delta import (
     ProjectDeltaError,
@@ -10,10 +13,20 @@ from .delta import (
     generate_delta,
     invert_delta,
 )
-from .versions import (
-    ProjectVersionError,
-    create_version,
-    reconstruct_version,
+from .graph import (
+    ProjectVersionGraphError,
+    find_common_ancestor,
+)
+from .merge import (
+    MergeConflict,
+    MergeResult,
+    ProjectMergeError,
+    merge_project_states,
+)
+from .serializer import (
+    ProjectSerializationError,
+    serialize_project,
+    project_snapshot_json,
 )
 from .types import (
     ProjectRow,
@@ -27,13 +40,24 @@ from .types import (
     DeleteOperation,
     DeltaOperation,
     ProjectDelta,
+    MergeConflictKind,
+    MergeResult,
+    MergeConflict,
+)
+from .versions import (
+    ProjectVersionError,
+    create_version,
+    reconstruct_version,
 )
 
 __all__ = [
-    # Serialization
-    "ProjectSerializationError",
-    "serialize_project",
-    "project_snapshot_json",
+    # Applicator
+    "ProjectApplicationError",
+    "apply_project_changes",
+    
+    # Checkout
+    "ProjectCheckoutError",
+    "checkout_version",
 
     # Delta generation and application
     "ProjectDeltaError",
@@ -42,10 +66,20 @@ __all__ = [
     "generate_delta",
     "invert_delta",
 
-    # Version history
-    "ProjectVersionError",
-    "create_version",
-    "reconstruct_version",
+    # Graph
+    "ProjectVersionGraphError",
+    "find_common_ancestor",
+
+    # Merge
+    "MergeConflict",
+    "MergeResult",
+    "ProjectMergeError",
+    "merge_project_states",
+
+    # Serialization
+    "ProjectSerializationError",
+    "serialize_project",
+    "project_snapshot_json",
     
     # Types
     "ProjectRow",
@@ -59,4 +93,12 @@ __all__ = [
     "DeleteOperation",
     "DeltaOperation",
     "ProjectDelta",
+    "MergeConflictKind",
+    "MergeResult",
+    "MergeConflict",
+    
+    # Version history
+    "ProjectVersionError",
+    "create_version",
+    "reconstruct_version",
 ]
