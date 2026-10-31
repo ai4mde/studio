@@ -66,3 +66,5 @@ from .interface import (
     SectionAttribute,
     SectionComponent
 )
+
+from .version import ProjectVersion

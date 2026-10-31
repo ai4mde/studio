@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 from ..relation import RelationDataModel
@@ -13,6 +15,7 @@ class Multiplicity(models.Model):
             0..*    => lower=0, upper=None
             1..*    => lower=1, upper=None       
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     source_lower = models.PositiveIntegerField()
     source_upper = models.PositiveIntegerField(blank=True, null=True)
 
@@ -24,6 +27,7 @@ class EndpointLabel(models.Model):
     """
         Endpoint labels for relations
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     source = models.CharField(max_length=255, blank=True, default="")
     target = models.CharField(max_length=255, blank=True, default="")
 
