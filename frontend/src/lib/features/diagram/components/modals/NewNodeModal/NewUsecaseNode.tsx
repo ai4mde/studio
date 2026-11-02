@@ -49,7 +49,8 @@ export const NewUsecaseNode: React.FC<Props> = ({ object, systemBoundaryExists, 
                     }
                 />
             </FormControl>
-            {object.type === "system_boundary" && (
+            {/* TODO(api): hidden until the boundary can link to a system classifier */}
+            {false && object.type === "system_boundary" && (
               <FormControl size="sm" className="w-full">
                 <FormLabel>System</FormLabel>
                 <Select

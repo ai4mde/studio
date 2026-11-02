@@ -132,7 +132,15 @@ export const NewNodeModal: React.FC = () => {
 }
 
         // 3) Create all non-swimlane nodes (object/event allowed to repeat)
-        addNode(diagram, object);
+        if (object.type === "system_boundary") {
+            // TODO(api): SystemBoundary.system points to the project System model
+            // instead of a system classifier, so a picked system can't be saved yet
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { system_id, ...boundary } = object;
+            addNode(diagram, boundary);
+        } else {
+            addNode(diagram, object);
+        }
         close();
     };
 
