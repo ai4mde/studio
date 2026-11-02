@@ -69,9 +69,16 @@ export const NewNodeModal: React.FC = () => {
 
     const swimlaneGroup = nodes.find((node) => node.type === 'swimlanegroup');
     const systemBoundaryExists = nodes.some((node) => node.type === 'system_boundary');
-    const systemNodes = relatedDiagrams
-        .flatMap(diagram => diagram.nodes ?? [])
-        .filter(node => node?.type === "system");
+    // Take the system classifiers straight from the system, so systems that
+    // aren't drawn in a diagram yet can be picked too
+    const systemNodes = classifiers
+        .filter((classifier) => classifier.type === "system" && !!classifier.id)
+        .map((classifier) => ({
+            id: classifier.id!,
+            name: (classifier.data as { name?: string }).name ?? "",
+            type: classifier.type,
+            cls: classifier.id!,
+        }));
     const nodeRef = React.useRef(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
