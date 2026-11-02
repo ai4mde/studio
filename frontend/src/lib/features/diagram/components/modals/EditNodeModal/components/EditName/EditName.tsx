@@ -4,7 +4,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Save } from "lucide-react";
 import { Node } from "reactflow";
 import style from "./editname.module.css";
-import { authAxios } from "$lib/features/auth/state/auth";
+import { useClassifiers } from "../../../../../../../../api/metadata/hooks/classifier";
+import { classifierNameExists } from "../../../../../../../../api/metadata/classifier";
+import type { ClassifierRead } from "../../../../../../../../api/metadata/classifier";
 
 type Props = {
     node: Node;
@@ -27,9 +29,14 @@ export const EditName: React.FC<Props> = ({ node }) => {
     const [name, setName] = useState(node.data.name);
     const { diagram, systemId } = useDiagramStore();
 
-    const [nameError, setNameError] = useState("");
-    const [checkingName, setCheckingName] = useState(false);
-    const [lastCheckedName, setLastCheckedName] = useState("");
+    const {
+        data: classifiers = [],
+        isFetching: checkingName,
+        isError: classifierLoadError,
+    } = useClassifiers(
+        { system_id: systemId || undefined },
+        !!systemId,
+    );
 
     const trimmedName = useMemo(() => (name ?? "").trim(), [name]);
     const originalName = useMemo(() => (node.data.name ?? "").trim(), [node.data.name]);
@@ -43,74 +50,19 @@ export const EditName: React.FC<Props> = ({ node }) => {
         return typeof maybe === "string" ? maybe : "";
     }, [node.data]);
 
-    useEffect(() => {
-        setNameError("");
-        setCheckingName(false);
-        setLastCheckedName("");
-        setName(node.data.name);
-    }, [node.id]);
-
-    useEffect(() => {
-        // you said it's fine to disable when unchanged
-        if (!dirty) {
-            setNameError("");
-            setCheckingName(false);
-            setLastCheckedName("");
-            return;
-        }
-
-        if (!trimmedName) {
-            setNameError("");
-            setCheckingName(false);
-            setLastCheckedName("");
-            return;
-        }
-
-        if (!systemId) {
-            setNameError("");
-            setCheckingName(false);
-            return;
-        }
-
-        if (trimmedName === lastCheckedName) return;
-
-        let cancelled = false;
-        setCheckingName(true);
-
-        const t = window.setTimeout(async () => {
-            try {
-                const res = await authAxios.get(
-                    `/v1/metadata/systems/${systemId}/classifiers/exists/`,
-                    {
-                        params: {
-                            name: trimmedName,
-                            ctype,
-                            excludeId: excludeId || undefined,
-                        },
-                    },
-                );
-
-                if (cancelled) return;
-
-                setLastCheckedName(trimmedName);
-
-                if (res.data?.exists) {
-                    setNameError(`A classifier with the name "${trimmedName}" is already used in this system.`);
-                } else {
-                    setNameError("");
-                }
-            } catch {
-                if (!cancelled) setNameError(""); // fail open
-            } finally {
-                if (!cancelled) setCheckingName(false);
-            }
-        }, 250);
-
-        return () => {
-            cancelled = true;
-            window.clearTimeout(t);
-        };
-    }, [dirty, trimmedName, systemId, ctype, excludeId, lastCheckedName]);
+    const nameError =
+        dirty &&
+        trimmedName &&
+        systemId &&
+        !classifierLoadError &&
+        classifierNameExists(
+            classifiers,
+            trimmedName,
+            ctype as ClassifierRead["type"],
+            excludeId || undefined,
+        )
+            ? `A classifier with the name "${trimmedName}" is already used in this system.`
+            : "";
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();

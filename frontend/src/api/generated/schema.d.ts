@@ -834,7 +834,7 @@ export interface components {
         /** SystemUpdate */
         SystemUpdate: {
             /** Name */
-            name: string;
+            name?: string | null;
             /**
              * Description
              * @default
@@ -2683,7 +2683,7 @@ export interface components {
              * Name
              * @default Diagram
              */
-            name: string;
+            name: string | null;
             /** Description */
             description?: string | null;
         };
@@ -3436,7 +3436,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                page_section_id: number;
+                page_section_id: string;
             };
             cookie?: never;
         };
@@ -3456,7 +3456,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                page_section_id: number;
+                page_section_id: string;
             };
             cookie?: never;
         };
@@ -3506,7 +3506,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                section_attribute_id: number;
+                section_attribute_id: string;
             };
             cookie?: never;
         };
@@ -3526,7 +3526,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                section_attribute_id: number;
+                section_attribute_id: string;
             };
             cookie?: never;
         };

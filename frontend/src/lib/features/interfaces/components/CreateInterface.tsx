@@ -121,11 +121,24 @@ export const CreateInterface: React.FC<Props> = ({ system }) => {
                     </FormControl>
                     <FormControl required>
                         <FormLabel>Actor</FormLabel>
-                        <Select
+                        <Select<{ label: string; value: string }>
                             name="actor"
-                            options={actors.map((e) => ({ label: e.data.name, value: e.id }))}
-                            value={selectedActor}
-                            onChange={setSelectedActor}
+                            options={actors
+                                .filter((actor) => actor.id != null)
+                                .map((actor) => ({
+                                    label: actor.data.name,
+                                    value: actor.id!,
+                                }))}
+                            value={
+                                actors
+                                    .filter((actor) => actor.id != null)
+                                    .map((actor) => ({
+                                        label: actor.data.name,
+                                        value: actor.id!,
+                                    }))
+                                    .find((option) => option.value === selectedActor) ?? null
+                            }
+                            onChange={(option) => setSelectedActor(option?.value ?? "")}
                             required
                         />
                     </FormControl>

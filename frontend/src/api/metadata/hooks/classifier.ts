@@ -14,3 +14,20 @@ export const useClassifiers = (
     enabled,
   });
 };
+
+export const useClassifier = (
+    systemId: string | null | undefined,
+    classifierId: string | null | undefined,
+) => {
+    const query = useClassifiers(
+        { system_id: systemId || undefined },
+        !!systemId && !!classifierId,
+    );
+
+    return {
+        ...query,
+        data: query.data?.find(
+            (classifier) => classifier.id === classifierId,
+        ),
+    };
+};

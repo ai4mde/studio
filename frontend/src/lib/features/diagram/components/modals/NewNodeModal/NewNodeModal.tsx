@@ -12,7 +12,9 @@ import { NewClassNode } from "./NewClassNode";
 import { NewUsecaseNode } from "./NewUsecaseNode";
 import { NewComponentNode } from "./NewComponentNode"
 import style from "./newnodemodal.module.css";
-import { authAxios } from "$lib/features/auth/state/auth";
+import { listClassifiers, classifierNameExists } from "../../../../../../api/metadata/classifier";
+import { useClassifiers } from "../../../../../../api/metadata/hooks/classifier";
+import type { ClassifierRead } from "../../../../../../api/metadata/classifier";
 
 export const NewNodeModal: React.FC = () => {
     const UNIQUE_NAME_TYPES = new Set([
@@ -27,15 +29,35 @@ export const NewNodeModal: React.FC = () => {
     const { diagram, type, nodes, uniqueActors, relatedDiagrams, systemId } = useDiagramStore();
     const { close } = useNewNodeModal();
 
+    const {
+        data: classifiers = [],
+        isFetching: checkingName,
+        isError: classifierLoadError,
+    } = useClassifiers(
+        { system_id: systemId || undefined },
+        !!systemId,
+    );
+
     // TODO: Figure out a way to do better form building
     // using the schema instead of pumping everything to
     // an any-typed object. Better yet, use the TypeScript
     // definition from ngUML.backend/model/specification
     // here. (ngUML.backend/issues/110)
     const [object, setObject] = useState<any>({});
-    const [nameError, setNameError] = useState<string>("");
-    const [checkingName, setCheckingName] = useState(false);
-    const [lastCheckedName, setLastCheckedName] = useState("");
+
+    const name = (object?.name ?? "").trim();
+
+    const nameError =
+        UNIQUE_NAME_TYPES.has(object?.type) &&
+        name &&
+        !classifierLoadError &&
+        classifierNameExists(
+            classifiers,
+            name,
+            object.type as ClassifierRead["type"],
+        )
+            ? `A classifier named "${name}" already exists in this system.`
+            : "";
 
     const queryClient = useQueryClient();
 
@@ -48,63 +70,6 @@ export const NewNodeModal: React.FC = () => {
         return () => document.removeEventListener("keydown", down);
     });
 
-    useEffect(() => {
-        const isNameType = UNIQUE_NAME_TYPES.has(object?.type);
-
-        if (!isNameType) {
-            setNameError("");
-            setCheckingName(false);
-            return;
-        }
-
-        const name = (object?.name ?? "").trim();
-        const ctype = object?.type;
-
-        // No name yet -> no error, button should be enabled (assuming object.type exists)
-        if (!name || !systemId || !ctype) {
-            setNameError("");
-            setCheckingName(false);
-            return;
-        }
-
-        // Optional: avoid re-checking the exact same name repeatedly
-        if (name === lastCheckedName) return;
-
-        let cancelled = false;
-        setCheckingName(true);
-
-        const t = window.setTimeout(async () => {
-            try {
-                const res = await authAxios.get(
-                    `/v1/metadata/systems/${systemId}/classifiers/exists/`,
-                    { params: { name, ctype } },
-                );
-
-                if (cancelled) return;
-
-                setLastCheckedName(name);
-
-                if (res.data?.exists) {
-                    setNameError(`A classifier named "${name}" already exists in this system.`);
-                } else {
-                    setNameError("");
-                }
-            } catch {
-                if (!cancelled) {
-                    // fail open: don’t block creation on temporary network error
-                    setNameError("");
-                }
-            } finally {
-                if (!cancelled) setCheckingName(false);
-            }
-        }, 250); // debounce
-
-        return () => {
-            cancelled = true;
-            window.clearTimeout(t);
-        };
-    }, [object?.name, object?.type, systemId]);
-
     const swimlaneGroup = nodes.find((node) => node.type === 'swimlanegroup');
     const systemBoundaryExists = nodes.some((node) => node.type === 'system_boundary');
     const systemNodes = relatedDiagrams
@@ -116,8 +81,6 @@ export const NewNodeModal: React.FC = () => {
         e.preventDefault();
         if (checkingName) return;
         if (nameError) return;
-
-        setNameError("");
 
         // 1) Swimlane special case: create/update swimlanegroup
         if (object.type === "swimlane") {
@@ -147,20 +110,21 @@ export const NewNodeModal: React.FC = () => {
         }
 
         // 2) Optional uniqueness check (only for types that must be unique)
-        if (UNIQUE_NAME_TYPES.has(object?.type)) {
-            const name = (object?.name ?? "").trim();
-            if (name && systemId) {
-                const res = await authAxios.get(
-                    `/v1/metadata/systems/${systemId}/classifiers/exists/`,
-                    { params: { name, ctype: object.type } },
-                );
+        if (UNIQUE_NAME_TYPES.has(object?.type) && name && systemId) {
+            const latestClassifiers = await listClassifiers({
+                system_id: systemId,
+            });
 
-                if (res.data?.exists) {
-                    setNameError(`A ${object.type} named "${name}" already exists in this system.`);
-                    return;
-                }
+            if (
+                classifierNameExists(
+                    latestClassifiers,
+                    name,
+                    object.type as ClassifierRead["type"],
+                )
+            ) {
+                return;
             }
-        }
+}
 
         // 3) Create all non-swimlane nodes (object/event allowed to repeat)
         addNode(diagram, object);
