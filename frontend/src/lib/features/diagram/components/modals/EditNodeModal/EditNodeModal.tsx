@@ -1,10 +1,9 @@
-import { deleteNode } from "$diagram/mutations/diagram";
+import { deleteNode, partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useEditNodeModal } from "$diagram/stores/modals";
-import { authAxios } from "$lib/features/auth/state/auth";
 import Editor from "@monaco-editor/react";
 import Button from "@mui/joy/Button";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -36,26 +35,13 @@ export const EditNodeModal: React.FC = () => {
         [modalState.node, nodes],
     );
 
-    const queryClient = useQueryClient();
-    const nodeSchema = useQuery({
-        queryKey: ["jsonschema", "node"],
-        queryFn: async () => {
-            const res = await authAxios.get(
-                `/v1/diagram/specification/node.schema.json`,
-            );
-            return res.data;
-        },
-    });
+    // The node.schema.json specification endpoint is gone, so the raw editor
+    // only checks for valid JSON now
     const updateNode = useMutation({
         mutationFn: async () => {
-            await authAxios.patch(
-                `/v1/diagram/${diagram}/node/${modalState.node}/`,
-                {
-                    cls: JSON.parse(raw).data,
-                },
-            );
-            queryClient.invalidateQueries({
-                queryKey: ["diagram"],
+            if (!modalState.node) return;
+            await partialUpdateNode(diagram, modalState.node, {
+                cls: JSON.parse(raw).data,
             });
         },
     });
@@ -202,7 +188,7 @@ export const EditNodeModal: React.FC = () => {
                                     <summary className="select-none">
                                         &nbsp;Raw JSON Editor
                                     </summary>
-                                    {nodeSchema.isSuccess && (
+                                    {(
                                         <>
                                             <Editor
                                                 key={
@@ -219,15 +205,7 @@ export const EditNodeModal: React.FC = () => {
                                                     monaco.languages.json.jsonDefaults.setDiagnosticsOptions(
                                                         {
                                                             validate: true,
-                                                            schemas: [
-                                                                {
-                                                                    uri: "http://localhost:8000/api/model/specification/node/", // id of the first schema
-                                                                    fileMatch: [
-                                                                        "*",
-                                                                    ], // associate with our model
-                                                                    schema: nodeSchema.data,
-                                                                },
-                                                            ],
+                                                            schemas: [],
                                                         },
                                                     );
                                                 }}

@@ -1,15 +1,15 @@
 import { useDiagramStore } from "$diagram/stores";
 import { useEdgeContextMenu } from "$diagram/stores/contextMenus";
 import { useEditConnectionModal, useConfirmDeleteRelationModal } from "$diagram/stores/modals";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { queryClient } from "$shared/hooks/queryClient";
+import { deleteEdge } from "$diagram/mutations/diagram";
+import { getRelationUsage } from "$diagram/queries/usage";
 import { Edit, Trash } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import ContextMenu from "$diagram/components/context/ContextMenu/ContextMenu";
 
 const EdgeContextMenu: React.FC = () => {
     const { x, y, edge, close } = useEdgeContextMenu();
-    const { diagram } = useDiagramStore();
+    const { diagram, systemId, systemName } = useDiagramStore();
 
     const [canRemove, setCanRemove] = useState(false);
     const [checkingUsage, setCheckingUsage] = useState(false);
@@ -21,13 +21,17 @@ const EdgeContextMenu: React.FC = () => {
         let cancelled = false;
 
         const run = async () => {
-            if (!edge) return;
+            if (!edge || !systemId) return;
             setCheckingUsage(true);
             setCanRemove(false);
 
             try {
-                const res = await authAxios.get(`/v1/diagram/${diagram}/edge/${edge.id}/relation-usage/`,);
-                const usages = res.data?.usages ?? [];
+                const usages = await getRelationUsage(
+                    systemId,
+                    systemName,
+                    diagram,
+                    edge.data?.relationId,
+                );
                 const allowRemove = usages.length > 0;
                 if (!cancelled) setCanRemove(allowRemove);
             } catch  (err) {
@@ -42,7 +46,7 @@ const EdgeContextMenu: React.FC = () => {
         return () => {
             cancelled = true;
         };
-    }, [edge?.id, diagram]);
+    }, [edge?.id, diagram, systemId]);
 
     const onEdit = () => {
         edge && editEdge.open(edge.id);
@@ -51,18 +55,22 @@ const EdgeContextMenu: React.FC = () => {
 
     const onRemove = async () => {
         if (edge) {
-            await authAxios.delete(`/v1/diagram/${diagram}/edge/${edge.id}/`);
-            await queryClient.refetchQueries({ queryKey: ["diagram", diagram] });
+            await deleteEdge(diagram, edge.id);
             close();
         }
     };
 
     const onDeleteCompletely = async () => {
         if (edge) {
-            const res = await authAxios.get(`/v1/diagram/${diagram}/edge/${edge.id}/relation-usage/`,);
+            const usages = await getRelationUsage(
+                systemId,
+                systemName,
+                diagram,
+                edge.data?.relationId,
+            );
             confirmDeleteRelationModal.open({
                 edgeId: edge.id,
-                usages: res.data.usages,
+                usages,
             });
 
             close();

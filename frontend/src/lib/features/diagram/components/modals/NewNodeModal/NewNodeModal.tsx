@@ -2,7 +2,6 @@ import { addNode, partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useNewNodeModal } from "$diagram/stores/modals";
 import Button from "@mui/joy/Button";
-import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -59,8 +58,6 @@ export const NewNodeModal: React.FC = () => {
             ? `A classifier named "${name}" already exists in this system.`
             : "";
 
-    const queryClient = useQueryClient();
-
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
             e.key === "Escape" && close();
@@ -83,6 +80,8 @@ export const NewNodeModal: React.FC = () => {
         if (nameError) return;
 
         // 1) Swimlane special case: create/update swimlanegroup
+        // TODO(api): "swimlanegroup" is not a classifier type in the new backend,
+        // swimlanes are now separate classifiers with a parent, so this still fails
         if (object.type === "swimlane") {
             const { height, width, horizontal, swimlanes } = object;
 
@@ -104,7 +103,6 @@ export const NewNodeModal: React.FC = () => {
                 });
             }
 
-            queryClient.refetchQueries({ queryKey: ["diagram"] });
             close();
             return;
         }
@@ -128,8 +126,6 @@ export const NewNodeModal: React.FC = () => {
 
         // 3) Create all non-swimlane nodes (object/event allowed to repeat)
         addNode(diagram, object);
-
-        queryClient.refetchQueries({ queryKey: ["diagram"] });
         close();
     };
 

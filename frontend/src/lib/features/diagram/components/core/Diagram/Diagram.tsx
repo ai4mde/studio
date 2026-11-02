@@ -14,7 +14,7 @@ import { createPortal } from "react-dom";
 import { Background, ControlButton, Controls, ReactFlow } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { useDiagram } from "$diagram/queries";
+import { useDiagram, useRelatedDiagrams } from "$diagram/queries";
 import { useDiagramStore } from "$diagram/stores";
 
 import { ContextMenus } from "$diagram/components/context";
@@ -36,6 +36,9 @@ import {
     useNewConnectionModal,
 } from "$diagram/stores/modals";
 import { authAxios } from "$lib/features/auth/state/auth";
+import { queryClient } from "$shared/hooks/queryClient";
+import { useSystem } from "../../../../../../api/metadata/hooks/system";
+import { queryKeys } from "../../../../../../api/querykeys";
 import { LinearProgress } from "@mui/joy";
 import { toSvg } from 'html-to-image';
 import { Download, Move3d } from 'lucide-react';
@@ -51,6 +54,9 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
     const diagramStore = useDiagramStore();
     const [navRef] = useAtom(navigationPortalAtom);
     const { data, isSuccess, dataUpdatedAt } = useDiagram(diagram);
+    const systemId = data?.system ?? "";
+    const { data: system } = useSystem(systemId);
+    const { relatedDiagrams } = useRelatedDiagrams(systemId);
     const editNodeModal = useEditNodeModal();
     const newConnectionModal = useNewConnectionModal();
     const editConnectionModal = useEditConnectionModal();
@@ -62,12 +68,17 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
 
         if (isSuccess) {
             diagramStore.setType(data.type);
-            diagramStore.setProject(data.project);
-
-            const systemId = data.system_id;
-            diagramStore.setSystem(systemId);
+            diagramStore.setSystem(data.system);
         }
     }, [isSuccess]);
+
+    // The diagram only knows its system, the project and system name come from the system
+    useEffect(() => {
+        if (!system) return;
+
+        diagramStore.setProject(system.project);
+        diagramStore.setSystem(systemId, system.name);
+    }, [system?.project, system?.name, systemId]);
 
     // If our data changes, force-update the state of the nodes or edges
     useEffect(
@@ -79,8 +90,8 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
         [dataUpdatedAt],
     );
     useEffect(
-        () => diagramStore.relatedDiagramsFromAPI(data?.related_diagrams ?? []),
-        [dataUpdatedAt],
+        () => diagramStore.relatedDiagramsFromAPI(relatedDiagrams),
+        [relatedDiagrams],
     )
 
     if (!isSuccess) {
@@ -134,10 +145,11 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
                 <Background />
                 <Controls showInteractive={false} >
                     <ControlButton title="auto layout" onClick={async () => {
+                        // TODO(api): there is no auto layout endpoint in the new backend yet
                         await authAxios.post(`/v1/diagram/${diagram}/auto_layout`);
-                        const updatedDiagram = await authAxios.get(`/v1/diagram/${diagram}`);
-                        diagramStore.nodesFromAPI(updatedDiagram.data?.nodes ?? []);
-                        diagramStore.edgesFromAPI(updatedDiagram.data?.edges ?? []);
+                        await queryClient.invalidateQueries({
+                            queryKey: queryKeys.diagrams.detail(diagram),
+                        });
                     }}>
                         <Move3d />
                     </ControlButton>

@@ -1,6 +1,7 @@
 import { applyNodeChanges } from "$diagram/events/node";
 import { create } from "zustand";
 import { DiagramState, RelatedNode } from "../types/diagramState";
+import { classifierDataFromApi } from "../mutations/fields";
 
 export const useDiagramStore = create<DiagramState>((set) => ({
     nodes: [],
@@ -50,7 +51,8 @@ export const useDiagramStore = create<DiagramState>((set) => ({
             },
 
             data: {
-                ...e.classifier.data,
+                ...classifierDataFromApi(e.classifier.data),
+                type: e.classifier.type,
                 classifierId: e.classifier.id,
                 systemId: e.classifier.system,
                 height: e.height,
@@ -70,13 +72,20 @@ export const useDiagramStore = create<DiagramState>((set) => ({
             edges: eds.map((e) => ({
                 id: e?.id,
                 type: "floating",
-                markerEnd: `${e?.rel?.type}-end`,
-                markerStart: `${e?.rel?.type}-start`,
-                source: e?.source_ptr,
-                target: e?.target_ptr,
+                markerEnd: `${e?.relation?.type}-end`,
+                markerStart: `${e?.relation?.type}-start`,
+                source: e?.source,
+                target: e?.target,
                 data: {
-                    ...(e?.rel ?? {}),
-                    edge_data: (e?.data ?? {}),
+                    ...(e?.relation?.data ?? {}),
+                    type: e?.relation?.type,
+                    relationId: e?.relation?.id,
+                    edge_data: {
+                        width: e?.width,
+                        color: e?.color,
+                        font: e?.font,
+                        rounded: e?.rounded,
+                    },
                 },
             })),
         })),

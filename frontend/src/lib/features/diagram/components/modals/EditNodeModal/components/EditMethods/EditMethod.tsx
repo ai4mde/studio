@@ -37,6 +37,7 @@ const EditMethod: React.FC<{
         setGenerationError(null);
         setGenerateButtonDisabled(true)
         try {
+            // TODO(api): there is no generate_method endpoint in the new backend yet
             const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${method.name}&description=${method.description}&model=${selectedLLMOption.value}`);
             update({ ...method, body: data })
             setOpenGenerateModal(false);

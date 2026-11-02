@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { FormControl, FormLabel, Option, Select } from "@mui/joy";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authAxios } from "$lib/features/auth/state/auth";
+import { useMutation } from "@tanstack/react-query";
+import { partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useSystemSignalClassifiers } from "$diagram/components/modals/ImportNodeModal/queries/importNode";
 
@@ -9,7 +9,6 @@ type Props = { node: any };
 
 export const EditEvent: React.FC<Props> = ({ node }) => {
   const { diagram, systemId } = useDiagramStore();
-  const queryClient = useQueryClient();
 
   const [signalClassifiers, ok] = useSystemSignalClassifiers(systemId);
 
@@ -23,12 +22,9 @@ export const EditEvent: React.FC<Props> = ({ node }) => {
 
   const patch = useMutation({
     mutationFn: async (clsPatch: Record<string, any>) => {
-      await authAxios.patch(`/v1/diagram/${diagram}/node/${node.id}/`, {
+      await partialUpdateNode(diagram, node.id, {
         cls: clsPatch,
       });
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["diagram"] });
     },
   });
 

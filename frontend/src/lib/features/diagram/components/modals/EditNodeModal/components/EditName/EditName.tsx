@@ -46,7 +46,7 @@ export const EditName: React.FC<Props> = ({ node }) => {
 
     // best-effort classifier id for excludeId (depends on how your node payload is shaped)
     const excludeId = useMemo(() => {
-        const maybe = (node.data?.id ?? node.data?.cls_ptr ?? "") as any;
+        const maybe = (node.data?.classifierId ?? node.data?.id ?? node.data?.cls_ptr ?? "") as any;
         return typeof maybe === "string" ? maybe : "";
     }, [node.data]);
 

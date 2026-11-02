@@ -1,4 +1,4 @@
-import { deleteEdge } from "$diagram/mutations/diagram";
+import { deleteEdge, partialUpdateEdge } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useEditConnectionModal } from "$diagram/stores/modals";
 import Button from "@mui/joy/Button";
@@ -7,8 +7,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import style from "./editconnectionmodal.module.css";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authAxios } from "$lib/features/auth/state/auth";
+import { useMutation } from "@tanstack/react-query";
 
 import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
 import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
@@ -30,8 +29,6 @@ export const EditConnectionModal: React.FC = () => {
         setObject(edge?.data ?? {});
     }, [edge]);
 
-    const queryClient = useQueryClient();
-
     const updateEdge = useMutation({
         mutationFn: async () => {
             const rel =
@@ -39,11 +36,8 @@ export const EditConnectionModal: React.FC = () => {
                     ? { ...object, type: "controlflow", isDirected: object?.isDirected ?? true }
                     : object;
 
-            await authAxios.patch(
-                `/v1/diagram/${diagram}/edge/${edge?.id}/`,
-                { rel },
-            );
-            queryClient.invalidateQueries({ queryKey: ["diagram"] });
+            if (!edge) return;
+            await partialUpdateEdge(diagram, edge.id, { rel });
         },
     });
 

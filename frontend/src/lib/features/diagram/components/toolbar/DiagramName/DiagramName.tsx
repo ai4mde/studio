@@ -1,8 +1,7 @@
 import { useAuthEffect } from "$auth/hooks/authEffect";
 import { useDiagram } from "$diagram/queries";
 import { useDiagramStore } from "$diagram/stores";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { queryClient } from "$shared/hooks/queryClient";
+import { useUpdateDiagram } from "../../../../../../api/diagram/hooks/diagram";
 import { Chip } from "@mui/joy";
 import { Save } from "lucide-react";
 import React, { useState, useEffect } from "react";
@@ -11,6 +10,7 @@ const DiagramName: React.FC = () => {
     const { diagram, type} = useDiagramStore();
     const systemName = useDiagramStore((s) => s.systemName);
     const { data, isSuccess } = useDiagram(diagram);
+    const updateDiagram = useUpdateDiagram();
     const defaultNames: { [type: string]: string } = {
         usecase: "Use Case Diagram",
         activity: "Activity Diagram",
@@ -29,8 +29,10 @@ const DiagramName: React.FC = () => {
     const deviationFlag = inputName !== (name ?? "").trim();
 
     const saveName = async () => {
-        await authAxios.patch(`/v1/diagram/${diagram}/`, { name: name.trim() });
-        queryClient.invalidateQueries({ queryKey: ["diagram", diagram] });
+        await updateDiagram.mutateAsync({
+            diagramId: diagram,
+            payload: { name: name.trim() },
+        });
     };
 
     return isSuccess ? (

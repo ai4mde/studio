@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authAxios } from "$lib/features/auth/state/auth";
+import { useMutation } from "@tanstack/react-query";
+import { partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useSystemObjectClassifiers } from "$diagram/components/modals/ImportNodeModal/queries/importNode";
 import { Save } from "lucide-react";
@@ -28,7 +28,6 @@ const SaveIconButton: React.FC<{
 
 export const EditObject: React.FC<Props> = ({ node }) => {
   const { diagram, systemId } = useDiagramStore();
-  const queryClient = useQueryClient();
 
   const [objectClassifiers, ok] = useSystemObjectClassifiers(systemId);
 
@@ -59,12 +58,9 @@ export const EditObject: React.FC<Props> = ({ node }) => {
 
   const patch = useMutation({
     mutationFn: async (clsPatch: Record<string, any>) => {
-      await authAxios.patch(`/v1/diagram/${diagram}/node/${node.id}/`, {
+      await partialUpdateNode(diagram, node.id, {
         cls: clsPatch,
       });
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["diagram"] });
     },
   });
 

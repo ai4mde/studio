@@ -3,7 +3,6 @@ import type { Node as RFNode } from "reactflow";
 import { addEdge } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useNewConnectionModal } from "$diagram/stores/modals";
-import { queryClient } from "$shared/hooks/queryClient";
 import { Alert, Button } from "@mui/joy";
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
@@ -81,10 +80,6 @@ export const NewConnectionModal: React.FC = () => {
                                     : object;
 
                             diagram && source && rel && target && addEdge(diagram, rel, source, target);
-
-                            queryClient.refetchQueries({
-                                queryKey: ["diagram"],
-                            });
                             close();
                         }}
                     >

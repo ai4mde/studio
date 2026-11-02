@@ -16,11 +16,13 @@ import { NewNodeModal } from "../NewNodeModal/NewNodeModal";
 import { ConfirmDeleteClassifierModal } from "../ConfirmDeleteClassifierModal/ConfirmDeleteClassifierModal";
 import { ConfirmDeleteRelationModal } from "../ConfirmDeleteRelationModal/ConfirmDeleteRelationModal";
 import { useDiagramStore } from "$diagram/stores";
-import { queryClient } from "$shared/hooks/queryClient";
-import { authAxios } from "$lib/features/auth/state/auth";
+import {
+    deleteClassifierEverywhere,
+    deleteRelationEverywhere,
+} from "$diagram/queries/usage";
 
 export const Modals: React.FC = () => {
-    const { diagram } = useDiagramStore();
+    const { nodes, edges, systemId } = useDiagramStore();
 
     const newNodeModal = useNewNodeModal();
     const importNodeModal = useImportNodeModal();
@@ -37,10 +39,10 @@ export const Modals: React.FC = () => {
         if (confirmDeleteClassifierModal.nodeId) {
             try {
                 setIsDeleting(true);
-                await authAxios.delete(`/v1/diagram/${diagram}/node/${confirmDeleteClassifierModal.nodeId}/hard/`);
-                await queryClient.refetchQueries({
-                    queryKey: [`diagram`],
-                });
+                const node = nodes.find((n) => n.id === confirmDeleteClassifierModal.nodeId);
+                if (node?.data?.classifierId) {
+                    await deleteClassifierEverywhere(systemId, node.data.classifierId);
+                }
                 confirmDeleteClassifierModal.close();
             } finally {
                 setIsDeleting(false);
@@ -52,10 +54,10 @@ export const Modals: React.FC = () => {
         if (confirmDeleteRelationModal.edgeId) {
             try {
                 setIsDeletingRelation(true);
-                await authAxios.delete(`/v1/diagram/${diagram}/edge/${confirmDeleteRelationModal.edgeId}/hard/`);
-                await queryClient.refetchQueries({
-                    queryKey: [`diagram`],
-                });
+                const edge = edges.find((e) => e.id === confirmDeleteRelationModal.edgeId);
+                if (edge?.data?.relationId) {
+                    await deleteRelationEverywhere(systemId, edge.data.relationId);
+                }
                 confirmDeleteRelationModal.close();
             } finally {
                 setIsDeletingRelation(false);

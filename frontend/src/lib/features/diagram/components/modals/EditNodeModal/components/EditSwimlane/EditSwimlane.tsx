@@ -1,12 +1,10 @@
-import { partialUpdateNode } from "$diagram/mutations/diagram";
+import { deleteNode, partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import React, { useState } from "react";
 import { Node } from "reactflow";
 import { Select, Option, Button } from "@mui/joy";
 import { TrashIcon } from "lucide-react";
 import DeleteConfirmationModal from "$diagram/components/modals/DeleteConfirmationModal/DeleteConfirmationModal";
-import { authAxios } from "$auth/state/auth";
-import { queryClient } from "$shared/hooks/queryClient";
 import styles from './editswimlane.module.css';
 
 type Props = {
@@ -34,7 +32,7 @@ export const EditSwimlane: React.FC<Props> = ({ node }) => {
         // If this is the last swimlane, delete the entire group
         if (value.length === 1) {
             console.log('delete swimlane group');
-            await authAxios.delete(`/v1/diagram/${diagram}/node/${swimlaneGroup.id}/`);
+            await deleteNode(diagram, swimlaneGroup.id);
         } else {
             partialUpdateNode(diagram, node.id, {
                 cls: {
@@ -45,9 +43,9 @@ export const EditSwimlane: React.FC<Props> = ({ node }) => {
         
         if (deleteChildren) {
             // Remove all nodes that have the swimlane as a parent
-            nodesToUpdate.forEach(async (node) => {
-                await authAxios.delete(`/v1/diagram/${diagram}/node/${node.id}/`);
-            })
+            await Promise.all(
+                nodesToUpdate.map((node) => deleteNode(diagram, node.id)),
+            );
         } else {
             // Remove the swimlane as a parent from all nodes
             nodesToUpdate.forEach((node) => {
@@ -64,9 +62,6 @@ export const EditSwimlane: React.FC<Props> = ({ node }) => {
         setValue(value.filter((swimlane) => swimlane.actorNode !== selectedSwimlaneUUID));
         setSelectedSwimlaneUUID(null);
 
-        await queryClient.refetchQueries({
-            queryKey: ['diagram'],
-        });
         close();
     }
 
