@@ -16,7 +16,7 @@ export const useSystemInterfaces = (systemId: string) => {
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
-    ];
+    ] as const;
 };
 
 export const useSystemPrototypes = (systemId: string) => {
@@ -71,5 +71,5 @@ export const useSystemDiagrams = (systemId: string) => {
         list.isSuccess && details.every((detail) => detail.isSuccess),
         list.isLoading || details.some((detail) => detail.isLoading),
         list.error ?? details.find((detail) => detail.error)?.error ?? null,
-    ];
+    ] as const;
 };

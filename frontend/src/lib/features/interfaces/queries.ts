@@ -87,5 +87,5 @@ export const useSystemActions = (systemId: string, nodeType?: string) => {
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
-    ];
+    ] as const;
 }
