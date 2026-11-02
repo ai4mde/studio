@@ -52,7 +52,7 @@ export const EditEvent: React.FC<Props> = ({ node }) => {
         {ok &&
           signalClassifiers.map((s) => (
             <Option key={s.id} value={String(s.id)}>
-              {s.data?.name} ({s.data?.type})
+              {s.data?.name} ({s.type})
             </Option>
           ))}
       </Select>

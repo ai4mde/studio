@@ -1,46 +1,25 @@
-import { authAxios } from "$lib/features/auth/state/auth";
-import { useQuery } from "@tanstack/react-query";
+import { useClassifiers } from "../../../../../../../api/metadata/hooks/classifier";
+import type { ClassifierRead } from "../../../../../../../api/metadata/classifier";
 
-export type SystemClassifier = {
-  id: string;
-  system_id?: string;
-  system_name?: string;
-  data?: {
-    type?: string;
-    name?: string;
-    // allow arbitrary extra fields without becoming `unknown`
-    [key: string]: any;
-  };
-  // allow other fields without becoming `unknown`
-  [key: string]: any;
-};
 
-type ClassifiersResponse = {
-  classifiers?: SystemClassifier[];
-};
+type ClassifierType = ClassifierRead["type"];
 
-// Shared query: fetch all classifiers for a system (project-wide)
-const useSystemClassifiersQuery = (systemId: string | null | undefined) =>
-  useQuery<ClassifiersResponse>({
-    queryKey: ["system", "metadata", systemId],
-    enabled: !!systemId,
-    queryFn: async () => {
-      const response = await authAxios.get(
-        `/v1/metadata/systems/${systemId}/classifiers/`,
-      );
-      return response.data as ClassifiersResponse;
-    },
-  });
+type ClassifierOfType<T extends ClassifierType> =
+  Extract<ClassifierRead, { type: T }>;
 
-// Shared helper: apply a filter predicate to classifiers
-const useFilteredSystemClassifiers = (
+const useFilteredSystemClassifiers = <T extends ClassifierType>(
   systemId: string | null | undefined,
-  predicate: (classifier: SystemClassifier) => boolean,
+  types: readonly T[],
 ) => {
-  const queryResult = useSystemClassifiersQuery(systemId);
+  const queryResult = useClassifiers(
+    { system_id: systemId || undefined },
+    !!systemId,
+  );
 
-  const classifiers =
-    queryResult.data?.classifiers?.filter(predicate) ?? [];
+  const classifiers = (queryResult.data ?? []).filter(
+    (classifier): classifier is ClassifierOfType<T> =>
+      types.some((type) => type === classifier.type),
+  );
 
   return [
     classifiers,
@@ -52,51 +31,30 @@ const useFilteredSystemClassifiers = (
 
 export const useSystemClassClassifiers = (
   systemId: string | null | undefined,
-) =>
-  useFilteredSystemClassifiers(systemId, (classifier) => {
-    const t = classifier.data?.type;
-    return t === "enum" || t === "class";
-  });
+) => useFilteredSystemClassifiers(systemId, ["enum", "class"]);
 
 export const useSystemActivityClassifiers = (
   systemId: string | null | undefined,
-) =>
-  useFilteredSystemClassifiers(systemId, (classifier) => {
-    const t = classifier.data?.type;
-    return t === "action";
-  });
+) => useFilteredSystemClassifiers(systemId, ["action"]);
 
 export const useSystemUsecaseClassifiers = (
   systemId: string | null | undefined,
-) =>
-  useFilteredSystemClassifiers(systemId, (classifier) => {
-    const t = classifier.data?.type;
-    return t === "actor" || t === "usecase";
-  });
+) => useFilteredSystemClassifiers(systemId, ["actor", "usecase"]);
 
 export const useSystemObjectClassifiers = (
   systemId: string | null | undefined,
-) =>
-  useFilteredSystemClassifiers(systemId, (classifier) => {
-    return classifier.data?.type === "class";
-  });
+) => useFilteredSystemClassifiers(systemId, ["class"]);
 
 export const useSystemSignalClassifiers = (
   systemId: string | null | undefined,
-) =>
-  useFilteredSystemClassifiers(systemId, (classifier) => {
-    return classifier.data?.type === "signal";
-  });
+) => useFilteredSystemClassifiers(systemId, ["signal"]);
 
 export const useSystemInternalTypeClassifiers = (
   systemId: string | null | undefined,
 ) =>
-  useFilteredSystemClassifiers(systemId, (classifier) => {
-    const t = classifier.data?.type;
-    return (
-      t === "class" ||
-      t === "system" ||
-      t === "container" ||
-      t === "component"
-    );
-  });
+  useFilteredSystemClassifiers(systemId, [
+    "class",
+    "system",
+    "container",
+    "component",
+  ]);

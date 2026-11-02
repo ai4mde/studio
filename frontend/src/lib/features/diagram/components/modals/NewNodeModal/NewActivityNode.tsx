@@ -230,7 +230,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                             {objectClassifiersSuccess &&
                                 objectClassifiers.map((c) => (
                                     <Option key={c.id} value={c.id}>
-                                        {c.data?.name} ({c.data?.type})
+                                        {c.data?.name} ({c.type})
                                     </Option>
                                 ))}
                         </Select>
@@ -269,7 +269,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                             {signalClassifiersSuccess &&
                                 signalClassifiers.map((s) => (
                                     <Option key={s.id} value={s.id}>
-                                        {s.data?.name} ({s.data?.type})
+                                        {s.data?.name} ({s.type})
                                     </Option>
                                 ))}
                         </Select>

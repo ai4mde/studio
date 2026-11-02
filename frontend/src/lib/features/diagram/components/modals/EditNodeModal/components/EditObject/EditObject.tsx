@@ -99,7 +99,7 @@ export const EditObject: React.FC<Props> = ({ node }) => {
           {ok &&
             objectClassifiers.map((c) => (
               <Option key={c.id} value={String(c.id)}>
-                {c.data?.name} ({c.data?.type})
+                {c.data?.name} ({c.type})
               </Option>
             ))}
         </Select>
