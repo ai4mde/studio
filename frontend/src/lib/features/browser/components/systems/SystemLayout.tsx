@@ -1,4 +1,4 @@
-import { useSystem } from "$browser/queries";
+import { useSystem } from "../../../../../api/metadata/hooks/system";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
 import { GitGraph, Package, PaintRoller, Rocket } from "lucide-react";
 import React from "react";
@@ -10,7 +10,7 @@ type Props = {
 
 const SystemLayout: React.FC<Props> = ({ children }) => {
     const { systemId } = useParams();
-    const { data } = useSystem(systemId);
+    const { data } = useSystem(systemId ?? "");
 
     return (
         <div

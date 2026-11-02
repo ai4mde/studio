@@ -2,30 +2,15 @@ import { authAxios } from "$auth/state/auth";
 import { PreviewNode } from "$diagram/components/core/Node/Node";
 import { queryClient } from "$shared/hooks/queryClient";
 import { Button, Card, Option, Select } from "@mui/joy";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, Plus } from "lucide-react";
 import React from "react";
 import { Pipeline } from "../types";
+import { useProject, useProjects } from "../../../../api/metadata/hooks/project";
+import { useCreateDiagram, useDiagrams } from "../../../../api/diagram/hooks/diagram";
 
 type Props = {
     pipeline: Pipeline;
-};
-
-type ProjectOut = {
-    id: string;
-    name: string;
-    description?: string;
-};
-type SystemOut = {
-    id: string;
-    name: string;
-    description?: string;
-};
-
-type DiagramOut = {
-    id: string;
-    name: string;
-    description?: string;
 };
 
 const NEW_DIAGRAM = "__new_diagram__";
@@ -47,40 +32,16 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     const [newDiagramName, setNewDiagramName] = React.useState("");
     const [createMode, setCreateMode] = React.useState(false);
 
-    const projects = useQuery<ProjectOut[]>({
-        queryKey: ["projects"],
-        queryFn: async () => {
-            return (await authAxios.get("/v1/metadata/projects/")).data;
-        },
-    });
+    const projects = useProjects();
 
-    const systems = useQuery<SystemOut[]>({
-        queryKey: ["systems", `${project}`],
-        queryFn: async () => {
-            return (
-                await authAxios.get(`/v1/metadata/systems/`, {
-                    params: {
-                        project: project,
-                    },
-                })
-            ).data;
-        },
-        enabled: !!project,
-    });
+    // The new API has no system list endpoint, the project detail contains them
+    const projectDetail = useProject(project ?? "");
+    const systems = {
+        isSuccess: projectDetail.isSuccess,
+        data: projectDetail.data?.systems ?? [],
+    };
 
-    const diagrams = useQuery<DiagramOut[]>({
-        queryKey: ["diagrams", `${project}`],
-        queryFn: async () => {
-            return (
-                await authAxios.get(`/v1/diagram/system/${system}/`, {
-                    params: {
-                        system_id: system,
-                    },
-                })
-            ).data;
-        },
-        enabled: !!system,
-    });
+    const diagrams = useDiagrams(system ?? "");
 
     const _classifiers = pipeline?.output?.classifiers || [];
     const _relations = pipeline?.output?.relations || [];
@@ -136,30 +97,16 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
         resetAdd();
     }, [project, system, diagram, createMode, newDiagramType, newDiagramName, classifiers, relations]);
 
-    const { mutateAsync: createDiagram, isPending: creatingDiagram} = useMutation({
-        mutationFn: async ({ type, name }: { type: string, name: string }) => {
-            const { data } = await authAxios.post("/v1/diagram/", {
-                name,
-                system,
-                type
-            });
-            return data;
-        },
-        onSuccess: async (data) => {
-            queryClient.setQueryData<DiagramOut[]>(
-                ["diagrams", `${project}`],
-                (old) => {
-                    const prev = Array.isArray(old) ? old : [];
-                    if (prev.some(d => String(d.id) === String(data.id))) return prev;
-                    return [{ id: String(data.id), name: data.name ?? "Untitled diagram" }, ...prev];
-                }
-            );
-            // Select new diagram
-            setDiagram(String(data.id));
-            // Refresh list so new diagram appears in dropdown
-            await queryClient.invalidateQueries({ queryKey: ["diagrams", `${project}`] });
-        }
-    });
+    const { mutateAsync: createDiagramMutation, isPending: creatingDiagram } = useCreateDiagram();
+
+    const createDiagram = async ({ type, name }: { type: string, name: string }) => {
+        if (!system) throw new Error("No system selected");
+        return createDiagramMutation({
+            system_id: system,
+            type,
+            name,
+        });
+    };
 
     return (
         <>

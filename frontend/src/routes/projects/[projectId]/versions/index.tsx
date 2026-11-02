@@ -1,18 +1,18 @@
 import React from "react";
 import ProjectLayout from "$browser/components/projects/ProjectLayout";
 import ShowReleases from "lib/features/releases/components/ShowReleases";
-import { useProject } from "$browser/queries";
+import { useProject } from "../../../../api/metadata/hooks/project";
 import { useParams } from "react-router";
 
 const ProjectReleases: React.FC = () => {
   const { projectId } = useParams();
-  const project = useProject(projectId);
+  const project = useProject(projectId ?? "");
   const { id } = project.data ?? {};
 
   return (
     <ProjectLayout>
       <div className="flex h-full w-full flex-col gap-1 p-3">
-        <ShowReleases project={id} />
+        <ShowReleases project={id ?? ""} />
       </div>
     </ProjectLayout>
   )

@@ -1,18 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
-import { authAxios } from "../auth/state/auth";
-import { useClassifier } from "../../../api/metadata/hooks/classifier";
+import {
+    useClassifier,
+    useClassifiers,
+} from "../../../api/metadata/hooks/classifier";
+import { useSystem } from "../../../api/metadata/hooks/system";
 
 
-export const useSystemMetadata = (systemId: string) =>
-    useQuery({
-        queryKey: ["system", "metadata", `${systemId}`],
-        queryFn: async () => {
-            const response = await authAxios.get(
-                `/v1/metadata/systems/${systemId}/meta/`,
-            );
-            return response.data;
+// There is no /meta/ endpoint anymore, so we put together the
+// system and its classifiers to show roughly the same overview
+export const useSystemMetadata = (systemId: string) => {
+    const system = useSystem(systemId);
+    const classifiers = useClassifiers(
+        { system_id: systemId || undefined },
+        !!systemId,
+    );
+
+    return {
+        data: {
+            ...system.data,
+            classifiers: classifiers.data ?? [],
         },
-    });
+        isSuccess: system.isSuccess && classifiers.isSuccess,
+        isLoading: system.isLoading || classifiers.isLoading,
+        error: system.error ?? classifiers.error,
+    };
+};
 
 export const useActor = (systemId: string, classifierId: string) => {
     const queryResult = useClassifier(systemId, classifierId);

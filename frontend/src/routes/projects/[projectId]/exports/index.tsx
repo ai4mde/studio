@@ -14,7 +14,7 @@ import {
     Typography,
 } from "@mui/joy";
 import ProjectLayout from "$browser/components/projects/ProjectLayout";
-import { useProject, useSystems } from "$browser/queries";
+import { useProject } from "../../../../api/metadata/hooks/project";
 import { authAxios } from "$auth/state/auth";
 
 type ExportType = "project" | "systems";
@@ -22,14 +22,13 @@ type ExportType = "project" | "systems";
 const ProjectExports: React.FC = () => {
     const { projectId } = useParams<{ projectId: string }>();
 
-    const project = useProject(projectId);
-    const systems = useSystems(projectId);
+    const project = useProject(projectId ?? "");
 
     const [exportType, setExportType] = useState<ExportType>("project");
     const [selectedSystemIds, setSelectedSystemIds] = useState<string[]>([]);
 
     const { name: projectName } = project.data ?? {};
-    const availableSystems = useMemo(() => systems.data ?? [], [systems.data]);
+    const availableSystems = useMemo(() => project.data?.systems ?? [], [project.data]);
 
     const toggleSystem = (systemId: string) => {
         setSelectedSystemIds((current) =>
@@ -58,6 +57,7 @@ const ProjectExports: React.FC = () => {
         exportType === "project" || selectedSystemIds.length > 0;
 
     const handleExportProject = async () => {
+        // TODO(api): there is no project export endpoint in the new backend yet
         const response = await authAxios.get(`/v1/metadata/projects/export/${projectId}/`);
         downloadJson(response.data, `${projectName}-export.json`);
     };
@@ -68,6 +68,7 @@ const ProjectExports: React.FC = () => {
             params.append("system_ids", id);
         });
 
+        // TODO(api): there is no systems export endpoint in the new backend yet
         const response = await authAxios.get(`/v1/metadata/systems/export/`, {
             params,
         });
@@ -187,7 +188,7 @@ const ProjectExports: React.FC = () => {
                                     </Typography>
                                 </Box>
 
-                                {systems.isLoading ? (
+                                {project.isLoading ? (
                                     <Stack direction="row" spacing={1.5} alignItems="center">
                                         <CircularProgress size="sm" />
                                         <Typography level="body-sm">
@@ -201,9 +202,9 @@ const ProjectExports: React.FC = () => {
                                 ) : (
                                     <Stack spacing={1}>
                                         {availableSystems.map(
-                                            (system: { id: string; name: string }) => (
+                                            (system) => (
                                                 <Sheet
-                                                    key={system.id}
+                                                    key={system.id ?? system.name}
                                                     variant="outlined"
                                                     sx={{
                                                         p: 1.5,
@@ -212,8 +213,8 @@ const ProjectExports: React.FC = () => {
                                                 >
                                                     <Checkbox
                                                         label={system.name}
-                                                        checked={selectedSystemIds.includes(system.id)}
-                                                        onChange={() => toggleSystem(system.id)}
+                                                        checked={!!system.id && selectedSystemIds.includes(system.id)}
+                                                        onChange={() => system.id && toggleSystem(system.id)}
                                                     />
                                                 </Sheet>
                                             )

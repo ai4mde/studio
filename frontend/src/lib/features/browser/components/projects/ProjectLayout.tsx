@@ -1,4 +1,4 @@
-import { useProject } from "$browser/queries";
+import { useProject } from "../../../../../api/metadata/hooks/project";
 import { TopNavigation } from "$shared/components/TopNavigation";
 import React from "react";
 import { useParams } from "react-router";
@@ -11,7 +11,7 @@ type Props = {
 
 const ProjectLayout: React.FC<Props> = ({ children }) => {
     const { projectId } = useParams();
-    const project = useProject(projectId);
+    const project = useProject(projectId ?? "");
 
     return (
         <div

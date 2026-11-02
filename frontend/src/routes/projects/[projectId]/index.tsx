@@ -4,12 +4,12 @@ import ProjectLayout from "$browser/components/projects/ProjectLayout";
 import { GalleryVertical } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router";
-import { useProject } from "$browser/queries";
+import { useProject } from "../../../api/metadata/hooks/project";
 
 
 const ViewProject: React.FC = () => {
   const { projectId } = useParams();
-  const project = useProject(projectId);
+  const project = useProject(projectId ?? "");
   const { name, id } = project.data ?? {};
 
   return (

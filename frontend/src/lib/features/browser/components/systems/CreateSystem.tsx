@@ -1,6 +1,4 @@
 import { createSystemAtom } from "$browser/atoms";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { queryClient } from "$shared/hooks/queryClient";
 import {
     Button,
     CircularProgress,
@@ -12,20 +10,9 @@ import {
     ModalClose,
     ModalDialog,
 } from "@mui/joy";
-import { useMutation } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import React from "react";
-
-type SystemInput = {
-    name: string;
-    description?: string;
-};
-
-type SystemOutput = {
-    id: string;
-    name: string;
-    description: string;
-};
+import { useCreateSystem } from "../../../../../api/metadata/hooks/system";
 
 type Props = {
     project: string;
@@ -34,21 +21,7 @@ type Props = {
 export const CreateSystem: React.FC<Props> = ({ project }) => {
     const [open, setOpen] = useAtom(createSystemAtom);
     const close = () => setOpen(false);
-    const { mutateAsync, isPending } = useMutation<
-        SystemOutput,
-        unknown,
-        SystemInput
-    >({
-        mutationFn: async ({ name, description }) => {
-            const { data } = await authAxios.post(`v1/metadata/systems/`, {
-                name: name,
-                description: description,
-                project_id: project,
-            });
-
-            return data;
-        },
-    });
+    const { mutateAsync, isPending } = useCreateSystem();
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
@@ -56,10 +29,10 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
         const formData = new FormData(e.currentTarget);
 
         mutateAsync({
+            project_id: project,
             name: `${formData.get("name")}`,
             description: `${formData.get("description")}`,
         }).then(() => {
-            queryClient.invalidateQueries({ queryKey: ["systems"] });
             close();
         });
     };

@@ -3,8 +3,8 @@ import { Plus, X } from "lucide-react";
 import { Button, Modal, ModalDialog, ModalClose, Divider } from '@mui/joy';
 import React, { useState } from "react";
 import { createSystemAtom } from "../../atoms";
-import { useSystems } from "$browser/queries";
-import { authAxios } from "$lib/features/auth/state/auth";
+import { useProject } from "../../../../../api/metadata/hooks/project";
+import { useDeleteSystem } from "../../../../../api/metadata/hooks/system";
 
 type Props = {
     project: string;
@@ -12,19 +12,21 @@ type Props = {
 
 export const ListSystem: React.FC<Props> = ({ project }) => {
     const [, setCreate] = useAtom(createSystemAtom);
-    const { data, isSuccess, refetch } = useSystems(project);
+    // There is no list endpoint for systems, the project detail already contains them
+    const { data: projectData, isSuccess } = useProject(project);
+    const data = projectData?.systems ?? [];
+    const deleteSystem = useDeleteSystem();
     const [showDeleteSystemModal, setShowDeleteSystemModal] = useState(false);
     const [systemToDelete, setSystemToDelete] = useState("");
 
     const handleDeleteSystem = async (systemId: string) => {
         try {
-            await authAxios.delete(`/v1/metadata/systems/${systemId}/`);
+            await deleteSystem.mutateAsync({ systemId });
         } catch (error) {
             console.error('Error deleting system:', error);
         } finally {
             setSystemToDelete("");
             setShowDeleteSystemModal(false);
-            refetch();
         }
     }
 
@@ -45,11 +47,11 @@ export const ListSystem: React.FC<Props> = ({ project }) => {
                             <h3 className="text-xl font-bold">{e.name}</h3>
                             <h3 className="text-sm">{e.description}</h3>
                             <span className="pt-2 text-right text-xs text-stone-500">
-                                {e.id.split("-").slice(-1)}
+                                {e.id?.split("-").slice(-1)}
                             </span>
                         </a>
                         <button
-                            onClick={() => openDeleteSystemModal(e.id)}
+                            onClick={() => openDeleteSystemModal(e.id ?? "")}
                             className="absolute top-1 right-1 text-gray-500 hover:text-red-500"
                         >
                             <X />
