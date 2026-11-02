@@ -1,6 +1,4 @@
 import { createInterfaceAtom } from "$browser/atoms";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { queryClient } from "$shared/hooks/queryClient";
 import {
     Button,
     CircularProgress,
@@ -12,27 +10,13 @@ import {
     ModalClose,
     ModalDialog,
 } from "@mui/joy";
-import { useMutation } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import React, { useState } from "react";
 import Select from "react-select";
 import { useParams } from "react-router";
 import { useSystemActors } from "$lib/features/interfaces/queries";
-
-
-
-type InterfaceInput = {
-    name: string;
-    description?: string;
-    actor: string;
-};
-
-type InterfaceOutput = {
-    id: string;
-    name: string;
-    description: string;
-    actor: string;
-};
+import { useCreateInterface } from "../../../../api/metadata/hooks/interface";
+import type { InterfaceCreate } from "../../../../api/metadata/interface";
 
 type Props = {
     system: string;
@@ -45,33 +29,19 @@ export const CreateInterface: React.FC<Props> = ({ system }) => {
     const [actors, isSuccessActors] = useSystemActors(systemId);
     const [selectedActor, setSelectedActor] = useState("");
 
-    const { mutateAsync, isPending } = useMutation<
-        InterfaceOutput,
-        unknown,
-        InterfaceInput
-    >({
-        mutationFn: async ({ name, description, actor }) => {
-            const { data } = await authAxios.post(`v1/metadata/interfaces/`, {
-                name: name,
-                description: description,
-                system_id: system,
-                actor_id: actor,
-            });
-
-            return data;
-        },
-    });
+    const { mutateAsync, isPending } = useCreateInterface();
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
 
+        // Styling fields are left out so the backend defaults are used
         mutateAsync({
+            system_id: system,
             name: `${formData.get("name")}`,
             description: `${formData.get("description")}`,
-            actor: `${formData.get("actor")}`,
-        }).then(() => {
-            queryClient.invalidateQueries({ queryKey: ["interfaces"] });
+            actor_id: `${formData.get("actor")}`,
+        } as InterfaceCreate).then(() => {
             close();
         });
     };

@@ -1,5 +1,3 @@
-import { authAxios } from "$auth/state/auth";
-import { useQuery } from "@tanstack/react-query";
 import {
     useClassifiers,
     useClassifier,
@@ -24,20 +22,14 @@ export const useSystemClasses = (systemId: string) => {
     ] as const;
 };
 
+// TODO(api): class attributes and methods have no API yet, so these stay
+// empty until the classifier data includes them
 export const useClassAttributes = (systemId: string, classId: string) => {
-    const queryResult = useQuery({
-        queryKey: ["system", "metadata", systemId, "class", classId],
-        queryFn: async () => {
-            const response = await authAxios.get(
-                `/v1/metadata/systems/${systemId}/classifiers/${classId}/`,
-            );
-            return response.data;
-        },
-        enabled: !!systemId && !!classId,
-    });
+    const queryResult = useClassifier(systemId, classId);
+    const data = queryResult.data?.data as Record<string, any> | undefined;
 
     return [
-        queryResult.data?.data?.attributes || [],
+        data?.attributes || [],
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
@@ -45,19 +37,11 @@ export const useClassAttributes = (systemId: string, classId: string) => {
 };
 
 export const useClassCustomMethods = (systemId: string, classId: string) => {
-    const queryResult = useQuery({
-        queryKey: ["system", "metadata", systemId, "class", classId, "methods"],
-        queryFn: async () => {
-            const response = await authAxios.get(
-                `/v1/metadata/systems/${systemId}/classifiers/${classId}/`,
-            );
-            return response.data;
-        },
-        enabled: !!systemId && !!classId,
-    });
+    const queryResult = useClassifier(systemId, classId);
+    const data = queryResult.data?.data as Record<string, any> | undefined;
 
     return [
-        queryResult.data?.data?.methods || [],
+        data?.methods || [],
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
@@ -82,25 +66,26 @@ export const useSystemActors = (systemId: string) => {
     ] as const;
 };
 
+// The /nodes/ endpoint is gone, so use the classifiers of the system instead.
+// Keep the old { id, cls } shape that the interface components expect.
 export const useSystemActions = (systemId: string, nodeType?: string) => {
-    const queryResult = useQuery({
-        queryKey: ["system", "metadata", "actionnodes", systemId],
-        queryFn: async() => {
-            const url = nodeType
-                ? `/v1/metadata/systems/${systemId}/nodes/?node_type=${nodeType}`
-                : `/v1/metadata/systems/${systemId}/nodes/?node_type=action`;
-            const response = await authAxios.get(url);
-            return response.data;
-        },
-    });
- 
-    const actionNodes = queryResult.data || [];
- 
+    const queryResult = useClassifiers(
+        { system_id: systemId || undefined },
+        !!systemId,
+    );
+
+    const type = nodeType ?? "action";
+    const actionNodes = (queryResult.data ?? [])
+        .filter((classifier) => classifier.type === type)
+        .map((classifier) => ({
+            id: classifier.id,
+            cls: classifier.data as Record<string, any>,
+        }));
+
     return [
         actionNodes,
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
-    ]
+    ];
 }
- 

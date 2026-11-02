@@ -1,6 +1,9 @@
 import { authAxios } from '$auth/state/auth';
-import { deleteInterface } from '$browser/mutations';
-import { useInterface } from "$browser/queries";
+import {
+    useDeleteInterface,
+    useInterface,
+    useUpdateInterface,
+} from "../../../../api/metadata/hooks/interface";
 import {
     CircularProgress,
     Tab,
@@ -9,7 +12,7 @@ import {
     Tabs,
 } from '@mui/joy';
 import { CircleUserRound, Save, Trash } from "lucide-react";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Categories } from './Categories';
 import { Pages } from './Pages';
@@ -25,15 +28,37 @@ type Props = {
 
 const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const { data, isSuccess } = useInterface(app_comp);
+    const deleteInterface = useDeleteInterface();
+    const updateInterface = useUpdateInterface();
     const navigate = useNavigate();
     const { systemId } = useParams();
     const [isSaving, setIsSaving] = useState(false);
+    const [loadedId, setLoadedId] = useState<string | null>(null);
+
+    // Styling and settings are now plain fields on the interface, so load them
+    // into the local editor state when the interface is opened
+    useEffect(() => {
+        if (!data) return;
+
+        localStorage.setItem('styling', JSON.stringify({
+            radius: data.radius,
+            backgroundColor: data.background_color,
+            textColor: data.text_color,
+            accentColor: data.accent_color,
+            selectedStyle: data.style,
+        }));
+        localStorage.setItem('settings', JSON.stringify({
+            managerAccess: data.manager_access,
+        }));
+        // Only render the tabs after this, they read localStorage when they mount
+        setLoadedId(data.id ?? null);
+    }, [data?.id]);
     //const actorId = data?.actor || '';
     //const [actor, isSuccessActor] = useActor(systemId, actorId);
 
     const handleDelete = async () => {
         try {
-            await deleteInterface(app_comp);
+            await deleteInterface.mutateAsync(app_comp);
         } catch (error) {
             console.error('Error deleting interface:', error);
         }
@@ -49,6 +74,24 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
 
         setIsSaving(true);
         try {
+            await updateInterface.mutateAsync({
+                interfaceId: app_comp,
+                payload: {
+                    radius: styling.radius ?? null,
+                    background_color: styling.backgroundColor ?? null,
+                    text_color: styling.textColor ?? null,
+                    accent_color: styling.accentColor ?? null,
+                    style: styling.selectedStyle ?? null,
+                    manager_access: settings.managerAccess ?? null,
+                },
+            });
+        } catch (error) {
+            console.error('Error saving interface:', error);
+        }
+
+        try {
+            // TODO(api): categories, pages and sections now have their own endpoints,
+            // to be discussed how the editor should save them. This old call still fails.
             await authAxios.put(`/v1/metadata/interfaces/${app_comp}/`, {
                 id: app_comp,
                 name: data?.name,
@@ -73,7 +116,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
 
     return (
         <>
-            {isSuccess && (
+            {isSuccess && loadedId === data.id && (
                 <>
                     <div className="flex items-center justify-between w-full gap-4">
                         <span>

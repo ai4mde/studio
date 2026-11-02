@@ -2,7 +2,10 @@ import { useAtom } from "jotai";
 import { Plus, PaintRoller, X } from "lucide-react";
 import React, { useState} from "react";
 import { createInterfaceAtom } from "../../browser/atoms";
-import { useInterfaces } from "$browser/queries";
+import {
+    useDeleteInterface,
+    useInterfaces,
+} from "../../../../api/metadata/hooks/interface";
 import CreateInterface from "./CreateInterface";
 import useLocalStorage from './useLocalStorage';
 import { authAxios } from "$lib/features/auth/state/auth";
@@ -17,7 +20,8 @@ type Props = {
 export const ListInterface: React.FC<Props> = ({ system }) => {
     const [, setCreate] = useAtom(createInterfaceAtom);
     const { systemId } = useParams();
-    const { data, isSuccess, refetch } = useInterfaces(systemId);
+    const { data, isSuccess, refetch } = useInterfaces({ system_id: systemId });
+    const deleteInterface = useDeleteInterface();
     const [, setStyling, ] = useLocalStorage('styling', '');
     const [, setCategories, ] = useLocalStorage('categories', []);
     const [, setPages, ] = useLocalStorage('pages', []);
@@ -25,16 +29,19 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
     const [showDeleteInterfaceModal, setShowDeleteInterfaceModal] = useState(false);
     const [interfaceToDelete, setInterfaceToDelete] = useState("");
 
+    // TODO(api): the list only returns summaries now. Styling is loaded from the
+    // interface detail, categories/pages/sections still need to be mapped.
     const handleLoadInterface = (app_comp) => {
 
-        setStyling(app_comp.styling || {});
-        setCategories(app_comp.categories || []);
-        setPages(app_comp.pages || []);
-        setSections(app_comp.sections || []);
+        setStyling(app_comp?.styling || {});
+        setCategories(app_comp?.categories || []);
+        setPages(app_comp?.pages || []);
+        setSections(app_comp?.sections || []);
     }
 
     const generateDefaultInterfaces = async () => {
         try {
+            // TODO(api): there is no endpoint for generating default interfaces yet
             await authAxios.post(`/v1/metadata/interfaces/default?system_id=${systemId}`);
         } catch (error) {
             console.error('Error making request:', error);
@@ -44,13 +51,12 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
 
     const handleDeleteInterface = async (interfaceId: string) => {
         try {
-            await authAxios.delete(`/v1/metadata/interfaces/${interfaceId}`);
+            await deleteInterface.mutateAsync(interfaceId);
         } catch (error) {
             console.error('Error deleting interface:', error);
         } finally {
             setInterfaceToDelete("");
             setShowDeleteInterfaceModal(false);
-            refetch();
         }
     }
 
@@ -68,7 +74,7 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
                             <div className="relative">
                                 <a
                                     key={e.id}
-                                    onClick={() => handleLoadInterface(e.data)}
+                                    onClick={() => handleLoadInterface(undefined)}
                                     href={`/systems/${system}/interfaces/${e.id}`}
                                     className="flex h-fit w-48 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
                                 >
