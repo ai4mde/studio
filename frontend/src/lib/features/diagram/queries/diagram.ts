@@ -5,6 +5,7 @@ import { useDiagram, useDiagrams } from "../../../../api/diagram/hooks/diagram";
 import { getDiagram } from "../../../../api/diagram/diagram";
 import { queryKeys } from "../../../../api/querykeys";
 import type { RelatedDiagram } from "../types/diagramState";
+import { classifierTypeFromApi } from "../mutations/fields";
 
 export { useDiagram };
 
@@ -41,7 +42,7 @@ export const useRelatedDiagrams = (systemId: string) => {
                         return {
                             id: node.id ?? "",
                             name: data?.name ?? "",
-                            type: node.classifier.type,
+                            type: classifierTypeFromApi(node.classifier.type),
                             cls: node.classifier.id ?? "",
                             actorNode: data?.actorNode ?? undefined,
                             classAttributes: data?.attributes ?? [],

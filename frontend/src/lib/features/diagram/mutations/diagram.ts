@@ -13,7 +13,7 @@ import {
     deleteEdge as deleteApiEdge,
 } from "../../../../api/diagram/edge";
 import type { EdgeCreate, EdgeUpdate } from "../../../../api/diagram/edge";
-import { classifierDataToApi } from "./fields";
+import { classifierDataToApi, classifierTypeToApi } from "./fields";
 
 // Fields that now live on the node itself instead of in the classifier data
 const NODE_FIELDS = ["height", "width", "color", "font"] as const;
@@ -42,7 +42,7 @@ export const addNode = async (diagram: string, data: any) => {
 
     await createNode(diagram, {
         classifier: {
-            type,
+            type: classifierTypeToApi(type),
             data: classifierDataToApi(classifierData),
         },
         x_position: position?.x ?? 0,

@@ -27,3 +27,18 @@ export const classifierDataToApi = (data: Record<string, any>) =>
 
 export const classifierDataFromApi = (data: Record<string, any>) =>
     renameKeys(data, API_TO_FRONTEND);
+
+// Classifier types that are spelled differently on the frontend
+const TYPE_FRONTEND_TO_API: Record<string, string> = {
+    system_boundary: "systemboundary",
+};
+
+const TYPE_API_TO_FRONTEND: Record<string, string> = Object.fromEntries(
+    Object.entries(TYPE_FRONTEND_TO_API).map(([frontend, api]) => [api, frontend]),
+);
+
+export const classifierTypeToApi = (type: string) =>
+    TYPE_FRONTEND_TO_API[type] ?? type;
+
+export const classifierTypeFromApi = (type: string) =>
+    TYPE_API_TO_FRONTEND[type] ?? type;

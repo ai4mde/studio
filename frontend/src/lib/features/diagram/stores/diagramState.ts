@@ -1,7 +1,7 @@
 import { applyNodeChanges } from "$diagram/events/node";
 import { create } from "zustand";
 import { DiagramState, RelatedNode } from "../types/diagramState";
-import { classifierDataFromApi } from "../mutations/fields";
+import { classifierDataFromApi, classifierTypeFromApi } from "../mutations/fields";
 
 export const useDiagramStore = create<DiagramState>((set) => ({
     nodes: [],
@@ -43,7 +43,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
     set(() => ({
         nodes: nds.map((e) => ({
             id: e.id,
-            type: e.classifier.type,
+            type: classifierTypeFromApi(e.classifier.type),
 
             position: {
                 x: e.x_position ?? 0,
@@ -52,7 +52,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
 
             data: {
                 ...classifierDataFromApi(e.classifier.data),
-                type: e.classifier.type,
+                type: classifierTypeFromApi(e.classifier.type),
                 classifierId: e.classifier.id,
                 systemId: e.classifier.system,
                 height: e.height,
