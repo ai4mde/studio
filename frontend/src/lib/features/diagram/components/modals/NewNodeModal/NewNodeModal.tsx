@@ -89,6 +89,7 @@ export const NewNodeModal: React.FC = () => {
         // 1) Swimlane special case: create/update swimlanegroup
         // TODO(api): "swimlanegroup" is not a classifier type in the new backend,
         // swimlanes are now separate classifiers with a parent, so this still fails
+        // See Maarten's explanation
         if (object.type === "swimlane") {
             const { height, width, horizontal, swimlanes } = object;
 

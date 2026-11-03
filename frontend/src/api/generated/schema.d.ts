@@ -2069,6 +2069,8 @@ export interface components {
         /** NodeUpdate */
         NodeUpdate: {
             classifier?: components["schemas"]["ClassifierUpdate"] | null;
+            /** Classifier Id */
+            classifier_id?: string | null;
             /** Parent */
             parent_id?: string | null;
             /**

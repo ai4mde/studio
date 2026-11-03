@@ -51,7 +51,6 @@ const ProjectsIndex: React.FC = () => {
         try {
             const text = await selectedFile.text();
             const json = JSON.parse(text);
-            // TODO(api): there is no import endpoint in the new backend yet
             await authAxios.post("/v1/metadata/projects/import/", json);
 
             setSelectedFile(null);

@@ -58,6 +58,7 @@ const ProjectExports: React.FC = () => {
 
     const handleExportProject = async () => {
         // TODO(api): there is no project export endpoint in the new backend yet
+        // Maarten is working on this
         const response = await authAxios.get(`/v1/metadata/projects/export/${projectId}/`);
         downloadJson(response.data, `${projectName}-export.json`);
     };
@@ -69,6 +70,7 @@ const ProjectExports: React.FC = () => {
         });
 
         // TODO(api): there is no systems export endpoint in the new backend yet
+        // Maarten is working on this
         const response = await authAxios.get(`/v1/metadata/systems/export/`, {
             params,
         });

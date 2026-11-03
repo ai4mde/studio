@@ -73,6 +73,30 @@ def update_node(
         None,
     )
 
+    classifier_id = data.pop("classifier_id", None)
+
+    if classifier_id is not None and classifier_id != node.classifier_id:
+        new_classifier = get_object_or_404(
+            Classifier,
+            id=classifier_id,
+            system=node.diagram.system,  # only classifiers from the same system
+        )
+
+        if new_classifier.type != node.classifier.type:
+            raise HttpError(422, "The classifier must have the same type as the node")
+
+        # Node has a unique (diagram, classifier) constraint
+        if new_classifier.nodes.filter(diagram=node.diagram).exists():
+            raise HttpError(409, "This classifier is already used in this diagram")
+
+        old_classifier = node.classifier
+        node.classifier = new_classifier
+        node.save(update_fields=["classifier"])
+
+        # Same cleanup as delete_node: drop the old classifier when nothing uses it
+        if not old_classifier.nodes.exists():
+            old_classifier.delete()
+
     if classifier_data is not None:
         data_payload = classifier_data.get("data")
 

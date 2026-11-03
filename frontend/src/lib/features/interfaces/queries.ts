@@ -22,7 +22,7 @@ export const useSystemClasses = (systemId: string) => {
     ] as const;
 };
 
-// TODO(api): class attributes and methods have no API yet, so these stay
+// TODO(api): class Attributes and Operations have no API yet, so these stay
 // empty until the classifier data includes them
 export const useClassAttributes = (systemId: string, classId: string) => {
     const queryResult = useClassifier(systemId, classId);

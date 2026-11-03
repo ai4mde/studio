@@ -1,18 +1,19 @@
+import React, { useEffect, useState } from "react";
+import Button from "@mui/joy/Button";
+import Draggable from "react-draggable";
+import { X } from "lucide-react";
+import { createPortal } from "react-dom";
+
 import { importNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useImportNodeModal } from "$diagram/stores/modals";
-import Button from "@mui/joy/Button";
-import { X } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import Draggable from "react-draggable";
 import { ImportActivityNode } from "./ImportActivityNode";
 import { ImportClassNode } from "./ImportClassNode";
 import { ImportUsecaseNode } from "./ImportUsecaseNode";
 import style from "./importnodemodal.module.css";
 
 export const ImportNodeModal: React.FC = () => {
-    const { diagram, type } = useDiagramStore();
+    const { diagram, type, systemId } = useDiagramStore();
     const { close } = useImportNodeModal();
 
     const [object, setObject] = useState<any>({});
@@ -37,7 +38,7 @@ export const ImportNodeModal: React.FC = () => {
                         className={style.main}
                         onSubmit={(e) => {
                             e.preventDefault();
-                            importNode(diagram, object.id);
+                            importNode(diagram, systemId, object.id);
                             close();
                         }}
                     >

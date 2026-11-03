@@ -1,19 +1,11 @@
-import { authAxios } from "$lib/features/auth/state/auth";
+import type { NodeCreate, NodeUpdate } from "../../../../api/diagram/node";
+import type { EdgeCreate, EdgeUpdate } from "../../../../api/diagram/edge";
+import { createNode, updateNode, deleteNode as deleteApiNode } from "../../../../api/diagram/node";
+import { createEdge, updateEdge, deleteEdge as deleteApiEdge } from "../../../../api/diagram/edge";
 import { queryClient } from "$lib/shared/hooks/queryClient";
 import { queryKeys } from "../../../../api/querykeys";
-import {
-    createNode,
-    updateNode,
-    deleteNode as deleteApiNode,
-} from "../../../../api/diagram/node";
-import type { NodeCreate, NodeUpdate } from "../../../../api/diagram/node";
-import {
-    createEdge,
-    updateEdge,
-    deleteEdge as deleteApiEdge,
-} from "../../../../api/diagram/edge";
-import type { EdgeCreate, EdgeUpdate } from "../../../../api/diagram/edge";
 import { classifierDataToApi, classifierTypeToApi } from "./fields";
+import { listClassifiers } from "../../../../api/metadata/classifier";
 
 // Fields that now live on the node itself instead of in the classifier data
 const NODE_FIELDS = ["height", "width", "color", "font"] as const;
@@ -54,12 +46,28 @@ export const addNode = async (diagram: string, data: any) => {
     invalidateClassifiers();
 };
 
-export const importNode = async (diagram: string, id: string) => {
-    // TODO(api): the new backend has no way to add a node for an existing classifier
-    await authAxios.post(`/v1/diagram/${diagram}/node/import/${id}/`, {
-    });
+export const importNode = async (
+    diagram: string,
+    systemId: string,
+    classifierId: string,
+) => {
+    // NodeCreate needs a type and data, so take them from the existing classifier
+    const classifiers = await listClassifiers({ system_id: systemId });
+    const classifier = classifiers.find((c) => c.id === classifierId);
+    if (!classifier) return;
+
+    // 1. Create a node (this also creates a temporary classifier)
+    const node = await createNode(diagram, {
+        classifier: { type: classifier.type, data: classifier.data },
+        x_position: 0,
+        y_position: 0,
+    } as NodeCreate);
+
+    // 2. Link it to the existing classifier, the backend removes the temporary one
+    await updateNode(node.id!, { classifier_id: classifierId } as NodeUpdate);
 
     invalidateDiagram(diagram);
+    invalidateClassifiers();
 };
 
 // Old payloads looked like { cls: {...classifier data}, data: { position } }.
