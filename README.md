@@ -29,7 +29,7 @@ docker -v
 docker compose version
 
 # Clone the delivery branch
-git clone --branch s4386299-thesis-clean https://github.com/ai4mde/studio.git
+git clone --branch feature/XiangyuLi-2026-Thesis-AIIntegration https://github.com/ai4mde/studio.git
 cd studio
 
 # Create a local credentials file without overwriting an existing one
@@ -47,7 +47,7 @@ docker compose up -d --build
 docker compose down
 ```
 
-The clone command selects the published `s4386299-thesis-clean` branch. Local changes and commits that have not been pushed are not included in a fresh clone.
+The clone command selects the published `feature/XiangyuLi-2026-Thesis-AIIntegration` branch. Local changes and commits that have not been pushed are not included in a fresh clone.
 
 Now visit [http://ai4mde.localhost](http://ai4mde.localhost).
 <b>The login credentials can be found in `config/api.env`.</b>
