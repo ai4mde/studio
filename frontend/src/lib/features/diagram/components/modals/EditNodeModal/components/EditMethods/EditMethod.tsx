@@ -86,7 +86,7 @@ const EditMethod: React.FC<{
                             }
                             className="h-[30px] hover:cursor-pointer"
                         >
-                            <option value="str">string</option>
+                            <option value="string">string</option>
                             <option value="int">integer</option>
                             <option value="bool">boolean</option>
                         </select>

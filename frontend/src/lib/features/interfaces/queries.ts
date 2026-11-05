@@ -1,7 +1,5 @@
-import {
-    useClassifiers,
-    useClassifier,
-} from "../../../api/metadata/hooks/classifier";
+import { useClassifiers, useClassifier } from "../../../api/metadata/hooks/classifier";
+import { useAttributes, useOperations } from "../../../api/metadata/hooks/classMembers";
 
 
 export const useSystemClasses = (systemId: string) => {
@@ -22,14 +20,11 @@ export const useSystemClasses = (systemId: string) => {
     ] as const;
 };
 
-// TODO(api): class Attributes and Operations have no API yet, so these stay
-// empty until the classifier data includes them
 export const useClassAttributes = (systemId: string, classId: string) => {
-    const queryResult = useClassifier(systemId, classId);
-    const data = queryResult.data?.data as Record<string, any> | undefined;
+    const queryResult = useAttributes(classId);
 
     return [
-        data?.attributes || [],
+        queryResult.data ?? [],
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
@@ -37,11 +32,10 @@ export const useClassAttributes = (systemId: string, classId: string) => {
 };
 
 export const useClassCustomMethods = (systemId: string, classId: string) => {
-    const queryResult = useClassifier(systemId, classId);
-    const data = queryResult.data?.data as Record<string, any> | undefined;
+    const queryResult = useOperations(classId);
 
     return [
-        data?.methods || [],
+        queryResult.data ?? [],
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,

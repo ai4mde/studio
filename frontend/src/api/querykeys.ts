@@ -30,7 +30,12 @@ export const queryKeys = {
         lists: () => ["classifiers", "list"] as const,
         list: (filters: ClassifierFilters = {}) =>
             ["classifiers", "list", filters] as const,
+        attributes: (classifierId: string) =>
+            ["classifiers", classifierId, "attributes"] as const,
+        operations: (classifierId: string) =>
+            ["classifiers", classifierId, "operations"] as const,
     },
+    
     interfaces: {
     all: ["interfaces"] as const,
     lists: () => ["interfaces", "list"] as const,

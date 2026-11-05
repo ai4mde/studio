@@ -1,10 +1,9 @@
-import { partialUpdateNode } from "$diagram/mutations/diagram";
-import { useDiagramStore } from "$diagram/stores";
 import { Button } from "@mui/joy";
 import { isEqualWith } from "lodash";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Node } from "reactflow";
 import EditAttribute from "./EditAttribute";
+import { useAttributes, useSaveAttributes } from "../../../../../../../../api/metadata/hooks/classMembers";
 import style from "./editattributes.module.css";
 
 type Props = {
@@ -12,11 +11,20 @@ type Props = {
 };
 
 const EditAttributes: React.FC<Props> = ({ node }) => {
-    const [attributes, setAttributes] = useState(node?.data?.attributes ?? []);
-    const { diagram } = useDiagramStore();
+    const classifierId = node?.data?.classifierId;
+    const { data: serverAttributes = [], isSuccess } = useAttributes(classifierId);
+    const saveAttributes = useSaveAttributes(classifierId);
+
+    const [attributes, setAttributes] = useState<any[]>([]);
+
+    // Start editing from what the server has, and again after every save
+    useEffect(() => {
+        if (isSuccess) setAttributes(serverAttributes.map((a) => ({ ...a })));
+    }, [isSuccess, serverAttributes]);
+
     const dirty = useMemo(
-        () => !isEqualWith(attributes, node?.data?.attributes),
-        [attributes, node?.data?.attributes],
+        () => !isEqualWith(attributes, serverAttributes),
+        [attributes, serverAttributes],
     );
 
     return (
@@ -53,7 +61,7 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                     onClick={() =>
                         setAttributes((s: any) => {
                             s.push({
-                                type: "str",
+                                type: "string",
                                 enum: null,
                                 derived: false,
                             });
@@ -64,15 +72,14 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                     Add Attribute
                 </Button>
                 <Button
-                    disabled={!dirty}
                     color="primary"
                     className="w-full"
                     size="sm"
+                    disabled={!dirty || saveAttributes.isPending}
                     onClick={() =>
-                        partialUpdateNode(diagram, node.id, {
-                            cls: {
-                                attributes: attributes,
-                            },
+                        saveAttributes.mutate({
+                            original: serverAttributes,
+                            edited: attributes,
                         })
                     }
                 >

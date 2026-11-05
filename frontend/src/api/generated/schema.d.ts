@@ -145,6 +145,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/metadata/classifiers/{classifier_id}/attributes/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Attributes */
+        get: operations["metadata_api_routes_classifier_list_attributes"];
+        put?: never;
+        /** Create Attribute */
+        post: operations["metadata_api_routes_classifier_create_attribute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/classifiers/attributes/{attribute_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Attribute */
+        delete: operations["metadata_api_routes_classifier_delete_attribute"];
+        options?: never;
+        head?: never;
+        /** Update Attribute */
+        patch: operations["metadata_api_routes_classifier_update_attribute"];
+        trace?: never;
+    };
+    "/api/v1/metadata/classifiers/{classifier_id}/operations/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Operations */
+        get: operations["metadata_api_routes_classifier_list_operations"];
+        put?: never;
+        /** Create Operation */
+        post: operations["metadata_api_routes_classifier_create_operation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/classifiers/operations/{operation_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Operation */
+        delete: operations["metadata_api_routes_classifier_delete_operation"];
+        options?: never;
+        head?: never;
+        /** Update Operation */
+        patch: operations["metadata_api_routes_classifier_update_operation"];
+        trace?: never;
+    };
     "/api/v1/metadata/interfaces/": {
         parameters: {
             query?: never;
@@ -1293,6 +1365,97 @@ export interface components {
         metadata__api__schemas__classifier__component_diagram__SystemClassifierRead: {
             /** Name */
             name: string;
+        };
+        /** AttributeRead */
+        AttributeRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** Derived */
+            derived: boolean;
+            /** Enum */
+            enum?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
+        };
+        /** AttributeCreate */
+        AttributeCreate: {
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /**
+             * Derived
+             * @default false
+             */
+            derived: boolean;
+            /** Enum Id */
+            enum_id?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
+        };
+        /** AttributeUpdate */
+        AttributeUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Type */
+            type?: string | null;
+            /** Derived */
+            derived?: boolean | null;
+            /** Enum Id */
+            enum_id?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
+        };
+        /** OperationRead */
+        OperationRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
+        };
+        /** OperationCreate */
+        OperationCreate: {
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
+        };
+        /** OperationUpdate */
+        OperationUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Type */
+            type?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
         };
         /** InterfaceSummary */
         InterfaceSummary: {
@@ -3081,6 +3244,194 @@ export interface operations {
                 };
                 content: {
                     "application/json": (components["schemas"]["metadata__api__schemas__builders__ClassClassifierRead"] | components["schemas"]["SignalClassifierRead"] | components["schemas"]["EnumClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__InterfaceClassifierRead"] | components["schemas"]["UsecaseClassifierRead"] | components["schemas"]["ActorClassifierRead"] | components["schemas"]["System_BoundaryClassifierRead"] | components["schemas"]["SwimlaneClassifierRead"] | components["schemas"]["ActionClassifierRead"] | components["schemas"]["DecisionClassifierRead"] | components["schemas"]["FinalClassifierRead"] | components["schemas"]["ForkClassifierRead"] | components["schemas"]["InitialClassifierRead"] | components["schemas"]["JoinClassifierRead"] | components["schemas"]["MergeClassifierRead"] | components["schemas"]["ObjectClassifierRead"] | components["schemas"]["EventClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__SystemClassifierRead"] | components["schemas"]["ContainerClassifierRead"] | components["schemas"]["ComponentClassifierRead"])[];
+                };
+            };
+        };
+    };
+    metadata_api_routes_classifier_list_attributes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttributeRead"][];
+                };
+            };
+        };
+    };
+    metadata_api_routes_classifier_create_attribute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttributeCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttributeRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_classifier_delete_attribute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attribute_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata_api_routes_classifier_update_attribute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attribute_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttributeUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttributeRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_classifier_list_operations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationRead"][];
+                };
+            };
+        };
+    };
+    metadata_api_routes_classifier_create_operation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_classifier_delete_operation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata_api_routes_classifier_update_operation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationRead"];
                 };
             };
         };

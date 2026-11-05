@@ -40,7 +40,7 @@ const EditAttribute: React.FC<{
     );
 
     const staticOptions = [
-        { value: 'str', label: 'string', id: 'string' },
+        { value: 'string', label: 'string', id: 'string' },
         { value: 'int', label: 'integer', id: 'integer' },
         { value: 'bool', label: 'boolean', id: 'boolean' },
     ];
