@@ -1,8 +1,17 @@
 import React, { CSSProperties } from "react";
 import { NodeProps } from "reactflow";
+import { useDiagramStore } from "$diagram/stores";
 import NodeWrapper from "../shared/NodeWrapper";
 
 export const SwimlaneGroupNode: React.FC<NodeProps> = (node) => {
+    // The backend only stores the actor's classifier id, look up its name
+    const uniqueActors = useDiagramStore((s) => s.uniqueActors);
+
+    const actorName = (swimlane: any) =>
+        uniqueActors.find((actor) => actor.cls === swimlane.actor)?.name ??
+        swimlane.actorNodeName ??
+        "Unknown actor";
+
     const swimlaneGroupStyle: CSSProperties = {
         display: 'flex',
         flexDirection: node.data?.horizontal ? 'column' : 'row',
@@ -45,9 +54,9 @@ export const SwimlaneGroupNode: React.FC<NodeProps> = (node) => {
         <NodeWrapper node={node} selected={node.selected}>
             <div style={swimlaneGroupStyle}>
                 {node.data?.swimlanes?.map((swimlane, index) => (
-                    <div key={index} style={swimlaneStyle(index, node.data.swimlanes.length)}>
+                    <div key={swimlane.nodeId ?? index} style={swimlaneStyle(index, node.data.swimlanes.length)}>
                         <div style={swimlaneHeaderStyle}>
-                            {swimlane.actorNodeName}
+                            {actorName(swimlane)}
                         </div>
                         <div style={swimlaneBodyStyle}>
                         </div>

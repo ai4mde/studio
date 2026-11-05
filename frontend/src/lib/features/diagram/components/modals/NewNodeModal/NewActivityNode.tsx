@@ -292,12 +292,13 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                         type: "swimlane",
                                         actorNode: node.id,
                                         actorNodeName: node.name,
+                                        actorClassifierId: node.cls,
                                     }))
                                 }))
                             }}
                         >
                             {uniqueActors
-                                .filter((node) => !existingActors.includes(node.name))
+                                .filter((node) => !existingActors.includes(node.cls))
                                 .map((node) => (
                                     <Option key={node.id} value={node.id}>
                                         {node.name}

@@ -86,28 +86,29 @@ export const NewNodeModal: React.FC = () => {
         if (checkingName) return;
         if (nameError) return;
 
-        // 1) Swimlane special case: create/update swimlanegroup
-        // TODO(api): "swimlanegroup" is not a classifier type in the new backend,
-        // swimlanes are now separate classifiers with a parent, so this still fails
-        // See Maarten's explanation
+        // 1) Swimlanes: a parent swimlane (the group) with a child swimlane per actor
         if (object.type === "swimlane") {
-            const { height, width, horizontal, swimlanes } = object;
+            const { height, width, swimlanes } = object;
 
             if (!swimlanes || swimlanes.length === 0) return;
 
-            if (swimlaneGroup) {
-                partialUpdateNode(diagram, swimlaneGroup.id, {
-                    cls: {
-                        swimlanes: [...swimlaneGroup.data.swimlanes, ...swimlanes],
-                    },
+            // The parent only has to be created the first time
+            let parentClassifierId = swimlaneGroup?.data.classifierId;
+
+            if (!swimlaneGroup) {
+                const parent = await addNode(diagram, {
+                    type: "swimlane",
+                    height: Number(height),
+                    width: Number(width),
                 });
-            } else {
-                addNode(diagram, {
-                    type: "swimlanegroup",
-                    swimlanes,
-                    height,
-                    width,
-                    horizontal,
+                parentClassifierId = parent.classifier.id;
+            }
+
+            for (const lane of swimlanes) {
+                await addNode(diagram, {
+                    type: "swimlane",
+                    parent_id: parentClassifierId,
+                    actor_id: lane.actorClassifierId,
                 });
             }
 
@@ -184,7 +185,7 @@ export const NewNodeModal: React.FC = () => {
                                     uniqueActors={uniqueActors}
                                     existingActors={
                                         swimlaneGroup
-                                            ? swimlaneGroup.data.swimlanes.map((swimlane) => swimlane.actorNodeName || "")
+                                            ? swimlaneGroup.data.swimlanes.map((swimlane) => swimlane.actor)
                                             : []
                                     }
                                     swimlaneGroupExists={!!swimlaneGroup}

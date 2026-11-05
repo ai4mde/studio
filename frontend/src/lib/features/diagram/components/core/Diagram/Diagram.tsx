@@ -146,6 +146,7 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
                 <Controls showInteractive={false} >
                     <ControlButton title="auto layout" onClick={async () => {
                         // TODO(api): there is no auto layout endpoint in the new backend yet
+                        // Not a priority right now
                         await authAxios.post(`/v1/diagram/${diagram}/auto_layout`);
                         await queryClient.invalidateQueries({
                             queryKey: queryKeys.diagrams.detail(diagram),

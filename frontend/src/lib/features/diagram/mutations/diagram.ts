@@ -32,7 +32,7 @@ export const addNode = async (diagram: string, data: any) => {
         }
     }
 
-    await createNode(diagram, {
+    const node = await createNode(diagram, {
         classifier: {
             type: classifierTypeToApi(type),
             data: classifierDataToApi(classifierData),
@@ -44,6 +44,7 @@ export const addNode = async (diagram: string, data: any) => {
 
     invalidateDiagram(diagram);
     invalidateClassifiers();
+    return node;
 };
 
 export const importNode = async (

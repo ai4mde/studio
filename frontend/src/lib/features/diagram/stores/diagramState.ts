@@ -1,5 +1,6 @@
-import { applyNodeChanges } from "$diagram/events/node";
+import type { Node } from "reactflow";
 import { create } from "zustand";
+import { applyNodeChanges } from "$diagram/events/node";
 import { DiagramState, RelatedNode } from "../types/diagramState";
 import { classifierDataFromApi, classifierTypeFromApi } from "../mutations/fields";
 
@@ -40,8 +41,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
             // edges: [], // applyEdgeChanges(changes, state.edges, state.diagramURL),
         })),
     nodesFromAPI: (nds) => {
-    set(() => ({
-        nodes: nds.map((e) => ({
+        const mapped: Node[] = nds.map((e) => ({
             id: e.id,
             type: classifierTypeFromApi(e.classifier.type),
 
@@ -64,9 +64,35 @@ export const useDiagramStore = create<DiagramState>((set) => ({
             parentNode: e.parent ?? null,
             connectable: true,
             zIndex: e.parent ? 0 : 1,
-        })),
-    }));
-},
+        }));
+
+        const isLane = (n) => n.type === "swimlane" && !!n.data.parent;
+        const lanes = mapped.filter(isLane);
+
+        const nodes = mapped
+            .filter((n) => !isLane(n))
+            .map((n) =>
+                n.type === "swimlane"
+                    ? {
+                        ...n,
+                        type: "swimlanegroup",
+                        data: {
+                            ...n.data,
+                            type: "swimlanegroup",
+                            swimlanes: lanes
+                                .filter((l) => l.data.parent === n.data.classifierId)
+                                .map((l) => ({
+                                    nodeId: l.id,
+                                    classifierId: l.data.classifierId,
+                                    actor: l.data.actor,
+                                })),
+                        },
+                    }
+                    : n,
+            );
+
+        set(() => ({ nodes }));
+    },
     edgesFromAPI: (eds) =>
         set(() => ({
             edges: eds.map((e) => ({
