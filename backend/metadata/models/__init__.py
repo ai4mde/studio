@@ -9,6 +9,7 @@ from .relation import Relation
 from .general import (
     Project,
     System,
+    Release,
 )
 
 from .class_diagram import (
