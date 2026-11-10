@@ -2257,6 +2257,8 @@ export interface components {
         };
         /** AssociationRead */
         AssociationRead: {
+            multiplicity: components["schemas"]["MultiplicitySchema"];
+            labels: components["schemas"]["EndpointLabelSchema"];
             /**
              * Derived
              * @default false
@@ -2267,10 +2269,6 @@ export interface components {
              * @default
              */
             label: string | null;
-            /** Multiplicity */
-            multiplicity: number;
-            /** Labels */
-            labels: number;
         };
         /** AssociationRelationRead */
         AssociationRelationRead: {
@@ -2300,15 +2298,13 @@ export interface components {
         };
         /** CompositionRead */
         CompositionRead: {
+            multiplicity: components["schemas"]["MultiplicitySchema"];
+            labels: components["schemas"]["EndpointLabelSchema"];
             /**
              * Label
              * @default
              */
             label: string | null;
-            /** Multiplicity */
-            multiplicity: number;
-            /** Labels */
-            labels: number;
         };
         /** CompositionRelationRead */
         CompositionRelationRead: {
@@ -2367,6 +2363,15 @@ export interface components {
              * @default
              */
             comparison_value: string | null;
+        };
+        /** ControlPoint */
+        ControlPoint: {
+            /** X Position */
+            x_position: number;
+            /** Y Position */
+            y_position: number;
+            /** Order */
+            order: number;
         };
         /** ControlflowRelationRead */
         ControlflowRelationRead: {
@@ -2442,6 +2447,8 @@ export interface components {
              * Format: uuid
              */
             target: string;
+            /** Control Points */
+            control_points: components["schemas"]["ControlPoint"][];
             /** Id */
             id?: string | null;
             /**
@@ -2460,6 +2467,19 @@ export interface components {
              * @default false
              */
             rounded: boolean;
+        };
+        /** EndpointLabelSchema */
+        EndpointLabelSchema: {
+            /**
+             * Source
+             * @default
+             */
+            source: string;
+            /**
+             * Target
+             * @default
+             */
+            target: string;
         };
         /** ExtensionRelationRead */
         ExtensionRelationRead: {
@@ -2565,6 +2585,29 @@ export interface components {
             type: "interaction";
             data: components["schemas"]["EmptyTypedData"];
         };
+        /** MultiplicitySchema */
+        MultiplicitySchema: {
+            /**
+             * Source Lower
+             * @default 1
+             */
+            source_lower: number;
+            /**
+             * Source Upper
+             * @default 1
+             */
+            source_upper: number | null;
+            /**
+             * Target Lower
+             * @default 1
+             */
+            target_lower: number;
+            /**
+             * Target Upper
+             * @default 1
+             */
+            target_upper: number | null;
+        };
         /** InterfaceRelationRead */
         metadata__api__schemas__builders__InterfaceRelationRead: {
             /** Id */
@@ -2601,19 +2644,31 @@ export interface components {
         /** AssociationCreate */
         AssociationCreate: {
             /**
+             * @default {
+             *       "source_lower": 1,
+             *       "source_upper": 1,
+             *       "target_lower": 1,
+             *       "target_upper": 1
+             *     }
+             */
+            multiplicity: components["schemas"]["MultiplicitySchema"];
+            /**
+             * @default {
+             *       "source": "",
+             *       "target": ""
+             *     }
+             */
+            labels: components["schemas"]["EndpointLabelSchema"];
+            /**
              * Derived
              * @default false
              */
-            derived: boolean;
+            derived: boolean | null;
             /**
              * Label
              * @default
              */
             label: string | null;
-            /** Multiplicity */
-            multiplicity_id: number;
-            /** Labels */
-            labels_id: number;
         };
         /** AssociationRelationCreate */
         AssociationRelationCreate: {
@@ -2627,14 +2682,26 @@ export interface components {
         /** CompositionCreate */
         CompositionCreate: {
             /**
+             * @default {
+             *       "source_lower": 1,
+             *       "source_upper": 1,
+             *       "target_lower": 1,
+             *       "target_upper": 1
+             *     }
+             */
+            multiplicity: components["schemas"]["MultiplicitySchema"];
+            /**
+             * @default {
+             *       "source": "",
+             *       "target": ""
+             *     }
+             */
+            labels: components["schemas"]["EndpointLabelSchema"];
+            /**
              * Label
              * @default
              */
             label: string | null;
-            /** Multiplicity */
-            multiplicity_id: number;
-            /** Labels */
-            labels_id: number;
         };
         /** CompositionRelationCreate */
         CompositionRelationCreate: {
@@ -2785,6 +2852,8 @@ export interface components {
         /** EdgeUpdate */
         EdgeUpdate: {
             relation?: components["schemas"]["RelationUpdate"] | null;
+            /** Control Points */
+            control_points?: components["schemas"]["ControlPoint"][] | null;
             /** Width */
             width?: number | null;
             /** Color */

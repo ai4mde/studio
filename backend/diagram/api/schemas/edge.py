@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from ninja import ModelSchema
+from ninja import ModelSchema, Schema
 
 from metadata.api.schemas.relation import (
     RelationCreate,
@@ -10,11 +10,16 @@ from metadata.api.schemas.relation import (
 from diagram.models import Edge
 
 
+class ControlPoint(Schema):
+    x_position: int
+    y_position: int
+    order: int
+
 class EdgeRead(ModelSchema):
     relation: RelationRead  # type: ignore[valid-type]
     source: UUID
     target: UUID
-
+    control_points: list[ControlPoint]
     class Meta:
         model = Edge
         fields = [
@@ -34,6 +39,10 @@ class EdgeRead(ModelSchema):
     @staticmethod
     def resolve_target(obj):
         return obj.target.id
+
+    @staticmethod
+    def resolve_control_points(obj):
+        return obj.control_points.order_by("order")
 
 class EdgeCreate(ModelSchema):
     relation: RelationCreate    # type: ignore[valid-type]
@@ -58,6 +67,8 @@ class EdgeCreate(ModelSchema):
 
 class EdgeUpdate(ModelSchema):
     relation: RelationUpdate | None = None
+    # When sent, replaces all control points of the edge
+    control_points: list[ControlPoint] | None = None
 
     class Meta:
         model = Edge

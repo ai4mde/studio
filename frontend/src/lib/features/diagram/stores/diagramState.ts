@@ -2,7 +2,7 @@ import type { Node } from "reactflow";
 import { create } from "zustand";
 import { applyNodeChanges } from "$diagram/events/node";
 import { DiagramState, RelatedNode } from "../types/diagramState";
-import { classifierDataFromApi, classifierTypeFromApi } from "../mutations/fields";
+import { classifierDataFromApi, classifierTypeFromApi, multiplicityFromApi } from "../mutations/fields";
 
 export const useDiagramStore = create<DiagramState>((set) => ({
     nodes: [],
@@ -104,6 +104,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                 target: e?.target,
                 data: {
                     ...(e?.relation?.data ?? {}),
+                    multiplicity: multiplicityFromApi(e?.relation?.data?.multiplicity),
                     type: e?.relation?.type,
                     relationId: e?.relation?.id,
                     edge_data: {
@@ -111,6 +112,10 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                         color: e?.color,
                         font: e?.font,
                         rounded: e?.rounded,
+                        position_handlers: (e?.control_points ?? []).map((point) => ({
+                            x: point.x_position,
+                            y: point.y_position,
+                        })),
                     },
                 },
             })),

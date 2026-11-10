@@ -4,7 +4,7 @@ import { createNode, updateNode, deleteNode as deleteApiNode } from "../../../..
 import { createEdge, updateEdge, deleteEdge as deleteApiEdge } from "../../../../api/diagram/edge";
 import { queryClient } from "$lib/shared/hooks/queryClient";
 import { queryKeys } from "../../../../api/querykeys";
-import { classifierDataToApi, classifierTypeToApi } from "./fields";
+import { classifierDataToApi, classifierTypeToApi, multiplicityToApi } from "./fields";
 import { listClassifiers } from "../../../../api/metadata/classifier";
 
 // Fields that now live on the node itself instead of in the classifier data
@@ -139,6 +139,10 @@ export const addEdge = async (
 ) => {
     const { type, ...relationData } = data ?? {};
 
+    if (type === "association" || type === "composition") {
+        relationData.multiplicity = multiplicityToApi(relationData.multiplicity);
+    }
+
     await createEdge(diagram, {
         source_id: source,
         target_id: target,
@@ -159,6 +163,9 @@ export const toEdgeUpdate = (data: any): EdgeUpdate => {
         // Strip the fields we add on the frontend when reading edges
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { type, edge_data, relationId, ...relationData } = data.rel;
+        if (type === "association" || type === "composition") {
+            relationData.multiplicity = multiplicityToApi(relationData.multiplicity);
+        }
         payload.relation = { data: relationData };
     }
 
@@ -166,6 +173,17 @@ export const toEdgeUpdate = (data: any): EdgeUpdate => {
         if (data?.data && field in data.data) {
             payload[field] = data.data[field];
         }
+    }
+
+    // Bend points are stored as control points, in the order they're drawn
+    if (data?.data?.position_handlers) {
+        payload.control_points = data.data.position_handlers.map(
+            (point: { x: number; y: number }, index: number) => ({
+                x_position: Math.round(point.x),
+                y_position: Math.round(point.y),
+                order: index,
+            }),
+        );
     }
 
     return payload as EdgeUpdate;
@@ -176,7 +194,6 @@ export const partialUpdateEdge = async (
     edge: string,
     data: any,
 ) => {
-    // TODO(api): edge control points (position_handlers) can't be saved yet
     await updateEdge(edge, toEdgeUpdate(data));
 
     invalidateDiagram(diagram);

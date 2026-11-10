@@ -28,7 +28,60 @@ class EndpointLabel(models.Model):
     target = models.CharField(max_length=255, blank=True, default="")
 
 
-class Association(RelationDataModel):
+class MultiplicityAndLabelsMixin:
+    """
+        Lets the API send multiplicity and labels as nested values.
+        The rows in Multiplicity and EndpointLabel are created and
+        updated here, so the frontend never has to know their ids.
+    """
+
+    @classmethod
+    def prepare_data(cls, data):
+        data = dict(data)
+
+        # The edge route drops unset values, so fill in the defaults here
+        multiplicity = {
+            "source_lower": 1,
+            "source_upper": 1,
+            "target_lower": 1,
+            "target_upper": 1,
+            **(data.get("multiplicity") or {}),
+        }
+        instance = Multiplicity(**multiplicity)
+        instance.full_clean()
+        instance.save()
+        data["multiplicity"] = instance.id
+
+        labels = {
+            "source": "",
+            "target": "",
+            **(data.get("labels") or {}),
+        }
+        instance = EndpointLabel(**labels)
+        instance.full_clean()
+        instance.save()
+        data["labels"] = instance.id
+
+        return data
+
+    def prepare_update(self, data):
+        data = dict(data)
+
+        for field in ("multiplicity", "labels"):
+            values = data.pop(field, None)
+            if values is None:
+                continue
+
+            related = getattr(self, field)
+            for name, value in values.items():
+                setattr(related, name, value)
+            related.full_clean()
+            related.save()
+
+        return data
+
+
+class Association(MultiplicityAndLabelsMixin, RelationDataModel):
     derived = models.BooleanField(default=False)
     label = models.CharField(max_length=255, blank=True, default="")
     multiplicity = models.OneToOneField(
@@ -43,7 +96,7 @@ class Association(RelationDataModel):
     )
 
 
-class Composition(RelationDataModel):
+class Composition(MultiplicityAndLabelsMixin, RelationDataModel):
     label = models.CharField(max_length=255, blank=True, default="")
     multiplicity = models.OneToOneField(
         Multiplicity,

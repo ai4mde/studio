@@ -14,6 +14,7 @@ from diagram.api.schemas.edge import (
 from diagram.models import (
     Diagram,
     Edge,
+    EdgeControlPoint,
     Node,
 )
 from metadata.api.schemas.relation import get_relation_schemas
@@ -91,6 +92,22 @@ def update_edge(
         "relation",
         None,
     )
+
+    control_points = data.pop("control_points", None)
+
+    if control_points is not None:
+        edge.control_points.all().delete()
+        EdgeControlPoint.objects.bulk_create(
+            [
+                EdgeControlPoint(
+                    edge=edge,
+                    x_position=point["x_position"],
+                    y_position=point["y_position"],
+                    order=point["order"],
+                )
+                for point in control_points
+            ]
+        )
 
     if relation_data is not None:
         data_payload = relation_data.get("data")
