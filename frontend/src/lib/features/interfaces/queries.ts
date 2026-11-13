@@ -83,3 +83,34 @@ export const useSystemActions = (systemId: string, nodeType?: string) => {
         queryResult.error,
     ] as const;
 }
+
+// Actions whose swimlane belongs to the given actor:
+// action.swimlane -> swimlane classifier -> swimlane.actor
+export const useActorActions = (systemId: string, actorId: string | null | undefined) => {
+    const queryResult = useClassifiers(
+        { system_id: systemId || undefined },
+        !!systemId,
+    );
+
+    const classifiers = queryResult.data ?? [];
+    const laneActor = new Map(
+        classifiers
+            .filter((c) => c.type === "swimlane")
+            .map((c) => [c.id, (c.data as { actor?: string | null }).actor ?? null]),
+    );
+
+    const actions = classifiers
+        .filter((c) => c.type === "action")
+        .filter((c) => {
+            // Without an actor on the interface, offer every action
+            if (!actorId) return true;
+            const lane = (c.data as { swimlane?: string | null }).swimlane;
+            return !!lane && laneActor.get(lane) === actorId;
+        })
+        .map((c) => ({
+            id: c.id,
+            cls: c.data as Record<string, any>,
+        }));
+
+    return [actions, queryResult.isSuccess] as const;
+};

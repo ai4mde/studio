@@ -1,4 +1,3 @@
-import { authAxios } from '$auth/state/auth';
 import {
     useDeleteInterface,
     useInterface,
@@ -11,6 +10,10 @@ import {
     TabPanel,
     Tabs,
 } from '@mui/joy';
+import { replaceInterfaceContent } from "../../../../api/metadata/interface";
+import { listAttributes } from "../../../../api/metadata/classMembers";
+import { listClassifiers } from "../../../../api/metadata/classifier";
+import { contentToEditor, editorToContent } from "../content";
 import { CircleUserRound, Save, Trash } from "lucide-react";
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -35,26 +38,59 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [loadedId, setLoadedId] = useState<string | null>(null);
 
-    // Styling and settings are now plain fields on the interface, so load them
-    // into the local editor state when the interface is opened
+    // Load the interface into the editor. The tabs read localStorage when they
+    // mount, so only show them (loadedId) once everything is written.
     useEffect(() => {
         if (!data) return;
+        let cancelled = false;
 
-        localStorage.setItem('styling', JSON.stringify({
-            radius: data.radius,
-            backgroundColor: data.background_color,
-            textColor: data.text_color,
-            accentColor: data.accent_color,
-            selectedStyle: data.style,
-        }));
-        localStorage.setItem('settings', JSON.stringify({
-            managerAccess: data.manager_access,
-        }));
-        // Only render the tabs after this, they read localStorage when they mount
-        setLoadedId(data.id ?? null);
+        const load = async () => {
+            // The interface only stores ids, look up the names to show
+            const classIds = Array.from(
+                new Set(data.sections.map((s) => s.uml_class).filter(Boolean)),
+            ) as string[];
+            const attributeLists = await Promise.all(classIds.map((id) => listAttributes(id)));
+            const attributesById = Object.fromEntries(
+                attributeLists.flat().map((a) => [a.id, a]),
+            );
+
+            const classifiers = await listClassifiers({ system_id: data.system });
+            const actionNames = Object.fromEntries(
+                classifiers
+                    .filter((c) => c.type === "action")
+                    .map((c) => [c.id, (c.data as { name?: string }).name ?? ""]),
+            );
+
+            const { categories, sections, pages } = contentToEditor(
+                data,
+                attributesById,
+                actionNames,
+            );
+
+            if (cancelled) return;
+
+            localStorage.setItem('styling', JSON.stringify({
+                radius: data.radius,
+                backgroundColor: data.background_color,
+                textColor: data.text_color,
+                accentColor: data.accent_color,
+                selectedStyle: data.style,
+            }));
+            localStorage.setItem('settings', JSON.stringify({
+                managerAccess: data.manager_access,
+            }));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('sections', JSON.stringify(sections));
+            localStorage.setItem('pages', JSON.stringify(pages));
+
+            setLoadedId(data.id ?? null);
+        };
+
+        load();
+        return () => {
+            cancelled = true;
+        };
     }, [data?.id]);
-    //const actorId = data?.actor || '';
-    //const [actor, isSuccessActor] = useActor(systemId, actorId);
 
     const handleDelete = async () => {
         try {
@@ -90,21 +126,10 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         }
 
         try {
-            // TODO(api): categories, pages and sections now have their own endpoints,
-            // to be discussed how the editor should save them. This old call still fails.
-            await authAxios.put(`/v1/metadata/interfaces/${app_comp}/`, {
-                id: app_comp,
-                name: data?.name,
-                description: data?.description,
-                system_id: systemId,
-                data: {
-                    "styling": styling,
-                    "categories": categories,
-                    "pages": pages,
-                    "sections": sections,
-                    "settings": settings,
-                },
-            });
+            await replaceInterfaceContent(
+                app_comp,
+                editorToContent(categories, pages, sections),
+            );
         } catch (error) {
             console.error('Error saving interface:', error);
         } finally {
@@ -162,7 +187,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Categories />
                         </TabPanel>
                         <TabPanel value={2}>
-                            <Pages actorName = {data?.name}/>
+                            <Pages actorId={data?.actor} />
                         </TabPanel>
                         <TabPanel value={3}>
                             <Sections />

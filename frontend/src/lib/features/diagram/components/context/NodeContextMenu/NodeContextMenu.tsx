@@ -12,7 +12,7 @@ import DeleteConfirmationModal from "$diagram/components/modals/DeleteConfirmati
 
 const NodeContextMenu: React.FC = () => {
     const { x, y, node, close } = useNodeContextMenu();
-    const { diagram, type, nodes, relatedDiagrams, systemId, systemName } = useDiagramStore();
+    const { diagram, type, nodes, relatedDiagrams, systemId, systemName, uniqueActors } = useDiagramStore();
     const { setState, getState } = useStoreApi();
 
     const [canRemove, setCanRemove] = useState(true);
@@ -171,15 +171,16 @@ const NodeContextMenu: React.FC = () => {
       close();
     }
 
-    const addToSwimlane = (nodeId: string, actorNodeId: string) => {
-      const currentNode = nodes.find((n) => n.id === nodeId);
-      const remove = currentNode?.data.actorNode === actorNodeId;
+    // An action belongs to a swimlane through its "swimlane" field (the lane's classifier id)
+    const addToSwimlane = (nodeId: string, laneClassifierId: string) => {
+        const currentNode = nodes.find((n) => n.id === nodeId);
+        const remove = currentNode?.data.swimlane === laneClassifierId;
 
-      updateParenting(nodeId, {
+        updateParenting(nodeId, {
         remove,
-        parentId: swimlaneGroup?.id ?? null, // or swimlaneGroupUUID if that's your parent id
-        clsPatch: { actorNode: remove ? null : actorNodeId },
-      });
+        parentId: swimlaneGroup?.id ?? null,
+        clsPatch: { swimlane_id: remove ? null : laneClassifierId },
+        });
     };
 
     const addToParentNode = (nodeId: string, remove: boolean, parentNodeId: string) => {
@@ -260,18 +261,18 @@ const NodeContextMenu: React.FC = () => {
                                  y={swimlaneButtonRef.current.getBoundingClientRect().top}
                              >
                                  <>
-                                    {swimlaneGroup?.data.swimlanes
-                                        .filter((swimlane) => swimlane.actorNodeName !== 'Unknown actor')
-                                        .map((swimlane, index) => (
-                                        <li key={index}>
-                                            <button
-                                                onClick={() => addToSwimlane(node.id, swimlane.actorNode)}
-                                                className={node?.data.actorNode === swimlane.actorNode ? 'bg-blue-600 text-gray-50' : ''}
-                                            >
-                                                <span>{swimlane.actorNodeName}</span>
-                                            </button>
-                                        </li>
-                                    ))}
+                                       {swimlaneGroup?.data.swimlanes.map((swimlane, index) => (
+                                            <li key={swimlane.nodeId ?? index}>
+                                                <button
+                                                    onClick={() => addToSwimlane(node.id, swimlane.classifierId)}
+                                                    className={node?.data.swimlane === swimlane.classifierId ? 'bg-blue-600 text-gray-50' : ''}
+                                                >
+                                                    <span>
+                                                        {uniqueActors.find((a) => a.cls === swimlane.actor)?.name ?? "Unknown actor"}
+                                                    </span>
+                                                </button>
+                                            </li>
+                                        ))}
                                  </>
                              </ContextMenu>
                          )}

@@ -254,6 +254,23 @@ export interface paths {
         patch: operations["metadata_api_routes_interface_update_interface"];
         trace?: never;
     };
+    "/api/v1/metadata/interfaces/{interface_id}/content/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace Interface Content */
+        put: operations["metadata_api_routes_interface_replace_interface_content"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/metadata/interfaces/pages/": {
         parameters: {
             query?: never;
@@ -1721,6 +1738,86 @@ export interface components {
              */
             manager_access: boolean | null;
         };
+        /** ContentCategory */
+        ContentCategory: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** ContentPage */
+        ContentPage: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Type
+             * @default normal
+             */
+            type: string;
+            /** Category */
+            category?: string | null;
+            /** Action */
+            action?: string | null;
+            /**
+             * Sections
+             * @default []
+             */
+            sections: string[];
+        };
+        /** ContentSection */
+        ContentSection: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Text
+             * @default
+             */
+            text: string;
+            /** Uml Class */
+            uml_class?: string | null;
+            /**
+             * Allow Create
+             * @default false
+             */
+            allow_create: boolean;
+            /**
+             * Allow Update
+             * @default false
+             */
+            allow_update: boolean;
+            /**
+             * Allow Delete
+             * @default false
+             */
+            allow_delete: boolean;
+            /**
+             * Attributes
+             * @default []
+             */
+            attributes: string[];
+        };
+        /** InterfaceContent */
+        InterfaceContent: {
+            /**
+             * Categories
+             * @default []
+             */
+            categories: components["schemas"]["ContentCategory"][];
+            /**
+             * Sections
+             * @default []
+             */
+            sections: components["schemas"]["ContentSection"][];
+            /**
+             * Pages
+             * @default []
+             */
+            pages: components["schemas"]["ContentPage"][];
+        };
         /** PageCreate */
         PageCreate: {
             /**
@@ -1830,6 +1927,16 @@ export interface components {
         };
         /** PageSectionCreate */
         PageSectionCreate: {
+            /**
+             * Page
+             * Format: uuid
+             */
+            page_id: string;
+            /**
+             * Section
+             * Format: uuid
+             */
+            section_id: string;
             /**
              * Order
              * @default 0
@@ -3605,6 +3712,32 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["InterfaceUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterfaceRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_interface_replace_interface_content: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interface_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterfaceContent"];
             };
         };
         responses: {

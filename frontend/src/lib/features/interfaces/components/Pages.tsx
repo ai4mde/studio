@@ -5,16 +5,16 @@ import {
 } from "@mui/joy";
 import { Ban, Pencil, Plus, Save, Trash } from "lucide-react";
 import React, { useEffect, useState } from 'react';
-import { useSystemActions } from "$lib/features/interfaces/queries";
+import { useActorActions } from "$lib/features/interfaces/queries";
 import { useParams } from "react-router";
 import Select from "react-select";
 import useLocalStorage from './useLocalStorage';
  
 type Props = {
-    actorName: string;
+    actorId: string | null | undefined;
 };
- 
-export const Pages: React.FC<Props> = ({ actorName }) => {
+
+export const Pages: React.FC<Props> = ({ actorId }) => {
     const { systemId } = useParams();
     const [data, setData, isSuccess] = useLocalStorage('pages', []);
     const [editIndex, setEditIndex] = useState(-1);
@@ -26,10 +26,7 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
     const [sections, isSuccessSections] = useLocalStorage('sections', []);
     const [selectedSections, setSelectedSections] = useLocalStorage('selectedSections', []);
     const [pencelClick, setPencelClick] = useState(false);
-    const [actions, isSuccessActions] = useSystemActions(systemId, 'action');
- 
-    // Filter out the actions that are not related to the current actor
-    const filteredActions = actions.filter((action) => action.cls.actorNodeName === actorName);
+    const [filteredActions, isSuccessActions] = useActorActions(systemId, actorId);
  
     useEffect(() => {
         if (editIndex !== -1 && data[editIndex].sections) {

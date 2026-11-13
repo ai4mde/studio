@@ -82,11 +82,12 @@ export const CreateInterface: React.FC<Props> = ({ system }) => {
                         <FormLabel>Name</FormLabel>
                         <Input name="name" placeholder="Interface" required />
                     </FormControl>
-                    <FormControl>
+                    <FormControl required>
                         <FormLabel>Description</FormLabel>
                         <Input
                             name="description"
                             placeholder="A whole new world..."
+                            required
                         />
                     </FormControl>
                     <FormControl required>

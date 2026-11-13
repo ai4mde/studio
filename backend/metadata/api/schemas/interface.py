@@ -1,4 +1,5 @@
 from ninja import ModelSchema, Schema
+from uuid import UUID
 
 from metadata.models import (
     Category,
@@ -19,8 +20,8 @@ class PageSectionRead(ModelSchema):
 class PageSectionCreate(ModelSchema):
     class Meta:
         model = PageSection
-        fields = ["order"]
-        fields_optional = "__all__"
+        fields = ["page", "section", "order"]
+        fields_optional = ["order"]
 
 
 class PageSectionUpdate(ModelSchema):
@@ -212,3 +213,37 @@ class InterfaceUpdate(ModelSchema):
             "manager_access",
         ]
         fields_optional = "__all__"
+
+class ContentCategory(Schema):
+    id: str
+    name: str
+
+
+class ContentSection(Schema):
+    id: str
+    name: str
+    text: str = ""
+    uml_class: UUID | None = None
+    allow_create: bool = False
+    allow_update: bool = False
+    allow_delete: bool = False
+    # Attribute ids, in the order they're shown
+    attributes: list[UUID] = []
+
+
+class ContentPage(Schema):
+    id: str
+    name: str
+    type: str = "normal"
+    # Id of a category in the same payload
+    category: str | None = None
+    # Classifier id of an action (for activity pages)
+    action: UUID | None = None
+    # Ids of sections in the same payload, in order
+    sections: list[str] = []
+
+
+class InterfaceContent(Schema):
+    categories: list[ContentCategory] = []
+    sections: list[ContentSection] = []
+    pages: list[ContentPage] = []

@@ -1,7 +1,11 @@
+import uuid as uuid_lib
 from uuid import UUID
 
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from ninja import Router
+from ninja.errors import HttpError
 
 from metadata.api.helpers import create_instance, update_instance
 from metadata.api.schemas.interface import (
@@ -12,6 +16,7 @@ from metadata.api.schemas.interface import (
     InterfaceRead,
     InterfaceSummary,
     InterfaceUpdate,
+    InterfaceContent,
     PageCreate,
     PageRead,
     PageSectionCreate,
@@ -78,6 +83,90 @@ def delete_interface(request, interface_id: UUID):
     interface = get_object_or_404(Interface, id=interface_id)
     interface.delete()
     return 204, None
+
+
+def uuid_or_new(value: str) -> uuid_lib.UUID:
+    # Keep the editor's ids when they're valid UUIDs, so they stay the same after saving
+    try:
+        return uuid_lib.UUID(str(value))
+    except ValueError:
+        return uuid_lib.uuid4()
+
+
+def save(instance):
+    instance.full_clean()
+    instance.save()
+    return instance
+
+
+@router.put("/{interface_id}/content/", response=InterfaceRead)
+@transaction.atomic
+def replace_interface_content(request, interface_id: UUID, payload: InterfaceContent):
+    interface = get_object_or_404(Interface, id=interface_id)
+
+    try:
+        # Start from scratch, like the old PUT with the data blob
+        interface.pages.all().delete()
+        interface.sections.all().delete()
+        interface.categories.all().delete()
+
+        categories = {}
+        for item in payload.categories:
+            categories[item.id] = save(Category(
+                id=uuid_or_new(item.id),
+                interface=interface,
+                name=item.name,
+            ))
+
+        sections = {}
+        for item in payload.sections:
+            section = save(SectionComponent(
+                id=uuid_or_new(item.id),
+                interface=interface,
+                name=item.name,
+                text=item.text,
+                uml_class_id=item.uml_class,
+                allow_create=item.allow_create,
+                allow_update=item.allow_update,
+                allow_delete=item.allow_delete,
+            ))
+            sections[item.id] = section
+
+            for order, attribute_id in enumerate(item.attributes):
+                save(SectionAttribute(
+                    section=section,
+                    attribute_id=attribute_id,
+                    order=order,
+                ))
+
+        for item in payload.pages:
+            if item.category and item.category not in categories:
+                raise HttpError(422, f"Page '{item.name}' uses an unknown category")
+
+            page = save(Page(
+                id=uuid_or_new(item.id),
+                interface=interface,
+                name=item.name,
+                type=item.type,
+                action_id=item.action,
+                category=categories.get(item.category) if item.category else None,
+            ))
+
+            for order, section_id in enumerate(item.sections):
+                if section_id not in sections:
+                    raise HttpError(422, f"Page '{item.name}' uses an unknown section")
+
+                save(PageSection(
+                    page=page,
+                    section=sections[section_id],
+                    order=order,
+                ))
+
+    except ValidationError as error:
+        # Return what's wrong instead of a 500; the transaction undoes everything
+        raise HttpError(422, str(error.message_dict))
+
+    return read_interface(request, interface_id)
 
 
 # Pages

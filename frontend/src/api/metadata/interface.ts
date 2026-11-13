@@ -62,3 +62,17 @@ export async function deleteInterface(
         `/v1/metadata/interfaces/${interfaceId}/`
     );
 }
+
+export type InterfaceContent = components["schemas"]["InterfaceContent"];
+
+// Replaces all categories, pages and sections of an interface at once
+export async function replaceInterfaceContent(
+    interfaceId: string,
+    payload: InterfaceContent
+): Promise<InterfaceRead> {
+    const { data } = await apiClient.put<InterfaceRead>(
+        `/v1/metadata/interfaces/${interfaceId}/content/`,
+        payload
+    );
+    return data;
+}
