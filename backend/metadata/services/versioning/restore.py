@@ -1,0 +1,201 @@
+from collections import defaultdict
+from uuid import UUID
+
+from django.core import serializers
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
+from django.db.models import Model
+
+from metadata.models import Project, System
+from metadata.services.versioning.snapshot import EXCLUDED_FIELDS, PROJECT_MODELS
+
+
+def _uuid(value: object, context: str) -> UUID:
+    if not isinstance(value, str):
+        raise ValidationError(f"{context} must be a UUID string.")
+    try:
+        return UUID(value)
+    except ValueError as exc:
+        raise ValidationError(f"{context} is not a valid UUID: {value!r}.") from exc
+
+
+def _snapshot_ids_and_references(objects: list[dict]) -> dict[type[Model], set[UUID]]:
+    """Ensure the snapshot is self-contained"""
+    model_by_label = {model._meta.label_lower: model for model in PROJECT_MODELS}
+    ids: dict[type[Model], set[UUID]] = defaultdict(set)
+
+    # Gather all UUIDs in the snapshot and check for duplicates.
+    for item in objects:
+        model = model_by_label[item["model"]]
+        pk = _uuid(item["pk"], f"{model._meta.label} primary key")
+        if pk in ids[model]:
+            raise ValidationError(f"Duplicate UUID for {model._meta.label}: {pk}.")
+        ids[model].add(pk)
+
+    # For each FK in the snapshot, check that the target is also in the snapshot.
+    for item in objects:
+        model = model_by_label[item["model"]]
+        for field in model._meta.concrete_fields:
+            # Skip excluded fields
+            if field.name in EXCLUDED_FIELDS.get(model, set()):
+                continue
+            # We do not care about non-FK fields
+            if not isinstance(field, models.ForeignKey):
+                continue
+
+            # Django fixtures put a primary-key OneToOneField in 'pk', not 'fields'.
+            value = (item["pk"] if field.primary_key
+                     else item["fields"].get(field.name))
+            
+            # If the FK is null, but not nullable, the snapshot is invalid.
+            # If it is null and nullable, we don't need to check the target.
+            if value is None:
+                if not field.null:
+                    raise ValidationError(
+                        f"{model._meta.label}.{field.name} is required."
+                    )
+                continue
+
+            # Check if the target model and the target UUID are present in the snapshot. If not, the snapshot is invalid.
+            target = field.remote_field.model
+            target_id = _uuid(value, f"{model._meta.label}.{field.name}")
+            if target not in PROJECT_MODELS or target_id not in ids[target]:
+                raise ValidationError(
+                    f"{model._meta.label}.{field.name} refers to a missing "
+                    f"{target._meta.label} ({target_id})."
+                )
+
+    return ids
+
+
+def _restore_order() -> list[type[Model]]:
+    """
+        Order to create the models in. This makes sure that objects are created
+        only after the objects that they depend on have already been created
+    """
+    remaining = set(PROJECT_MODELS)
+    ordered: list[type[Model]] = []
+
+    while remaining:
+        # A model is ready to be restored when none of its required foreign keys depend
+        # on models that are still waiting to be restored.
+        ready = [
+            model for model in PROJECT_MODELS
+            if model in remaining
+            and not any(                                        # If there is NOT a field that has any of the following properties:
+                isinstance(field, models.ForeignKey)            # Is a foreign key
+                and not field.null                              # Is not nullable
+                and field.remote_field.model in remaining       # Depends on a model that is still waiting to be restored
+                for field in model._meta.concrete_fields
+            )
+        ]
+        if not ready:
+            names = ", ".join(sorted(model._meta.label for model in remaining))
+            raise ValidationError(f"Non-nullable FK cycle in restore models: {names}.")
+        ordered.extend(ready)
+        remaining.difference_update(ready)
+
+    return ordered
+
+
+def _existing_owned_ids(project_id: UUID) -> dict[type[Model], list[UUID]]:
+    """
+        Before deleting store all primary keys of the models that are owned by the project.
+        This can be used to check if any objects persisted even after the cascade delete of the systems.
+    """
+    return {
+        model: list(model._base_manager.filter(project_q(project_id))
+                    .values_list("pk", flat=True))
+        for model, project_q in PROJECT_MODELS.items()
+        if model is not Project
+    }
+
+
+def _check_no_uuid_collisions(
+    project_id: UUID, snapshot_ids: dict[type[Model], set[UUID]]
+) -> None:
+    """
+        Never overwrite a same-UUID row belonging to another project.
+        This would be very unexpected, but can happen due to the UUIDs being generated by another user and then imported into a different project.
+    """
+    for model, ids in snapshot_ids.items():
+        if model is Project or not ids:
+            continue
+        foreign = (
+            model._base_manager.filter(pk__in=ids)
+            .exclude(PROJECT_MODELS[model](project_id))
+        )
+        if foreign.exists():
+            raise ValidationError(
+                f"Snapshot contains {model._meta.label} UUIDs already "
+                "used outside the destination project."
+            )
+
+
+@transaction.atomic
+def restore_project(project_id: UUID | str, snapshot: dict) -> Project:
+    """Replace a project's data with a complete snapshot in one transaction."""
+    project = Project.objects.select_for_update().get(pk=project_id)
+    
+    if snapshot.get("project_id") != str(project.pk):
+        raise ValidationError("Snapshot project_id does not match the target project.")
+    
+    incoming_ids = _snapshot_ids_and_references(snapshot["objects"])
+
+    # Deserialize back into Django model instances
+    try:
+        deserialized = list(serializers.deserialize("python", snapshot["objects"]))
+    except Exception as exc:
+        raise ValidationError(f"Could not deserialize snapshot: {exc}") from exc
+
+    # Sort the deserialized objects by model type for easier processing.
+    by_model: dict[type[Model], list] = defaultdict(list)
+    for entry in deserialized:
+        by_model[type(entry.object)].append(entry)
+
+    # Get the restore order
+    order = _restore_order()
+
+    # Check UUID colisions
+    _check_no_uuid_collisions(project.pk, incoming_ids)
+
+    # Get the IDs of objects that are owned by the project
+    owned_ids = _existing_owned_ids(project.pk)
+
+    # Systems cascade-delete classifiers, relations, diagrams and interfaces.
+    System._base_manager.filter(project_id=project.pk).delete()
+
+    # Clear left over objects that are owned by the project but not deleted by the cascade.
+    for model, old_ids in owned_ids.items():
+        if model is System or not old_ids:
+            continue
+        model._base_manager.filter(pk__in=old_ids).delete()
+
+    # Defer any nullable foreign keys that point to objects that have not yet been restored.
+    # Otherwise we could end up with a cycle of foreign keys that cannot be satisfied, and the restore would fail.
+    deferred_links: list[tuple[type[Model], UUID, str, UUID]] = []
+    for model in order:
+        for entry in by_model[model]:
+            instance = entry.object
+            for field in model._meta.concrete_fields:
+                # If the field is not a nullable foreign key, we can't defer it
+                if not (isinstance(field, models.ForeignKey) and field.null):
+                    continue
+                value = getattr(instance, field.attname)
+
+                # If the value is not None, we need to defer it. Set it to None for now and add it back later
+                if value is not None:
+                    # Save the model, primary key, field name and value to be restored later
+                    deferred_links.append(
+                        (model, instance.pk, field.attname, value)
+                    )
+                    setattr(instance, field.attname, None)
+            # Save the instance to the database
+            entry.save()
+
+    # Add back the deferred foreign keys now that all objects have been restored
+    for model, pk, field_name, value in deferred_links:
+        model._base_manager.filter(pk=pk).update(**{field_name: value})
+
+    # Return the restored project
+    return Project._base_manager.get(pk=project.pk)
