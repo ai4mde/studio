@@ -42,7 +42,7 @@ def create_release(request, payload: ReleaseCreate):
         release_notes=payload.release_notes,
     )
 
-    return 201, release
+    return release
 
 
 
@@ -62,7 +62,13 @@ def export_release(request, release_id: UUID):
     return response
 
 
-@router.post("/import/{project_id}/", response=ReleaseList)
+@router.post(
+    "/import/{project_id}/",
+    response={
+        200: ReleaseList,
+        400: dict,
+    },
+)
 def import_release(
     request,
     project_id: UUID,
@@ -72,15 +78,18 @@ def import_release(
 ):
     try:
         snapshot = json.load(file)
+        
+        return import_release_service(
+            project_id=project_id,
+            snapshot=snapshot,
+            name=name,
+            description=description,
+        )
     except (json.JSONDecodeError, UnicodeDecodeError):
-        raise ValidationError("Invalid JSON file.")
+        return 400, {"message": "The uploaded file is not valid JSON."}
 
-    return import_release_service(
-        project_id=project_id,
-        snapshot=snapshot,
-        name=name,
-        description=description,
-    )
+    except ValidationError as exc:
+        return 400, {" message": exc.message[0]}
 
 
 @router.post(
