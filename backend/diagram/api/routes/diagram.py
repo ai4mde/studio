@@ -3,13 +3,14 @@ from uuid import UUID
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
-from diagram.models import Diagram
 from diagram.api.schemas.diagram import (
     DiagramCreate,
     DiagramRead,
     DiagramReadFull,
     DiagramUpdate,
 )
+from diagram.models import Diagram
+from diagram.services.diagrams.auto_layout import auto_layout_diagram
 from metadata.api.helpers import create_instance, update_instance
 
 
@@ -43,3 +44,9 @@ def delete_diagram(request, diagram_id: UUID):
     diagram.delete()
 
     return 204, None
+
+
+@router.post("/{diagram_id}/auto_layout/", response=DiagramReadFull)
+def auto_layout(request, diagram_id: UUID):
+    diagram = get_object_or_404(Diagram, pk=diagram_id)
+    return auto_layout_diagram(diagram)
