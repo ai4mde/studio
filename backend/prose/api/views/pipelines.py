@@ -6,7 +6,7 @@ from diagram.api.schemas.diagram import DiagramRead
 from prose.models import Pipeline
 from diagram.models import Diagram
 
-from llm.handler import llm_handler
+from ai.services.handler import llm_handler
 from .utils import parse_llm_response
 
 

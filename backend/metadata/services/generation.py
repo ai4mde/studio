@@ -5,7 +5,7 @@ from django.core import serializers
 from diagram.api.schemas.diagram import DiagramReadFull
 from diagram.models import Diagram
 from metadata.models import Classifier
-from llm.handler import llm_handler, remove_reply_markdown
+from ai.services.handler import llm_handler, remove_reply_markdown
 
 
 def _generate(
