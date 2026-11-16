@@ -16,10 +16,10 @@ class TypedDataModel(models.Model):
     def data(self):
         data_type = getattr(self, "type", None)
         if data_type is None:
-                raise ValueError(
-                    "The TypedDataModel base class requires a 'type' field "
-                    "to be defined in the subclass."
-                )
+            raise ValueError(
+                "The TypedDataModel base class requires a 'type' field "
+                "to be defined in the subclass."
+            )
 
         data_model = self.get_data_model(data_type)
 

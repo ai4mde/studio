@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     "config",  # The main app / project is the model application
     "metadata",  # The metadata app is used to store metadata such as projects, systems, users and so on
     "diagram",  # The diagram app is used to store diagram-specific data
-    "prompt",  # The prompt app is used for the chat / prompting functionalities
+    "ai",  # The AI app is used for all AI-related functionalities
     "prose",  # The prose app is used to store and build NLP pipelines
     "generator", # The generator app is used to store and build prototypes
     "corsheaders",

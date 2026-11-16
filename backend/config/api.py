@@ -10,7 +10,7 @@ from config.openapi import StudioAPI
 from diagram.api.router import router as diagram_router
 from generator.api import generator_router
 from metadata.api.router import router as metadata_router
-from prose.api import prose_router
+from prose.api.router import router as prose_router
 
 
 api = StudioAPI(
