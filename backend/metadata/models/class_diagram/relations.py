@@ -43,28 +43,31 @@ class MultiplicityAndLabelsMixin:
     def prepare_data(cls, data):
         data = dict(data)
 
-        # The edge route drops unset values, so fill in the defaults here
-        multiplicity = {
-            "source_lower": 1,
-            "source_upper": 1,
-            "target_lower": 1,
-            "target_upper": 1,
-            **(data.get("multiplicity") or {}),
-        }
-        instance = Multiplicity(**multiplicity)
-        instance.full_clean()
-        instance.save()
-        data["multiplicity"] = instance.id
+        # Only create the rows when the caller didn't pass them already
+        # (the prose import creates its own and passes multiplicity_id/labels_id)
+        multiplicity = data.get("multiplicity")
+        if "multiplicity_id" not in data and (multiplicity is None or isinstance(multiplicity, dict)):
+            instance = Multiplicity(**{
+                "source_lower": 1,
+                "source_upper": 1,
+                "target_lower": 1,
+                "target_upper": 1,
+                **(multiplicity or {}),
+            })
+            instance.full_clean()
+            instance.save()
+            data["multiplicity"] = instance.id
 
-        labels = {
-            "source": "",
-            "target": "",
-            **(data.get("labels") or {}),
-        }
-        instance = EndpointLabel(**labels)
-        instance.full_clean()
-        instance.save()
-        data["labels"] = instance.id
+        labels = data.get("labels")
+        if "labels_id" not in data and (labels is None or isinstance(labels, dict)):
+            instance = EndpointLabel(**{
+                "source": "",
+                "target": "",
+                **(labels or {}),
+            })
+            instance.full_clean()
+            instance.save()
+            data["labels"] = instance.id
 
         return data
 

@@ -55,79 +55,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/metadata/projects/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Projects */
-        get: operations["metadata_api_routes_project_list_projects"];
-        put?: never;
-        /** Create Project */
-        post: operations["metadata_api_routes_project_create_project"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/metadata/projects/{project_id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Project */
-        get: operations["metadata_api_routes_project_read_project"];
-        put?: never;
-        post?: never;
-        /** Delete Project */
-        delete: operations["metadata_api_routes_project_delete_project"];
-        options?: never;
-        head?: never;
-        /** Update Project */
-        patch: operations["metadata_api_routes_project_update_project"];
-        trace?: never;
-    };
-    "/api/v1/metadata/systems/{system_id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read System */
-        get: operations["metadata_api_routes_system_read_system"];
-        put?: never;
-        post?: never;
-        /** Delete System */
-        delete: operations["metadata_api_routes_system_delete_system"];
-        options?: never;
-        head?: never;
-        /** Update System */
-        patch: operations["metadata_api_routes_system_update_system"];
-        trace?: never;
-    };
-    "/api/v1/metadata/systems/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create System */
-        post: operations["metadata_api_routes_system_create_system"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/metadata/classifiers/": {
         parameters: {
             query?: never;
@@ -215,6 +142,40 @@ export interface paths {
         head?: never;
         /** Update Operation */
         patch: operations["metadata_api_routes_classifier_update_operation"];
+        trace?: never;
+    };
+    "/api/v1/metadata/generation/{classifier_id}/attribute/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Attribute */
+        post: operations["metadata_api_routes_generation_generate_attribute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/generation/{classifier_id}/method/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Method */
+        post: operations["metadata_api_routes_generation_generate_method"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/metadata/interfaces/": {
@@ -446,6 +407,182 @@ export interface paths {
         patch: operations["metadata_api_routes_interface_update_section_attribute"];
         trace?: never;
     };
+    "/api/v1/metadata/projects/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Projects */
+        get: operations["metadata_api_routes_project_list_projects"];
+        put?: never;
+        /** Create Project */
+        post: operations["metadata_api_routes_project_create_project"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/projects/import/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Project */
+        post: operations["metadata_api_routes_project_import_project"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/projects/{project_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Project */
+        get: operations["metadata_api_routes_project_read_project"];
+        put?: never;
+        post?: never;
+        /** Delete Project */
+        delete: operations["metadata_api_routes_project_delete_project"];
+        options?: never;
+        head?: never;
+        /** Update Project */
+        patch: operations["metadata_api_routes_project_update_project"];
+        trace?: never;
+    };
+    "/api/v1/metadata/releases/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Releases */
+        get: operations["metadata_api_routes_releases_list_releases"];
+        put?: never;
+        /** Create Release */
+        post: operations["metadata_api_routes_releases_create_release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/releases/{release_id}/export/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Release */
+        get: operations["metadata_api_routes_releases_export_release"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/releases/import/{project_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Release */
+        post: operations["metadata_api_routes_releases_import_release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/releases/{release_id}/restore/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Release Route */
+        post: operations["metadata_api_routes_releases_restore_release_route"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/releases/merge/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Merge Releases Route */
+        post: operations["metadata_api_routes_releases_merge_releases_route"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/systems/{system_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read System */
+        get: operations["metadata_api_routes_system_read_system"];
+        put?: never;
+        post?: never;
+        /** Delete System */
+        delete: operations["metadata_api_routes_system_delete_system"];
+        options?: never;
+        head?: never;
+        /** Update System */
+        patch: operations["metadata_api_routes_system_update_system"];
+        trace?: never;
+    };
+    "/api/v1/metadata/systems/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create System */
+        post: operations["metadata_api_routes_system_create_system"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/diagram/{diagram_id}/node/": {
         parameters: {
             query?: never;
@@ -553,7 +690,24 @@ export interface paths {
         patch: operations["diagram_api_routes_diagram_update_diagram"];
         trace?: never;
     };
-    "/api/v1/prose/pipelines/": {
+    "/api/v1/diagram/{diagram_id}/auto_layout/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Auto Layout */
+        post: operations["diagram_api_routes_diagram_auto_layout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prose/pipeline/": {
         parameters: {
             query?: never;
             header?: never;
@@ -561,17 +715,17 @@ export interface paths {
             cookie?: never;
         };
         /** List Pipelines */
-        get: operations["prose_api_views_pipelines_list_pipelines"];
+        get: operations["prose_api_routes_pipeline_list_pipelines"];
         put?: never;
         /** Create Pipeline */
-        post: operations["prose_api_views_pipelines_create_pipeline"];
+        post: operations["prose_api_routes_pipeline_create_pipeline"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/prose/pipelines/{pipeline_id}/": {
+    "/api/v1/prose/pipeline/{pipeline_id}/": {
         parameters: {
             query?: never;
             header?: never;
@@ -579,17 +733,17 @@ export interface paths {
             cookie?: never;
         };
         /** Get Pipeline */
-        get: operations["prose_api_views_pipelines_get_pipeline"];
+        get: operations["prose_api_routes_pipeline_get_pipeline"];
         put?: never;
         post?: never;
         /** Delete Pipeline */
-        delete: operations["prose_api_views_pipelines_delete_pipeline"];
+        delete: operations["prose_api_routes_pipeline_delete_pipeline"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/prose/pipelines/{pipeline_id}/requirements/": {
+    "/api/v1/prose/pipeline/{pipeline_id}/requirements/": {
         parameters: {
             query?: never;
             header?: never;
@@ -599,14 +753,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Add Pipeline Requirements */
-        post: operations["prose_api_views_pipelines_add_pipeline_requirements"];
+        post: operations["prose_api_routes_pipeline_add_pipeline_requirements"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/prose/pipelines/{pipeline_id}/model/": {
+    "/api/v1/prose/pipeline/{pipeline_id}/model/": {
         parameters: {
             query?: never;
             header?: never;
@@ -616,14 +770,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Set Pipeline Model */
-        post: operations["prose_api_views_pipelines_set_pipeline_model"];
+        post: operations["prose_api_routes_pipeline_set_pipeline_model"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/prose/pipelines/{pipeline_id}/result/": {
+    "/api/v1/prose/pipeline/{pipeline_id}/result/": {
         parameters: {
             query?: never;
             header?: never;
@@ -633,14 +787,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Set Pipeline Output */
-        post: operations["prose_api_views_pipelines_set_pipeline_output"];
+        post: operations["prose_api_routes_pipeline_set_pipeline_output"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/prose/pipelines/{pipeline_id}/run_model/": {
+    "/api/v1/prose/pipeline/{pipeline_id}/run_model/": {
         parameters: {
             query?: never;
             header?: never;
@@ -650,14 +804,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Run Model */
-        post: operations["prose_api_views_pipelines_run_model"];
+        post: operations["prose_api_routes_pipeline_run_model"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/prose/pipelines/{pipeline_id}/add_to_diagram/{diagram_id}/": {
+    "/api/v1/prose/pipeline/{pipeline_id}/add_to_diagram/{diagram_id}/": {
         parameters: {
             query?: never;
             header?: never;
@@ -667,7 +821,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Add To Diagram */
-        post: operations["prose_api_views_pipelines_add_to_diagram"];
+        post: operations["prose_api_routes_pipeline_add_to_diagram"];
         delete?: never;
         options?: never;
         head?: never;
@@ -823,127 +977,6 @@ export interface components {
             username: string;
             /** Password */
             password: string;
-        };
-        /** ProjectList */
-        ProjectList: {
-            /** Id */
-            id?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Description
-             * @default
-             */
-            description: string | null;
-        };
-        /** ProjectRead */
-        ProjectRead: {
-            /** Systems */
-            systems: components["schemas"]["SystemList"][];
-            /** Id */
-            id?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Description
-             * @default
-             */
-            description: string | null;
-        };
-        /** SystemList */
-        SystemList: {
-            /** Id */
-            id?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Description
-             * @default
-             */
-            description: string | null;
-        };
-        /** ProjectCreate */
-        ProjectCreate: {
-            /** Name */
-            name: string;
-            /**
-             * Description
-             * @default
-             */
-            description: string | null;
-        };
-        /** ProjectUpdate */
-        ProjectUpdate: {
-            /** Name */
-            name?: string | null;
-            /**
-             * Description
-             * @default
-             */
-            description: string | null;
-        };
-        /** DiagramRead */
-        DiagramRead: {
-            /** Id */
-            id?: string | null;
-            /**
-             * Name
-             * @default Diagram
-             */
-            name: string;
-            /** Description */
-            description?: string | null;
-            /** Type */
-            type: string;
-            /**
-             * System
-             * Format: uuid
-             */
-            system: string;
-        };
-        /** SystemRead */
-        SystemRead: {
-            /** Diagrams */
-            diagrams: components["schemas"]["DiagramRead"][];
-            /** Id */
-            id?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Description
-             * @default
-             */
-            description: string | null;
-            /**
-             * Project
-             * Format: uuid
-             */
-            project: string;
-        };
-        /** SystemUpdate */
-        SystemUpdate: {
-            /** Name */
-            name?: string | null;
-            /**
-             * Description
-             * @default
-             */
-            description: string | null;
-        };
-        /** SystemCreate */
-        SystemCreate: {
-            /**
-             * Project Id
-             * Format: uuid
-             */
-            project_id: string;
-            /** Name */
-            name: string;
-            /**
-             * Description
-             * @default
-             */
-            description: string | null;
         };
         /** ActionClassifierRead */
         ActionClassifierRead: {
@@ -1474,6 +1507,32 @@ export interface components {
             /** Body */
             body?: string | null;
         };
+        /** GenerateAttribute */
+        GenerateAttribute: {
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** Description */
+            description: string;
+            /**
+             * Model
+             * @default mixtral-8x7b-32768
+             */
+            model: string;
+        };
+        /** GenerateMethod */
+        GenerateMethod: {
+            /** Name */
+            name: string;
+            /** Description */
+            description: string;
+            /**
+             * Model
+             * @default mixtral-8x7b-32768
+             */
+            model: string;
+        };
         /** InterfaceSummary */
         InterfaceSummary: {
             /** Id */
@@ -1976,6 +2035,188 @@ export interface components {
              * @default 0
              */
             order: number | null;
+        };
+        /** ProjectList */
+        ProjectList: {
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+        };
+        /** ProjectRead */
+        ProjectRead: {
+            /** Systems */
+            systems: components["schemas"]["SystemList"][];
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+        };
+        /** SystemList */
+        SystemList: {
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+        };
+        /** ProjectCreate */
+        ProjectCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+        };
+        /** ProjectUpdate */
+        ProjectUpdate: {
+            /** Name */
+            name?: string | null;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+        };
+        /** ReleaseList */
+        ReleaseList: {
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Release Notes */
+            release_notes?: Record<string, never>;
+        };
+        /** ReleaseCreate */
+        ReleaseCreate: {
+            /**
+             * Project
+             * Format: uuid
+             */
+            project_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+            /** Release Notes */
+            release_notes?: Record<string, never> | null;
+        };
+        /** ReleaseMerge */
+        ReleaseMerge: {
+            /**
+             * Ground Truth Id
+             * Format: uuid
+             */
+            ground_truth_id: string;
+            /**
+             * Incoming Id
+             * Format: uuid
+             */
+            incoming_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Release Notes
+             * @default []
+             */
+            release_notes: string[];
+        };
+        /** DiagramRead */
+        DiagramRead: {
+            /** Id */
+            id?: string | null;
+            /**
+             * Name
+             * @default Diagram
+             */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /** Type */
+            type: string;
+            /**
+             * System
+             * Format: uuid
+             */
+            system: string;
+        };
+        /** SystemRead */
+        SystemRead: {
+            /** Diagrams */
+            diagrams: components["schemas"]["DiagramRead"][];
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+            /**
+             * Project
+             * Format: uuid
+             */
+            project: string;
+        };
+        /** SystemUpdate */
+        SystemUpdate: {
+            /** Name */
+            name?: string | null;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
+        };
+        /** SystemCreate */
+        SystemCreate: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string | null;
         };
         /** NodeRead */
         NodeRead: {
@@ -3199,210 +3440,6 @@ export interface operations {
             };
         };
     };
-    metadata_api_routes_project_list_projects: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectList"][];
-                };
-            };
-        };
-    };
-    metadata_api_routes_project_create_project: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProjectCreate"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectRead"];
-                };
-            };
-        };
-    };
-    metadata_api_routes_project_read_project: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectRead"];
-                };
-            };
-        };
-    };
-    metadata_api_routes_project_delete_project: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    metadata_api_routes_project_update_project: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProjectUpdate"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectRead"];
-                };
-            };
-        };
-    };
-    metadata_api_routes_system_read_system: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                system_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemRead"];
-                };
-            };
-        };
-    };
-    metadata_api_routes_system_delete_system: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                system_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    metadata_api_routes_system_update_system: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                system_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SystemUpdate"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemRead"];
-                };
-            };
-        };
-    };
-    metadata_api_routes_system_create_system: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SystemCreate"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemRead"];
-                };
-            };
-        };
-    };
     metadata_api_routes_classifier_list_classifiers: {
         parameters: {
             query?: {
@@ -3610,6 +3647,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OperationRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_generation_generate_attribute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateAttribute"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+        };
+    };
+    metadata_api_routes_generation_generate_method: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateMethod"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
                 };
             };
         };
@@ -4104,6 +4211,443 @@ export interface operations {
             };
         };
     };
+    metadata_api_routes_project_list_projects: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectList"][];
+                };
+            };
+        };
+    };
+    metadata_api_routes_project_create_project: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_project_import_project: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                    /**
+                     * Name
+                     * @default Imported version
+                     */
+                    name?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRead"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    metadata_api_routes_project_read_project: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_project_delete_project: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata_api_routes_project_update_project: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_releases_list_releases: {
+        parameters: {
+            query: {
+                project_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseList"][];
+                };
+            };
+        };
+    };
+    metadata_api_routes_releases_create_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReleaseCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseList"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_releases_export_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                release_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata_api_routes_releases_import_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                    /** Name */
+                    name: string;
+                    /**
+                     * Description
+                     * @default
+                     */
+                    description?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    metadata_api_routes_releases_restore_release_route: {
+        parameters: {
+            query?: {
+                force?: boolean;
+            };
+            header?: never;
+            path: {
+                release_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRead"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    metadata_api_routes_releases_merge_releases_route: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReleaseMerge"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseList"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    metadata_api_routes_system_read_system: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_system_delete_system: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata_api_routes_system_update_system: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_system_create_system: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemRead"];
+                };
+            };
+        };
+    };
     diagram_api_routes_node_create_node: {
         parameters: {
             query?: never;
@@ -4362,7 +4906,29 @@ export interface operations {
             };
         };
     };
-    prose_api_views_pipelines_list_pipelines: {
+    diagram_api_routes_diagram_auto_layout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                diagram_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagramReadFull"];
+                };
+            };
+        };
+    };
+    prose_api_routes_pipeline_list_pipelines: {
         parameters: {
             query?: never;
             header?: never;
@@ -4382,7 +4948,7 @@ export interface operations {
             };
         };
     };
-    prose_api_views_pipelines_create_pipeline: {
+    prose_api_routes_pipeline_create_pipeline: {
         parameters: {
             query?: never;
             header?: never;
@@ -4402,7 +4968,7 @@ export interface operations {
             };
         };
     };
-    prose_api_views_pipelines_get_pipeline: {
+    prose_api_routes_pipeline_get_pipeline: {
         parameters: {
             query?: never;
             header?: never;
@@ -4424,7 +4990,7 @@ export interface operations {
             };
         };
     };
-    prose_api_views_pipelines_delete_pipeline: {
+    prose_api_routes_pipeline_delete_pipeline: {
         parameters: {
             query?: never;
             header?: never;
@@ -4444,7 +5010,7 @@ export interface operations {
             };
         };
     };
-    prose_api_views_pipelines_add_pipeline_requirements: {
+    prose_api_routes_pipeline_add_pipeline_requirements: {
         parameters: {
             query?: never;
             header?: never;
@@ -4470,7 +5036,7 @@ export interface operations {
             };
         };
     };
-    prose_api_views_pipelines_set_pipeline_model: {
+    prose_api_routes_pipeline_set_pipeline_model: {
         parameters: {
             query?: never;
             header?: never;
@@ -4496,7 +5062,7 @@ export interface operations {
             };
         };
     };
-    prose_api_views_pipelines_set_pipeline_output: {
+    prose_api_routes_pipeline_set_pipeline_output: {
         parameters: {
             query?: never;
             header?: never;
@@ -4522,7 +5088,7 @@ export interface operations {
             };
         };
     };
-    prose_api_views_pipelines_run_model: {
+    prose_api_routes_pipeline_run_model: {
         parameters: {
             query?: {
                 model?: string;
@@ -4544,9 +5110,18 @@ export interface operations {
                     "application/json": components["schemas"]["PipelineSchema"];
                 };
             };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
         };
     };
-    prose_api_views_pipelines_add_to_diagram: {
+    prose_api_routes_pipeline_add_to_diagram: {
         parameters: {
             query?: never;
             header?: never;

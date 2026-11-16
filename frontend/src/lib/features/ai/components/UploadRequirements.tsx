@@ -19,7 +19,7 @@ export const UploadRequirements: React.FC<Props> = ({ pipeline }) => {
     const { mutate } = useMutation({
         mutationFn: async (requirements: string) => {
             await authAxios.post(
-                `/v1/prose/pipelines/${pipeline.id}/requirements/`,
+                `/v1/prose/pipeline/${pipeline.id}/requirements/`,
                 {
                     requirements: requirements,
                 },

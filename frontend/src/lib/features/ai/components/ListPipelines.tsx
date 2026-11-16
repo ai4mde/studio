@@ -11,7 +11,7 @@ export const ListPipelines: React.FC = () => {
     const { data, isSuccess } = usePipelines();
     const { mutate } = useMutation({
         mutationFn: async () => {
-            const res = await authAxios.post("/v1/prose/pipelines/");
+            const res = await authAxios.post("/v1/prose/pipeline/");
             if (res.data) {
                 queryClient.invalidateQueries({ queryKey: ["pipelines"] });
                 redirect(`/build/${res.data.id}`);

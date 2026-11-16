@@ -29,8 +29,6 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
     const [showDeleteInterfaceModal, setShowDeleteInterfaceModal] = useState(false);
     const [interfaceToDelete, setInterfaceToDelete] = useState("");
 
-    // TODO(api): the list only returns summaries now. Styling is loaded from the
-    // interface detail, categories/pages/sections still need to be mapped.
     const handleLoadInterface = (app_comp) => {
 
         setStyling(app_comp?.styling || {});
