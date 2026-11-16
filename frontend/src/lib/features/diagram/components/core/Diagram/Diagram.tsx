@@ -1,3 +1,12 @@
+import { useAtom } from "jotai";
+import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { LinearProgress } from "@mui/joy";
+import { toSvg } from 'html-to-image';
+import { Download, Move3d } from 'lucide-react';
+import { Background, ControlButton, Controls, ReactFlow } from "reactflow";
+import "reactflow/dist/style.css";
+
 import {
     onEdgeContextMenu,
     onMove,
@@ -7,19 +16,11 @@ import {
     onPaneContextMenu,
     onSelectionContextMenu,
 } from "$diagram/events";
-import { navigationPortalAtom } from "$shared/hooks/navigationPortal";
-import { useAtom } from "jotai";
-import React, { useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import { Background, ControlButton, Controls, ReactFlow } from "reactflow";
-import "reactflow/dist/style.css";
-
+import { autoLayoutDiagram } from "../../../../../../api/diagram/diagram";
 import { useDiagram, useRelatedDiagrams } from "$diagram/queries";
 import { useDiagramStore } from "$diagram/stores";
-
 import { ContextMenus } from "$diagram/components/context";
 import { DiagramControls } from "$diagram/components/toolbar";
-
 import { nodeTypes } from "$diagram/components/core/Node/Node";
 import {
     FloatingConnectionLine,
@@ -37,11 +38,9 @@ import {
 } from "$diagram/stores/modals";
 import { authAxios } from "$lib/features/auth/state/auth";
 import { queryClient } from "$shared/hooks/queryClient";
+import { navigationPortalAtom } from "$shared/hooks/navigationPortal";
 import { useSystem } from "../../../../../../api/metadata/hooks/system";
 import { queryKeys } from "../../../../../../api/querykeys";
-import { LinearProgress } from "@mui/joy";
-import { toSvg } from 'html-to-image';
-import { Download, Move3d } from 'lucide-react';
 
 
 const multiSelectionKeyCodes = ["Meta", "Shift"];
@@ -145,9 +144,7 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
                 <Background />
                 <Controls showInteractive={false} >
                     <ControlButton title="auto layout" onClick={async () => {
-                        // TODO(api): there is no auto layout endpoint in the new backend yet
-                        // Not a priority right now
-                        await authAxios.post(`/v1/diagram/${diagram}/auto_layout`);
+                        await autoLayoutDiagram(diagram);
                         await queryClient.invalidateQueries({
                             queryKey: queryKeys.diagrams.detail(diagram),
                         });

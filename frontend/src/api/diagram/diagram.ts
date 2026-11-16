@@ -52,3 +52,7 @@ export async function deleteDiagram(
 ): Promise<void> {
     await apiClient.delete(`/v1/diagram/${diagramId}/`);
 }
+
+export async function autoLayoutDiagram(diagramId: string): Promise<void> {
+    await apiClient.post(`/v1/diagram/${diagramId}/auto_layout/`);
+}
