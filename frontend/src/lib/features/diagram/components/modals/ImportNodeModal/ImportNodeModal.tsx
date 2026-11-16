@@ -13,7 +13,7 @@ import { ImportUsecaseNode } from "./ImportUsecaseNode";
 import style from "./importnodemodal.module.css";
 
 export const ImportNodeModal: React.FC = () => {
-    const { diagram, type, systemId } = useDiagramStore();
+    const { diagram, type } = useDiagramStore();
     const { close } = useImportNodeModal();
 
     const [object, setObject] = useState<any>({});
@@ -38,7 +38,7 @@ export const ImportNodeModal: React.FC = () => {
                         className={style.main}
                         onSubmit={(e) => {
                             e.preventDefault();
-                            importNode(diagram, systemId, object.id);
+                            importNode(diagram, object.id);
                             close();
                         }}
                     >

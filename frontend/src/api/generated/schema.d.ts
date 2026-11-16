@@ -2185,7 +2185,9 @@ export interface components {
         };
         /** NodeCreate */
         NodeCreate: {
-            classifier: components["schemas"]["ClassifierCreate"];
+            classifier?: components["schemas"]["ClassifierCreate"] | null;
+            /** Classifier Id */
+            classifier_id?: string | null;
             /** Parent */
             parent_id?: string | null;
             /**

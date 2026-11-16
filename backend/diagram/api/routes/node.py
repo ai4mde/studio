@@ -29,18 +29,34 @@ def create_node(
 ):
     data = payload.model_dump(exclude_unset=True)
 
-    classifier_data = data.pop("classifier")
+    classifier_data = data.pop("classifier", None)
+    classifier_id = data.pop("classifier_id", None)
+
+    if (classifier_data is None) == (classifier_id is None):
+        raise HttpError(422, "Send either classifier or classifier_id")
 
     diagram = get_object_or_404(
         Diagram,
         id=diagram_id,
     )
 
-    classifier = Classifier.create(
-        system_id=diagram.system.id,
-        classifier_type=classifier_data["type"],
-        data=classifier_data["data"],
-    )
+    if classifier_id is not None:
+        # Reuse an existing classifier from the same system
+        classifier = get_object_or_404(
+            Classifier,
+            id=classifier_id,
+            system=diagram.system,
+        )
+
+        # Node has a unique (diagram, classifier) constraint
+        if classifier.nodes.filter(diagram=diagram).exists():
+            raise HttpError(409, "This classifier is already used in this diagram")
+    else:
+        classifier = Classifier.create(
+            system_id=diagram.system.id,
+            classifier_type=classifier_data["type"],
+            data=classifier_data["data"],
+        )
 
     node = Node(
         diagram=diagram,
