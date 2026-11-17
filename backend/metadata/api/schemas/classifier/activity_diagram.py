@@ -1,4 +1,6 @@
-from ninja import ModelSchema
+from uuid import UUID
+
+from ninja import Field, ModelSchema
 
 from metadata.models import (
     Action,
@@ -11,19 +13,31 @@ from metadata.models import (
 from metadata.models.types import ClassifierType
 
 
+# Django Ninja infers int for foreign keys to models whose primary key is
+# a OneToOneField referencing a UUID. Explicitly annotate these as UUID.
+
 class SwimlaneRead(ModelSchema):
+    parent: UUID | None = Field(None, alias="parent_id")
+    actor: UUID | None = Field(None, alias="actor_id")
+
     class Meta:
         model = Swimlane
         fields = ["parent", "actor", "component"]
 
 
 class SwimlaneCreate(ModelSchema):
+    parent: UUID | None = Field(None, alias="parent_id")
+    actor: UUID | None = Field(None, alias="actor_id")
+
     class Meta:
         model = Swimlane
         fields = ["parent", "actor", "component"]
 
 
 class SwimlaneUpdate(ModelSchema):
+    parent: UUID | None = Field(None, alias="parent_id")
+    actor: UUID | None = Field(None, alias="actor_id")
+
     class Meta:
         model = Swimlane
         fields = ["parent", "actor", "component"]
@@ -31,18 +45,24 @@ class SwimlaneUpdate(ModelSchema):
 
 
 class ActionRead(ModelSchema):
+    swimlane: UUID | None = Field(None, alias="swimlane_id")  
+
     class Meta:
         model = Action
         fields = ["name", "is_automatic", "custom_code", "swimlane"]
 
 
 class ActionCreate(ModelSchema):
+    swimlane: UUID | None = Field(None, alias="swimlane_id")
+
     class Meta:
         model = Action
         fields = ["name", "is_automatic", "custom_code", "swimlane"]
 
 
 class ActionUpdate(ModelSchema):
+    swimlane: UUID | None = Field(None, alias="swimlane_id")  
+
     class Meta:
         model = Action
         fields = ["name", "is_automatic", "custom_code", "swimlane"]
@@ -50,18 +70,26 @@ class ActionUpdate(ModelSchema):
 
 
 class ObjectRead(ModelSchema):
+    uml_class: UUID | None = Field(None, alias="uml_class_id")
+
+
     class Meta:
         model = Object
         fields = ["name", "uml_class", "state"]
 
 
 class ObjectCreate(ModelSchema):
+    uml_class: UUID | None = Field(None, alias="uml_class_id")
+
+
     class Meta:
         model = Object
         fields = ["name", "uml_class", "state"]
 
 
 class ObjectUpdate(ModelSchema):
+    uml_class: UUID | None = Field(None, alias="uml_class_id")
+
     class Meta:
         model = Object
         fields = ["name", "uml_class", "state"]
@@ -69,18 +97,25 @@ class ObjectUpdate(ModelSchema):
 
 
 class EventRead(ModelSchema):
+    signal: UUID | None = Field(None, alias="signal_id")
+
     class Meta:
         model = Event
         fields = ["name", "signal"]
 
 
 class EventCreate(ModelSchema):
+    signal: UUID | None = Field(None, alias="signal_id")
+
     class Meta:
         model = Event
         fields = ["name", "signal"]
 
 
 class EventUpdate(ModelSchema):
+    signal: UUID | None = Field(None, alias="signal_id")
+
+
     class Meta:
         model = Event
         fields = ["name", "signal"]

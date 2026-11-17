@@ -1,4 +1,6 @@
-from ninja import ModelSchema
+from uuid import UUID
+
+from ninja import Field, ModelSchema
 
 from metadata.models import (
     Actor,
@@ -7,6 +9,9 @@ from metadata.models import (
 )
 from metadata.models.types import ClassifierType
 
+
+# Django Ninja infers int for foreign keys to models whose primary key is
+# a OneToOneField referencing a UUID. Explicitly annotate these as UUID.
 
 class SystemBoundaryRead(ModelSchema):
     class Meta:
@@ -28,18 +33,24 @@ class SystemBoundaryUpdate(ModelSchema):
 
 
 class ActorRead(ModelSchema):
+    boundary: UUID | None = Field(None, alias="boundary_id")
+
     class Meta:
         model = Actor
         fields = ["name", "boundary"]
 
 
 class ActorCreate(ModelSchema):
+    boundary: UUID | None = Field(None, alias="boundary_id")
+
     class Meta:
         model = Actor
         fields = ["name", "boundary"]
 
 
 class ActorUpdate(ModelSchema):
+    boundary: UUID | None = Field(None, alias="boundary_id")
+
     class Meta:
         model = Actor
         fields = ["name", "boundary"]
@@ -47,18 +58,24 @@ class ActorUpdate(ModelSchema):
 
 
 class UsecaseRead(ModelSchema):
+    boundary: UUID | None = Field(None, alias="boundary_id")
+
     class Meta:
         model = Usecase
         fields = ["name", "boundary"]
 
 
 class UsecaseCreate(ModelSchema):
+    boundary: UUID | None = Field(None, alias="boundary_id")
+
     class Meta:
         model = Usecase
         fields = ["name", "boundary"]
 
 
 class UsecaseUpdate(ModelSchema):
+    boundary: UUID | None = Field(None, alias="boundary_id")
+
     class Meta:
         model = Usecase
         fields = ["name", "boundary"]

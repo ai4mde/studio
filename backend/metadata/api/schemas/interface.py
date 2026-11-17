@@ -1,4 +1,6 @@
-from ninja import ModelSchema, Schema
+from uuid import UUID
+
+from ninja import Field, ModelSchema
 
 from metadata.models import (
     Category,
@@ -9,6 +11,9 @@ from metadata.models import (
     SectionComponent,
 )
 
+
+# Django Ninja infers int for foreign keys to models whose primary key is
+# a OneToOneField referencing a UUID. Explicitly annotate these as UUID.
 
 class PageSectionRead(ModelSchema):
     class Meta:
@@ -31,6 +36,7 @@ class PageSectionUpdate(ModelSchema):
 
 
 class PageRead(ModelSchema):
+    action: UUID | None = Field(None, alias="action_id")
     page_sections: list[PageSectionRead] = []
 
     class Meta:
@@ -46,6 +52,8 @@ class PageRead(ModelSchema):
 
 
 class PageCreate(ModelSchema):
+    action: UUID | None = Field(None, alias="action_id")
+
     class Meta:
         model = Page
         fields = [
@@ -58,6 +66,8 @@ class PageCreate(ModelSchema):
 
 
 class PageUpdate(ModelSchema):
+    action: UUID | None = Field(None, alias="action_id")
+
     class Meta:
         model = Page
         fields = [
@@ -108,6 +118,7 @@ class SectionAttributeUpdate(ModelSchema):
 
 
 class SectionComponentRead(ModelSchema):
+    uml_class: UUID | None = Field(None, alias="uml_class_id")
     attributes: list[SectionAttributeRead] = []
 
     class Meta:
@@ -125,6 +136,8 @@ class SectionComponentRead(ModelSchema):
 
 
 class SectionComponentCreate(ModelSchema):
+    uml_class: UUID | None = Field(None, alias="uml_class_id")
+
     class Meta:
         model = SectionComponent
         fields = [
@@ -139,6 +152,8 @@ class SectionComponentCreate(ModelSchema):
 
 
 class SectionComponentUpdate(ModelSchema):
+    uml_class: UUID | None = Field(None, alias="uml_class_id")
+
     class Meta:
         model = SectionComponent
         fields = [
@@ -159,6 +174,7 @@ class InterfaceSummary(ModelSchema):
 
 
 class InterfaceRead(ModelSchema):
+    actor: UUID | None = Field(None, alias="actor_id")
     pages: list[PageRead]
     categories: list[CategoryRead]
     sections: list[SectionComponentRead]
@@ -181,6 +197,8 @@ class InterfaceRead(ModelSchema):
 
 
 class InterfaceCreate(ModelSchema):
+    actor: UUID | None = Field(None, alias="actor_id")
+
     class Meta:
         model = Interface
         fields = [
@@ -198,6 +216,9 @@ class InterfaceCreate(ModelSchema):
 
 
 class InterfaceUpdate(ModelSchema):
+    actor: UUID | None = Field(None, alias="actor_id")
+
+
     class Meta:
         model = Interface
         fields = [
