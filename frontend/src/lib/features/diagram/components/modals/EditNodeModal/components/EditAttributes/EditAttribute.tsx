@@ -1,13 +1,14 @@
-import { useDiagramStore } from "$diagram/stores";
-import { authAxios } from "$lib/features/auth/state/auth";
-import Editor from "@monaco-editor/react";
-import { Button, FormControl, FormLabel, Textarea, Tooltip } from "@mui/joy";
-import { PanelTopClose, Pencil, X } from "lucide-react";
 import React, { useState } from "react";
 import Select from "react-select";
 import { Node } from "reactflow";
-import style from "./editattributes.module.css";
+import Editor from "@monaco-editor/react";
+import { Button, FormControl, FormLabel, Textarea, Tooltip } from "@mui/joy";
+import { PanelTopClose, Pencil, X } from "lucide-react";
+
+import { useDiagramStore } from "$diagram/stores";
 import { useClassifiers } from "../../../../../../../../api/metadata/hooks/classifier";
+import { generateAttribute as generateAttributeCode } from "../../../../../../../../api/metadata/generation";
+import style from "./editattributes.module.css";
 
 const EditAttribute: React.FC<{
     attribute: any;
@@ -80,8 +81,12 @@ const EditAttribute: React.FC<{
         setGenerationError(null);
         setGenerateButtonDisabled(true)
         try {
-            // TODO(api): there is no generate_method endpoint in the new backend yet
-            const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${attribute?.name}&type=${attribute?.type}&description=${attribute?.description}&model=${selectedLLMOption.value}`);
+            const data = await generateAttributeCode(node.data.classifierId, {
+                name: attribute?.name ?? "",
+                type: attribute?.type ?? "string",
+                description: attribute?.description ?? "",
+                model: selectedLLMOption.value,
+            });
             update({ ...attribute, body: data })
             setOpenGenerateModal(false);
         } catch (error) {
