@@ -32,7 +32,10 @@ from metadata.models import (
     PageSection,
     SectionAttribute,
     SectionComponent,
+    System,
 )
+from metadata.models.types import ClassifierType
+from metadata.services.interfaces.default import create_default_interface
 
 router = Router()
 
@@ -78,6 +81,16 @@ def delete_interface(request, interface_id: UUID):
     interface = get_object_or_404(Interface, id=interface_id)
     interface.delete()
     return 204, None
+
+
+@router.post("/default/", response=list[InterfaceRead])
+def create_default_interfaces(request, system_id: UUID):
+    system = get_object_or_404(System, id=system_id)
+    actors = system.classifiers.filter(type=ClassifierType.ACTOR)
+    return [
+        create_default_interface(system, actor)
+        for actor in actors
+    ]
 
 
 # Pages
