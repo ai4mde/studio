@@ -15,7 +15,7 @@ import {
 } from "@mui/joy";
 import ProjectLayout from "$browser/components/projects/ProjectLayout";
 import { useProject } from "../../../../api/metadata/hooks/project";
-import { authAxios } from "$auth/state/auth";
+import { exportProject, exportProjectSystems } from "../../../../api/metadata/project";
 
 type ExportType = "project" | "systems";
 
@@ -57,24 +57,15 @@ const ProjectExports: React.FC = () => {
         exportType === "project" || selectedSystemIds.length > 0;
 
     const handleExportProject = async () => {
-        // TODO(api): there is no project export endpoint in the new backend yet
-        // Maarten is working on this
-        const response = await authAxios.get(`/v1/metadata/projects/export/${projectId}/`);
-        downloadJson(response.data, `${projectName}-export.json`);
+        if (!projectId) return;
+        const snapshot = await exportProject(projectId);
+        downloadJson(snapshot, `${projectName}-export.json`);
     };
 
     const handleExportSystems = async () => {
-        const params = new URLSearchParams();
-        selectedSystemIds.forEach((id) => {
-            params.append("system_ids", id);
-        });
-
-        // TODO(api): there is no systems export endpoint in the new backend yet
-        // Maarten is working on this
-        const response = await authAxios.get(`/v1/metadata/systems/export/`, {
-            params,
-        });
-        downloadJson(response.data, `${projectName}-systems-export.json`);
+        if (!projectId) return;
+        const data = await exportProjectSystems(projectId, selectedSystemIds);
+        downloadJson(data, `${projectName}-systems-export.json`);
     }
 
     const handleExport = async () => {

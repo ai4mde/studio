@@ -8,7 +8,7 @@ import {
 } from "../../../../api/metadata/hooks/interface";
 import CreateInterface from "./CreateInterface";
 import useLocalStorage from './useLocalStorage';
-import { authAxios } from "$lib/features/auth/state/auth";
+import { createDefaultInterfaces } from "../../../../api/metadata/interface";
 import { useParams } from "react-router";
 import { Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 
@@ -39,8 +39,8 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
 
     const generateDefaultInterfaces = async () => {
         try {
-            // TODO(api): there is no endpoint for generating default interfaces yet
-            await authAxios.post(`/v1/metadata/interfaces/default?system_id=${systemId}`);
+            if (!systemId) return;
+            await createDefaultInterfaces(systemId);
         } catch (error) {
             console.error('Error making request:', error);
         }

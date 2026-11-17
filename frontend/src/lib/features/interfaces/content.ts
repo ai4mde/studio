@@ -1,11 +1,35 @@
-import type { InterfaceContent, InterfaceRead } from "../../../api/metadata/interface";
+import type { InterfaceRead } from "../../../api/metadata/interface";
+
+// The editor's content with plain ids, the step between its localStorage
+// shapes and the separate category/section/page endpoints
+export type EditorContent = {
+    categories: { id: string; name: string }[];
+    sections: {
+        id: string;
+        name: string;
+        text: string;
+        uml_class: string | null;
+        allow_create: boolean;
+        allow_update: boolean;
+        allow_delete: boolean;
+        attributes: string[];
+    }[];
+    pages: {
+        id: string;
+        name: string;
+        type: string;
+        category: string | null;
+        action: string | null;
+        sections: string[];
+    }[];
+};
 
 // The editor keeps its old (localStorage) shapes; convert them for the API
 export const editorToContent = (
     categories: any[],
     pages: any[],
     sections: any[],
-): InterfaceContent => ({
+): EditorContent => ({
     categories: categories.map((c) => ({
         id: c.id,
         name: c.name ?? "",

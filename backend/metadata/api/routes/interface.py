@@ -1,11 +1,7 @@
-import uuid as uuid_lib
 from uuid import UUID
 
 from django.shortcuts import get_object_or_404
-from django.core.exceptions import ValidationError
-from django.db import transaction
 from ninja import Router
-from ninja.errors import HttpError
 
 from metadata.api.helpers import create_instance, update_instance
 from metadata.api.schemas.interface import (
@@ -16,7 +12,6 @@ from metadata.api.schemas.interface import (
     InterfaceRead,
     InterfaceSummary,
     InterfaceUpdate,
-    InterfaceContent,
     PageCreate,
     PageRead,
     PageSectionCreate,

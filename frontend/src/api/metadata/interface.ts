@@ -63,16 +63,14 @@ export async function deleteInterface(
     );
 }
 
-export type InterfaceContent = components["schemas"]["InterfaceContent"];
-
-// Replaces all categories, pages and sections of an interface at once
-export async function replaceInterfaceContent(
-    interfaceId: string,
-    payload: InterfaceContent
-): Promise<InterfaceRead> {
-    const { data } = await apiClient.put<InterfaceRead>(
-        `/v1/metadata/interfaces/${interfaceId}/content/`,
-        payload
+// Creates one interface per actor of the system, based on its use cases
+export async function createDefaultInterfaces(
+    systemId: string
+): Promise<InterfaceRead[]> {
+    const { data } = await apiClient.post<InterfaceRead[]>(
+        "/v1/metadata/interfaces/default/",
+        null,
+        { params: { system_id: systemId } }
     );
     return data;
 }

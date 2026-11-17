@@ -63,3 +63,24 @@ export async function importProject(file: File): Promise<ProjectRead> {
     );
     return data;
 }
+// The current state of a project, in the same format as a release export
+export async function exportProject(projectId: string): Promise<unknown> {
+    const { data } = await apiClient.get(`/v1/metadata/projects/${projectId}/export/`);
+    return data;
+}
+
+// Selected systems of a project, to import into a project later
+export async function exportProjectSystems(
+    projectId: string,
+    systemIds: string[]
+): Promise<unknown> {
+    const { data } = await apiClient.get(
+        `/v1/metadata/projects/${projectId}/systems/export/`,
+        {
+            params: { system_ids: systemIds },
+            // system_ids=a&system_ids=b, not system_ids[]=a
+            paramsSerializer: { indexes: null },
+        }
+    );
+    return data;
+}
