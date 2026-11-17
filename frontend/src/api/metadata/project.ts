@@ -1,4 +1,3 @@
-
 import { apiClient } from "../client";
 import type { components } from "../generated/schema";
 
@@ -50,4 +49,17 @@ export async function deleteProject(
     await apiClient.delete(
         `/v1/metadata/projects/${projectId}/`
     );
+}
+
+// Upload a project file (a release export); the backend recreates the project
+export async function importProject(file: File): Promise<ProjectRead> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await apiClient.post<ProjectRead>(
+        "/v1/metadata/projects/import/",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return data;
 }

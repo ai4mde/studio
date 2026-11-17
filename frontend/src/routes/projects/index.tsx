@@ -1,13 +1,14 @@
-import { createProjectAtom } from "$browser/atoms";
-import { CreateProject } from "$browser/components/projects/CreateProject";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { queryClient } from "$lib/shared/hooks/queryClient";
-import { TopNavigation } from "$lib/shared/components/TopNavigation";
+import React, { useState } from "react";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 import { useAtom } from "jotai";
 import { Box, Plus, X, Upload } from "lucide-react";
-import React, { useState, useRef } from "react";
+
+import { createProjectAtom } from "$browser/atoms";
+import { CreateProject } from "$browser/components/projects/CreateProject";
+import { queryClient } from "$lib/shared/hooks/queryClient";
+import { TopNavigation } from "$lib/shared/components/TopNavigation";
 import UploadFileModal from "$shared/components/Modals/FileUploadModal";
+import { importProject } from "../../api/metadata/project";
 import { useDeleteProject, useProjects } from "../../api/metadata/hooks/project";
 import { queryKeys } from "../../api/querykeys";
 
@@ -42,36 +43,29 @@ const ProjectsIndex: React.FC = () => {
         setSelectedFile(file);
     }
 
-    const handleUploadProject = async() => {
+    const handleUploadProject = async () => {
         if (!selectedFile) return;
 
         setIsUploading(true);
         setUploadError(null);
 
         try {
-            const text = await selectedFile.text();
-            const json = JSON.parse(text);
-            await authAxios.post("/v1/metadata/projects/import/", json);
+            await importProject(selectedFile);
 
             setSelectedFile(null);
             setShowUploadModal(false);
             queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-
         } catch (error: any) {
-            const data = error?.response?.data;
-
-            if (data?.code === "PROJECT_EXISTS") {
-                const projectName = data?.project_name ?? "Unknow project";
-                setUploadError(
-                    `Project "${projectName}" already exists. To create a new version of this project, go to the versioning tab of this project.`
-                );
-            } else {
-                setUploadError(data?.message ?? "An error occurred while uploading the project.");
-            }
+            // The backend explains what went wrong in "message":
+            // 409 = the project already exists, 400 = the file isn't valid
+            setUploadError(
+                error?.response?.data?.message ??
+                    "An error occurred while uploading the project."
+            );
         } finally {
             setIsUploading(false);
         }
-    }
+    };
 
     const handleDeleteProject = async (projectId: string) => {
         try {
