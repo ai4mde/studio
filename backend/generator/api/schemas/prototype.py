@@ -2,7 +2,7 @@ from ninja import ModelSchema
 from generator.models import Prototype
 
 
-class ReadPrototype(ModelSchema):
+class PrototypeRead(ModelSchema):
     class Meta:
         model = Prototype
         fields = [
@@ -14,7 +14,7 @@ class ReadPrototype(ModelSchema):
         ]
 
 
-class CreatePrototype(ModelSchema):
+class PrototypeCreate(ModelSchema):
     class Meta:
         model = Prototype
         fields = [
@@ -26,16 +26,12 @@ class CreatePrototype(ModelSchema):
         ]
 
 
-class UpdatePrototype(ModelSchema):
+class PrototypeUpdate(ModelSchema):
     class Meta:
         model = Prototype
         fields = [
-            "id",
             "name", 
             "description", 
             "system", 
             "database_hash"
         ]
-
-
-__all__ = ["ReadPrototype", "CreatePrototype", "UpdatePrototype"]
