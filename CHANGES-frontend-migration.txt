@@ -23,7 +23,9 @@ Backend: cleanup
 - Removed the unused InterfaceContent schemas and imports left over from the
   old content route.
 
-Fix in Maarten's code (approved)
+Fixes in Maarten's code (approved)
 - routes/releases.py, import_release: invalid files now return a 400 with a
   message instead of a 500 (the error key had a stray space and used
   exc.message instead of exc.messages).
+- routes/project.py, delete_project: also deletes the project's multiplicity
+  and endpoint-label rows, which stayed behind and blocked re-importing it.

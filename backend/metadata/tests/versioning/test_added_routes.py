@@ -12,6 +12,7 @@ from config.auth import create_token
 from diagram.models import Diagram, Node
 from metadata.models import (
     Classifier,
+    EndpointLabel,
     Multiplicity,
     Project,
     Relation,
@@ -106,7 +107,8 @@ class AddedVersioningRoutesTests(TestCase):
         snapshot = json.loads(response.content)
         self.assertEqual(snapshot["project_id"], str(self.project.pk))
 
-        Project.objects.filter(pk=self.project.pk).delete()
+        response = self.client.delete(f"{METADATA_URL}/projects/{self.project.pk}/")
+        self.assertEqual(response.status_code, 204, response.content)
 
         response = self._upload(f"{METADATA_URL}/projects/import/", snapshot)
         self.assertEqual(response.status_code, 200, response.content)
@@ -114,6 +116,15 @@ class AddedVersioningRoutesTests(TestCase):
             set(System.objects.filter(project_id=self.project.pk).values_list("name", flat=True)),
             {"Orders", "Billing"},
         )
+
+    def test_deleting_a_project_removes_its_multiplicities_and_labels(self):
+        association = self.relation.association
+
+        response = self.client.delete(f"{METADATA_URL}/projects/{self.project.pk}/")
+
+        self.assertEqual(response.status_code, 204, response.content)
+        self.assertFalse(Multiplicity.objects.filter(pk=association.multiplicity_id).exists())
+        self.assertFalse(EndpointLabel.objects.filter(pk=association.labels_id).exists())
 
     # Exporting systems
 

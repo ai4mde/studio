@@ -2,7 +2,7 @@ import json
 from uuid import UUID
 
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from ninja import File, Form, Query, Router
@@ -15,7 +15,13 @@ from metadata.api.schemas.project import (
     ProjectUpdate,
     ProjectList,
 )
-from metadata.models import Project
+from metadata.models import (
+    Association,
+    Composition,
+    EndpointLabel,
+    Multiplicity,
+    Project,
+)
 from metadata.services.versioning import snapshot_project
 from metadata.services.versioning.systems import export_systems
 from metadata.services.versioning.import_project import (
@@ -85,7 +91,21 @@ def update_project(
 @router.delete("/{project_id}/", response={204: None})
 def delete_project(request, project_id: UUID):
     project = get_object_or_404(Project, id=project_id)
-    project.delete()
+
+    # Multiplicities and endpoint labels have no link to the project, so they
+    # would stay behind and block importing this project again later
+    multiplicity_ids, label_ids = set(), set()
+    for model in (Association, Composition):
+        rows = model.objects.filter(relation__system__project=project)
+        for multiplicity_id, labels_id in rows.values_list("multiplicity_id", "labels_id"):
+            multiplicity_ids.add(multiplicity_id)
+            label_ids.add(labels_id)
+
+    with transaction.atomic():
+        project.delete()
+        Multiplicity.objects.filter(id__in=multiplicity_ids).delete()
+        EndpointLabel.objects.filter(id__in=label_ids).delete()
+
     return 204, None
 
 
