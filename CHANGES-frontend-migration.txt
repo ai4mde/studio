@@ -23,6 +23,7 @@ Backend: cleanup
 - Removed the unused InterfaceContent schemas and imports left over from the
   old content route.
 
-Open (Maarten's code, not changed)
-- routes/releases.py, import_release: error returns {" message": exc.message[0]}
-  (leading space, and it should be exc.messages[0]), so a bad file gives 500.
+Fix in Maarten's code (approved)
+- routes/releases.py, import_release: invalid files now return a 400 with a
+  message instead of a 500 (the error key had a stray space and used
+  exc.message instead of exc.messages).

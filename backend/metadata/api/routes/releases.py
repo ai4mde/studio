@@ -93,7 +93,7 @@ def import_release(
         return 400, {"message": "The uploaded file is not valid JSON."}
 
     except ValidationError as exc:
-        return 400, {" message": exc.message[0]}
+        return 400, {"message": exc.messages[0]}
 
 
 @router.post(
