@@ -10,11 +10,16 @@
   AI4MDE &middot; <b>Installation Guide</b>
 </h1>
 
+## 1. Requirements
+
 Depending on your operating system, you should set up your envirnoment to meet the following requirements:
-- For <b>Windows</b>, please work from [WSL 2.1.5](https://learn.microsoft.com/en-us/windows/wsl/install) or higher,
-and set up <b>Docker Desktop</b> according to these [instructions](https://docs.docker.com/desktop/features/wsl/).
-- For a <b>Linux</b> distribution, you may use a regular terminal. Set up [Docker Engine](https://docs.docker.com/engine/install/) or [Docker Desktop](https://docs.docker.com/desktop/setup/install/linux/), as well.
-- For <b>macOS</b>, you should also be able to use a regular terminal. Make sure to install [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/).
+| | Windows | Linux | macOS |
+|---|---|---|---|
+| Terminal | [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install) (Ubuntu) | any terminal | any terminal |
+| Docker | [Docker Desktop](https://docs.docker.com/desktop/features/wsl/) with WSL integration turned on | [Docker Engine](https://docs.docker.com/engine/install/) or Docker Desktop | [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/) |
+| Git | inside WSL | yes | yes |
+
+Only if you work on the frontend: [Node.js](https://nodejs.org/) 20 or newer.
 
 Check that [Git](https://github.com/git-guides/install-git) is installed on your device.
 
@@ -23,36 +28,60 @@ Check that [Git](https://github.com/git-guides/install-git) is installed on your
 With these requirements met, you can get started from a Linux, macOS or WSL terminal:
 
 ```bash
-# Ensure that you have the Docker installed
+# Ensure that you have everything installed
 docker -v
 docker compose version
+git --version
 
 # Clone the repository
 git clone https://github.com/ai4mde/studio.git
 cd studio
 ```
 
-Before the environment can be built, you need to provide your secret LLM API key (e.g. OpenAI) in a new file `/config/secrets.env` using the [Groq LLM API manager](https://console.groq.com/keys). An example of such a file can be seen in `/config/secrets.env.example`. You have to perform this step in order to run the software, however you may leave the values empty if you are not interested in using the LLM features. Feel free to use the terminal or any code/text editor for editing the file.
+## 2. Configuration
 
-> ☝️ Also, take note of the username and password stored in files `config/api.env` and `config/prototypes.env`. These are your credentials for logging into AI4MDE, and any potential web application prototypes you might generate with it, respectively: `DJANGO_SUPERUSER_USERNAME = admin` and `DJANGO_SUPERUSER_PASSWORD = sequoias`. You may update your credentials in these files if you wish.
+All settings are in `config/`. Only one file has to be created:
 
 ```bash
-# Configure secrets (required file; values optional if you won't use LLM features)
 cp config/secrets.env.example config/secrets.env
-# edit config/secrets.env
-# edit config/api.env
-# edit config/prototypes.env
-
-# Build and Start all the containers (add -d flag to start in background)
-docker compose up -d --build
-
-# To stop the containers, you can use
-docker compose down
 ```
 
-This will start multiple services in the background and set everything up (for development). As soon as that's done, you can find the following services on your machine's network:
+`config/secrets.env` holds the API keys for the AI features (generating attributes and methods, prose). **Never commit this file.** You can leave the values empty if you won't use those features. To use them, fill in one or both keys:
 
-- [ai4mde.localhost](http://ai4mde.localhost) - Frontend, from `/frontend`. As a non-contributing user, this is where you can interact with the AI4MDE tool. Use the credentials from `config/api.env` to log in.
-- [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `/api`.
-- [prototype.ai4mde.localhost](http://prototype.ai4mde.localhost) - Running prototype in `/prototypes/generated_prototypes`.
-- [prototypes_api.ai4mde.localhost](http://prototypes_api.ai4mde.localhost) - Prototype management API from `/prototypes/backend`.
+```bash
+OPENAI_API_KEY="sk-..."     # OpenAI (the example file still calls this OPENAI_KEY, use OPENAI_API_KEY)
+GROQ_API_KEY="gsk_..."      # Groq, free keys at https://console.groq.com/keys
+```
+
+The OpenAI key needs credit on the account, otherwise generation fails.
+
+The login details are in `config/api.env` (`DJANGO_SUPERUSER_USERNAME` and `DJANGO_SUPERUSER_PASSWORD`). Generated prototypes use the ones in `config/prototypes.env`. You can change them before the first start.
+
+```bash
+edit config/secrets.env
+edit config/api.env
+edit config/prototypes.env
+```
+
+## 3. Start
+
+Build and Start all the containers (add -d flag to start in background)
+```bash
+docker compose up -d --build
+```
+
+
+
+This will start multiple services in the background and set everything up (for development). As soon as that's done, you can find the following services on your machine's network:
+| Address | What |
+|---|---|
+| [ai4mde.localhost](http://ai4mde.localhost) | The editor. Log in with the credentials from `config/api.env` |
+| [api.ai4mde.localhost/api/v1/docs](http://api.ai4mde.localhost/api/v1/docs) | API documentation, where you can try every endpoint |
+| [prototype.ai4mde.localhost](http://prototype.ai4mde.localhost) | The running generated prototype |
+| [prototypes_api.ai4mde.localhost](http://prototypes_api.ai4mde.localhost) | Prototype management API |
+| [localhost:8080](http://localhost:8080) | Traefik dashboard, shows which services are reachable |
+
+To stop the containers, you can use
+```bash
+docker compose down
+```
