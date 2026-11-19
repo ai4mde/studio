@@ -11,6 +11,8 @@ from django.test import TestCase
 from config.auth import create_token
 from diagram.models import Diagram, Node
 from metadata.models import (
+    Category,
+    Interface,
     Classifier,
     EndpointLabel,
     Multiplicity,
@@ -125,6 +127,22 @@ class AddedVersioningRoutesTests(TestCase):
         self.assertEqual(response.status_code, 204, response.content)
         self.assertFalse(Multiplicity.objects.filter(pk=association.multiplicity_id).exists())
         self.assertFalse(EndpointLabel.objects.filter(pk=association.labels_id).exists())
+
+    # Interface component routes are not swallowed by /interfaces/{id}/
+
+    def test_interface_component_can_be_created(self):
+        interface = Interface.objects.create(
+            system=self.orders, name="Shop", description=""
+        )
+
+        response = self.client.post(
+            f"{METADATA_URL}/interfaces/categories/",
+            {"interface_id": str(interface.pk), "name": "Orders"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertTrue(Category.objects.filter(interface=interface).exists())
 
     # Exporting systems
 

@@ -29,3 +29,5 @@ Fixes in Maarten's code (approved)
   exc.message instead of exc.messages).
 - routes/project.py, delete_project: also deletes the project's multiplicity
   and endpoint-label rows, which stayed behind and blocked re-importing it.
+- routes/interface.py: /{interface_id}/ now only matches ids, so POSTs to
+  /interfaces/sections/, /pages/, /categories/, /default/ etc. no longer give 405.
