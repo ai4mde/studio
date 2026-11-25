@@ -14,22 +14,21 @@ import {
     Typography,
 } from "@mui/joy";
 import ProjectLayout from "$browser/components/projects/ProjectLayout";
-import { useProject, useSystems } from "$browser/queries";
-import { authAxios } from "$auth/state/auth";
+import { useProject } from "../../../../api/metadata/hooks/project";
+import { exportProject, exportProjectSystems } from "../../../../api/metadata/project";
 
 type ExportType = "project" | "systems";
 
 const ProjectExports: React.FC = () => {
     const { projectId } = useParams<{ projectId: string }>();
 
-    const project = useProject(projectId);
-    const systems = useSystems(projectId);
+    const project = useProject(projectId ?? "");
 
     const [exportType, setExportType] = useState<ExportType>("project");
     const [selectedSystemIds, setSelectedSystemIds] = useState<string[]>([]);
 
     const { name: projectName } = project.data ?? {};
-    const availableSystems = useMemo(() => systems.data ?? [], [systems.data]);
+    const availableSystems = useMemo(() => project.data?.systems ?? [], [project.data]);
 
     const toggleSystem = (systemId: string) => {
         setSelectedSystemIds((current) =>
@@ -58,20 +57,15 @@ const ProjectExports: React.FC = () => {
         exportType === "project" || selectedSystemIds.length > 0;
 
     const handleExportProject = async () => {
-        const response = await authAxios.get(`/v1/metadata/projects/export/${projectId}/`);
-        downloadJson(response.data, `${projectName}-export.json`);
+        if (!projectId) return;
+        const snapshot = await exportProject(projectId);
+        downloadJson(snapshot, `${projectName}-export.json`);
     };
 
     const handleExportSystems = async () => {
-        const params = new URLSearchParams();
-        selectedSystemIds.forEach((id) => {
-            params.append("system_ids", id);
-        });
-
-        const response = await authAxios.get(`/v1/metadata/systems/export/`, {
-            params,
-        });
-        downloadJson(response.data, `${projectName}-systems-export.json`);
+        if (!projectId) return;
+        const data = await exportProjectSystems(projectId, selectedSystemIds);
+        downloadJson(data, `${projectName}-systems-export.json`);
     }
 
     const handleExport = async () => {
@@ -187,7 +181,7 @@ const ProjectExports: React.FC = () => {
                                     </Typography>
                                 </Box>
 
-                                {systems.isLoading ? (
+                                {project.isLoading ? (
                                     <Stack direction="row" spacing={1.5} alignItems="center">
                                         <CircularProgress size="sm" />
                                         <Typography level="body-sm">
@@ -201,9 +195,9 @@ const ProjectExports: React.FC = () => {
                                 ) : (
                                     <Stack spacing={1}>
                                         {availableSystems.map(
-                                            (system: { id: string; name: string }) => (
+                                            (system) => (
                                                 <Sheet
-                                                    key={system.id}
+                                                    key={system.id ?? system.name}
                                                     variant="outlined"
                                                     sx={{
                                                         p: 1.5,
@@ -212,8 +206,8 @@ const ProjectExports: React.FC = () => {
                                                 >
                                                     <Checkbox
                                                         label={system.name}
-                                                        checked={selectedSystemIds.includes(system.id)}
-                                                        onChange={() => toggleSystem(system.id)}
+                                                        checked={!!system.id && selectedSystemIds.includes(system.id)}
+                                                        onChange={() => system.id && toggleSystem(system.id)}
                                                     />
                                                 </Sheet>
                                             )

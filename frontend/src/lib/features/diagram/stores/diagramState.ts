@@ -1,6 +1,8 @@
-import { applyNodeChanges } from "$diagram/events/node";
+import type { Node } from "reactflow";
 import { create } from "zustand";
+import { applyNodeChanges } from "$diagram/events/node";
 import { DiagramState, RelatedNode } from "../types/diagramState";
+import { classifierDataFromApi, classifierTypeFromApi, multiplicityFromApi } from "../mutations/fields";
 
 export const useDiagramStore = create<DiagramState>((set) => ({
     nodes: [],
@@ -39,10 +41,9 @@ export const useDiagramStore = create<DiagramState>((set) => ({
             // edges: [], // applyEdgeChanges(changes, state.edges, state.diagramURL),
         })),
     nodesFromAPI: (nds) => {
-    set(() => ({
-        nodes: nds.map((e) => ({
+        const mapped: Node[] = nds.map((e) => ({
             id: e.id,
-            type: e.classifier.type,
+            type: classifierTypeFromApi(e.classifier.type),
 
             position: {
                 x: e.x_position ?? 0,
@@ -50,7 +51,8 @@ export const useDiagramStore = create<DiagramState>((set) => ({
             },
 
             data: {
-                ...e.classifier.data,
+                ...classifierDataFromApi(e.classifier.data),
+                type: classifierTypeFromApi(e.classifier.type),
                 classifierId: e.classifier.id,
                 systemId: e.classifier.system,
                 height: e.height,
@@ -62,21 +64,59 @@ export const useDiagramStore = create<DiagramState>((set) => ({
             parentNode: e.parent ?? null,
             connectable: true,
             zIndex: e.parent ? 0 : 1,
-        })),
-    }));
-},
+        }));
+
+        const isLane = (n) => n.type === "swimlane" && !!n.data.parent;
+        const lanes = mapped.filter(isLane);
+
+        const nodes = mapped
+            .filter((n) => !isLane(n))
+            .map((n) =>
+                n.type === "swimlane"
+                    ? {
+                        ...n,
+                        type: "swimlanegroup",
+                        data: {
+                            ...n.data,
+                            type: "swimlanegroup",
+                            swimlanes: lanes
+                                .filter((l) => l.data.parent === n.data.classifierId)
+                                .map((l) => ({
+                                    nodeId: l.id,
+                                    classifierId: l.data.classifierId,
+                                    actor: l.data.actor,
+                                })),
+                        },
+                    }
+                    : n,
+            );
+
+        set(() => ({ nodes }));
+    },
     edgesFromAPI: (eds) =>
         set(() => ({
             edges: eds.map((e) => ({
                 id: e?.id,
                 type: "floating",
-                markerEnd: `${e?.rel?.type}-end`,
-                markerStart: `${e?.rel?.type}-start`,
-                source: e?.source_ptr,
-                target: e?.target_ptr,
+                markerEnd: `${e?.relation?.type}-end`,
+                markerStart: `${e?.relation?.type}-start`,
+                source: e?.source,
+                target: e?.target,
                 data: {
-                    ...(e?.rel ?? {}),
-                    edge_data: (e?.data ?? {}),
+                    ...(e?.relation?.data ?? {}),
+                    multiplicity: multiplicityFromApi(e?.relation?.data?.multiplicity),
+                    type: e?.relation?.type,
+                    relationId: e?.relation?.id,
+                    edge_data: {
+                        width: e?.width,
+                        color: e?.color,
+                        font: e?.font,
+                        rounded: e?.rounded,
+                        position_handlers: (e?.control_points ?? []).map((point) => ({
+                            x: point.x_position,
+                            y: point.y_position,
+                        })),
+                    },
                 },
             })),
         })),

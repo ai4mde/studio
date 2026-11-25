@@ -32,7 +32,63 @@ class EndpointLabel(models.Model):
     target = models.CharField(max_length=255, blank=True, default="")
 
 
-class Association(RelationDataModel):
+class MultiplicityAndLabelsMixin:
+    """
+        Lets the API send multiplicity and labels as nested values.
+        The rows in Multiplicity and EndpointLabel are created and
+        updated here, so the frontend never has to know their ids.
+    """
+
+    @classmethod
+    def prepare_data(cls, data):
+        data = dict(data)
+
+        # Only create the rows when the caller didn't pass them already
+        # (the prose import creates its own and passes multiplicity_id/labels_id)
+        multiplicity = data.get("multiplicity")
+        if "multiplicity_id" not in data and (multiplicity is None or isinstance(multiplicity, dict)):
+            instance = Multiplicity(**{
+                "source_lower": 1,
+                "source_upper": 1,
+                "target_lower": 1,
+                "target_upper": 1,
+                **(multiplicity or {}),
+            })
+            instance.full_clean()
+            instance.save()
+            data["multiplicity"] = instance.id
+
+        labels = data.get("labels")
+        if "labels_id" not in data and (labels is None or isinstance(labels, dict)):
+            instance = EndpointLabel(**{
+                "source": "",
+                "target": "",
+                **(labels or {}),
+            })
+            instance.full_clean()
+            instance.save()
+            data["labels"] = instance.id
+
+        return data
+
+    def prepare_update(self, data):
+        data = dict(data)
+
+        for field in ("multiplicity", "labels"):
+            values = data.pop(field, None)
+            if values is None:
+                continue
+
+            related = getattr(self, field)
+            for name, value in values.items():
+                setattr(related, name, value)
+            related.full_clean()
+            related.save()
+
+        return data
+
+
+class Association(MultiplicityAndLabelsMixin, RelationDataModel):
     derived = models.BooleanField(default=False)
     label = models.CharField(max_length=255, blank=True, default="")
     multiplicity = models.OneToOneField(
@@ -47,7 +103,7 @@ class Association(RelationDataModel):
     )
 
 
-class Composition(RelationDataModel):
+class Composition(MultiplicityAndLabelsMixin, RelationDataModel):
     label = models.CharField(max_length=255, blank=True, default="")
     multiplicity = models.OneToOneField(
         Multiplicity,

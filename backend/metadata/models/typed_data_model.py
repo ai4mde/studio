@@ -98,6 +98,9 @@ class TypedDataModel(models.Model):
         data_model = cls.get_data_model(data_type)
 
         if data_model is not None:
+            if hasattr(data_model, "prepare_data"):
+                data = data_model.prepare_data(data)
+
             data = cls.normalize_data(
                 data_model,
                 data,
@@ -121,6 +124,9 @@ class TypedDataModel(models.Model):
 
         if instance_data is None:
             return self
+
+        if hasattr(instance_data, "prepare_update"):
+            data = instance_data.prepare_update(data)
 
         data = self.normalize_data(
             type(instance_data),

@@ -15,7 +15,7 @@ export const SelectModel: React.FC<Props> = ({ pipeline }) => {
 
     const { mutate } = useMutation({
         mutationFn: async () => {
-            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/model/`, {
+            await authAxios.post(`/v1/prose/pipeline/${pipeline.id}/model/`, {
                 url: modelUrl,
                 type: "metadata",
             });

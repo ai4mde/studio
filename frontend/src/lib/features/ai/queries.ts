@@ -6,7 +6,7 @@ export const usePipelines = () =>
     useQuery({
         queryKey: ["pipelines"],
         queryFn: async () => {
-            const res = await authAxios.get<Pipeline[]>("/v1/prose/pipelines/");
+            const res = await authAxios.get<Pipeline[]>("/v1/prose/pipeline/");
             return res.data;
         },
     });
@@ -16,7 +16,7 @@ export const usePipeline = (pipelineId?: string) =>
         queryKey: ["pipelines", pipelineId],
         queryFn: async () => {
             const res = await authAxios.get<Pipeline>(
-                `/v1/prose/pipelines/${pipelineId}/`,
+                `/v1/prose/pipeline/${pipelineId}/`,
             );
             return res.data;
         },

@@ -29,18 +29,34 @@ def create_node(
 ):
     data = payload.model_dump(exclude_unset=True)
 
-    classifier_data = data.pop("classifier")
+    classifier_data = data.pop("classifier", None)
+    classifier_id = data.pop("classifier_id", None)
+
+    if (classifier_data is None) == (classifier_id is None):
+        raise HttpError(422, "Send either classifier or classifier_id")
 
     diagram = get_object_or_404(
         Diagram,
         id=diagram_id,
     )
 
-    classifier = Classifier.create(
-        system_id=diagram.system.id,
-        classifier_type=classifier_data["type"],
-        data=classifier_data["data"],
-    )
+    if classifier_id is not None:
+        # Reuse an existing classifier from the same system
+        classifier = get_object_or_404(
+            Classifier,
+            id=classifier_id,
+            system=diagram.system,
+        )
+
+        # Node has a unique (diagram, classifier) constraint
+        if classifier.nodes.filter(diagram=diagram).exists():
+            raise HttpError(409, "This classifier is already used in this diagram")
+    else:
+        classifier = Classifier.create(
+            system_id=diagram.system.id,
+            classifier_type=classifier_data["type"],
+            data=classifier_data["data"],
+        )
 
     node = Node(
         diagram=diagram,
@@ -72,6 +88,30 @@ def update_node(
         "classifier",
         None,
     )
+
+    classifier_id = data.pop("classifier_id", None)
+
+    if classifier_id is not None and classifier_id != node.classifier_id:
+        new_classifier = get_object_or_404(
+            Classifier,
+            id=classifier_id,
+            system=node.diagram.system,  # only classifiers from the same system
+        )
+
+        if new_classifier.type != node.classifier.type:
+            raise HttpError(422, "The classifier must have the same type as the node")
+
+        # Node has a unique (diagram, classifier) constraint
+        if new_classifier.nodes.filter(diagram=node.diagram).exists():
+            raise HttpError(409, "This classifier is already used in this diagram")
+
+        old_classifier = node.classifier
+        node.classifier = new_classifier
+        node.save(update_fields=["classifier"])
+
+        # Same cleanup as delete_node: drop the old classifier when nothing uses it
+        if not old_classifier.nodes.exists():
+            old_classifier.delete()
 
     if classifier_data is not None:
         data_payload = classifier_data.get("data")

@@ -62,3 +62,15 @@ export async function deleteInterface(
         `/v1/metadata/interfaces/${interfaceId}/`
     );
 }
+
+// Creates one interface per actor of the system, based on its use cases
+export async function createDefaultInterfaces(
+    systemId: string
+): Promise<InterfaceRead[]> {
+    const { data } = await apiClient.post<InterfaceRead[]>(
+        "/v1/metadata/interfaces/default/",
+        null,
+        { params: { system_id: systemId } }
+    );
+    return data;
+}

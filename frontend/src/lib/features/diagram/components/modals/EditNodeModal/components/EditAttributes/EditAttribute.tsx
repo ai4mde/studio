@@ -1,11 +1,13 @@
-import { useDiagramStore } from "$diagram/stores";
-import { authAxios } from "$lib/features/auth/state/auth";
+import React, { useState } from "react";
+import Select from "react-select";
+import { Node } from "reactflow";
 import Editor from "@monaco-editor/react";
 import { Button, FormControl, FormLabel, Textarea, Tooltip } from "@mui/joy";
 import { PanelTopClose, Pencil, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import Select from "react-select";
-import { Node } from "reactflow";
+
+import { useDiagramStore } from "$diagram/stores";
+import { useClassifiers } from "../../../../../../../../api/metadata/hooks/classifier";
+import { generateAttribute as generateAttributeCode } from "../../../../../../../../api/metadata/generation";
 import style from "./editattributes.module.css";
 
 const EditAttribute: React.FC<{
@@ -16,8 +18,7 @@ const EditAttribute: React.FC<{
     create?: boolean;
     node: Node;
 }> = ({ attribute, del, update, dirty, create, node }) => {
-    const [enumClassifiers, setEnumClassifiers] = useState([]);
-    const { diagram } = useDiagramStore();
+    const { diagram, systemId } = useDiagramStore();
     const [openEditMenu, setOpenEditMenu] = useState(false);
     const [openGenerateModal, setOpenGenerateModal] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
@@ -30,29 +31,25 @@ const EditAttribute: React.FC<{
     const [selectedLLMOption, setSelectedLLMOption] = useState(LLMOptions[0]);
 
 
-    useEffect(() => {
-        const fetchEnumClassifiers = async () => {
-            try {
-                const response = await authAxios.get(`/v1/diagram/${diagram}/node/${node.id}/enums/`);
-                setEnumClassifiers(response.data);
-            } catch (error) {
-                console.error("Error fetching enum nodes:", error);
-            }
-        };
-
-        fetchEnumClassifiers();
-    }, []);
+    // There is no enums endpoint anymore, the enums of the system are just classifiers
+    const { data: classifiers = [] } = useClassifiers(
+        { system_id: systemId || undefined },
+        !!systemId,
+    );
+    const enumClassifiers = classifiers.filter(
+        (classifier) => classifier.type === "enum",
+    );
 
     const staticOptions = [
-        { value: 'str', label: 'string', id: 'string' },
+        { value: 'string', label: 'string', id: 'string' },
         { value: 'int', label: 'integer', id: 'integer' },
         { value: 'bool', label: 'boolean', id: 'boolean' },
     ];
 
     const dynamicOptions = enumClassifiers.map((e) => ({
         value: 'enum',
-        label: `enum: ${e.cls.name}`,
-        id: e.cls_ptr,
+        label: `enum: ${e.data.name}`,
+        id: e.id,
     }));
 
     const selectOptions = [...staticOptions, ...dynamicOptions];
@@ -84,7 +81,12 @@ const EditAttribute: React.FC<{
         setGenerationError(null);
         setGenerateButtonDisabled(true)
         try {
-            const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${attribute?.name}&type=${attribute?.type}&description=${attribute?.description}&model=${selectedLLMOption.value}`);
+            const data = await generateAttributeCode(node.data.classifierId, {
+                name: attribute?.name ?? "",
+                type: attribute?.type ?? "string",
+                description: attribute?.description ?? "",
+                model: selectedLLMOption.value,
+            });
             update({ ...attribute, body: data })
             setOpenGenerateModal(false);
         } catch (error) {

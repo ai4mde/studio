@@ -16,8 +16,6 @@ export const ImportClassNode: React.FC<Props> = ({ object, setObject }) => {
   const [classifiers, isSuccess] = useSystemClassClassifiers(systemId);
   const [selectedClassifier, setSelectedClassifier] = useState<string | null>(null);
 
-  const normalize = (v: unknown) => (v ?? "").toString().toLowerCase();
-
   // Helper: does this classifier already exist as a node in the diagram?
   const classifierExistsInDiagram = (classifier: any, node: any): boolean => {
     const nodeData = node.data ?? node; // be defensive
@@ -34,7 +32,7 @@ export const ImportClassNode: React.FC<Props> = ({ object, setObject }) => {
 
     return (
       nodeName === classifier.data?.name &&
-      nodeType === classifier.data?.type
+      nodeType === classifier.type
     );
   };
 
@@ -76,20 +74,17 @@ export const ImportClassNode: React.FC<Props> = ({ object, setObject }) => {
                     disabled={!isSuccess || availableClassifiers.length === 0}
                     required
                 >
-                    {isSuccess && (
-                        availableClassifiers.map((e) => {
-                            const sameSystem = normalize(e.system_id) === normalize(systemId);
-
-                            return (
-                                <Option key={e.id} value={e.id} sx={{"--Option-decoratorChildHeight": "0px",}}>{e.data.name} ({e.data.type}) 
-                                    {!sameSystem && e.system_name && 
-                                        <span className="ml-2 px-2 py-0.5 rounded-md text-xs fond-medium bg-gray-200 text-gray-700">
-                                            {e.system_name}
-                                        </span>
-                                    }
-                                </Option>
-                            )
-                        }
+                    {isSuccess &&
+                      availableClassifiers
+                        .filter((e) => e.id != null)
+                        .map((e) => (
+                          <Option
+                            key={e.id}
+                            value={e.id}
+                            sx={{ "--Option-decoratorChildHeight": "0px" }}
+                          >
+                            {e.data.name} ({e.type})
+                          </Option>
                         ))}
                 </Select>
             </FormControl>

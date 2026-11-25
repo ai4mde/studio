@@ -1,6 +1,8 @@
-import { authAxios } from '$auth/state/auth';
-import { deleteInterface } from '$browser/mutations';
-import { useInterface } from "$browser/queries";
+import {
+    useDeleteInterface,
+    useInterface,
+    useUpdateInterface,
+} from "../../../../api/metadata/hooks/interface";
 import {
     CircularProgress,
     Tab,
@@ -8,8 +10,14 @@ import {
     TabPanel,
     Tabs,
 } from '@mui/joy';
+import { getInterface } from "../../../../api/metadata/interface";
+import type { InterfaceRead } from "../../../../api/metadata/interface";
+import { listAttributes } from "../../../../api/metadata/classMembers";
+import { listClassifiers } from "../../../../api/metadata/classifier";
+import { contentToEditor } from "../content";
+import { saveInterfaceContent } from "../save";
 import { CircleUserRound, Save, Trash } from "lucide-react";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Categories } from './Categories';
 import { Pages } from './Pages';
@@ -25,15 +33,67 @@ type Props = {
 
 const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const { data, isSuccess } = useInterface(app_comp);
+    const deleteInterface = useDeleteInterface();
+    const updateInterface = useUpdateInterface();
     const navigate = useNavigate();
     const { systemId } = useParams();
     const [isSaving, setIsSaving] = useState(false);
-    //const actorId = data?.actor || '';
-    //const [actor, isSuccessActor] = useActor(systemId, actorId);
+    const [loadedId, setLoadedId] = useState<string | null>(null);
+    const [actorName, setActorName] = useState<string>("");
+
+    // Write an interface into the editor's localStorage. The tabs read
+    // localStorage when they mount, so they're only shown (loadedId) after this.
+    const loadEditor = async (interfaceData: InterfaceRead) => {
+        // The interface only stores ids, look up the names to show
+        const classIds = Array.from(
+            new Set(interfaceData.sections.map((s) => s.uml_class).filter(Boolean)),
+        ) as string[];
+        const attributeLists = await Promise.all(classIds.map((id) => listAttributes(id)));
+        const attributesById = Object.fromEntries(
+            attributeLists.flat().map((a) => [a.id, a]),
+        );
+
+        const classifiers = await listClassifiers({ system_id: interfaceData.system });
+        const nameOf = (id: string | null | undefined) =>
+            ((classifiers.find((c) => c.id === id)?.data ?? {}) as { name?: string }).name ?? "";
+        const actionNames = Object.fromEntries(
+            classifiers
+                .filter((c) => c.type === "action")
+                .map((c) => [c.id, nameOf(c.id)]),
+        );
+
+        const { categories, sections, pages } = contentToEditor(
+            interfaceData,
+            attributesById,
+            actionNames,
+        );
+
+        localStorage.setItem('styling', JSON.stringify({
+            radius: interfaceData.radius,
+            backgroundColor: interfaceData.background_color,
+            textColor: interfaceData.text_color,
+            accentColor: interfaceData.accent_color,
+            selectedStyle: interfaceData.style,
+        }));
+        localStorage.setItem('settings', JSON.stringify({
+            managerAccess: interfaceData.manager_access,
+        }));
+        localStorage.setItem('categories', JSON.stringify(categories));
+        localStorage.setItem('sections', JSON.stringify(sections));
+        localStorage.setItem('pages', JSON.stringify(pages));
+
+        setActorName(nameOf(interfaceData.actor));
+        setLoadedId(interfaceData.id ?? null);
+    };
+
+    useEffect(() => {
+        if (!data) return;
+        loadEditor(data);
+    }, [data?.id]);
 
     const handleDelete = async () => {
         try {
-            await deleteInterface(app_comp);
+            await deleteInterface.mutateAsync(app_comp);
         } catch (error) {
             console.error('Error deleting interface:', error);
         }
@@ -49,21 +109,33 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
 
         setIsSaving(true);
         try {
-            await authAxios.put(`/v1/metadata/interfaces/${app_comp}/`, {
-                id: app_comp,
-                name: data?.name,
-                description: data?.description,
-                system_id: systemId,
-                data: {
-                    "styling": styling,
-                    "categories": categories,
-                    "pages": pages,
-                    "sections": sections,
-                    "settings": settings,
+            await updateInterface.mutateAsync({
+                interfaceId: app_comp,
+                payload: {
+                    radius: styling.radius ?? null,
+                    background_color: styling.backgroundColor ?? null,
+                    text_color: styling.textColor ?? null,
+                    accent_color: styling.accentColor ?? null,
+                    style: styling.selectedStyle ?? null,
+                    manager_access: settings.managerAccess ?? null,
                 },
             });
         } catch (error) {
             console.error('Error saving interface:', error);
+        }
+
+        try {
+            // Save with the interface as the backend has it now, then reload the
+            // editor so it uses the new ids the backend gave the saved items
+            const current = await getInterface(app_comp);
+            await saveInterfaceContent(current, categories, pages, sections);
+
+            const saved = await getInterface(app_comp);
+            setLoadedId(null);
+            await loadEditor(saved);
+        } catch (error) {
+            console.error('Error saving interface:', error);
+            alert("Saving the interface failed, see the console for details.");
         } finally {
             setTimeout(function () {
                 setIsSaving(false);
@@ -73,13 +145,13 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
 
     return (
         <>
-            {isSuccess && (
+            {isSuccess && loadedId === data.id && (
                 <>
                     <div className="flex items-center justify-between w-full gap-4">
                         <span>
                             <h3 className="text-xl font-bold">{data.name}</h3>
                             <span className='flex items-center gap-1'>
-                                <h4 className="text-l">{data.actor || 'Unknown'}</h4>
+                                <h4 className="text-l">{actorName || 'Unknown'}</h4>
                                 <CircleUserRound size={20} />
                             </span>
                         </span>
@@ -119,7 +191,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Categories />
                         </TabPanel>
                         <TabPanel value={2}>
-                            <Pages actorName = {data?.name}/>
+                            <Pages actorId={data?.actor} />
                         </TabPanel>
                         <TabPanel value={3}>
                             <Sections />

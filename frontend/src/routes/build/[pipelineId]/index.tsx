@@ -19,7 +19,7 @@ export const PipelineIndex: React.FC<Props> = () => {
     const navigate = useNavigate();
     const deletePipeline = useMutation({
         mutationFn: async () => {
-            await authAxios.delete(`/v1/prose/pipelines/${pipelineId}/`);
+            await authAxios.delete(`/v1/prose/pipeline/${pipelineId}/`);
             navigate("/build/");
         },
     });

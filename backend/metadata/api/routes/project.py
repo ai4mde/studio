@@ -2,9 +2,10 @@ import json
 from uuid import UUID
 
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from ninja import File, Form, Router
+from ninja import File, Form, Query, Router
 from ninja.files import UploadedFile
 
 from metadata.api.helpers import create_instance, update_instance
@@ -14,7 +15,15 @@ from metadata.api.schemas.project import (
     ProjectUpdate,
     ProjectList,
 )
-from metadata.models import Project
+from metadata.models import (
+    Association,
+    Composition,
+    EndpointLabel,
+    Multiplicity,
+    Project,
+)
+from metadata.services.versioning import snapshot_project
+from metadata.services.versioning.systems import export_systems
 from metadata.services.versioning.import_project import (
     ProjectAlreadyExistsError,
     import_project as import_project_service,
@@ -82,6 +91,59 @@ def update_project(
 @router.delete("/{project_id}/", response={204: None})
 def delete_project(request, project_id: UUID):
     project = get_object_or_404(Project, id=project_id)
-    project.delete()
+
+    # Multiplicities and endpoint labels have no link to the project, so they
+    # would stay behind and block importing this project again later
+    multiplicity_ids, label_ids = set(), set()
+    for model in (Association, Composition):
+        rows = model.objects.filter(relation__system__project=project)
+        for multiplicity_id, labels_id in rows.values_list("multiplicity_id", "labels_id"):
+            multiplicity_ids.add(multiplicity_id)
+            label_ids.add(labels_id)
+
+    with transaction.atomic():
+        project.delete()
+        Multiplicity.objects.filter(id__in=multiplicity_ids).delete()
+        EndpointLabel.objects.filter(id__in=label_ids).delete()
+
     return 204, None
+
+
+# ============================================================
+# Added for the frontend migration (not part of the original routes)
+# ============================================================
+def _json_download(data: dict, filename: str) -> HttpResponse:
+    response = HttpResponse(
+        json.dumps(data, indent=2),
+        content_type="application/json",
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+@router.get("/{project_id}/export/")
+def export_project(request, project_id: UUID):
+    """The current state of the project, in the same format as a release export."""
+    get_object_or_404(Project, id=project_id)
+    return _json_download(
+        snapshot_project(project_id),
+        f"project-{project_id}.json",
+    )
+
+
+@router.get("/{project_id}/systems/export/", response={200: None, 400: dict})
+def export_project_systems(
+    request,
+    project_id: UUID,
+    system_ids: Query[list[UUID]],
+):
+    """Selected systems of the project, to import into a project later."""
+    get_object_or_404(Project, id=project_id)
+
+    try:
+        data = export_systems(project_id, system_ids)
+    except ValidationError as exc:
+        return 400, {"message": exc.messages[0]}
+
+    return _json_download(data, f"systems-{project_id}.json")
 

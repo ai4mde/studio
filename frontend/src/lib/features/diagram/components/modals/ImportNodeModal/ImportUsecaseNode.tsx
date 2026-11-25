@@ -29,7 +29,7 @@ export const ImportUsecaseNode: React.FC<Props> = ({ object, setObject }) => {
                 >
                     {isSuccess && (
                         classifiers.map((e) => (
-                            <Option value={e.id}>{e.data.name} ({e.data.type})</Option>
+                            <Option value={e.id}>{e.data.name} ({e.type})</Option>
                         )
                         ))}
                 </Select>

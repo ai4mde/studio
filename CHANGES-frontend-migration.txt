@@ -1,0 +1,33 @@
+Frontend → generated API: changes in this round
+================================================
+
+Frontend
+- Interface editor: Save now uses the separate category/section/page
+  endpoints (new file lib/features/interfaces/save.ts). The old single
+  "content" route is gone.
+- "Generate default interfaces" now calls POST /interfaces/default/.
+- Versions tab (releases): list, create, delete, export, load, import from a
+  file and import systems all go through api/metadata/releases.ts.
+  If the project has unsaved changes, Load asks before overwriting.
+- Exports page: the project and systems exports go through api/metadata/project.ts.
+
+Backend: NEW ENDPOINTS (added by us, no database migrations)
+- DELETE /releases/{release_id}/
+- POST   /releases/import_systems/{project_id}/   (file, name, release_notes)
+- GET    /projects/{project_id}/export/
+- GET    /projects/{project_id}/systems/export/?system_ids=...
+- Logic: metadata/services/versioning/systems.py (new)
+- Tests: metadata/tests/versioning/test_added_routes.py (new)
+
+Backend: cleanup
+- Removed the unused InterfaceContent schemas and imports left over from the
+  old content route.
+
+Fixes in Maarten's code (approved)
+- routes/releases.py, import_release: invalid files now return a 400 with a
+  message instead of a 500 (the error key had a stray space and used
+  exc.message instead of exc.messages).
+- routes/project.py, delete_project: also deletes the project's multiplicity
+  and endpoint-label rows, which stayed behind and blocked re-importing it.
+- routes/interface.py: /{interface_id}/ now only matches ids, so POSTs to
+  /interfaces/sections/, /pages/, /categories/, /default/ etc. no longer give 405.

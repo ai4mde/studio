@@ -16,6 +16,8 @@ import {
 } from "@mui/joy";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import CryptoJS from 'crypto-js';
+import { listClassifiers } from "../../../../api/metadata/classifier";
+import type { DiagramReadFull } from "../../../../api/diagram/diagram";
 import { useAtom } from "jotai";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
@@ -60,21 +62,27 @@ export const CreatePrototype: React.FC = () => {
 
     useEffect(() => {
         const computeHash = async () => {
-            if (systemId && isSuccessInterfaces) {
-                const [classifiers, relations] = await Promise.all([
-                    authAxios.get(`v1/metadata/systems/${systemId}/classes/`),
-                    authAxios.get(`v1/metadata/systems/${systemId}/classifier-relations/`),
-                ]);
+            if (systemId && isSuccessInterfaces && isSuccessDiagrams) {
+                // There are no classes / classifier-relations endpoints anymore.
+                // Use the classifiers of the system and the relations from its diagrams.
+                const classifiers = await listClassifiers({ system_id: systemId });
+                const relations = Array.from(
+                    new Map(
+                        (diagrams as DiagramReadFull[])
+                            .flatMap((diagram) => diagram.edges)
+                            .map((edge) => [edge.relation.id, edge.relation]),
+                    ).values(),
+                );
 
                 const interfaceNames = interfaces.map((e) => ({ name: e.name }));
-                const inputString = `${systemId}${JSON.stringify(classifiers.data)}${JSON.stringify(relations.data)}${JSON.stringify(interfaceNames)}`;
+                const inputString = `${systemId}${JSON.stringify(classifiers)}${JSON.stringify(relations)}${JSON.stringify(interfaceNames)}`;
                 const hash = CryptoJS.SHA256(inputString).toString(CryptoJS.enc.Hex);
                 setDatabaseHash(hash);
             }
         };
 
         computeHash();
-    }, [systemId, interfaces, isSuccessInterfaces]);
+    }, [systemId, interfaces, isSuccessInterfaces, diagrams, isSuccessDiagrams]);
 
     useEffect(() => {
         const fetchDatabasePrototypes = async () => {

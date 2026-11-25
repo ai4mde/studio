@@ -1,5 +1,5 @@
-import { useDiagramStore } from "$diagram/stores";
-import { authAxios } from "$lib/features/auth/state/auth";
+import React, { useState } from "react";
+import Select from "react-select";
 import Editor from "@monaco-editor/react";
 import {
     Button,
@@ -8,8 +8,9 @@ import {
     Textarea,
 } from "@mui/joy";
 import { PanelTopClose, Pencil, Trash2, X } from "lucide-react";
-import React, { useState } from "react";
-import Select from "react-select";
+
+import { useDiagramStore } from "$diagram/stores";
+import { generateMethod as generateMethodCode } from "../../../../../../../../api/metadata/generation";
 import style from "./editmethods.module.css";
 
 const EditMethod: React.FC<{
@@ -37,7 +38,11 @@ const EditMethod: React.FC<{
         setGenerationError(null);
         setGenerateButtonDisabled(true)
         try {
-            const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${method.name}&description=${method.description}&model=${selectedLLMOption.value}`);
+            const data = await generateMethodCode(node.data.classifierId, {
+                name: method?.name ?? "",
+                description: method?.description ?? "",
+                model: selectedLLMOption.value,
+            });
             update({ ...method, body: data })
             setOpenGenerateModal(false);
         } catch (error) {
@@ -85,7 +90,7 @@ const EditMethod: React.FC<{
                             }
                             className="h-[30px] hover:cursor-pointer"
                         >
-                            <option value="str">string</option>
+                            <option value="string">string</option>
                             <option value="int">integer</option>
                             <option value="bool">boolean</option>
                         </select>

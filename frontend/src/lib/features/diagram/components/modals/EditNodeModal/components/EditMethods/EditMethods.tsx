@@ -1,9 +1,8 @@
-import { partialUpdateNode } from "$diagram/mutations/diagram";
-import { useDiagramStore } from "$diagram/stores";
 import { Button } from "@mui/joy";
 import { isEqualWith } from "lodash";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Node } from "reactflow";
+import { useOperations, useSaveOperations } from "../../../../../../../../api/metadata/hooks/classMembers";
 import EditMethod from "./EditMethod";
 import style from "./editmethods.module.css";
 
@@ -12,11 +11,20 @@ type Props = {
 };
 
 const EditMethods: React.FC<Props> = ({ node }) => {
-    const [methods, setMethods] = useState(node?.data?.methods ?? []);
-    const { diagram } = useDiagramStore();
+    const classifierId = node?.data?.classifierId;
+    const { data: serverMethods = [], isSuccess } = useOperations(classifierId);
+    const saveMethods = useSaveOperations(classifierId);
+
+    const [methods, setMethods] = useState<any[]>([]);
+
+    // Start editing from what the server has, and again after every save
+    useEffect(() => {
+        if (isSuccess) setMethods(serverMethods.map((m) => ({ ...m })));
+    }, [isSuccess, serverMethods]);
+
     const dirty = useMemo(
-        () => !isEqualWith(methods, node?.data?.methods),
-        [methods, node?.data?.methods],
+        () => !isEqualWith(methods, serverMethods),
+        [methods, serverMethods],
     );
 
     return (
@@ -53,7 +61,7 @@ const EditMethods: React.FC<Props> = ({ node }) => {
                     onClick={() =>
                         setMethods((s: any) => {
                             s.push({
-                                type: "str",
+                                type: "string",
                             });
                             return [...s];
                         })
@@ -62,15 +70,14 @@ const EditMethods: React.FC<Props> = ({ node }) => {
                     Add Method
                 </Button>
                 <Button
-                    disabled={!dirty}
+                    disabled={!dirty || saveMethods.isPending}
                     color="primary"
                     className="w-full"
                     size="sm"
                     onClick={() =>
-                        partialUpdateNode(diagram, node.id, {
-                            cls: {
-                                methods: methods,
-                            },
+                        saveMethods.mutate({
+                            original: serverMethods,
+                            edited: methods,
                         })
                     }
                 >

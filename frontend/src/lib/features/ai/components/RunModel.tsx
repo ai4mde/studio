@@ -14,7 +14,7 @@ export const RunModel: React.FC<Props> = ({ pipeline }) => {
     const { mutate, isPending, isError, isSuccess } = useMutation({
         mutationFn: async () => {
             console.log("Running model:");
-            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/run_model/`, {
+            await authAxios.post(`/v1/prose/pipeline/${pipeline.id}/run_model/`, {
                 model: pipeline.url,
             });
 

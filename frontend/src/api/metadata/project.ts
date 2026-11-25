@@ -1,4 +1,3 @@
-
 import { apiClient } from "../client";
 import type { components } from "../generated/schema";
 
@@ -50,4 +49,38 @@ export async function deleteProject(
     await apiClient.delete(
         `/v1/metadata/projects/${projectId}/`
     );
+}
+
+// Upload a project file (a release export); the backend recreates the project
+export async function importProject(file: File): Promise<ProjectRead> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await apiClient.post<ProjectRead>(
+        "/v1/metadata/projects/import/",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return data;
+}
+// The current state of a project, in the same format as a release export
+export async function exportProject(projectId: string): Promise<unknown> {
+    const { data } = await apiClient.get(`/v1/metadata/projects/${projectId}/export/`);
+    return data;
+}
+
+// Selected systems of a project, to import into a project later
+export async function exportProjectSystems(
+    projectId: string,
+    systemIds: string[]
+): Promise<unknown> {
+    const { data } = await apiClient.get(
+        `/v1/metadata/projects/${projectId}/systems/export/`,
+        {
+            params: { system_ids: systemIds },
+            // system_ids=a&system_ids=b, not system_ids[]=a
+            paramsSerializer: { indexes: null },
+        }
+    );
+    return data;
 }

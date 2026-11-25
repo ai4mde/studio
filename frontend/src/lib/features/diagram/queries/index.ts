@@ -1,7 +1,8 @@
-import { useDiagram } from "./diagram";
+import { useDiagram, useRelatedDiagrams } from "./diagram";
 
 export default {
     useDiagram,
+    useRelatedDiagrams,
 };
 
-export { useDiagram };
+export { useDiagram, useRelatedDiagrams };

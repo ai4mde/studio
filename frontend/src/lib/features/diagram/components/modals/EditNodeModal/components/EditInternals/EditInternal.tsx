@@ -15,7 +15,7 @@ const EditInternal: React.FC<{
 
   const selectOptions = (classifiers ?? []).map((c) => ({
     value: c.id,
-    label: `${c.data?.name} (${c.data?.type})`,
+    label: `${c.data?.name} (${c.type})`,
   }));
 
   return (

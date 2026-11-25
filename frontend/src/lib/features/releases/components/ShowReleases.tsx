@@ -2,10 +2,17 @@ import { useProjectReleases, type Release } from "$lib/features/releases/queries
 import { Button, Modal, ModalClose, ModalDialog, FormControl, FormLabel, Input, Divider } from "@mui/joy";
 import { X } from "lucide-react";
 import React, { useState } from "react";
-import { authAxios } from "$lib/features/auth/state/auth";
 import { queryClient } from "$shared/hooks/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import FileUpload from "$shared/components/ui/FileUpload";
+import {
+    createRelease as createReleaseApi,
+    deleteRelease,
+    exportRelease,
+    importRelease as importReleaseApi,
+    importSystemsRelease as importSystemsReleaseApi,
+    restoreRelease,
+} from "../../../../api/metadata/releases";
 
 type Props = {
     project: string;
@@ -19,13 +26,17 @@ type ReleaseInput = {
     release_notes: string[];
 };
 
-type ImportReleaseInput = ReleaseInput & {
-    project_data: unknown;
+type FileReleaseInput = {
+    name: string;
+    file: File;
+    release_notes: string[];
 };
 
-type ImportSystemsReleaseInput = ReleaseInput & {
-    systems: Record<string, unknown>[];
-};
+// The new backend puts error messages in "message"
+const errorMessage = (error: any, fallback: string) =>
+    error?.response?.data?.message ||
+    error?.response?.data?.detail ||
+    fallback;
 
 export const ShowReleases: React.FC<Props> = ({ project }) => {
     const [releases, isSuccessReleases, isLoadingReleases] = useProjectReleases(project);
@@ -42,6 +53,9 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
     const [releaseFileToImport, setReleaseFileToImport] = useState<File | null>(null);
     const [systemsFileToImport, setSystemsFileToImport] = useState<File | null>(null);
     const [importError, setImportError] = useState<string | null>(null);
+
+    const refreshReleases = () =>
+        queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
 
     const showReleaseNotes = (notes: string[]) => {
         setReleaseNotesData(notes);
@@ -86,84 +100,56 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
     const createRelease = useMutation({
         mutationFn: async (releaseInput: ReleaseInput) => {
             try {
-                await authAxios.post(`/v1/metadata/releases/`, releaseInput);
-                await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+                await createReleaseApi({
+                    project_id: releaseInput.project,
+                    name: releaseInput.name,
+                    description: "",
+                    release_notes: releaseInput.release_notes as any,
+                });
+                await refreshReleases();
             } catch (error: any) {
-                throw new Error(
-                    error.response?.data?.detail ||
-                    error.response?.data ||
-                    "Failed to create release."
-                );
+                throw new Error(errorMessage(error, "Failed to create release."));
             }
         },
     });
 
     const importRelease = useMutation({
-        mutationFn: async (input: ImportReleaseInput) => {
+        mutationFn: async ({ name, file }: FileReleaseInput) => {
             try {
-                await authAxios.post(`/v1/metadata/releases/import/${project}`, input);
-                await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+                await importReleaseApi(project, file, name);
+                await refreshReleases();
             } catch (error: any) {
-                throw new Error(
-                    error.response?.data?.detail ||
-                    error.response?.data ||
-                    "Failed to import release."
-                );
+                throw new Error(errorMessage(error, "Failed to import release."));
             }
         },
     });
 
     const importSystemsRelease = useMutation({
-        mutationFn: async (input: ImportSystemsReleaseInput) => {
+        mutationFn: async ({ name, file, release_notes }: FileReleaseInput) => {
             try {
-                await authAxios.post(`/v1/metadata/releases/import_systems/${project}/`, input);
-                await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+                await importSystemsReleaseApi(project, file, name, release_notes);
+                // The project now has more systems, refresh everything
+                await queryClient.invalidateQueries();
             } catch (error: any) {
-                throw new Error(
-                    error.response?.data?.detail ||
-                    error.response?.data ||
-                    "Failed to import systems release."
-                );
+                throw new Error(errorMessage(error, "Failed to import systems release."));
             }
         },
     });
-
-    const parseJsonFile = async (file: File): Promise<unknown> => {
-        const text = await file.text();
-
-        try {
-            return JSON.parse(text);
-        } catch {
-            throw new Error("Invalid JSON file.");
-        }
-    };
-
-    const isRecordArray = (value: unknown): value is Record<string, unknown>[] => {
-        return Array.isArray(value) && value.every(
-            (item) => typeof item === "object" && item !== null && !Array.isArray(item)
-        );
-    };
 
     const handleProjectRelease = async (name: string) => {
         await createRelease.mutateAsync({ name, project, release_notes: releaseNotes });
     };
 
+    // The backend reads and validates the uploaded files itself
     const handleFileRelease = async (name: string) => {
         if (!releaseFileToImport) {
             setImportError("Please choose a JSON file.");
             return false;
         }
-        const parsed = await parseJsonFile(releaseFileToImport);
-        if (typeof parsed !== "object" || parsed === null || !("project_data" in parsed)) {
-            setImportError("Invalid release file format.");
-            return false;
-        }
-        const releaseFile = parsed as { project_data: unknown; release_notes?: string[] };
         await importRelease.mutateAsync({
             name,
-            project,
-            project_data: releaseFile.project_data,
-            release_notes: Array.isArray(releaseFile.release_notes) ? releaseFile.release_notes : [],
+            file: releaseFileToImport,
+            release_notes: [],
         });
         return true;
     };
@@ -173,15 +159,9 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
             setImportError("Please choose a JSON file.");
             return false;
         }
-        const parsed = await parseJsonFile(systemsFileToImport);
-        if (!isRecordArray(parsed)) {
-            setImportError("Invalid systems file format. Expected a JSON array of systems.");
-            return false;
-        }
         await importSystemsRelease.mutateAsync({
             name,
-            project,
-            systems: parsed,
+            file: systemsFileToImport,
             release_notes: releaseNotes,
         });
         return true;
@@ -211,8 +191,8 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
     };
 
     const handleExportRelease = async (release: Release) => {
-        const response = await authAxios.get(`/v1/metadata/releases/${release.id}/export/`);
-        const jsonStr = JSON.stringify(response.data, null, 2);
+        const snapshot = await exportRelease(release.id);
+        const jsonStr = JSON.stringify(snapshot, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -232,13 +212,38 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
 
     const handleDeleteRelease = async (releaseId: string) => {
         try {
-            await authAxios.delete(`/v1/metadata/releases/${releaseId}/`);
-            await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
-        } catch {}
+            await deleteRelease(releaseId);
+            await refreshReleases();
+        } catch (error: any) {
+            alert(errorMessage(error, "Failed to delete this version."));
+        }
     };
 
     const handleLoadRelease = async (releaseId: string) => {
-        await authAxios.post(`/v1/metadata/releases/${releaseId}/load/`, { project });
+        try {
+            await restoreRelease(releaseId);
+        } catch (error: any) {
+            // 409: the project changed since its last version. Loading would
+            // discard those changes, so ask before forcing it.
+            if (error?.response?.status !== 409) {
+                alert(errorMessage(error, "Failed to load this version."));
+                return;
+            }
+            const discard = window.confirm(
+                `${errorMessage(error, "The project has unsaved changes.")}\n\n` +
+                "Load this version anyway and discard those changes?"
+            );
+            if (!discard) return;
+
+            try {
+                await restoreRelease(releaseId, true);
+            } catch (forcedError: any) {
+                alert(errorMessage(forcedError, "Failed to load this version."));
+                return;
+            }
+        }
+        // The project's systems and diagrams have changed, so refresh everything
+        await queryClient.invalidateQueries();
     };
 
     if (isLoadingReleases) {

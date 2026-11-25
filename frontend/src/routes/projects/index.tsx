@@ -1,20 +1,16 @@
-import { createProjectAtom } from "$browser/atoms";
-import { CreateProject } from "$browser/components/projects/CreateProject";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { queryClient } from "$lib/shared/hooks/queryClient";
-import { TopNavigation } from "$lib/shared/components/TopNavigation";
+import React, { useState } from "react";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
-import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Box, Plus, X, Upload } from "lucide-react";
-import React, { useState, useRef } from "react";
-import UploadFileModal from "$shared/components/Modals/FileUploadModal";
 
-type ProjectOut = {
-    id: string;
-    name: string;
-    description?: string;
-};
+import { createProjectAtom } from "$browser/atoms";
+import { CreateProject } from "$browser/components/projects/CreateProject";
+import { queryClient } from "$lib/shared/hooks/queryClient";
+import { TopNavigation } from "$lib/shared/components/TopNavigation";
+import UploadFileModal from "$shared/components/Modals/FileUploadModal";
+import { importProject } from "../../api/metadata/project";
+import { useDeleteProject, useProjects } from "../../api/metadata/hooks/project";
+import { queryKeys } from "../../api/querykeys";
 
 const ProjectsIndex: React.FC = () => {
     const [, setCreate] = useAtom(createProjectAtom);
@@ -27,12 +23,8 @@ const ProjectsIndex: React.FC = () => {
     const [uploadError, setUploadError] = useState<string | null>(null);
 
 
-    const { isLoading, isSuccess, data } = useQuery<ProjectOut[]>({
-        queryKey: ["projects"],
-        queryFn: async () => {
-            return (await authAxios.get("/v1/metadata/projects/")).data;
-        },
-    });
+    const { isLoading, isSuccess, data } = useProjects();
+    const deleteProject = useDeleteProject();
 
     const handleOpenUploadModal = () => {
         setSelectedFile(null);
@@ -51,48 +43,38 @@ const ProjectsIndex: React.FC = () => {
         setSelectedFile(file);
     }
 
-    const handleUploadProject = async() => {
+    const handleUploadProject = async () => {
         if (!selectedFile) return;
 
         setIsUploading(true);
         setUploadError(null);
 
         try {
-            const text = await selectedFile.text();
-            const json = JSON.parse(text);
-            await authAxios.post("/v1/metadata/projects/import/", json);
+            await importProject(selectedFile);
 
             setSelectedFile(null);
             setShowUploadModal(false);
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
-
+            queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
         } catch (error: any) {
-            const data = error?.response?.data;
-
-            if (data?.code === "PROJECT_EXISTS") {
-                const projectName = data?.project_name ?? "Unknow project";
-                setUploadError(
-                    `Project "${projectName}" already exists. To create a new version of this project, go to the versioning tab of this project.`
-                );
-            } else {
-                setUploadError(data?.message ?? "An error occurred while uploading the project.");
-            }
+            // The backend explains what went wrong in "message":
+            // 409 = the project already exists, 400 = the file isn't valid
+            setUploadError(
+                error?.response?.data?.message ??
+                    "An error occurred while uploading the project."
+            );
         } finally {
             setIsUploading(false);
         }
-    }
+    };
 
     const handleDeleteProject = async (projectId: string) => {
         try {
-            await authAxios.delete(`/v1/metadata/projects/${projectId}`);
+            await deleteProject.mutateAsync(projectId);
         } catch (error) {
             console.error('Error deleting project:', error);
         } finally {
             setProjectToDelete("");
             setShowDeleteProjectModal(false);
-            queryClient.invalidateQueries({
-                queryKey: [`projects`],
-            });
         }
     }
 
@@ -148,11 +130,11 @@ const ProjectsIndex: React.FC = () => {
                                                 {e.description}
                                             </h3>
                                             <span className="text-xs text-right pt-2 text-stone-500">
-                                                {e.id.split("-").slice(-1)}
+                                                {e.id?.split("-").slice(-1)}
                                             </span>
                                         </a>
                                         <button
-                                            onClick={() => openDeleteProjectModal(e.id)}
+                                            onClick={() => openDeleteProjectModal(e.id ?? "")}
                                             className="absolute top-1 right-1 text-gray-500 hover:text-red-500"
                                         >
                                             <X />

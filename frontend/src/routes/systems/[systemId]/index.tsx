@@ -1,31 +1,15 @@
-import { authAxios } from "$lib/features/auth/state/auth";
 import SystemLayout from "$lib/features/browser/components/systems/SystemLayout";
-import { queryClient } from "$lib/shared/hooks/queryClient";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { Component, Network, Plus, User, Workflow, Blocks, X, Download } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router";
 import { ShowMetadata } from "$metadata/components/ShowMetadata";
-
-type FlatDiagram = {
-    id: string;
-    name: string;
-    description: string;
-    type: string;
-};
-
-type SystemOut = {
-    id: string;
-    name: string;
-    description?: string;
-    diagrams: FlatDiagram[];
-};
-
-type NewDiagram = {
-    type: string;
-    name: string;
-};
+import { useSystem } from "../../../api/metadata/hooks/system";
+import {
+    useCreateDiagram,
+    useDeleteDiagram,
+    useDiagrams,
+} from "../../../api/diagram/hooks/diagram";
 
 
 const SystemDiagrams: React.FC = () => {
@@ -34,28 +18,12 @@ const SystemDiagrams: React.FC = () => {
     const [showDeleteDiagramModal, setShowDeleteDiagramModal] = useState(false);
     const [diagramToDelete, setDiagramToDelete] = useState("");
 
-    const system = useQuery<SystemOut>({
-        queryKey: [`system`, `${systemId}`],
-        queryFn: async () => {
-            return (await authAxios.get(`/v1/metadata/systems/${systemId}/`))
-                .data;
-        },
-        enabled: !!systemId,
-    });
-
-    const newDiagram = useMutation<unknown, unknown, NewDiagram>({
-        mutationFn: async ({ type }) => {
-            await authAxios.post(`/v1/diagram/`, {
-                system_id: systemId,
-                type: type,
-            });
-            queryClient.refetchQueries({
-                queryKey: [`system`, `${systemId}`],
-            });
-        },
-    });
-
-    const diagrams = system.data?.diagrams ?? [];
+    const system = useSystem(systemId ?? "");
+    // Use the diagram list rather than system.diagrams, so creating or
+    // deleting a diagram refreshes it through the diagram query keys
+    const { data: diagrams = [] } = useDiagrams(systemId ?? "");
+    const createDiagram = useCreateDiagram();
+    const deleteDiagram = useDeleteDiagram();
     const uiDiagrams = [
         {
             type: "class",
@@ -94,15 +62,12 @@ const SystemDiagrams: React.FC = () => {
 
     const handleDeleteDiagram = async (diagramId: string) => {
         try {
-            await authAxios.delete(`/v1/diagram/${diagramId}/`);
+            await deleteDiagram.mutateAsync(diagramId);
         } catch (error) {
             console.error('Error deleting diagram:', error);
         } finally {
             setDiagramToDelete("");
             setShowDeleteDiagramModal(false);
-            queryClient.invalidateQueries({
-                queryKey: [`system`, `${systemId}`],
-            });
         }
     }
 
@@ -127,7 +92,7 @@ const SystemDiagrams: React.FC = () => {
                                         <h1 className="text-lg">{name}</h1>
                                     </span>
                                     <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2">
-                                        {diagrams.map(({ id, name }) => (
+                                        {diagrams.map(({ id, name }) => id && (
                                             <div key={id} className="relative">
                                                 <a
                                                     href={`/diagram/${id}`}
@@ -148,9 +113,11 @@ const SystemDiagrams: React.FC = () => {
                                         ))}
                                         <button
                                             onClick={() =>
-                                                newDiagram.mutate({
+                                                systemId &&
+                                                createDiagram.mutate({
+                                                    system_id: systemId,
                                                     type: type,
-                                                    name: name,
+                                                    name: "Diagram",
                                                 })
                                             }
                                             className="flex h-full flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"

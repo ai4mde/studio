@@ -1,12 +1,12 @@
+import React, { useEffect, useState } from "react";
+import Button from "@mui/joy/Button";
+import Draggable from "react-draggable";
+import { X } from "lucide-react";
+import { createPortal } from "react-dom";
+
 import { importNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useImportNodeModal } from "$diagram/stores/modals";
-import Button from "@mui/joy/Button";
-import { useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import Draggable from "react-draggable";
 import { ImportActivityNode } from "./ImportActivityNode";
 import { ImportClassNode } from "./ImportClassNode";
 import { ImportUsecaseNode } from "./ImportUsecaseNode";
@@ -17,7 +17,6 @@ export const ImportNodeModal: React.FC = () => {
     const { close } = useImportNodeModal();
 
     const [object, setObject] = useState<any>({});
-    const queryClient = useQueryClient();
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -40,9 +39,6 @@ export const ImportNodeModal: React.FC = () => {
                         onSubmit={(e) => {
                             e.preventDefault();
                             importNode(diagram, object.id);
-                            queryClient.refetchQueries({
-                                queryKey: ["diagram"],
-                            });
                             close();
                         }}
                     >

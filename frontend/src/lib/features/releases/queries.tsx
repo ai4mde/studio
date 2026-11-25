@@ -1,23 +1,18 @@
-import { authAxios } from "$auth/state/auth";
 import { useQuery } from "@tanstack/react-query";
-
+import { listReleases } from "../../../api/metadata/releases";
 
 export type Release = {
     id: string;
     name: string;
     created_at: string;
-    release_notes: string[]; 
-}
+    release_notes: string[];
+};
 
 export const useProjectReleases = (projectId: string) => {
     const queryResult = useQuery<Release[]>({
         queryKey: ["project", projectId, "releases"],
-        queryFn: async () => {
-            const response = await authAxios.get(
-                `/v1/metadata/releases/project/${projectId}/`
-            );
-            return response.data;
-        },
+        queryFn: async () =>
+            (await listReleases(projectId)) as unknown as Release[],
         enabled: !!projectId,
     });
 

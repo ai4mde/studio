@@ -26,7 +26,9 @@ export const Sections: React.FC<Props> = () => {
     const [pencelClickText, setPencelClickText] = useState(false);
     const [classes, isSuccessClasses] = useSystemClasses(systemId);
     const [selectedClass, setSelectedClass] = useLocalStorage('selectedClass', '');
-    const [classAttributes] = useClassAttributes(systemId, selectedClass);
+    // Only ask for attributes of a class that still exists
+    const existingClass = classes.some((c) => c.id === selectedClass) ? selectedClass : "";
+    const [classAttributes] = useClassAttributes(systemId, existingClass);
     const [classCustomMethods] = useClassCustomMethods(systemId, selectedClass)
     //const [attributes, setAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);

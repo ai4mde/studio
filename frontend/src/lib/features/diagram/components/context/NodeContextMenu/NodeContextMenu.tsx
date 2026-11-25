@@ -1,11 +1,10 @@
 import ContextMenu from "$diagram/components/context/ContextMenu/ContextMenu";
 import { startManualConnect } from "$diagram/events";
-import { partialUpdateNode } from "$diagram/mutations/diagram";
+import { deleteNode, partialUpdateNode } from "$diagram/mutations/diagram";
+import { getClassifierUsage } from "$diagram/queries/usage";
 import { useDiagramStore } from "$diagram/stores";
 import { useNodeContextMenu } from "$diagram/stores/contextMenus";
 import { useEditNodeModal, useConfirmDeleteClassifierModal } from "$diagram/stores/modals";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { queryClient } from "$shared/hooks/queryClient";
 import { Copy, Edit, GitBranchPlus, Trash, UploadCloud, PlusCircle, MinusCircle } from "lucide-react";
 import React, { MouseEventHandler, useState, useRef, useEffect } from "react";
 import { useStoreApi } from "reactflow";
@@ -13,7 +12,7 @@ import DeleteConfirmationModal from "$diagram/components/modals/DeleteConfirmati
 
 const NodeContextMenu: React.FC = () => {
     const { x, y, node, close } = useNodeContextMenu();
-    const { diagram, type, nodes, relatedDiagrams } = useDiagramStore();
+    const { diagram, type, nodes, relatedDiagrams, systemId, systemName, uniqueActors } = useDiagramStore();
     const { setState, getState } = useStoreApi();
 
     const [canRemove, setCanRemove] = useState(true);
@@ -32,12 +31,16 @@ const NodeContextMenu: React.FC = () => {
         let cancelled = false;
 
         const run = async () => {
-            if (!node) return;
+            if (!node || !systemId) return;
             setCheckingUsage(true);
 
             try {
-                const res = await authAxios.get(`/v1/diagram/${diagram}/node/${node.id}/classifier-usage/`,);
-                const usages = res.data?.usages ?? [];
+                const usages = await getClassifierUsage(
+                    systemId,
+                    systemName,
+                    diagram,
+                    node.data.classifierId,
+                );
                 const allowRemove = usages.length > 0;
                 if (!cancelled) setCanRemove(allowRemove);
             } catch {
@@ -51,7 +54,7 @@ const NodeContextMenu: React.FC = () => {
         return () => {
             cancelled = true;
         };
-    }, [node?.id, diagram]);
+    }, [node?.id, diagram, systemId]);
 
 
     const onEdit = () => {
@@ -61,21 +64,23 @@ const NodeContextMenu: React.FC = () => {
 
     const onRemove = async () => {
         if (node) {
-            await authAxios.delete(`/v1/diagram/${diagram}/node/${node.id}/`);
-            await queryClient.refetchQueries({
-                queryKey: [`diagram`],
-            });
+            await deleteNode(diagram, node.id);
             close();
         }
     };
 
     const onDeleteCompletely = async () => {
         if (node) {
-            const res = await authAxios.get(`/v1/diagram/${diagram}/node/${node.id}/classifier-usage/`);
+            const usages = await getClassifierUsage(
+                systemId,
+                systemName,
+                diagram,
+                node.data.classifierId,
+            );
             confirmDeleteClassifierModal.open({
                 nodeId: node.id,
-                classifierName: res.data.classifier_name,
-                usages: res.data.usages,
+                classifierName: node.data.name ?? "(unknown)",
+                usages,
             });
 
             close();
@@ -99,10 +104,7 @@ const NodeContextMenu: React.FC = () => {
                 return;
             }
         }
-        await authAxios.delete(`/v1/diagram/${diagram}/node/${node.id}/`);
-        await queryClient.refetchQueries({
-            queryKey: [`diagram`],
-        });
+        await deleteNode(diagram, node.id);
         close();
     };
 
@@ -136,6 +138,7 @@ const NodeContextMenu: React.FC = () => {
         remove: boolean;
         parentId: string | null;
         clsPatch: Record<string, any>;
+        nodePatch?: Record<string, any>;
       }
     ) => {
       const currentNode = nodes.find((n) => n.id === nodeId)
@@ -159,33 +162,34 @@ const NodeContextMenu: React.FC = () => {
       }
 
       partialUpdateNode(diagram, nodeId, {
+        ...opts.nodePatch,
         cls: opts.clsPatch,
         data: {
           position: newPosition,
         },
       });
-      queryClient.refetchQueries({
-        queryKey: [`diagram`],
-      });
       close();
     }
 
-    const addToSwimlane = (nodeId: string, actorNodeId: string) => {
-      const currentNode = nodes.find((n) => n.id === nodeId);
-      const remove = currentNode?.data.actorNode === actorNodeId;
+    // An action belongs to a swimlane through its "swimlane" field (the lane's classifier id)
+    const addToSwimlane = (nodeId: string, laneClassifierId: string) => {
+        const currentNode = nodes.find((n) => n.id === nodeId);
+        const remove = currentNode?.data.swimlane === laneClassifierId;
 
-      updateParenting(nodeId, {
+        updateParenting(nodeId, {
         remove,
-        parentId: swimlaneGroup?.id ?? null, // or swimlaneGroupUUID if that's your parent id
-        clsPatch: { actorNode: remove ? null : actorNodeId },
-      });
+        parentId: swimlaneGroup?.id ?? null,
+        clsPatch: { swimlane_id: remove ? null : laneClassifierId },
+        });
     };
 
     const addToParentNode = (nodeId: string, remove: boolean, parentNodeId: string) => {
       updateParenting(nodeId, {
         remove,
         parentId: parentNodeId,
-        clsPatch: { parentNode: remove ? null : parentNodeId },
+        clsPatch: {},
+        // The parent is now a field of the node itself
+        nodePatch: { parent_id: remove ? null : parentNodeId },
       });
     };
   
@@ -257,18 +261,18 @@ const NodeContextMenu: React.FC = () => {
                                  y={swimlaneButtonRef.current.getBoundingClientRect().top}
                              >
                                  <>
-                                    {swimlaneGroup?.data.swimlanes
-                                        .filter((swimlane) => swimlane.actorNodeName !== 'Unknown actor')
-                                        .map((swimlane, index) => (
-                                        <li key={index}>
-                                            <button
-                                                onClick={() => addToSwimlane(node.id, swimlane.actorNode)}
-                                                className={node?.data.actorNode === swimlane.actorNode ? 'bg-blue-600 text-gray-50' : ''}
-                                            >
-                                                <span>{swimlane.actorNodeName}</span>
-                                            </button>
-                                        </li>
-                                    ))}
+                                       {swimlaneGroup?.data.swimlanes.map((swimlane, index) => (
+                                            <li key={swimlane.nodeId ?? index}>
+                                                <button
+                                                    onClick={() => addToSwimlane(node.id, swimlane.classifierId)}
+                                                    className={node?.data.swimlane === swimlane.classifierId ? 'bg-blue-600 text-gray-50' : ''}
+                                                >
+                                                    <span>
+                                                        {uniqueActors.find((a) => a.cls === swimlane.actor)?.name ?? "Unknown actor"}
+                                                    </span>
+                                                </button>
+                                            </li>
+                                        ))}
                                  </>
                              </ContextMenu>
                          )}
@@ -278,14 +282,14 @@ const NodeContextMenu: React.FC = () => {
                       <li>
                         <button onClick={() => addToParentNode(
                               node.id,
-                              node.data?.parentNode ? true: false,
+                              node.parentNode ? true: false,
                               systemBoundary ? systemBoundary.id : ''
                             )}
                           >
                             <span>
-                              {node.data?.parentNode ? 'Remove from System' : 'Add to System'}
+                              {node.parentNode ? 'Remove from System' : 'Add to System'}
                             </span>
-                            {node.data?.parentNode ? <MinusCircle size={14} /> : <PlusCircle size={14} />}
+                            {node.parentNode ? <MinusCircle size={14} /> : <PlusCircle size={14} />}
                         </button>
                       </li>
                     )}

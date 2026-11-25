@@ -53,7 +53,7 @@ def list_interfaces(request, system_id: UUID | None = None):
     return interfaces
 
 
-@router.get("/{interface_id}/", response=InterfaceRead)
+@router.get("/{uuid:interface_id}/", response=InterfaceRead)
 def read_interface(request, interface_id: UUID):
     return get_object_or_404(
         Interface.objects.prefetch_related(
@@ -70,13 +70,13 @@ def create_interface(request, payload: InterfaceCreate):
     return create_instance(Interface, payload)
 
 
-@router.patch("/{interface_id}/", response=InterfaceRead)
+@router.patch("/{uuid:interface_id}/", response=InterfaceRead)
 def update_interface(request, interface_id: UUID, payload: InterfaceUpdate):
     interface = get_object_or_404(Interface, id=interface_id)
     return update_instance(interface, payload)
 
 
-@router.delete("/{interface_id}/", response={204: None})
+@router.delete("/{uuid:interface_id}/", response={204: None})
 def delete_interface(request, interface_id: UUID):
     interface = get_object_or_404(Interface, id=interface_id)
     interface.delete()

@@ -1,4 +1,5 @@
 from ninja import ModelSchema
+from uuid import UUID
 
 from diagram.models import Node
 
@@ -29,7 +30,9 @@ class NodeRead(ModelSchema):
 
 
 class NodeCreate(ModelSchema):
-    classifier: ClassifierCreate # type: ignore[valid-type]
+    # Send either a new classifier, or the id of an existing one
+    classifier: ClassifierCreate | None = None  # type: ignore[valid-type]
+    classifier_id: UUID | None = None
 
     class Meta:
         model = Node
@@ -55,6 +58,8 @@ class NodeCreate(ModelSchema):
 
 class NodeUpdate(ModelSchema):
     classifier: ClassifierUpdate | None = None
+    # Switch the node to an existing classifier
+    classifier_id: UUID | None = None
 
     class Meta:
         model = Node

@@ -24,8 +24,8 @@ class PageSectionRead(ModelSchema):
 class PageSectionCreate(ModelSchema):
     class Meta:
         model = PageSection
-        fields = ["order"]
-        fields_optional = "__all__"
+        fields = ["page", "section", "order"]
+        fields_optional = ["order"]
 
 
 class PageSectionUpdate(ModelSchema):

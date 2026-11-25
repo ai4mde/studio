@@ -35,7 +35,7 @@ export type DiagramState = {
     system: string;
     systemId: string;
     systemName: string;
-    setSystem: (system: string) => void;
+    setSystem: (system: string, name?: string) => void;
 
     lock: boolean;
     refreshLock: () => void;

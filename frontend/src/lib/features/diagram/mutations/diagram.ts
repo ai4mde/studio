@@ -1,29 +1,98 @@
-import { authAxios } from "$lib/features/auth/state/auth";
+import type { NodeCreate, NodeUpdate } from "../../../../api/diagram/node";
+import type { EdgeCreate, EdgeUpdate } from "../../../../api/diagram/edge";
+import { createNode, updateNode, deleteNode as deleteApiNode } from "../../../../api/diagram/node";
+import { createEdge, updateEdge, deleteEdge as deleteApiEdge } from "../../../../api/diagram/edge";
 import { queryClient } from "$lib/shared/hooks/queryClient";
+import { queryKeys } from "../../../../api/querykeys";
+import { classifierDataToApi, classifierTypeToApi, multiplicityToApi } from "./fields";
+
+// Fields that now live on the node itself instead of in the classifier data
+const NODE_FIELDS = ["height", "width", "color", "font"] as const;
+
+const invalidateDiagram = (diagram: string) =>
+    queryClient.invalidateQueries({
+        queryKey: queryKeys.diagrams.detail(diagram),
+    });
+
+const invalidateClassifiers = () =>
+    queryClient.invalidateQueries({
+        queryKey: queryKeys.classifiers.all,
+    });
 
 export const addNode = async (diagram: string, data: any) => {
     // TODO Temporary fix, input should not be flat. The data fields should be nested
-    const { type, ...classifierData } = data;
+    const { type, position, ...classifierData } = data;
 
-    await authAxios.post(`/v1/diagram/${diagram}/node/`, {
+    const nodeFields: Record<string, unknown> = {};
+    for (const field of NODE_FIELDS) {
+        if (field in classifierData) {
+            nodeFields[field] = classifierData[field];
+            delete classifierData[field];
+        }
+    }
+
+    const node = await createNode(diagram, {
         classifier: {
-            type,
-            data: classifierData,
+            type: classifierTypeToApi(type),
+            data: classifierDataToApi(classifierData),
         },
-    });
+        x_position: position?.x ?? 0,
+        y_position: position?.y ?? 0,
+        ...nodeFields,
+    } as NodeCreate);
 
-    queryClient.invalidateQueries({
-        queryKey: ["diagram", diagram],
-    });
+    invalidateDiagram(diagram);
+    invalidateClassifiers();
+    return node;
 };
 
-export const importNode = async (diagram: string, id: string) => {
-    await authAxios.post(`/v1/diagram/${diagram}/node/import/${id}/`, {
-    });
+// Adds a node for an existing classifier of the same system
+export const importNode = async (diagram: string, classifierId: string) => {
+    await createNode(diagram, {
+        classifier_id: classifierId,
+        x_position: 0,
+        y_position: 0,
+    } as NodeCreate);
 
-    queryClient.invalidateQueries({
-        queryKey: ["diagram", diagram],
-    });
+    invalidateDiagram(diagram);
+};
+
+// Old payloads looked like { cls: {...classifier data}, data: { position } }.
+// Translate them to the new NodeUpdate shape.
+export const toNodeUpdate = (data: any): NodeUpdate => {
+    const payload: Record<string, unknown> = {};
+
+    const position = data?.data?.position ?? data?.position;
+    if (position) {
+        payload.x_position = position.x;
+        payload.y_position = position.y;
+    }
+
+    if ("parent_id" in (data ?? {})) {
+        payload.parent_id = data.parent_id;
+    }
+
+    if (data?.cls) {
+        const classifierData = { ...data.cls };
+
+        for (const field of NODE_FIELDS) {
+            if (field in classifierData) {
+                payload[field] = classifierData[field];
+                delete classifierData[field];
+            }
+        }
+
+        // These are only added on the frontend when reading nodes
+        delete classifierData.classifierId;
+        delete classifierData.systemId;
+        delete classifierData.type;
+
+        if (Object.keys(classifierData).length > 0) {
+            payload.classifier = { data: classifierDataToApi(classifierData) };
+        }
+    }
+
+    return payload as NodeUpdate;
 };
 
 export const partialUpdateNode = async (
@@ -31,18 +100,21 @@ export const partialUpdateNode = async (
     node: string,
     data: any,
 ) => {
-    await authAxios.patch(`/v1/diagram/${diagram}/node/${node}/`, data);
+    const payload = toNodeUpdate(data);
+    await updateNode(node, payload);
 
-    queryClient.invalidateQueries({
-        queryKey: ["diagram", diagram],
-    });
+    invalidateDiagram(diagram);
+    if (payload.classifier) {
+        invalidateClassifiers();
+    }
 };
-export const deleteNode = async (diagram: string, node: string) => {
-    await authAxios.delete(`/v1/diagram/${diagram}/node/${node}/`);
 
-    queryClient.invalidateQueries({
-        queryKey: ["diagram", diagram],
-    });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const deleteNode = async (_diagram: string, node: string) => {
+    await deleteApiNode(node);
+
+    // Deleting a node can also remove its classifier and relations
+    queryClient.invalidateQueries();
 };
 
 export const addEdge = async (
@@ -51,15 +123,56 @@ export const addEdge = async (
     source: string,
     target: string,
 ) => {
-    await authAxios.post(`/v1/diagram/${diagram}/edge/`, {
-        source: source,
-        target: target,
-        rel: data,
-    });
+    const { type, ...relationData } = data ?? {};
 
-    queryClient.invalidateQueries({
-        queryKey: ["diagram", diagram],
-    });
+    if (type === "association" || type === "composition") {
+        relationData.multiplicity = multiplicityToApi(relationData.multiplicity);
+    }
+
+    await createEdge(diagram, {
+        source_id: source,
+        target_id: target,
+        relation: {
+            type,
+            data: relationData,
+        },
+    } as EdgeCreate);
+
+    invalidateDiagram(diagram);
+};
+
+// Old payloads looked like { rel: {...relation data}, data: {...edge data} }.
+export const toEdgeUpdate = (data: any): EdgeUpdate => {
+    const payload: Record<string, unknown> = {};
+
+    if (data?.rel) {
+        // Strip the fields we add on the frontend when reading edges
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { type, edge_data, relationId, ...relationData } = data.rel;
+        if (type === "association" || type === "composition") {
+            relationData.multiplicity = multiplicityToApi(relationData.multiplicity);
+        }
+        payload.relation = { data: relationData };
+    }
+
+    for (const field of ["width", "color", "font", "rounded"]) {
+        if (data?.data && field in data.data) {
+            payload[field] = data.data[field];
+        }
+    }
+
+    // Bend points are stored as control points, in the order they're drawn
+    if (data?.data?.position_handlers) {
+        payload.control_points = data.data.position_handlers.map(
+            (point: { x: number; y: number }, index: number) => ({
+                x_position: Math.round(point.x),
+                y_position: Math.round(point.y),
+                order: index,
+            }),
+        );
+    }
+
+    return payload as EdgeUpdate;
 };
 
 export const partialUpdateEdge = async (
@@ -67,17 +180,13 @@ export const partialUpdateEdge = async (
     edge: string,
     data: any,
 ) => {
-    await authAxios.patch(`/v1/diagram/${diagram}/edge/${edge}/`, data);
+    await updateEdge(edge, toEdgeUpdate(data));
 
-    queryClient.invalidateQueries({
-        queryKey: ["diagram", diagram],
-    });
+    invalidateDiagram(diagram);
 };
 
 export const deleteEdge = async (diagram: string, edge: string) => {
-    await authAxios.delete(`/v1/diagram/${diagram}/edge/${edge}/`);
+    await deleteApiEdge(edge);
 
-    queryClient.invalidateQueries({
-        queryKey: ["diagram", diagram],
-    });
+    invalidateDiagram(diagram);
 };
