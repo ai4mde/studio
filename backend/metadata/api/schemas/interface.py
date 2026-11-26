@@ -2,6 +2,7 @@ from uuid import UUID
 
 from ninja import Field, ModelSchema
 
+from metadata.api.schemas.classifier.class_diagram import AttributeRead, OperationRead
 from metadata.models import (
     Category,
     Interface,
@@ -9,6 +10,7 @@ from metadata.models import (
     PageSection,
     SectionAttribute,
     SectionComponent,
+    SectionOperation,
 )
 
 
@@ -37,7 +39,7 @@ class PageSectionUpdate(ModelSchema):
 
 class PageRead(ModelSchema):
     action: UUID | None = Field(None, alias="action_id")
-    page_sections: list[PageSectionRead] = []
+    page_sections: list[PageSectionRead]
 
     class Meta:
         model = Page
@@ -99,6 +101,8 @@ class CategoryUpdate(ModelSchema):
 
 
 class SectionAttributeRead(ModelSchema):
+    attribute: AttributeRead
+    
     class Meta:
         model = SectionAttribute
         fields = ["id", "section", "attribute", "order"]
@@ -117,9 +121,18 @@ class SectionAttributeUpdate(ModelSchema):
         fields_optional = "__all__"
 
 
+class SectionOperationRead(ModelSchema):
+    operation: OperationRead
+
+    class Meta:
+        model = SectionOperation
+        fields = ["id", "section", "operation"]
+
+
 class SectionComponentRead(ModelSchema):
     uml_class: UUID | None = Field(None, alias="uml_class_id")
-    attributes: list[SectionAttributeRead] = []
+    attributes: list[SectionAttributeRead]
+    operations: list[SectionOperationRead]
 
     class Meta:
         model = SectionComponent

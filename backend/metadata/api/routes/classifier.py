@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from metadata.api.schemas.classifier import ClassifierRead
-from metadata.api.schemas.class_members import (
+from metadata.api.schemas.classifier.class_diagram import (
     AttributeCreate,
     AttributeRead,
     AttributeUpdate,
@@ -60,7 +60,7 @@ def get_enum(uml_class: ClassClassifier, enum_id: UUID | None) -> Enum | None:
 # ============================================================
 @router.get("/{classifier_id}/attributes/", response=list[AttributeRead])
 def list_attributes(request, classifier_id: UUID):
-    return get_class(classifier_id).attributes.all()
+    return get_class(classifier_id).operations.all()
 
 
 @router.post("/{classifier_id}/attributes/", response=AttributeRead)

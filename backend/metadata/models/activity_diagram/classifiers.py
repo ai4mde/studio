@@ -4,7 +4,7 @@ from django.db import models
 from ..classifier import ClassifierDataModel
 from ..fields import CronField, PythonField
 from ..types import ActivityScope, ClassifierType
-from ..utils import ValidationMixin
+from ..mixins.validation import ValidationMixin
 
 
 class Swimlane(ValidationMixin, ClassifierDataModel):

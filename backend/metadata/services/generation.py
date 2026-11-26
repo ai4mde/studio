@@ -80,5 +80,5 @@ def generate_method(
             "method_description": description,
         },
         model=model,
-        related_records=lambda cls: cls.methods.all(),
+        related_records=lambda cls: cls.operations.all(),
     )

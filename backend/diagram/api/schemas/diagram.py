@@ -14,7 +14,7 @@ class DiagramRead(ModelSchema):
 
 
 class RelatedDiagramRead(ModelSchema):
-    nodes: list[EdgeRead]
+    nodes: list[NodeRead]
 
     class Meta:
         model = Diagram

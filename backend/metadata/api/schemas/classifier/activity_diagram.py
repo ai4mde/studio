@@ -11,6 +11,7 @@ from metadata.models import (
     Swimlane,
 )
 from metadata.models.types import ClassifierType
+from metadata.api.schemas.classifier.usecase_diagram import ActorRead
 
 
 # Django Ninja infers int for foreign keys to models whose primary key is
@@ -18,7 +19,7 @@ from metadata.models.types import ClassifierType
 
 class SwimlaneRead(ModelSchema):
     parent: UUID | None = Field(None, alias="parent_id")
-    actor: UUID | None = Field(None, alias="actor_id")
+    actor: ActorRead | None
 
     class Meta:
         model = Swimlane
@@ -45,7 +46,7 @@ class SwimlaneUpdate(ModelSchema):
 
 
 class ActionRead(ModelSchema):
-    swimlane: UUID | None = Field(None, alias="swimlane_id")  
+    swimlane: SwimlaneRead | None
 
     class Meta:
         model = Action

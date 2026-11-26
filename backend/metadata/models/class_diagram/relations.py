@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from ..relation import RelationDataModel
+from ..mixins.nested_data import NestedDataMixin
 
 
 class Multiplicity(models.Model):
@@ -32,63 +33,24 @@ class EndpointLabel(models.Model):
     target = models.CharField(max_length=255, blank=True, default="")
 
 
-class MultiplicityAndLabelsMixin:
-    """
-        Lets the API send multiplicity and labels as nested values.
-        The rows in Multiplicity and EndpointLabel are created and
-        updated here, so the frontend never has to know their ids.
-    """
-
-    @classmethod
-    def prepare_data(cls, data):
-        data = dict(data)
-
-        # Only create the rows when the caller didn't pass them already
-        # (the prose import creates its own and passes multiplicity_id/labels_id)
-        multiplicity = data.get("multiplicity")
-        if "multiplicity_id" not in data and (multiplicity is None or isinstance(multiplicity, dict)):
-            instance = Multiplicity(**{
-                "source_lower": 1,
-                "source_upper": 1,
-                "target_lower": 1,
-                "target_upper": 1,
-                **(multiplicity or {}),
-            })
-            instance.full_clean()
-            instance.save()
-            data["multiplicity"] = instance.id
-
-        labels = data.get("labels")
-        if "labels_id" not in data and (labels is None or isinstance(labels, dict)):
-            instance = EndpointLabel(**{
-                "source": "",
-                "target": "",
-                **(labels or {}),
-            })
-            instance.full_clean()
-            instance.save()
-            data["labels"] = instance.id
-
-        return data
-
-    def prepare_update(self, data):
-        data = dict(data)
-
-        for field in ("multiplicity", "labels"):
-            values = data.pop(field, None)
-            if values is None:
-                continue
-
-            related = getattr(self, field)
-            for name, value in values.items():
-                setattr(related, name, value)
-            related.full_clean()
-            related.save()
-
-        return data
+MULTIPLICITY_AND_LABELS = {
+    "multiplicity": {
+        "source_lower": 1,
+        "source_upper": 1,
+        "target_lower": 1,
+        "target_upper": 1,
+    },
+    "labels": {
+        "source": "",
+        "target": "",
+    },
+}
 
 
-class Association(MultiplicityAndLabelsMixin, RelationDataModel):
+
+class Association(NestedDataMixin, RelationDataModel):
+    nested_forward = MULTIPLICITY_AND_LABELS
+
     derived = models.BooleanField(default=False)
     label = models.CharField(max_length=255, blank=True, default="")
     multiplicity = models.OneToOneField(
@@ -103,7 +65,10 @@ class Association(MultiplicityAndLabelsMixin, RelationDataModel):
     )
 
 
-class Composition(MultiplicityAndLabelsMixin, RelationDataModel):
+
+class Composition(NestedDataMixin, RelationDataModel):
+    nested_forward = MULTIPLICITY_AND_LABELS
+    
     label = models.CharField(max_length=255, blank=True, default="")
     multiplicity = models.OneToOneField(
         Multiplicity,

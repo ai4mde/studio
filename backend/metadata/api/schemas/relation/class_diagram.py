@@ -1,35 +1,49 @@
-from ninja import ModelSchema, Schema
+from ninja import ModelSchema
 
 from metadata.models import (
     Association,
     Composition,
     Dependency,
+    Multiplicity,
+    EndpointLabel,
 )
 from metadata.models.types import RelationType
 
 
-class MultiplicitySchema(Schema):
-    source_lower: int = 1
-    source_upper: int | None = 1
-    target_lower: int = 1
-    target_upper: int | None = 1
+class MultiplicitySchema(ModelSchema):
+    class Meta:
+        model = Multiplicity
+        fields = [
+            "source_lower",
+            "source_upper",
+            "target_lower",
+            "target_upper",
+        ]
 
 
-class MultiplicityUpdateSchema(Schema):
-    source_lower: int | None = None
-    source_upper: int | None = None
-    target_lower: int | None = None
-    target_upper: int | None = None
+class MultiplicityUpdateSchema(ModelSchema):
+    class Meta:
+        model = Multiplicity
+        fields = [
+            "source_lower",
+            "source_upper",
+            "target_lower",
+            "target_upper",
+        ]
+        fields_optional = "__all__"
 
 
-class EndpointLabelSchema(Schema):
-    source: str = ""
-    target: str = ""
+class EndpointLabelSchema(ModelSchema):
+    class Meta:
+        model = EndpointLabel
+        fields = ["source", "target"]
 
 
-class EndpointLabelUpdateSchema(Schema):
-    source: str | None = None
-    target: str | None = None
+class EndpointLabelUpdateSchema(ModelSchema):
+    class Meta:
+        model = EndpointLabel
+        fields = ["source", "target"]
+        fields_optional = "__all__"
 
 
 class AssociationRead(ModelSchema):
@@ -42,8 +56,8 @@ class AssociationRead(ModelSchema):
 
 
 class AssociationCreate(ModelSchema):
-    multiplicity: MultiplicitySchema = MultiplicitySchema()
-    labels: EndpointLabelSchema = EndpointLabelSchema()
+    multiplicity: MultiplicitySchema
+    labels: EndpointLabelSchema | None = None
 
     class Meta:
         model = Association
@@ -71,8 +85,8 @@ class CompositionRead(ModelSchema):
 
 
 class CompositionCreate(ModelSchema):
-    multiplicity: MultiplicitySchema = MultiplicitySchema()
-    labels: EndpointLabelSchema = EndpointLabelSchema()
+    multiplicity: MultiplicitySchema
+    labels: EndpointLabelSchema | None = None
 
     class Meta:
         model = Composition

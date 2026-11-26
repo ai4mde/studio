@@ -1,10 +1,13 @@
 from ninja import ModelSchema
 
+from metadata.api.schemas.classifier.class_diagram import AttributeRead
 from metadata.models import ControlFlow
 from metadata.models.types import RelationType
 
 
 class ControlFlowRead(ModelSchema):
+    attribute: AttributeRead | None
+    
     class Meta:
         model = ControlFlow
         fields = [

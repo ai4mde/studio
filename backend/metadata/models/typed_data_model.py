@@ -98,6 +98,11 @@ class TypedDataModel(models.Model):
         data_model = cls.get_data_model(data_type)
 
         if data_model is not None:
+            reverse_data = {}
+
+            if hasattr(data_model, "extract_reverse_data"):
+                data, reverse_data = data_model.extract_reverse_data(data)
+
             if hasattr(data_model, "prepare_data"):
                 data = data_model.prepare_data(data)
 
@@ -115,6 +120,9 @@ class TypedDataModel(models.Model):
 
             typed_data.full_clean()
             typed_data.save()
+
+            if reverse_data:
+                typed_data.create_reverse_data(reverse_data)
 
         return instance
 

@@ -146,3 +146,17 @@ class SectionAttribute(models.Model):
                 name="unique_section_attribute",
             ),
         ]
+
+
+class SectionOperation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    section = models.ForeignKey(
+        SectionComponent,
+        on_delete=models.CASCADE,
+        related_name="operations",
+    )
+    operation = models.ForeignKey(
+        "Operation",
+        on_delete=models.CASCADE,
+        related_name="section_operations",
+    )

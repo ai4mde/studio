@@ -4,6 +4,7 @@ from django.db import models
 
 from ..classifier import ClassifierDataModel
 from ..fields import PythonField
+from ..mixins.nested_data import NestedDataMixin
 from ..types import DataType
 
 
@@ -11,7 +12,9 @@ class ClassClassifier(ClassifierDataModel):
     name = models.CharField(max_length=255)
 
 
-class Enum(ClassifierDataModel):
+class Enum(NestedDataMixin, ClassifierDataModel):
+    nested_reverse = ("literals",)
+    
     name = models.CharField(max_length=255)
 
 
@@ -64,7 +67,7 @@ class Operation(models.Model):
     uml_class = models.ForeignKey(
         ClassClassifier,
         on_delete=models.CASCADE,
-        related_name="methods",
+        related_name="operations",
     )
     name = models.CharField(max_length=255)
     description = models.TextField(

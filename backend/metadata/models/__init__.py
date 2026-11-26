@@ -65,5 +65,6 @@ from .interface import (
     Page,
     PageSection,
     SectionAttribute,
+    SectionOperation,
     SectionComponent
 )
