@@ -8,11 +8,14 @@ from metadata.api.schemas.classifier.class_diagram import (
     AttributeCreate,
     AttributeRead,
     AttributeUpdate,
+    EnumLiteralCreate,
+    EnumLiteralRead,
+    EnumLiteralUpdate,
     OperationCreate,
     OperationRead,
     OperationUpdate,
 )
-from metadata.models import Attribute, ClassClassifier, Classifier, Enum, Operation
+from metadata.models import Attribute, ClassClassifier, Classifier, Enum, EnumLiteral, Operation
 
 
 router = Router()
@@ -58,11 +61,6 @@ def get_enum(uml_class: ClassClassifier, enum_id: UUID | None) -> Enum | None:
 # ============================================================
 # Attributes
 # ============================================================
-@router.get("/{classifier_id}/attributes/", response=list[AttributeRead])
-def list_attributes(request, classifier_id: UUID):
-    return get_class(classifier_id).operations.all()
-
-
 @router.post("/{classifier_id}/attributes/", response=AttributeRead)
 def create_attribute(request, classifier_id: UUID, payload: AttributeCreate):
     uml_class = get_class(classifier_id)
@@ -96,13 +94,10 @@ def delete_attribute(request, attribute_id: UUID):
     get_object_or_404(Attribute, id=attribute_id).delete()
     return 204, None
 
+
 # ============================================================
 # Operations
 # ============================================================
-@router.get("/{classifier_id}/operations/", response=list[OperationRead])
-def list_operations(request, classifier_id: UUID):
-    return get_class(classifier_id).methods.all()
-
 @router.post("/{classifier_id}/operations/", response=OperationRead)
 def create_operation(request, classifier_id: UUID, payload: OperationCreate):
     operation = Operation(uml_class=get_class(classifier_id), **payload.model_dump())
@@ -126,4 +121,45 @@ def update_operation(request, operation_id: UUID, payload: OperationUpdate):
 @router.delete("/operations/{operation_id}/", response={204: None})
 def delete_operation(request, operation_id: UUID):
     get_object_or_404(Operation, id=operation_id).delete()
+    return 204, None
+
+
+# ============================================================
+# Enum Literals
+# ============================================================
+@router.post("/{classifier_id}/literals/", response=EnumLiteralRead)
+def create_enum_literal(
+    request,
+    classifier_id: UUID,
+    payload: EnumLiteralCreate,
+):
+    enum = get_object_or_404(Enum, pk=classifier_id)
+
+    literal = EnumLiteral(enum=enum, **payload.model_dump())
+    literal.full_clean()
+    literal.save()
+
+    return literal
+
+
+@router.patch("/literals/{literal_id}/", response=EnumLiteralRead)
+def update_enum_literal(
+    request,
+    literal_id: UUID,
+    payload: EnumLiteralUpdate,
+):
+    literal = get_object_or_404(EnumLiteral, pk=literal_id)
+
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(literal, field, value)
+
+    literal.full_clean()
+    literal.save()
+
+    return literal
+
+
+@router.delete("/literals/{literal_id}/", response={204: None})
+def delete_enum_literal(request, literal_id: UUID):
+    get_object_or_404(EnumLiteral, pk=literal_id).delete()
     return 204, None

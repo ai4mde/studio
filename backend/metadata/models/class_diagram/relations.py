@@ -1,6 +1,8 @@
 import uuid
 
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 from ..relation import RelationDataModel
 from ..mixins.nested_data import NestedDataMixin
@@ -84,3 +86,15 @@ class Composition(NestedDataMixin, RelationDataModel):
 
 class Dependency(RelationDataModel):
     label = models.CharField(max_length=255, blank=True, default="")
+
+
+@receiver(post_delete, sender=Association)
+@receiver(post_delete, sender=Composition)
+def delete_nested_relation_data(sender, instance, using, **kwargs):
+    for name in sender.nested_forward:
+        field = sender._meta.get_field(name)
+        related_id = getattr(instance, field.attname)
+
+        field.remote_field.model.objects.using(using).filter(
+            pk=related_id
+        ).delete()

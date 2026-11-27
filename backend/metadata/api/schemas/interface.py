@@ -129,6 +129,12 @@ class SectionOperationRead(ModelSchema):
         fields = ["id", "section", "operation"]
 
 
+class SectionOperationCreate(ModelSchema):
+    class Meta:
+        model = SectionOperation
+        fields = ["section", "operation"]
+
+
 class SectionComponentRead(ModelSchema):
     uml_class: UUID | None = Field(None, alias="uml_class_id")
     attributes: list[SectionAttributeRead]

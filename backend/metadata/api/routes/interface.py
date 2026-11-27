@@ -24,6 +24,8 @@ from metadata.api.schemas.interface import (
     SectionComponentCreate,
     SectionComponentRead,
     SectionComponentUpdate,
+    SectionOperationCreate,
+    SectionOperationRead,
 )
 from metadata.models import (
     Category,
@@ -32,6 +34,7 @@ from metadata.models import (
     PageSection,
     SectionAttribute,
     SectionComponent,
+    SectionOperation,
     System,
 )
 from metadata.models.types import ClassifierType
@@ -195,4 +198,25 @@ def update_section_attribute(request, section_attribute_id: UUID, payload: Secti
 def delete_section_attribute(request, section_attribute_id: UUID):
     section_attribute = get_object_or_404(SectionAttribute, id=section_attribute_id)
     section_attribute.delete()
+    return 204, None
+
+
+# Section-operation relationships
+
+
+@router.post("/section-operations/", response=SectionOperationRead)
+def create_section_operation(request, payload: SectionOperationCreate):
+    return create_instance(SectionOperation, payload)
+
+
+@router.delete(
+    "/section-operations/{section_operation_id}/",
+    response={204: None},
+)
+def delete_section_operation(request, section_operation_id: UUID):
+    section_operation = get_object_or_404(
+        SectionOperation,
+        id=section_operation_id,
+    )
+    section_operation.delete()
     return 204, None
