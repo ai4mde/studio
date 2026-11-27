@@ -1,4 +1,5 @@
-
+from copy import deepcopy
+import hashlib
 import json
 import os
 from uuid import UUID
@@ -7,7 +8,8 @@ import requests
 
 from generator.api.schemas.prototype import PrototypeCreate
 from generator.models import Prototype
-from metadata.models import System
+from generator.services.metadata import build_generator_metadata
+from metadata.models import Interface, System
 
 
 PROTOTYPE_API_PROTO = os.environ.get("PROTOTYPE_API_PROTO", "http://")
@@ -18,27 +20,93 @@ PROTOTYPE_API_URL = (
 )
 
 
+def calculate_database_hash(
+    system: System,
+    metadata: dict,
+) -> str:
+    classes = {}
+    relations = {}
+
+    for diagram in metadata["diagrams"]:
+        if diagram["type"] != "class":
+            continue
+
+        for node in diagram["nodes"]:
+            classifier = node["classifier"]
+
+            if classifier["type"] == "class":
+                classes[classifier["id"]] = deepcopy(classifier)
+
+        for edge in diagram["edges"]:
+            relation = edge["relation"]
+            relations[relation["id"]] = relation
+
+    # Make nested collections deterministic as well.
+    for classifier in classes.values():
+        classifier["data"]["attributes"].sort(
+            key=lambda item: item["id"]
+        )
+        classifier["data"]["operations"].sort(
+            key=lambda item: item["id"]
+        )
+
+    interface_names = list(
+        Interface.objects.filter(system=system)
+        .order_by("name")
+        .values_list("name", flat=True)
+    )
+
+    hash_data = {
+        "system": str(system.id),
+        "classes": [classes[key] for key in sorted(classes)],
+        "relations": [relations[key] for key in sorted(relations)],
+        "interfaces": interface_names,
+    }
+
+    serialized = json.dumps(
+        hash_data,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
 def create_prototype(
     prototype: PrototypeCreate,
-    database_prototype_name: str | None = None,
 ) -> Prototype:
+    system = System.objects.get(pk=prototype.system_id)
+
+    metadata = build_generator_metadata(
+        system=system,
+        interface_ids=prototype.interface_ids,
+        use_authentication=prototype.use_authentication,
+    ).model_dump(mode="json")
+
+    database_hash = calculate_database_hash(
+        system=system,
+        metadata=metadata,
+    )
+
     new_prototype = Prototype.objects.create(
         name=prototype.name,
         description=prototype.description,
-        system=System.objects.get(pk=prototype.system),
-        database_hash=prototype.database_hash,
-        metadata=prototype.metadata,
+        system=system,
+        database_hash=database_hash,
+        metadata=metadata,
     )
 
     data = {
         "id": str(new_prototype.id),
         "name": prototype.name,
-        "system": str(prototype.system),
-        "metadata": json.dumps(prototype.metadata),
+        "system": str(system.id),
+        "metadata": json.dumps(metadata),
     }
 
-    if database_prototype_name:
-        data["database_prototype_name"] = database_prototype_name
+    if prototype.database_prototype_name:
+        data["database_prototype_name"] = (
+            prototype.database_prototype_name
+        )
 
     response = requests.post(
         f"{PROTOTYPE_API_URL}/generate",
@@ -46,7 +114,11 @@ def create_prototype(
     )
 
     if response.status_code != 200:
-        raise Exception("Failed to generate prototype " + prototype.name)
+        # TODO Generator should implement a validation phase to check the data
+        # Handle the messages it sends back here
+        raise Exception(
+            "Failed to generate prototype " + prototype.name
+        )
 
     return new_prototype
 

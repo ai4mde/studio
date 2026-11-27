@@ -50,12 +50,8 @@ def list_prototypes_hash(request, database_hash: str):
 
 
 @router.post("/", response=PrototypeRead)
-def create_prototype(
-    request,
-    prototype: PrototypeCreate,
-    database_prototype_name: str | None = None,
-):
-    return create_prototype_service(prototype, database_prototype_name)
+def create_prototype(request, prototype: PrototypeCreate):
+    return create_prototype_service(prototype)
 
 
 @router.delete("/{uuid:id}/", response=bool)
@@ -77,10 +73,7 @@ def update_prototype(
 ):
     return bool(
         Prototype.objects.filter(pk=id).update(
-            name=payload.name,
-            description=payload.description,
-            system_id=payload.system,
-            database_hash=payload.database_hash,
+            **payload.model_dump()
         )
     )
 
