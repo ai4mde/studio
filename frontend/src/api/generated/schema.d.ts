@@ -79,8 +79,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Attributes */
-        get: operations["metadata_api_routes_classifier_list_attributes"];
+        get?: never;
         put?: never;
         /** Create Attribute */
         post: operations["metadata_api_routes_classifier_create_attribute"];
@@ -115,8 +114,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Operations */
-        get: operations["metadata_api_routes_classifier_list_operations"];
+        get?: never;
         put?: never;
         /** Create Operation */
         post: operations["metadata_api_routes_classifier_create_operation"];
@@ -142,6 +140,41 @@ export interface paths {
         head?: never;
         /** Update Operation */
         patch: operations["metadata_api_routes_classifier_update_operation"];
+        trace?: never;
+    };
+    "/api/v1/metadata/classifiers/{classifier_id}/literals/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Enum Literal */
+        post: operations["metadata_api_routes_classifier_create_enum_literal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/classifiers/literals/{literal_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Enum Literal */
+        delete: operations["metadata_api_routes_classifier_delete_enum_literal"];
+        options?: never;
+        head?: never;
+        /** Update Enum Literal */
+        patch: operations["metadata_api_routes_classifier_update_enum_literal"];
         trace?: never;
     };
     "/api/v1/metadata/generation/{classifier_id}/attribute/": {
@@ -407,6 +440,40 @@ export interface paths {
         patch: operations["metadata_api_routes_interface_update_section_attribute"];
         trace?: never;
     };
+    "/api/v1/metadata/interfaces/section-operations/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Section Operation */
+        post: operations["metadata_api_routes_interface_create_section_operation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/interfaces/section-operations/{section_operation_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Section Operation */
+        delete: operations["metadata_api_routes_interface_delete_section_operation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/metadata/projects/": {
         parameters: {
             query?: never;
@@ -459,6 +526,46 @@ export interface paths {
         head?: never;
         /** Update Project */
         patch: operations["metadata_api_routes_project_update_project"];
+        trace?: never;
+    };
+    "/api/v1/metadata/projects/{project_id}/export/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Project
+         * @description The current state of the project, in the same format as a release export.
+         */
+        get: operations["metadata_api_routes_project_export_project"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/projects/{project_id}/systems/export/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Project Systems
+         * @description Selected systems of the project, to import into a project later.
+         */
+        get: operations["metadata_api_routes_project_export_project_systems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/metadata/releases/": {
@@ -541,6 +648,43 @@ export interface paths {
         put?: never;
         /** Merge Releases Route */
         post: operations["metadata_api_routes_releases_merge_releases_route"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/releases/{release_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Release */
+        delete: operations["metadata_api_routes_releases_delete_release"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/metadata/releases/import_systems/{project_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Systems
+         * @description Add the systems from a systems export to the project, then create a release.
+         */
+        post: operations["metadata_api_routes_releases_import_systems"];
         delete?: never;
         options?: never;
         head?: never;
@@ -836,10 +980,10 @@ export interface paths {
             cookie?: never;
         };
         /** List Prototypes */
-        get: operations["generator_api_views_prototypes_list_prototypes"];
+        get: operations["generator_api_routes_prototype_list_prototypes"];
         put?: never;
         /** Create Prototype */
-        post: operations["generator_api_views_prototypes_create_prototype"];
+        post: operations["generator_api_routes_prototype_create_prototype"];
         delete?: never;
         options?: never;
         head?: never;
@@ -854,7 +998,7 @@ export interface paths {
             cookie?: never;
         };
         /** Read Prototype Meta */
-        get: operations["generator_api_views_prototypes_read_prototype_meta"];
+        get: operations["generator_api_routes_prototype_read_prototype_meta"];
         put?: never;
         post?: never;
         delete?: never;
@@ -863,15 +1007,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/generator/prototypes/{database_hash}": {
+    "/api/v1/generator/prototypes/active_prototype/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List Prototypes Hash */
-        get: operations["generator_api_views_prototypes_list_prototypes_hash"];
+        /** Get Active Prototype */
+        get: operations["generator_api_routes_prototype_get_active_prototype"];
         put?: never;
         post?: never;
         delete?: never;
@@ -888,12 +1032,29 @@ export interface paths {
             cookie?: never;
         };
         /** Read Prototype */
-        get: operations["generator_api_views_prototypes_read_prototype"];
+        get: operations["generator_api_routes_prototype_read_prototype"];
         /** Update Prototype */
-        put: operations["generator_api_views_prototypes_update_prototype"];
+        put: operations["generator_api_routes_prototype_update_prototype"];
         post?: never;
         /** Delete Prototype */
-        delete: operations["generator_api_views_prototypes_delete_prototype"];
+        delete: operations["generator_api_routes_prototype_delete_prototype"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/generator/prototypes/{database_hash}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Prototypes Hash */
+        get: operations["generator_api_routes_prototype_list_prototypes_hash"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -910,7 +1071,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Delete System Prototypes */
-        delete: operations["generator_api_views_prototypes_delete_system_prototypes"];
+        delete: operations["generator_api_routes_prototype_delete_system_prototypes"];
         options?: never;
         head?: never;
         patch?: never;
@@ -926,14 +1087,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Stop Prototypes */
-        post: operations["generator_api_views_prototypes_stop_prototypes"];
+        post: operations["generator_api_routes_prototype_stop_prototypes"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/generator/prototypes/run/{prototype_id}": {
+    "/api/v1/generator/prototypes/run/{prototype_id}/": {
         parameters: {
             query?: never;
             header?: never;
@@ -943,24 +1104,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Run Prototype */
-        post: operations["generator_api_views_prototypes_run_prototype"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/generator/prototypes/active_prototype/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Active Prototype */
-        get: operations["generator_api_views_prototypes_get_active_prototype"];
-        put?: never;
-        post?: never;
+        post: operations["generator_api_routes_prototype_run_prototype"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1005,8 +1149,7 @@ export interface components {
             is_automatic: boolean;
             /** Custom Code */
             custom_code?: string | null;
-            /** Swimlane */
-            swimlane?: string | null;
+            swimlane: components["schemas"]["SwimlaneRead"] | null;
         };
         /** ActorClassifierRead */
         ActorClassifierRead: {
@@ -1030,6 +1173,25 @@ export interface components {
             name: string;
             /** Boundary */
             boundary?: string | null;
+        };
+        /** AttributeRead */
+        AttributeRead: {
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /**
+             * Derived
+             * @default false
+             */
+            derived: boolean;
+            enum: components["schemas"]["EnumRead"] | null;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
         };
         /** ComponentClassifierRead */
         ComponentClassifierRead: {
@@ -1107,10 +1269,24 @@ export interface components {
             type: "enum";
             data: components["schemas"]["EnumRead"];
         };
+        /** EnumLiteralRead */
+        EnumLiteralRead: {
+            /** Id */
+            id?: string | null;
+            /** Value */
+            value: string;
+            /**
+             * Order
+             * @default 0
+             */
+            order: number;
+        };
         /** EnumRead */
         EnumRead: {
             /** Name */
             name: string;
+            /** Literals */
+            literals: components["schemas"]["EnumLiteralRead"][];
         };
         /** EventClassifierRead */
         EventClassifierRead: {
@@ -1261,6 +1437,19 @@ export interface components {
             /** State */
             state?: string | null;
         };
+        /** OperationRead */
+        OperationRead: {
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
+        };
         /** SignalClassifierRead */
         SignalClassifierRead: {
             /** Id */
@@ -1296,16 +1485,30 @@ export interface components {
              * @enum {string}
              */
             type: "swimlane";
-            data: components["schemas"]["SwimlaneRead"];
+            data: components["schemas"]["SwimlaneTreeRead"];
         };
         /** SwimlaneRead */
         SwimlaneRead: {
             /** Parent */
             parent?: string | null;
-            /** Actor */
-            actor?: string | null;
+            actor: components["schemas"]["ActorRead"] | null;
             /** Component */
             component?: string | null;
+        };
+        /** SwimlaneTreeRead */
+        SwimlaneTreeRead: {
+            /** Parent */
+            parent?: string | null;
+            actor: components["schemas"]["ActorRead"] | null;
+            /** Component */
+            component?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Children */
+            children: components["schemas"]["SwimlaneTreeRead"][];
         };
         /** SystemBoundaryRead */
         SystemBoundaryRead: {
@@ -1405,6 +1608,10 @@ export interface components {
         metadata__api__schemas__classifier__class_diagram__ClassClassifierRead: {
             /** Name */
             name: string;
+            /** Attributes */
+            attributes: components["schemas"]["AttributeRead"][];
+            /** Operations */
+            operations: components["schemas"]["OperationRead"][];
         };
         /** InterfaceClassifierRead */
         metadata__api__schemas__classifier__class_diagram__InterfaceClassifierRead: {
@@ -1415,26 +1622,6 @@ export interface components {
         metadata__api__schemas__classifier__component_diagram__SystemClassifierRead: {
             /** Name */
             name: string;
-        };
-        /** AttributeRead */
-        AttributeRead: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-            /** Type */
-            type: string;
-            /** Derived */
-            derived: boolean;
-            /** Enum */
-            enum?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Body */
-            body?: string | null;
         };
         /** AttributeCreate */
         AttributeCreate: {
@@ -1447,12 +1634,12 @@ export interface components {
              * @default false
              */
             derived: boolean;
-            /** Enum Id */
-            enum_id?: string | null;
             /** Description */
             description?: string | null;
             /** Body */
             body?: string | null;
+            /** Enum Id */
+            enum_id?: string | null;
         };
         /** AttributeUpdate */
         AttributeUpdate: {
@@ -1460,30 +1647,17 @@ export interface components {
             name?: string | null;
             /** Type */
             type?: string | null;
-            /** Derived */
-            derived?: boolean | null;
+            /**
+             * Derived
+             * @default false
+             */
+            derived: boolean | null;
+            /** Description */
+            description?: string | null;
+            /** Body */
+            body?: string | null;
             /** Enum Id */
             enum_id?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Body */
-            body?: string | null;
-        };
-        /** OperationRead */
-        OperationRead: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-            /** Type */
-            type: string;
-            /** Description */
-            description?: string | null;
-            /** Body */
-            body?: string | null;
         };
         /** OperationCreate */
         OperationCreate: {
@@ -1506,6 +1680,26 @@ export interface components {
             description?: string | null;
             /** Body */
             body?: string | null;
+        };
+        /** EnumLiteralCreate */
+        EnumLiteralCreate: {
+            /** Value */
+            value: string;
+            /**
+             * Order
+             * @default 0
+             */
+            order: number;
+        };
+        /** EnumLiteralUpdate */
+        EnumLiteralUpdate: {
+            /** Value */
+            value?: string | null;
+            /**
+             * Order
+             * @default 0
+             */
+            order: number | null;
         };
         /** GenerateAttribute */
         GenerateAttribute: {
@@ -1561,12 +1755,6 @@ export interface components {
         };
         /** InterfaceRead */
         InterfaceRead: {
-            /** Pages */
-            pages: components["schemas"]["PageRead"][];
-            /** Categories */
-            categories: components["schemas"]["CategoryRead"][];
-            /** Sections */
-            sections: components["schemas"]["SectionComponentRead"][];
             /** Id */
             id?: string | null;
             /**
@@ -1610,14 +1798,15 @@ export interface components {
              * @default true
              */
             manager_access: boolean;
+            /** Pages */
+            pages: components["schemas"]["PageRead"][];
+            /** Categories */
+            categories: components["schemas"]["CategoryRead"][];
+            /** Sections */
+            sections: components["schemas"]["SectionComponentRead"][];
         };
         /** PageRead */
         PageRead: {
-            /**
-             * Page Sections
-             * @default []
-             */
-            page_sections: components["schemas"]["PageSectionRead"][];
             /** Id */
             id?: string | null;
             /**
@@ -1636,6 +1825,8 @@ export interface components {
             action?: string | null;
             /** Category */
             category?: string | null;
+            /** Page Sections */
+            page_sections: components["schemas"]["PageSectionRead"][];
         };
         /** PageSectionRead */
         PageSectionRead: {
@@ -1664,11 +1855,7 @@ export interface components {
              * Format: uuid
              */
             section: string;
-            /**
-             * Attribute
-             * Format: uuid
-             */
-            attribute: string;
+            attribute: components["schemas"]["AttributeRead"];
             /**
              * Order
              * @default 0
@@ -1677,11 +1864,6 @@ export interface components {
         };
         /** SectionComponentRead */
         SectionComponentRead: {
-            /**
-             * Attributes
-             * @default []
-             */
-            attributes: components["schemas"]["SectionAttributeRead"][];
             /** Id */
             id?: string | null;
             /**
@@ -1713,6 +1895,21 @@ export interface components {
              * @default false
              */
             allow_delete: boolean;
+            /** Attributes */
+            attributes: components["schemas"]["SectionAttributeRead"][];
+            /** Operations */
+            operations: components["schemas"]["SectionOperationRead"][];
+        };
+        /** SectionOperationRead */
+        SectionOperationRead: {
+            /** Id */
+            id?: string | null;
+            /**
+             * Section
+             * Format: uuid
+             */
+            section: string;
+            operation: components["schemas"]["OperationRead"];
         };
         /** InterfaceCreate */
         InterfaceCreate: {
@@ -1725,7 +1922,7 @@ export interface components {
             name: string;
             /** Description */
             description: string;
-            /** Actor */
+            /** Actor Id */
             actor_id?: string | null;
             /**
              * Radius
@@ -1764,7 +1961,7 @@ export interface components {
             name?: string | null;
             /** Description */
             description?: string | null;
-            /** Actor */
+            /** Actor Id */
             actor_id?: string | null;
             /**
              * Radius
@@ -1811,7 +2008,7 @@ export interface components {
              * @default normal
              */
             type: string;
-            /** Action */
+            /** Action Id */
             action_id?: string | null;
             /** Category */
             category_id?: string | null;
@@ -1825,7 +2022,7 @@ export interface components {
              * @default normal
              */
             type: string | null;
-            /** Action */
+            /** Action Id */
             action_id?: string | null;
             /** Category */
             category_id?: string | null;
@@ -1859,7 +2056,7 @@ export interface components {
              * @default
              */
             text: string | null;
-            /** Uml Class */
+            /** Uml Class Id */
             uml_class_id?: string | null;
             /**
              * Allow Create
@@ -1886,7 +2083,7 @@ export interface components {
              * @default
              */
             text: string | null;
-            /** Uml Class */
+            /** Uml Class Id */
             uml_class_id?: string | null;
             /**
              * Allow Create
@@ -1956,6 +2153,19 @@ export interface components {
              */
             order: number | null;
         };
+        /** SectionOperationCreate */
+        SectionOperationCreate: {
+            /**
+             * Section
+             * Format: uuid
+             */
+            section_id: string;
+            /**
+             * Operation
+             * Format: uuid
+             */
+            operation_id: string;
+        };
         /** ProjectList */
         ProjectList: {
             /** Id */
@@ -1970,8 +2180,6 @@ export interface components {
         };
         /** ProjectRead */
         ProjectRead: {
-            /** Systems */
-            systems: components["schemas"]["SystemList"][];
             /** Id */
             id?: string | null;
             /** Name */
@@ -1981,6 +2189,8 @@ export interface components {
              * @default
              */
             description: string | null;
+            /** Systems */
+            systems: components["schemas"]["SystemList"][];
         };
         /** SystemList */
         SystemList: {
@@ -2096,8 +2306,6 @@ export interface components {
         };
         /** SystemRead */
         SystemRead: {
-            /** Diagrams */
-            diagrams: components["schemas"]["DiagramRead"][];
             /** Id */
             id?: string | null;
             /** Name */
@@ -2112,6 +2320,8 @@ export interface components {
              * Format: uuid
              */
             project: string;
+            /** Diagrams */
+            diagrams: components["schemas"]["DiagramRead"][];
         };
         /** SystemUpdate */
         SystemUpdate: {
@@ -2125,11 +2335,6 @@ export interface components {
         };
         /** SystemCreate */
         SystemCreate: {
-            /**
-             * Project Id
-             * Format: uuid
-             */
-            project_id: string;
             /** Name */
             name: string;
             /**
@@ -2137,11 +2342,14 @@ export interface components {
              * @default
              */
             description: string | null;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
         };
         /** NodeRead */
         NodeRead: {
-            /** Classifier */
-            classifier: components["schemas"]["metadata__api__schemas__builders__ClassClassifierRead"] | components["schemas"]["SignalClassifierRead"] | components["schemas"]["EnumClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__InterfaceClassifierRead"] | components["schemas"]["UsecaseClassifierRead"] | components["schemas"]["ActorClassifierRead"] | components["schemas"]["System_BoundaryClassifierRead"] | components["schemas"]["SwimlaneClassifierRead"] | components["schemas"]["ActionClassifierRead"] | components["schemas"]["DecisionClassifierRead"] | components["schemas"]["FinalClassifierRead"] | components["schemas"]["ForkClassifierRead"] | components["schemas"]["InitialClassifierRead"] | components["schemas"]["JoinClassifierRead"] | components["schemas"]["MergeClassifierRead"] | components["schemas"]["ObjectClassifierRead"] | components["schemas"]["EventClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__SystemClassifierRead"] | components["schemas"]["ContainerClassifierRead"] | components["schemas"]["ComponentClassifierRead"];
             /** Id */
             id?: string | null;
             /**
@@ -2149,6 +2357,8 @@ export interface components {
              * Format: uuid
              */
             diagram: string;
+            /** Classifier */
+            classifier: components["schemas"]["metadata__api__schemas__builders__ClassClassifierRead"] | components["schemas"]["SignalClassifierRead"] | components["schemas"]["EnumClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__InterfaceClassifierRead"] | components["schemas"]["UsecaseClassifierRead"] | components["schemas"]["ActorClassifierRead"] | components["schemas"]["System_BoundaryClassifierRead"] | components["schemas"]["SwimlaneClassifierRead"] | components["schemas"]["ActionClassifierRead"] | components["schemas"]["DecisionClassifierRead"] | components["schemas"]["FinalClassifierRead"] | components["schemas"]["ForkClassifierRead"] | components["schemas"]["InitialClassifierRead"] | components["schemas"]["JoinClassifierRead"] | components["schemas"]["MergeClassifierRead"] | components["schemas"]["ObjectClassifierRead"] | components["schemas"]["EventClassifierRead"] | components["schemas"]["metadata__api__schemas__builders__SystemClassifierRead"] | components["schemas"]["ContainerClassifierRead"] | components["schemas"]["ComponentClassifierRead"];
             /** Parent */
             parent?: string | null;
             /**
@@ -2190,7 +2400,7 @@ export interface components {
             is_automatic: boolean;
             /** Custom Code */
             custom_code?: string | null;
-            /** Swimlane */
+            /** Swimlane Id */
             swimlane_id?: string | null;
         };
         /** ActorClassifierCreate */
@@ -2206,7 +2416,7 @@ export interface components {
         ActorCreate: {
             /** Name */
             name: string;
-            /** Boundary */
+            /** Boundary Id */
             boundary_id?: string | null;
         };
         /** ClassifierCreate */
@@ -2261,6 +2471,8 @@ export interface components {
         EnumCreate: {
             /** Name */
             name: string;
+            /** Literals */
+            literals: components["schemas"]["EnumLiteralCreate"][];
         };
         /** EventClassifierCreate */
         EventClassifierCreate: {
@@ -2275,7 +2487,7 @@ export interface components {
         EventCreate: {
             /** Name */
             name: string;
-            /** Signal */
+            /** Signal Id */
             signal_id?: string | null;
         };
         /** FinalClassifierCreate */
@@ -2346,9 +2558,6 @@ export interface components {
         };
         /** NodeCreate */
         NodeCreate: {
-            classifier?: components["schemas"]["ClassifierCreate"] | null;
-            /** Classifier Id */
-            classifier_id?: string | null;
             /** Parent */
             parent_id?: string | null;
             /**
@@ -2369,6 +2578,9 @@ export interface components {
             color?: string | null;
             /** Font */
             font?: string | null;
+            classifier?: components["schemas"]["ClassifierCreate"] | null;
+            /** Classifier Id */
+            classifier_id?: string | null;
         };
         /** ObjectClassifierCreate */
         ObjectClassifierCreate: {
@@ -2383,7 +2595,7 @@ export interface components {
         ObjectCreate: {
             /** Name */
             name: string;
-            /** Uml Class */
+            /** Uml Class Id */
             uml_class_id?: string | null;
             /** State */
             state?: string | null;
@@ -2413,9 +2625,9 @@ export interface components {
         };
         /** SwimlaneCreate */
         SwimlaneCreate: {
-            /** Parent */
+            /** Parent Id */
             parent_id?: string | null;
-            /** Actor */
+            /** Actor Id */
             actor_id?: string | null;
             /** Component */
             component_id?: string | null;
@@ -2449,7 +2661,7 @@ export interface components {
         UsecaseCreate: {
             /** Name */
             name: string;
-            /** Boundary */
+            /** Boundary Id */
             boundary_id?: string | null;
         };
         /** ClassClassifierCreate */
@@ -2501,9 +2713,6 @@ export interface components {
         };
         /** NodeUpdate */
         NodeUpdate: {
-            classifier?: components["schemas"]["ClassifierUpdate"] | null;
-            /** Classifier Id */
-            classifier_id?: string | null;
             /** Parent */
             parent_id?: string | null;
             /**
@@ -2524,11 +2733,12 @@ export interface components {
             color?: string | null;
             /** Font */
             font?: string | null;
+            classifier?: components["schemas"]["ClassifierUpdate"] | null;
+            /** Classifier Id */
+            classifier_id?: string | null;
         };
         /** AssociationRead */
         AssociationRead: {
-            multiplicity: components["schemas"]["MultiplicitySchema"];
-            labels: components["schemas"]["EndpointLabelSchema"];
             /**
              * Derived
              * @default false
@@ -2539,6 +2749,8 @@ export interface components {
              * @default
              */
             label: string | null;
+            multiplicity: components["schemas"]["MultiplicitySchema"];
+            labels: components["schemas"]["EndpointLabelSchema"];
         };
         /** AssociationRelationRead */
         AssociationRelationRead: {
@@ -2568,13 +2780,13 @@ export interface components {
         };
         /** CompositionRead */
         CompositionRead: {
-            multiplicity: components["schemas"]["MultiplicitySchema"];
-            labels: components["schemas"]["EndpointLabelSchema"];
             /**
              * Label
              * @default
              */
             label: string | null;
+            multiplicity: components["schemas"]["MultiplicitySchema"];
+            labels: components["schemas"]["EndpointLabelSchema"];
         };
         /** CompositionRelationRead */
         CompositionRelationRead: {
@@ -2616,8 +2828,7 @@ export interface components {
              * @default false
              */
             is_else: boolean;
-            /** Attribute */
-            attribute?: string | null;
+            attribute: components["schemas"]["AttributeRead"] | null;
             /**
              * Operator
              * @default
@@ -2705,8 +2916,26 @@ export interface components {
         };
         /** EdgeRead */
         EdgeRead: {
+            /** Id */
+            id?: string | null;
+            /**
+             * Diagram
+             * Format: uuid
+             */
+            diagram: string;
             /** Relation */
             relation: components["schemas"]["AssociationRelationRead"] | components["schemas"]["GeneralizationRelationRead"] | components["schemas"]["CompositionRelationRead"] | components["schemas"]["DependencyRelationRead"] | components["schemas"]["ControlflowRelationRead"] | components["schemas"]["InteractionRelationRead"] | components["schemas"]["ExtensionRelationRead"] | components["schemas"]["InclusionRelationRead"] | components["schemas"]["metadata__api__schemas__builders__InterfaceRelationRead"];
+            /** Width */
+            width?: number | null;
+            /** Color */
+            color?: string | null;
+            /** Font */
+            font?: string | null;
+            /**
+             * Rounded
+             * @default false
+             */
+            rounded: boolean;
             /**
              * Source
              * Format: uuid
@@ -2719,24 +2948,6 @@ export interface components {
             target: string;
             /** Control Points */
             control_points: components["schemas"]["ControlPoint"][];
-            /** Id */
-            id?: string | null;
-            /**
-             * Diagram
-             * Format: uuid
-             */
-            diagram: string;
-            /** Width */
-            width?: number | null;
-            /** Color */
-            color?: string | null;
-            /** Font */
-            font?: string | null;
-            /**
-             * Rounded
-             * @default false
-             */
-            rounded: boolean;
         };
         /** EndpointLabelSchema */
         EndpointLabelSchema: {
@@ -2744,12 +2955,12 @@ export interface components {
              * Source
              * @default
              */
-            source: string;
+            source: string | null;
             /**
              * Target
              * @default
              */
-            target: string;
+            target: string | null;
         };
         /** ExtensionRelationRead */
         ExtensionRelationRead: {
@@ -2857,26 +3068,14 @@ export interface components {
         };
         /** MultiplicitySchema */
         MultiplicitySchema: {
-            /**
-             * Source Lower
-             * @default 1
-             */
+            /** Source Lower */
             source_lower: number;
-            /**
-             * Source Upper
-             * @default 1
-             */
-            source_upper: number | null;
-            /**
-             * Target Lower
-             * @default 1
-             */
+            /** Source Upper */
+            source_upper?: number | null;
+            /** Target Lower */
             target_lower: number;
-            /**
-             * Target Upper
-             * @default 1
-             */
-            target_upper: number | null;
+            /** Target Upper */
+            target_upper?: number | null;
         };
         /** InterfaceRelationRead */
         metadata__api__schemas__builders__InterfaceRelationRead: {
@@ -2914,22 +3113,6 @@ export interface components {
         /** AssociationCreate */
         AssociationCreate: {
             /**
-             * @default {
-             *       "source_lower": 1,
-             *       "source_upper": 1,
-             *       "target_lower": 1,
-             *       "target_upper": 1
-             *     }
-             */
-            multiplicity: components["schemas"]["MultiplicitySchema"];
-            /**
-             * @default {
-             *       "source": "",
-             *       "target": ""
-             *     }
-             */
-            labels: components["schemas"]["EndpointLabelSchema"];
-            /**
              * Derived
              * @default false
              */
@@ -2939,6 +3122,8 @@ export interface components {
              * @default
              */
             label: string | null;
+            multiplicity: components["schemas"]["MultiplicitySchema"];
+            labels?: components["schemas"]["EndpointLabelSchema"] | null;
         };
         /** AssociationRelationCreate */
         AssociationRelationCreate: {
@@ -2952,26 +3137,12 @@ export interface components {
         /** CompositionCreate */
         CompositionCreate: {
             /**
-             * @default {
-             *       "source_lower": 1,
-             *       "source_upper": 1,
-             *       "target_lower": 1,
-             *       "target_upper": 1
-             *     }
-             */
-            multiplicity: components["schemas"]["MultiplicitySchema"];
-            /**
-             * @default {
-             *       "source": "",
-             *       "target": ""
-             *     }
-             */
-            labels: components["schemas"]["EndpointLabelSchema"];
-            /**
              * Label
              * @default
              */
             label: string | null;
+            multiplicity: components["schemas"]["MultiplicitySchema"];
+            labels?: components["schemas"]["EndpointLabelSchema"] | null;
         };
         /** CompositionRelationCreate */
         CompositionRelationCreate: {
@@ -3042,17 +3213,6 @@ export interface components {
         };
         /** EdgeCreate */
         EdgeCreate: {
-            relation: components["schemas"]["RelationCreate"];
-            /**
-             * Source Id
-             * Format: uuid
-             */
-            source_id: string;
-            /**
-             * Target Id
-             * Format: uuid
-             */
-            target_id: string;
             /** Width */
             width?: number | null;
             /** Color */
@@ -3064,6 +3224,17 @@ export interface components {
              * @default false
              */
             rounded: boolean | null;
+            relation: components["schemas"]["RelationCreate"];
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
         };
         /** ExtensionRelationCreate */
         ExtensionRelationCreate: {
@@ -3121,9 +3292,6 @@ export interface components {
         };
         /** EdgeUpdate */
         EdgeUpdate: {
-            relation?: components["schemas"]["RelationUpdate"] | null;
-            /** Control Points */
-            control_points?: components["schemas"]["ControlPoint"][] | null;
             /** Width */
             width?: number | null;
             /** Color */
@@ -3135,6 +3303,9 @@ export interface components {
              * @default false
              */
             rounded: boolean | null;
+            relation?: components["schemas"]["RelationUpdate"] | null;
+            /** Control Points */
+            control_points?: components["schemas"]["ControlPoint"][] | null;
         };
         /** RelationUpdate */
         RelationUpdate: {
@@ -3144,11 +3315,6 @@ export interface components {
         /** DiagramCreate */
         DiagramCreate: {
             /**
-             * System Id
-             * Format: uuid
-             */
-            system_id: string;
-            /**
              * Name
              * @default Diagram
              */
@@ -3157,6 +3323,11 @@ export interface components {
             description?: string | null;
             /** Type */
             type: string;
+            /**
+             * System Id
+             * Format: uuid
+             */
+            system_id: string;
         };
         /** DiagramReadFull */
         DiagramReadFull: {
@@ -3245,8 +3416,8 @@ export interface components {
             /** Output */
             output: Record<string, never>;
         };
-        /** ReadPrototype */
-        ReadPrototype: {
+        /** PrototypeRead */
+        PrototypeRead: {
             /** Id */
             id?: string | null;
             /** Name */
@@ -3261,8 +3432,8 @@ export interface components {
             /** Database Hash */
             database_hash?: string | null;
         };
-        /** CreatePrototype */
-        CreatePrototype: {
+        /** PrototypeCreate */
+        PrototypeCreate: {
             /** Name */
             name: string;
             /** Description */
@@ -3277,10 +3448,8 @@ export interface components {
             /** Metadata */
             metadata?: Record<string, never>;
         };
-        /** UpdatePrototype */
-        UpdatePrototype: {
-            /** Id */
-            id?: string | null;
+        /** PrototypeUpdate */
+        PrototypeUpdate: {
             /** Name */
             name: string;
             /** Description */
@@ -3383,28 +3552,6 @@ export interface operations {
             };
         };
     };
-    metadata_api_routes_classifier_list_attributes: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                classifier_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AttributeRead"][];
-                };
-            };
-        };
-    };
     metadata_api_routes_classifier_create_attribute: {
         parameters: {
             query?: never;
@@ -3477,28 +3624,6 @@ export interface operations {
             };
         };
     };
-    metadata_api_routes_classifier_list_operations: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                classifier_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OperationRead"][];
-                };
-            };
-        };
-    };
     metadata_api_routes_classifier_create_operation: {
         parameters: {
             query?: never;
@@ -3567,6 +3692,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OperationRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_classifier_create_enum_literal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnumLiteralCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnumLiteralRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_classifier_delete_enum_literal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                literal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata_api_routes_classifier_update_enum_literal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                literal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnumLiteralUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnumLiteralRead"];
                 };
             };
         };
@@ -4127,6 +4324,50 @@ export interface operations {
             };
         };
     };
+    metadata_api_routes_interface_create_section_operation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SectionOperationCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SectionOperationRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_interface_delete_section_operation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     metadata_api_routes_project_list_projects: {
         parameters: {
             query?: never;
@@ -4288,6 +4529,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectRead"];
+                };
+            };
+        };
+    };
+    metadata_api_routes_project_export_project: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata_api_routes_project_export_project_systems: {
+        parameters: {
+            query: {
+                system_ids: string[];
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
         };
@@ -4463,6 +4755,79 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    metadata_api_routes_releases_delete_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                release_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata_api_routes_releases_import_systems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                    /** Name */
+                    name: string;
+                    /**
+                     * Description
+                     * @default
+                     */
+                    description?: string;
+                    /**
+                     * Release Notes
+                     * @default []
+                     */
+                    release_notes?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5069,7 +5434,7 @@ export interface operations {
             };
         };
     };
-    generator_api_views_prototypes_list_prototypes: {
+    generator_api_routes_prototype_list_prototypes: {
         parameters: {
             query?: {
                 system?: string | null;
@@ -5086,15 +5451,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReadPrototype"][];
+                    "application/json": components["schemas"]["PrototypeRead"][];
                 };
             };
         };
     };
-    generator_api_views_prototypes_create_prototype: {
+    generator_api_routes_prototype_create_prototype: {
         parameters: {
-            query: {
-                database_prototype_name: string | null;
+            query?: {
+                database_prototype_name?: string | null;
             };
             header?: never;
             path?: never;
@@ -5102,7 +5467,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreatePrototype"];
+                "application/json": components["schemas"]["PrototypeCreate"];
             };
         };
         responses: {
@@ -5112,12 +5477,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReadPrototype"];
+                    "application/json": components["schemas"]["PrototypeRead"];
                 };
             };
         };
     };
-    generator_api_views_prototypes_read_prototype_meta: {
+    generator_api_routes_prototype_read_prototype_meta: {
         parameters: {
             query?: never;
             header?: never;
@@ -5139,7 +5504,95 @@ export interface operations {
             };
         };
     };
-    generator_api_views_prototypes_list_prototypes_hash: {
+    generator_api_routes_prototype_get_active_prototype: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    generator_api_routes_prototype_read_prototype: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrototypeRead"];
+                };
+            };
+        };
+    };
+    generator_api_routes_prototype_update_prototype: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrototypeUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": boolean;
+                };
+            };
+        };
+    };
+    generator_api_routes_prototype_delete_prototype: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": boolean;
+                };
+            };
+        };
+    };
+    generator_api_routes_prototype_list_prototypes_hash: {
         parameters: {
             query?: never;
             header?: never;
@@ -5156,82 +5609,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReadPrototype"][];
+                    "application/json": components["schemas"]["PrototypeRead"][];
                 };
             };
         };
     };
-    generator_api_views_prototypes_read_prototype: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReadPrototype"];
-                };
-            };
-        };
-    };
-    generator_api_views_prototypes_update_prototype: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePrototype"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": boolean;
-                };
-            };
-        };
-    };
-    generator_api_views_prototypes_delete_prototype: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": boolean;
-                };
-            };
-        };
-    };
-    generator_api_views_prototypes_delete_system_prototypes: {
+    generator_api_routes_prototype_delete_system_prototypes: {
         parameters: {
             query?: never;
             header?: never;
@@ -5253,7 +5636,7 @@ export interface operations {
             };
         };
     };
-    generator_api_views_prototypes_stop_prototypes: {
+    generator_api_routes_prototype_stop_prototypes: {
         parameters: {
             query?: never;
             header?: never;
@@ -5273,7 +5656,7 @@ export interface operations {
             };
         };
     };
-    generator_api_views_prototypes_run_prototype: {
+    generator_api_routes_prototype_run_prototype: {
         parameters: {
             query?: never;
             header?: never;
@@ -5292,24 +5675,6 @@ export interface operations {
                 content: {
                     "application/json": boolean;
                 };
-            };
-        };
-    };
-    generator_api_views_prototypes_get_active_prototype: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

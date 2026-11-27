@@ -18,12 +18,17 @@ from metadata.api.schemas.classifier.usecase_diagram import ActorRead
 # a OneToOneField referencing a UUID. Explicitly annotate these as UUID.
 
 class SwimlaneRead(ModelSchema):
+    id: UUID = Field(alias="classifier_id")
     parent: UUID | None = Field(None, alias="parent_id")
     actor: ActorRead | None
 
     class Meta:
         model = Swimlane
         fields = ["parent", "actor", "component"]
+
+
+class SwimlaneTreeRead(SwimlaneRead):
+    children: list["SwimlaneTreeRead"]
 
 
 class SwimlaneCreate(ModelSchema):
@@ -163,7 +168,7 @@ class InitialUpdate(ModelSchema):
 
 ACTIVITY_DIAGRAM_SCHEMAS = {
     ClassifierType.SWIMLANE: {
-        "read": SwimlaneRead,
+        "read": SwimlaneTreeRead,
         "create": SwimlaneCreate,
         "update": SwimlaneUpdate,
     },
